@@ -53,13 +53,19 @@ def _extract_search_terms(question: str) -> list[str]:
     return terms
 
 
-def get_card_context(question: str, max_cards: int = 12) -> str:
+def get_card_context(question: str, max_cards: int = 12, force: bool = False) -> str:
     """Return a compact, non-sensitive summary of matching cards. Fail silently.
+
+    ``force`` skips the keyword heuristic. The heuristic exists for callers that
+    pass along every user question and need a cheap relevance guess; a caller
+    that has already decided the question is about cards (the chatbot's
+    search_cards tool, chosen by the model) should set it, since the keyword
+    list would otherwise reject perfectly good queries like "salmon habitat".
 
     Security: queries only public card columns (no username/email/password and no
     Users join) and excludes uploader-only (private) cards.
     """
-    if not _looks_like_card_question(question):
+    if not force and not _looks_like_card_question(question):
         return ""
 
     connection = get_connection()
@@ -183,5 +189,15 @@ def get_card_context(question: str, max_cards: int = 12) -> str:
 
 
 @cards_summary_router.get("/summary")
-def cards_summary(q: str = Query("", max_length=500)):
-    return {"context": get_card_context(q)}
+def cards_summary(
+    q: str = Query("", max_length=500),
+    force: bool = Query(
+        False,
+        description=(
+            "Skip the keyword relevance heuristic. Set by callers that have "
+            "already decided the question is about cards, such as the chatbot's "
+            "search_cards tool."
+        ),
+    ),
+):
+    return {"context": get_card_context(q, force=force)}

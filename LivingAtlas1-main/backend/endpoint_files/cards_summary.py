@@ -14,23 +14,11 @@ endpoints were removed.
 import re
 from typing import Any
 
-import psycopg2
 from fastapi import APIRouter, Query
 
+from database import get_connection
+
 cards_summary_router = APIRouter(prefix="/cards", tags=["cards-summary"])
-
-
-def get_db_connection():
-    """Use the same Azure PostgreSQL connection pattern as backend/database.py."""
-    return psycopg2.connect(
-        dbname="postgres",
-        user="CereoAtlas",
-        password="LivingAtlas25$",
-        host="cereo-livingatlas-db.postgres.database.azure.com",
-        port="5432",
-        sslmode="require",
-        connect_timeout=10,
-    )
 
 
 _CARD_QUERY_KEYWORDS = (
@@ -74,82 +62,82 @@ def get_card_context(question: str, max_cards: int = 12) -> str:
     if not _looks_like_card_question(question):
         return ""
 
-    conn = None
-    cur = None
+    connection = get_connection()
+    if connection is None:
+        return ""
+
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
+        with connection.cursor() as local_cur:
+            # Category breakdown (public cards only)
+            local_cur.execute(
+                """
+                SELECT COALESCE(cat.CategoryLabel, 'None') AS category, COUNT(*)
+                FROM Cards c
+                LEFT JOIN Categories cat ON c.CategoryID = cat.CategoryID
+                WHERE c.is_public IS NOT FALSE
+                GROUP BY COALESCE(cat.CategoryLabel, 'None')
+                ORDER BY COUNT(*) DESC
+                """
+            )
+            category_rows = local_cur.fetchall()
+            total = sum(count for _, count in category_rows)
+            if total == 0:
+                return ""
 
-        # Category breakdown (public cards only)
-        cur.execute(
-            """
-            SELECT COALESCE(cat.CategoryLabel, 'None') AS category, COUNT(*)
-            FROM Cards c
-            LEFT JOIN Categories cat ON c.CategoryID = cat.CategoryID
-            WHERE c.is_public IS NOT FALSE
-            GROUP BY COALESCE(cat.CategoryLabel, 'None')
-            ORDER BY COUNT(*) DESC
-            """
-        )
-        category_rows = cur.fetchall()
-        total = sum(count for _, count in category_rows)
-        if total == 0:
-            return ""
+            summary_lines = [
+                f"Total public cards: {total}",
+                "By category: "
+                + ", ".join(f"{label} ({count})" for label, count in category_rows),
+            ]
 
-        summary_lines = [
-            f"Total public cards: {total}",
-            "By category: "
-            + ", ".join(f"{label} ({count})" for label, count in category_rows),
-        ]
-
-        # Matching cards by keyword, else most recent
-        terms = _extract_search_terms(question)
-        params: list[Any] = []
-        where_match = ""
-        if terms:
-            patterns = [f"%{term}%" for term in terms]
-            where_match = """
-                AND (
-                    c.Title ILIKE ANY(%s)
-                    OR c.Description ILIKE ANY(%s)
-                    OR c.Organization ILIKE ANY(%s)
-                    OR EXISTS (
-                        SELECT 1 FROM CardTags ct2
-                        JOIN Tags t2 ON ct2.TagID = t2.TagID
-                        WHERE ct2.CardID = c.CardID AND t2.TagLabel ILIKE ANY(%s)
+            # Matching cards by keyword, else most recent
+            terms = _extract_search_terms(question)
+            params: list[Any] = []
+            where_match = ""
+            if terms:
+                patterns = [f"%{term}%" for term in terms]
+                where_match = """
+                    AND (
+                        c.Title ILIKE ANY(%s)
+                        OR c.Description ILIKE ANY(%s)
+                        OR c.Organization ILIKE ANY(%s)
+                        OR EXISTS (
+                            SELECT 1 FROM CardTags ct2
+                            JOIN Tags t2 ON ct2.TagID = t2.TagID
+                            WHERE ct2.CardID = c.CardID AND t2.TagLabel ILIKE ANY(%s)
+                        )
                     )
-                )
-            """
-            params = [patterns, patterns, patterns, patterns]
+                """
+                params = [patterns, patterns, patterns, patterns]
 
-        query = f"""
-            SELECT
-                c.Title,
-                COALESCE(cat.CategoryLabel, 'None') AS category,
-                c.DatePosted,
-                c.Description,
-                c.Organization,
-                c.Funding,
-                c.Link,
-                c.Latitude,
-                c.Longitude,
-                COALESCE(c.LocationType, 'point') AS location_type,
-                STRING_AGG(DISTINCT t.TagLabel, ', ') AS tags
-            FROM Cards c
-            LEFT JOIN Categories cat ON c.CategoryID = cat.CategoryID
-            LEFT JOIN CardTags ct ON c.CardID = ct.CardID
-            LEFT JOIN Tags t ON ct.TagID = t.TagID
-            WHERE c.is_public IS NOT FALSE
-            {where_match}
-            GROUP BY c.CardID, c.Title, cat.CategoryLabel, c.DatePosted,
-                     c.Description, c.Organization, c.Funding, c.Link,
-                     c.Latitude, c.Longitude, c.LocationType
-            ORDER BY c.DatePosted DESC NULLS LAST, c.CardID DESC
-            LIMIT %s
-        """
-        params.append(max_cards)
-        cur.execute(query, params)
-        rows = cur.fetchall()
+            query = f"""
+                SELECT
+                    c.Title,
+                    COALESCE(cat.CategoryLabel, 'None') AS category,
+                    c.DatePosted,
+                    c.Description,
+                    c.Organization,
+                    c.Funding,
+                    c.Link,
+                    c.Latitude,
+                    c.Longitude,
+                    COALESCE(c.LocationType, 'point') AS location_type,
+                    STRING_AGG(DISTINCT t.TagLabel, ', ') AS tags
+                FROM Cards c
+                LEFT JOIN Categories cat ON c.CategoryID = cat.CategoryID
+                LEFT JOIN CardTags ct ON c.CardID = ct.CardID
+                LEFT JOIN Tags t ON ct.TagID = t.TagID
+                WHERE c.is_public IS NOT FALSE
+                {where_match}
+                GROUP BY c.CardID, c.Title, cat.CategoryLabel, c.DatePosted,
+                         c.Description, c.Organization, c.Funding, c.Link,
+                         c.Latitude, c.Longitude, c.LocationType
+                ORDER BY c.DatePosted DESC NULLS LAST, c.CardID DESC
+                LIMIT %s
+            """
+            params.append(max_cards)
+            local_cur.execute(query, params)
+            rows = local_cur.fetchall()
 
         card_lines: list[str] = []
         for row in rows:
@@ -184,13 +172,14 @@ def get_card_context(question: str, max_cards: int = 12) -> str:
             block += f"\n\n{label}:\n" + "\n".join(card_lines)
         return block
     except Exception as exc:
+        # The connection is shared with the other endpoints, so clear any
+        # aborted transaction before handing it back.
+        try:
+            connection.rollback()
+        except Exception:
+            pass
         print(f"[cards_summary] Card context warning: {exc}")
         return ""
-    finally:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
 
 
 @cards_summary_router.get("/summary")

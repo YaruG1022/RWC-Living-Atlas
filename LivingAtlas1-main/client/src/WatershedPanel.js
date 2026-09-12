@@ -9,11 +9,13 @@ const SS_DELINEATE_URL = 'https://streamstats.usgs.gov/ss-delineate/v1/delineate
 const REQUEST_TIMEOUT_MS = 120000;
 // StreamStats snaps the click to its 30m stream grid; below this zoom the click is too imprecise
 const MIN_DELINEATION_ZOOM = 12;
+// Official StreamStats StreamGrid raster layers (stateServices/MapServer).
+const SS_RIVERS_URL = 'https://gis.streamstats.usgs.gov/arcgis/rest/services/StreamStats/stateServices/MapServer/export';
 
 const STATES = [
-    { code: 'WA', label: 'Washington' },
-    { code: 'ID', label: 'Idaho' },
-    { code: 'OR', label: 'Oregon' },
+    { code: 'WA', label: 'Washington', riverLayer: 152, riverZoom: 12 },
+    { code: 'ID', label: 'Idaho', riverLayer: 46, riverZoom: 13 },
+    { code: 'OR', label: 'Oregon', riverLayer: 119, riverZoom: 12 },
 ];
 
 const BASIN_SOURCE = 'streamstats-basin';
@@ -52,7 +54,67 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
     const [error, setError] = useState('');
     const [zoomHint, setZoomHint] = useState(false);
     const [hasResult, setHasResult] = useState(false);
+    const [showRivers, setShowRivers] = useState(false);
+    const [riverError, setRiverError] = useState('');
     const abortRef = useRef(null);
+    const selectedState = STATES.find(s => s.code === stateCode);
+
+    // Keep the overlay when the panel closes; basemap changes also restore it.
+    useEffect(() => {
+        const map = typeof mapInstance === 'function' ? mapInstance() : mapInstance;
+        if (!map) return;
+        setRiverError('');
+        const syncRivers = () => {
+            try {
+                STATES.forEach(state => {
+                    const id = `streamstats-rivers-${state.code}`;
+                    const visible = showRivers && state.code === stateCode;
+                    if (visible && !map.getSource(id)) {
+                        map.addSource(id, {
+                            type: 'raster',
+                            tiles: [`${SS_RIVERS_URL}?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=256,256&format=png32&transparent=true&f=image&layers=show:${state.riverLayer}`],
+                            tileSize: 256,
+                            minzoom: state.riverZoom,
+                            maxzoom: 18,
+                            attribution: '<a href="https://streamstats.usgs.gov/">USGS StreamStats</a>',
+                        });
+                    }
+                    if (visible && !map.getLayer(id)) {
+                        map.addLayer({
+                            id,
+                            type: 'raster',
+                            source: id,
+                            minzoom: state.riverZoom,
+                            paint: { 'raster-opacity': 1, 'raster-fade-duration': 0 },
+                        }, map.getLayer(BASIN_FILL_LAYER) ? BASIN_FILL_LAYER : undefined);
+                    }
+                    if (map.getLayer(id)) {
+                        map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+                    }
+                });
+            } catch (err) {
+                setRiverError('Unable to display StreamStats rivers. Toggle rivers off and on to retry.');
+            }
+        };
+        const onRiverError = (event) => {
+            if (showRivers && event.sourceId === `streamstats-rivers-${stateCode}`) {
+                setRiverError('StreamStats rivers could not load. Toggle rivers off and on to retry.');
+            }
+        };
+        // isStyleLoaded can be false while existing tiles are still downloading.
+        if (map.isStyleLoaded() || STATES.some(state => map.getLayer(`streamstats-rivers-${state.code}`))) {
+            syncRivers();
+        } else {
+            map.once('idle', syncRivers);
+        }
+        map.on('style.load', syncRivers);
+        map.on('error', onRiverError);
+        return () => {
+            map.off('style.load', syncRivers);
+            map.off('idle', syncRivers);
+            map.off('error', onRiverError);
+        };
+    }, [mapInstance, stateCode, showRivers, isOpen]);
 
     const getMap = () => (typeof mapInstance === 'function' ? mapInstance() : mapInstance);
 
@@ -235,6 +297,21 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
                         ))}
                     </select>
                 </label>
+
+                <label className="watershed-panel-river-toggle">
+                    <input
+                        type="checkbox"
+                        checked={showRivers}
+                        onChange={e => setShowRivers(e.target.checked)}
+                        aria-describedby="watershed-river-hint"
+                    />
+                    <span>Show StreamStats rivers</span>
+                </label>
+                <p id="watershed-river-hint" className="watershed-panel-intro">
+                    Rivers for {selectedState.label}. Zoom to level {selectedState.riverZoom} or closer
+                    to see stream channels. Uncheck to hide.
+                </p>
+                {showRivers && riverError && <div role="alert" className="watershed-panel-error">{riverError}</div>}
 
                 <button
                     className={`watershed-panel-arm-btn${isArmed ? ' watershed-panel-arm-btn--armed' : ''}`}

@@ -121,6 +121,25 @@
     transition: background 0.15s ease, border-color 0.15s ease;
 }
 
+.watershed-panel-river-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid #bfd0e2;
+    border-radius: 6px;
+    background: #f2f7fc;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.watershed-panel-river-toggle input {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    accent-color: #1976d2;
+}
+
 .watershed-panel-arm-btn:hover:not(:disabled) {
     background: #d2e8fb;
     border-color: #4f86b6;

@@ -9,8 +9,10 @@ const SS_DELINEATE_URL = 'https://streamstats.usgs.gov/ss-delineate/v1/delineate
 const REQUEST_TIMEOUT_MS = 120000;
 // StreamStats snaps the click to its 30m stream grid; below this zoom the click is too imprecise
 const MIN_DELINEATION_ZOOM = 12;
-// Official StreamStats StreamGrid raster layers (stateServices/MapServer).
-const SS_RIVERS_URL = 'https://gis.streamstats.usgs.gov/arcgis/rest/services/StreamStats/stateServices/MapServer/export';
+// Match SSStateLayers in https://streamstats.usgs.gov/ss/appConfig.js.
+// The old combined StreamStats/stateServices endpoint returns an HTML error page,
+// sometimes with HTTP 200. Each state now has its own MapServer.
+const SS_RIVERS_URL = 'https://gis.streamstats.usgs.gov/arcgis/rest/services/stateServices';
 
 const STATES = [
     { code: 'WA', label: 'Washington', riverLayer: 152, riverZoom: 12 },
@@ -72,7 +74,7 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
                     if (visible && !map.getSource(id)) {
                         map.addSource(id, {
                             type: 'raster',
-                            tiles: [`${SS_RIVERS_URL}?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=256,256&format=png32&transparent=true&f=image&layers=show:${state.riverLayer}`],
+                            tiles: [`${SS_RIVERS_URL}/${state.code.toLowerCase()}/MapServer/export?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=256,256&format=png32&transparent=true&f=image&layers=show:${state.riverLayer}`],
                             tileSize: 256,
                             minzoom: state.riverZoom,
                             maxzoom: 18,

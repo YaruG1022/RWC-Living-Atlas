@@ -48,6 +48,24 @@ test('toggles rivers during tile loading and switches the selected state', () =>
     expect(map.getLayer('streamstats-rivers-ID').layout.visibility).toBe('none');
 });
 
+test.each([
+    ['WA', 'wa', '152'],
+    ['ID', 'id', '46'],
+    ['OR', 'or', '119'],
+])('requests %s river tiles from the current state-specific service', (state, service, layer) => {
+    const map = createMap();
+    render(<WatershedPanel isOpen mapInstance={map} />);
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: state } });
+    fireEvent.click(screen.getByRole('checkbox'));
+    const url = new URL(map.getSource(`streamstats-rivers-${state}`).tiles[0]);
+    expect(url.origin).toBe('https://gis.streamstats.usgs.gov');
+    expect(url.pathname).toBe(`/arcgis/rest/services/stateServices/${service}/MapServer/export`);
+    expect(url.searchParams.get('layers')).toBe(`show:${layer}`);
+    expect(url.searchParams.get('bbox')).toBe('{bbox-epsg-3857}');
+    expect(url.searchParams.get('format')).toBe('png32');
+    expect(url.searchParams.get('transparent')).toBe('true');
+});
+
 test('preserves rivers when clearing a basin, closing the panel and changing basemaps', () => {
     const map = createMap();
     map.addSource('streamstats-basin', { type: 'geojson' });

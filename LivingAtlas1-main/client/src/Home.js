@@ -1340,6 +1340,9 @@ function Home(props) {
                     onClose={() => setIsWatershedPanelOpen(false)}
                     splitBottom={cardPanelSide === 'left' && !isCollapsed}
                     mapInstance={getMapboxMap}
+                    isLoggedIn={props.isLoggedIn}
+                    userEmail={props.email}
+                    onCustomLayerSaved={() => setCustomLayersRefreshKey(k => k + 1)}
                 />
 
                 <button

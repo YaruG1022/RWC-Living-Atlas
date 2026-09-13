@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faLocationCrosshairs, faTrash, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import './WatershedPanel.css';
+import PolygonDrawingModal from './PolygonDrawingModal';
+import { saveCustomLayer } from './arcgisServicesDb';
+import { basinFeatureCollection, basinPolygonVertices } from './watershedGeometry';
 
 // USGS SS-Delineate service (same API the streamstats.usgs.gov site uses; CORS-enabled).
 // The legacy /streamstatsservices API was decommissioned in January 2026.
@@ -47,7 +50,7 @@ function geojsonBounds(geojson) {
     return Number.isFinite(bounds[0]) ? bounds : null;
 }
 
-export default function WatershedPanel({ isOpen, onClose, splitBottom = false, mapInstance }) {
+export default function WatershedPanel({ isOpen, onClose, splitBottom = false, mapInstance, isLoggedIn, userEmail, onCustomLayerSaved }) {
     const [stateCode, setStateCode] = useState('WA');
     const [isArmed, setIsArmed] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -58,6 +61,13 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
     const [hasResult, setHasResult] = useState(false);
     const [showRivers, setShowRivers] = useState(false);
     const [riverError, setRiverError] = useState('');
+    const [basinData, setBasinData] = useState(null);
+    const [basinName, setBasinName] = useState('StreamStats watershed');
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveMessage, setSaveMessage] = useState('');
+    const [saveError, setSaveError] = useState('');
+    const [polygonVertices, setPolygonVertices] = useState(null);
+    const savingRef = useRef(false);
     const abortRef = useRef(null);
     const selectedState = STATES.find(s => s.code === stateCode);
 
@@ -125,6 +135,7 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
         const map = getMap();
         if (map && map.getSource(BASIN_SOURCE)) {
             setHasResult(true);
+            setBasinData(map.getStyle?.()?.sources?.[BASIN_SOURCE]?.data || null);
         }
         return () => {
             abortRef.current?.abort();
@@ -198,6 +209,10 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
             map.fitBounds([[bounds[0], bounds[1]], [bounds[2], bounds[3]]], { padding: 60 });
         }
         setHasResult(true);
+        setBasinData(basinFeatureCollection(basin));
+        setBasinName(`StreamStats watershed (${stateCode})`);
+        setSaveMessage('');
+        setSaveError('');
     };
 
     const clearResultLayers = (map) => {
@@ -266,6 +281,66 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
         setClickedPoint(null);
         setWorkspaceId('');
         setError('');
+        setBasinData(null);
+        setSaveMessage('');
+        setSaveError('');
+    };
+
+    const canSave = () => {
+        setSaveError('');
+        setSaveMessage('');
+        if (!isLoggedIn || !userEmail) {
+            setSaveError('Please log in to save this basin.');
+            return false;
+        }
+        return true;
+    };
+
+    const handleSaveCustomLayer = async () => {
+        if (savingRef.current || !canSave()) return;
+        const label = basinName.trim();
+        if (!label) {
+            setSaveError('Enter a name for the custom layer.');
+            return;
+        }
+        savingRef.current = true;
+        setIsArmed(false);
+        setIsSaving(true);
+        try {
+            const geojson = basinFeatureCollection(basinData);
+            const key = `uploaded_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+            await saveCustomLayer(userEmail, {
+                key, label, url: `local://${key}`, type: 'uploaded', folder: 'Root', state: '', geojson,
+            });
+            setSaveMessage(`Saved "${label}" to Custom Layers / Root.`);
+            onCustomLayerSaved?.();
+        } catch (err) {
+            setSaveError(err.message || 'Could not save the custom layer. Please try again.');
+        } finally {
+            savingRef.current = false;
+            setIsSaving(false);
+        }
+    };
+
+    const handleSavePolygon = () => {
+        if (!canSave()) return;
+        try {
+            setPolygonVertices(basinPolygonVertices(basinData));
+            setIsArmed(false);
+        } catch (err) {
+            setSaveError(err.message);
+        }
+    };
+
+    const handlePolygonEdited = (allRings, centroid, style, ringStyles = []) => {
+        setPolygonVertices(null);
+        // Continue through Content2 -> FormModal, just like the existing polygon tool.
+        const vertices = allRings.flatMap((ring, ringIndex) => ring.map(vertex => ({
+            ...vertex, ring: ringIndex, ...ringStyles[ringIndex],
+        })));
+        window.dispatchEvent(new CustomEvent('polygon-tool-save', {
+            detail: { vertices, centroid, fillColor: style?.fillColor, fillOpacity: style?.fillOpacity, lineStyle: style?.lineStyle },
+        }));
     };
 
     if (!isOpen) return null;
@@ -318,7 +393,7 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
                 <button
                     className={`watershed-panel-arm-btn${isArmed ? ' watershed-panel-arm-btn--armed' : ''}`}
                     onClick={handleArmToggle}
-                    disabled={isLoading}
+                    disabled={isLoading || isSaving || !!polygonVertices}
                 >
                     <FontAwesomeIcon icon={faLocationCrosshairs} />
                     {isArmed ? ' Cancel point selection' : ' Select point on map'}
@@ -356,11 +431,36 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
                 )}
 
                 {hasResult && !isLoading && (
-                    <button className="watershed-panel-clear-btn" onClick={handleClear}>
+                    <>
+                    <label className="watershed-panel-field">
+                        <span>Basin name</span>
+                        <input value={basinName} onChange={e => setBasinName(e.target.value)} disabled={isSaving} />
+                    </label>
+                    <button className="watershed-panel-arm-btn" onClick={handleSaveCustomLayer} disabled={isSaving || !basinData}>
+                        {isSaving ? 'Saving…' : 'Save as custom layer'}
+                    </button>
+                    <button className="watershed-panel-arm-btn" onClick={handleSavePolygon} disabled={isSaving || !basinData}>
+                        Save as polygon
+                    </button>
+                    {saveMessage && <div role="status" className="watershed-panel-result">{saveMessage}</div>}
+                    {saveError && <div role="alert" className="watershed-panel-error">{saveError}</div>}
+                    <button className="watershed-panel-clear-btn" onClick={handleClear} disabled={isSaving}>
                         <FontAwesomeIcon icon={faTrash} /> Clear result from map
                     </button>
+                    </>
                 )}
             </div>
+            {polygonVertices && (
+                <PolygonDrawingModal
+                    mode="polygon"
+                    title="Edit Polygon"
+                    initialVertices={polygonVertices}
+                    initialFillColor="#f5c542"
+                    initialLineStyle="solid"
+                    onSave={handlePolygonEdited}
+                    onCancel={() => setPolygonVertices(null)}
+                />
+            )}
         </div>
     );
 }

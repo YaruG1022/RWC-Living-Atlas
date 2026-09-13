@@ -100,7 +100,8 @@
     font-weight: 500;
 }
 
-.watershed-panel-field select {
+.watershed-panel-field select,
+.watershed-panel-field input {
     padding: 6px 8px;
     border: 1px solid #bfd0e2;
     border-radius: 6px;

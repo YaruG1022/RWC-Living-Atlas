@@ -32,11 +32,18 @@ function ChangelogHistory() {
                         <p>Added a Watershed Delineation panel to the left sidebar (water-waves icon), powered by the USGS StreamStats delineation service. Pick a state (WA/ID/OR), press Select point on map, and click a stream — the upstream drainage basin is computed by USGS, drawn on the map together with the snapped pour point, and the view zooms to the basin. A Clear result from map button removes the result. Like the other sidebar panels, opening it shifts the map view aside.</p>
                         <p>While picking a point the cursor becomes a crosshair, and the panel asks you to zoom in further when the map is below zoom level 12 so the point snaps to the correct stream. Delineation usually takes a few seconds; the request can be cancelled, and a clear message is shown when it fails (for example when clicking far from any stream).</p>
 
+                        <h4>StreamStats Rivers</h4>
+                        <p>Added Show StreamStats rivers to display or hide the selected state's river channels. Rivers are hidden by default and appear at zoom level 12 or closer for WA/OR, or 13 for ID. The visibility setting is retained when closing the panel or switching basemaps. Updated river requests to use the current state-specific StreamStats services, fixing the old service's error-page responses.</p>
+
+                        <h4>Save Watershed Basins</h4>
+                        <p>After a basin is displayed, logged-in users can name it and choose Save as custom layer to save the complete GeoJSON to Custom Layers / Root, with the list refreshed after saving. Save as polygon opens Edit Polygon with the basin boundary loaded, then continues through the existing card creation form to save a polygon representation. Basins with interior holes must use the custom-layer option because the polygon editor does not support holes. Clearing the temporary result does not delete saved layers or cards.</p>
+
                         <h4>Sidebar Icons</h4>
                         <p>Refreshed two left-sidebar icons: the GIS Services panel button now uses a globe icon, and the sidebar chatbot button now uses a chat-bubble icon.</p>
 
                         <h4>User Manual &amp; Onboarding</h4>
                         <p>Updated the user manual and onboarding for the Card Container, ArcGIS Upload Panel, Custom Layers Panel, and Card Detail View (Learn More modal) to match the current app features.</p>
+                        <p>Added Help and Tutorial buttons to the Watershed panel, a nine-step walkthrough, and a dedicated Watershed Panel chapter in the User Manual. Updated the general onboarding and related Custom Layers and Polygon Tools documentation to cover river visibility, zoom requirements, basin delineation, both save workflows, and the interior-hole limitation.</p>
 
                         <h4>Design System Foundation</h4>
                         <p>Added a shared design token file that defines the app's colors, text sizes, spacing, corner radii, shadows and animation timing in one central place. Panels can now pull from one agreed set of values instead of each screen hardcoding its own, which is groundwork for a more consistent look as panels are updated over time. Nothing in the existing screens changed except the font below.</p>

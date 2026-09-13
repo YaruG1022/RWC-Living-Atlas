@@ -24,6 +24,16 @@ function ChangelogModal({ isOpen, onClose }) {
                           <li>While picking a point the cursor becomes a crosshair, and the panel asks you to zoom in further when the map is below zoom level 12 so the point snaps to the correct stream. Delineation usually takes a few seconds; the request can be cancelled, and a clear message is shown when it fails (for example when clicking far from any stream).</li>
                         </ul>
 
+                        <h4>StreamStats Rivers</h4>
+                        <ul className="changelog-list">
+                          <li>Added Show StreamStats rivers to display or hide the selected state's river channels. Rivers are hidden by default and appear at zoom level 12 or closer for WA/OR, or 13 for ID. The visibility setting is retained when closing the panel or switching basemaps. Updated river requests to use the current state-specific StreamStats services, fixing the old service's error-page responses.</li>
+                        </ul>
+
+                        <h4>Save Watershed Basins</h4>
+                        <ul className="changelog-list">
+                          <li>After a basin is displayed, logged-in users can name it and choose Save as custom layer to save the complete GeoJSON to Custom Layers / Root, with the list refreshed after saving. Save as polygon opens Edit Polygon with the basin boundary loaded, then continues through the existing card creation form to save a polygon representation. Basins with interior holes must use the custom-layer option because the polygon editor does not support holes. Clearing the temporary result does not delete saved layers or cards.</li>
+                        </ul>
+
                         <h4>Sidebar Icons</h4>
                         <ul className="changelog-list">
                           <li>Refreshed two left-sidebar icons: the GIS Services panel button now uses a globe icon, and the sidebar chatbot button now uses a chat-bubble icon.</li>
@@ -32,6 +42,7 @@ function ChangelogModal({ isOpen, onClose }) {
                         <h4>User Manual &amp; Onboarding</h4>
                         <ul className="changelog-list">
                           <li>Updated the user manual and onboarding for the Card Container, ArcGIS Upload Panel, Custom Layers Panel, and Card Detail View (Learn More modal) to match the current app features.</li>
+                          <li>Added Help and Tutorial buttons to the Watershed panel, a nine-step walkthrough, and a dedicated Watershed Panel chapter in the User Manual. Updated the general onboarding and related Custom Layers and Polygon Tools documentation to cover river visibility, zoom requirements, basin delineation, both save workflows, and the interior-hole limitation.</li>
                         </ul>
 
                         <h4>Design System Foundation</h4>

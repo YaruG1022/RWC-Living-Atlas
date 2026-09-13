@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faLocationCrosshairs, faTrash, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faTimes, faLocationCrosshairs, faTrash, faSpinner, faQuestion, faPlay } from '@fortawesome/free-solid-svg-icons';
 import './WatershedPanel.css';
 import PolygonDrawingModal from './PolygonDrawingModal';
 import { saveCustomLayer } from './arcgisServicesDb';
 import { basinFeatureCollection, basinPolygonVertices } from './watershedGeometry';
+import WatershedPanelOnboarding from './OnboardingWatershedPanel';
 
 // USGS SS-Delineate service (same API the streamstats.usgs.gov site uses; CORS-enabled).
 // The legacy /streamstatsservices API was decommissioned in January 2026.
@@ -67,9 +68,14 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
     const [saveMessage, setSaveMessage] = useState('');
     const [saveError, setSaveError] = useState('');
     const [polygonVertices, setPolygonVertices] = useState(null);
+    const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
     const savingRef = useRef(false);
     const abortRef = useRef(null);
     const selectedState = STATES.find(s => s.code === stateCode);
+
+    useEffect(() => {
+        if (!isOpen) setIsOnboardingOpen(false);
+    }, [isOpen]);
 
     // Keep the overlay when the panel closes; basemap changes also restore it.
     useEffect(() => {
@@ -346,23 +352,32 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
     if (!isOpen) return null;
 
     return (
-        <div className={`watershed-panel${splitBottom ? ' watershed-panel--split-bottom' : ''}`}>
+        <div className={`watershed-panel${splitBottom ? ' watershed-panel--split-bottom' : ''}${isOnboardingOpen ? ' onboarding-locked' : ''}`}>
             <div className="watershed-panel-header">
                 <span className="watershed-panel-title">Watershed Delineation</span>
                 <div className="watershed-panel-header-actions">
+                    <button className="watershed-panel-icon-btn" title="Help" aria-label="Watershed help" data-onboarding-target="watershed-help"
+                        onClick={() => window.open('/user-manual?section=watershed-panel', '_blank', 'noopener,noreferrer')}>
+                        <FontAwesomeIcon icon={faQuestion} />
+                    </button>
+                    <button className="watershed-panel-icon-btn" title="Tutorial" aria-label="Watershed tutorial"
+                        disabled={isLoading || isSaving || !!polygonVertices}
+                        onClick={() => { setIsArmed(false); setIsOnboardingOpen(true); }}>
+                        <FontAwesomeIcon icon={faPlay} />
+                    </button>
                     <button className="watershed-panel-icon-btn" title="Close" onClick={onClose}>
                         <FontAwesomeIcon icon={faTimes} />
                     </button>
                 </div>
             </div>
 
-            <div className="watershed-panel-body">
+            <div className="watershed-panel-body" inert={isOnboardingOpen ? '' : undefined}>
                 <p className="watershed-panel-intro">
                     Powered by USGS StreamStats. Zoom in to a stream, place a point on it, and the
                     upstream drainage basin is computed and drawn on the map.
                 </p>
 
-                <label className="watershed-panel-field">
+                <label className="watershed-panel-field" data-onboarding-target="watershed-state">
                     <span>State</span>
                     <select
                         value={stateCode}
@@ -375,7 +390,7 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
                     </select>
                 </label>
 
-                <label className="watershed-panel-river-toggle">
+                <label className="watershed-panel-river-toggle" data-onboarding-target="watershed-rivers">
                     <input
                         type="checkbox"
                         checked={showRivers}
@@ -392,6 +407,7 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
 
                 <button
                     className={`watershed-panel-arm-btn${isArmed ? ' watershed-panel-arm-btn--armed' : ''}`}
+                    data-onboarding-target="watershed-select"
                     onClick={handleArmToggle}
                     disabled={isLoading || isSaving || !!polygonVertices}
                 >
@@ -422,7 +438,7 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
                 {error && <div className="watershed-panel-error">{error}</div>}
 
                 {clickedPoint && !isLoading && !error && hasResult && (
-                    <div className="watershed-panel-result">
+                    <div className="watershed-panel-result" data-onboarding-target="watershed-results">
                         <div><strong>Pour point:</strong> {clickedPoint.lat.toFixed(5)}, {clickedPoint.lng.toFixed(5)}</div>
                         {workspaceId && (
                             <div className="watershed-panel-result-workspace"><strong>Workspace:</strong> {workspaceId}</div>
@@ -436,20 +452,21 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
                         <span>Basin name</span>
                         <input value={basinName} onChange={e => setBasinName(e.target.value)} disabled={isSaving} />
                     </label>
-                    <button className="watershed-panel-arm-btn" onClick={handleSaveCustomLayer} disabled={isSaving || !basinData}>
+                    <button className="watershed-panel-arm-btn" data-onboarding-target="watershed-save-layer" onClick={handleSaveCustomLayer} disabled={isSaving || !basinData}>
                         {isSaving ? 'Saving…' : 'Save as custom layer'}
                     </button>
-                    <button className="watershed-panel-arm-btn" onClick={handleSavePolygon} disabled={isSaving || !basinData}>
+                    <button className="watershed-panel-arm-btn" data-onboarding-target="watershed-save-polygon" onClick={handleSavePolygon} disabled={isSaving || !basinData}>
                         Save as polygon
                     </button>
                     {saveMessage && <div role="status" className="watershed-panel-result">{saveMessage}</div>}
                     {saveError && <div role="alert" className="watershed-panel-error">{saveError}</div>}
-                    <button className="watershed-panel-clear-btn" onClick={handleClear} disabled={isSaving}>
+                    <button className="watershed-panel-clear-btn" data-onboarding-target="watershed-clear" onClick={handleClear} disabled={isSaving}>
                         <FontAwesomeIcon icon={faTrash} /> Clear result from map
                     </button>
                     </>
                 )}
             </div>
+            <WatershedPanelOnboarding isOpen={isOnboardingOpen} onClose={() => setIsOnboardingOpen(false)} isPanelCollapsed={!isOpen} />
             {polygonVertices && (
                 <PolygonDrawingModal
                     mode="polygon"

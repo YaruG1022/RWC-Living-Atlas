@@ -100,6 +100,12 @@ const STEP_DEFINITIONS = [
         placement: 'right',
     },
     {
+        selector: '[data-onboarding-target="left-sidebar-watershed"]',
+        title: 'Watershed Button',
+        description: 'Open Watershed Delineation to show StreamStats rivers, delineate a basin, and save it as a custom layer or polygon card. Use Tutorial in the panel header for a walkthrough, or Help for the manual.',
+        placement: 'right',
+    },
+    {
         selector: '[data-onboarding-target="map-control-search"]',
         title: 'Map Search Control',
         description: 'Search for an address, place, or LAT/LONG coordinates directly on the map. Picking a result flies the map there and drops a green location marker.',

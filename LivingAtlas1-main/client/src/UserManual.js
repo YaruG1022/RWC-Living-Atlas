@@ -111,6 +111,7 @@ const SECTION_GROUPS = [
     label: 'Map View',
     sections: [
       { id: 'basemap-panel', label: 'Basemap Panel' },
+      { id: 'watershed-panel', label: 'Watershed Panel' },
       { id: 'map-controls', label: 'Map Controls' },
     ],
   },
@@ -254,6 +255,7 @@ function UserManual() {
                 'service-layer-info': 'Detailed guide for Service/Layer Info modal features: metadata, opacity, historical filters, links, and layer fields.',
                 'custom-layers':  'Manage your personal saved layers with custom folders, drag-and-drop ordering, and pinned auto-load items.',
                 'basemap-panel':   'Switch between six Mapbox map styles while preserving your ArcGIS layers, camera position, and zoom level.',
+                'watershed-panel': 'Show StreamStats rivers, delineate an upstream basin, and save it as a custom layer or a polygon card.',
                 'map-controls':    'All interactive buttons on the map canvas — search, fullscreen, zoom, compass, geolocate, draw, and more.',
                 'add-single-point': 'Open Add Card and immediately start point selection on the map.',
                 'polygon-tools':   'Draw and edit polygon-based card locations with style and transform controls.',
@@ -3003,6 +3005,12 @@ function UserManual() {
           dragging, and pin items to auto-load every time you open the panel. Login is
           required to use this panel.
         </p>
+        <p className="um-section-desc">
+          You can also save a StreamStats basin from the <button type="button" className="um-nav-item" onClick={() => navTo('watershed-panel')}>Watershed Panel</button>.
+          Choose <strong>Save as custom layer</strong> there to store the complete basin in
+          <strong> Root</strong>, regardless of the folder currently open here. The list refreshes after
+          saving; expand the saved layer and enable it to display it on the map.
+        </p>
 
         {/* ---- Panel shell demo ---- */}
         <div className="um-arcgis-panel-mock">
@@ -3327,6 +3335,89 @@ function UserManual() {
           </div>
 
         </div>
+      </section>
+      )}
+
+      {activeSection === 'watershed-panel' && (
+      <section className="um-section">
+        <h2>Watershed Panel</h2>
+        <p className="um-section-desc">
+          Open <strong>Watershed Delineation</strong> with the water-waves button in the left sidebar.
+          This panel uses USGS StreamStats to display river channels and compute the upstream basin
+          draining to a selected pour point. Use <strong>Help</strong> (?) to open this chapter or
+          <strong> Tutorial</strong> (play) for a guided walkthrough. The tutorial explains the save
+          controls even before a basin is available; it does not delineate or save anything for you.
+        </p>
+
+        <h3>1. Choose a state and display rivers</h3>
+        <p>
+          Select <strong>Washington (WA)</strong>, <strong>Idaho (ID)</strong>, or <strong>Oregon (OR)</strong>
+          for the location you want to delineate. Rivers are hidden by default. Check
+          <strong> Show StreamStats rivers</strong> to display the selected state’s river channels;
+          uncheck it to hide them. Changing the state updates the river overlay but does not recompute
+          an existing basin.
+        </p>
+        <ul>
+          <li>For WA and OR, zoom to level <strong>12 or closer</strong>; for ID, use <strong>13 or closer</strong>.</li>
+          <li>Look within the selected state. At a wider map view the river layer may be enabled but not visible.</li>
+          <li>Closing and reopening the panel or changing basemaps retains the river visibility setting during the session.</li>
+        </ul>
+
+        <h3>2. Delineate and review a basin</h3>
+        <ol>
+          <li>Zoom to at least level 12, then choose <strong>Select point on map</strong>. The cursor becomes a crosshair.</li>
+          <li>Click a river channel in the selected state. StreamStats snaps the point to its stream grid and computes the upstream basin.</li>
+          <li>Wait for the response. On success, the map zooms to the yellow basin and displays the returned pour point. The panel shows result details and the save controls.</li>
+        </ol>
+        <p>
+          <strong>Cancel point selection</strong> exits picking mode. During a request,
+          <strong> Cancel</strong> stops waiting for the result. Requests may take up to two minutes
+          before timing out. If a request fails or no watershed is returned, check the state,
+          zoom in, and try a point closer to a stream channel.
+        </p>
+
+        <h3>3. Save as custom layer</h3>
+        <ol>
+          <li>Log in and wait until the basin is displayed.</li>
+          <li>Enter a <strong>Basin name</strong>, then choose <strong>Save as custom layer</strong>.</li>
+          <li>Wait for the confirmation that the layer was saved to <strong>Custom Layers / Root</strong>.</li>
+          <li>Open Custom Layers, navigate to Root, and enable the saved layer to show it. You can manage it using the existing custom-layer controls.</li>
+        </ol>
+        <p>
+          This saves the complete basin GeoJSON, including separate polygon parts and interior holes,
+          to your personal layer library. Root is used even if another folder is currently open.
+          The list refreshes after a successful save. If saving fails, the basin remains available
+          so you can retry. Saving a custom layer does not create a card.
+        </p>
+        <button type="button" className="um-nav-item" onClick={() => navTo('custom-layers')}>Read about Custom Layers</button>
+
+        <h3>4. Save as polygon for a card</h3>
+        <ol>
+          <li>Log in and choose <strong>Save as polygon</strong> after the basin is displayed.</li>
+          <li><strong>Edit Polygon</strong> opens with the basin boundary already loaded. Adjust its vertices and styling as needed.</li>
+          <li>Save the edited shape to continue to the existing card creation form, with the polygon representation prefilled.</li>
+          <li>Complete the required card fields and submit the form to save the card.</li>
+        </ol>
+        <p>
+          Opening or cancelling Edit Polygon does not create a card. Separate polygon components are
+          supported. The existing editor does <strong>not support interior holes</strong>: for a basin
+          with holes, the panel asks you to use <strong>Save as custom layer</strong> so the complete
+          geometry is preserved.
+        </p>
+        <button type="button" className="um-nav-item" onClick={() => navTo('add-card')}>Read about the Card Creation Form</button>
+
+        <h3>5. Clear results and troubleshoot</h3>
+        <p>
+          <strong>Clear result from map</strong> removes only the temporary basin and pour point.
+          It does not hide the StreamStats rivers, delete a saved custom layer, or delete a card.
+          Uncheck the river checkbox to hide rivers; manage saved layers and cards in their own panels.
+        </p>
+        <p>
+          If rivers fail to load, check the state and zoom level, then toggle rivers off and on.
+          A service error can prevent the river image from loading even when a network request reports
+          success. If it persists, try again later. River loading errors and basin delineation errors
+          are shown separately. Both save options require login; signing in does not automatically save a basin.
+        </p>
       </section>
       )}
 
@@ -4032,8 +4123,14 @@ function UserManual() {
           Polygon Tools appears after choosing <strong>Polygon Tools</strong> from
           <strong> Add Cards from Map</strong> in the top-right control group. It lets you place
           vertices by clicking the map, then
-          style, transform, and save the shape to use as a spatial filter — cards whose
-          markers fall inside the polygon are shown; all others are hidden.
+          style, transform, and save the shape, then complete the card creation form
+          to use it as the card’s polygon representation.
+        </p>
+        <p className="um-section-desc">
+          To start with a delineated basin, open the <button type="button" className="um-nav-item" onClick={() => navTo('watershed-panel')}>Watershed Panel</button>
+          and choose <strong>Save as polygon</strong>. Edit Polygon loads the basin boundary for editing,
+          then continues through the same card creation flow. Basins with interior holes must be
+          saved as custom layers to preserve their geometry.
         </p>
 
         {/* ---- Overview demo ---- */}

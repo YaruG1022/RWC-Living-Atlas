@@ -3,12 +3,39 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import WatershedPanel from './WatershedPanel';
 import { saveCustomLayer } from './arcgisServicesDb';
 import PolygonDrawingModal from './PolygonDrawingModal';
+import BasemapPanelOnboarding from './OnboardingBasemapPanel';
 
 jest.mock('./arcgisServicesDb', () => ({ saveCustomLayer: jest.fn() }));
 jest.mock('./PolygonDrawingModal', () => jest.fn(() => <div role="dialog">Edit Polygon</div>));
 
 beforeEach(() => {
     PolygonDrawingModal.mockImplementation(() => <div role="dialog">Edit Polygon</div>);
+    Element.prototype.scrollIntoView = jest.fn();
+});
+
+test('walks through all watershed steps without a basin or saving data', () => {
+    saveCustomLayer.mockClear();
+    render(<WatershedPanel isOpen mapInstance={createMap()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Watershed tutorial' }));
+    expect(screen.getByRole('dialog', { name: 'Watershed Delineation' })).toBeTruthy();
+    for (let step = 1; step < 9; step++) {
+        expect(screen.getByText(`Step ${step} of 9`)).toBeTruthy();
+        fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    }
+    expect(screen.getByText('Clear the Temporary Result')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Finish' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(saveCustomLayer).not.toHaveBeenCalled();
+});
+
+test('keeps the basemap tutorial default steps when using the shared walkthrough', () => {
+    const close = jest.fn();
+    render(<BasemapPanelOnboarding isOpen onClose={close} />);
+    expect(screen.getByText('Step 1 of 7')).toBeTruthy();
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    expect(screen.getByText('Help Button')).toBeTruthy();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(close).toHaveBeenCalledTimes(1);
 });
 
 function createMap() {

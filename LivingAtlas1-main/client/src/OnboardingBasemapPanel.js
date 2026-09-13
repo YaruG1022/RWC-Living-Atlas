@@ -101,15 +101,16 @@ function getTooltipLayout(targetRect, preferredPlacement = 'right') {
     };
 }
 
-function BasemapPanelOnboarding({ isOpen, onClose, isPanelCollapsed }) {
+export function PanelOnboarding({ isOpen, onClose, isPanelCollapsed, steps = ONBOARDING_STEPS }) {
     const [stepIndex, setStepIndex] = useState(0);
     const [targetRect, setTargetRect] = useState(null);
 
-    const activeStep = useMemo(() => ONBOARDING_STEPS[stepIndex] || ONBOARDING_STEPS[0], [stepIndex]);
+    const activeStep = useMemo(() => steps[stepIndex] || steps[0], [stepIndex, steps]);
 
     const updateTargetRect = useCallback(() => {
         if (!isOpen) return;
-        const target = document.querySelector(activeStep.selector);
+        const target = document.querySelector(activeStep.selector)
+            || (activeStep.fallbackSelector && document.querySelector(activeStep.fallbackSelector));
         if (!target) {
             setTargetRect(null);
             return;
@@ -120,12 +121,12 @@ function BasemapPanelOnboarding({ isOpen, onClose, isPanelCollapsed }) {
 
     const goPrev = useCallback(() => setStepIndex((prev) => Math.max(0, prev - 1)), []);
     const goNext = useCallback(() => {
-        if (stepIndex >= ONBOARDING_STEPS.length - 1) {
+        if (stepIndex >= steps.length - 1) {
             onClose?.();
             return;
         }
-        setStepIndex((prev) => Math.min(ONBOARDING_STEPS.length - 1, prev + 1));
-    }, [stepIndex, onClose]);
+        setStepIndex((prev) => Math.min(steps.length - 1, prev + 1));
+    }, [stepIndex, onClose, steps]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -176,7 +177,7 @@ function BasemapPanelOnboarding({ isOpen, onClose, isPanelCollapsed }) {
     const tooltipLayout = getTooltipLayout(targetRect, activeStep.placement);
 
     return ReactDOM.createPortal(
-        <div className="basemap-onboarding-overlay" role="dialog" aria-modal="true">
+        <div className="basemap-onboarding-overlay" role="dialog" aria-modal="true" aria-label={steps[0].title}>
             <div className="basemap-onboarding-dim" />
 
             {targetRect && (
@@ -196,7 +197,7 @@ function BasemapPanelOnboarding({ isOpen, onClose, isPanelCollapsed }) {
                 style={{ top: tooltipLayout.top, left: tooltipLayout.left }}
             >
                 <div className="basemap-onboarding-progress">
-                    Step {stepIndex + 1} of {ONBOARDING_STEPS.length}
+                    Step {stepIndex + 1} of {steps.length}
                 </div>
                 <h4>{activeStep.title}</h4>
                 <p>{activeStep.description}</p>
@@ -206,7 +207,7 @@ function BasemapPanelOnboarding({ isOpen, onClose, isPanelCollapsed }) {
                     </button>
                     <button type="button" onClick={onClose}>Close</button>
                     <button type="button" className="primary" onClick={goNext}>
-                        {stepIndex === ONBOARDING_STEPS.length - 1 ? 'Finish' : 'Next'}
+                        {stepIndex === steps.length - 1 ? 'Finish' : 'Next'}
                     </button>
                 </div>
             </div>
@@ -215,4 +216,4 @@ function BasemapPanelOnboarding({ isOpen, onClose, isPanelCollapsed }) {
     );
 }
 
-export default BasemapPanelOnboarding;
+export default PanelOnboarding;

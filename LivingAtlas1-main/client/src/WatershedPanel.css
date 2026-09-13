@@ -1,4 +1,13 @@
 /* Watershed Delineation Panel — mirrors the basemap switcher panel layout */
+.watershed-panel.onboarding-locked .watershed-panel-body {
+    pointer-events: none;
+}
+
+.watershed-panel-icon-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
 .watershed-panel {
     position: fixed;
     top: var(--app-navbar-height);

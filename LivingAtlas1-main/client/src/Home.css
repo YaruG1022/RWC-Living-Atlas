@@ -207,173 +207,224 @@
 .onboarding-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.55);
+    background: rgba(15, 25, 38, 0.56);
+    backdrop-filter: blur(3px);
     z-index: 9000;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 16px;
 }
 
 .onboarding-modal {
     position: relative;
     background: #fff;
+    color: #223244;
+    border: 1px solid #dbe5ef;
     border-radius: 8px;
-    width: 620px;
-    max-width: 92vw;
-    max-height: 80vh;
+    width: 700px;
+    max-width: 100%;
+    max-height: min(86vh, 900px);
     display: flex;
     flex-direction: column;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(12, 27, 46, 0.28);
     outline: none;
 }
 
 .onboarding-modal-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    padding: 18px 22px 12px;
-    border-bottom: 1px solid #e5e5e5;
+    gap: 16px;
+    padding: 24px;
+    border-bottom: 1px solid #e5edf4;
+    flex-shrink: 0;
 }
 
 .onboarding-modal-header h2 {
     margin: 0;
-    font-size: 18px;
+    font-size: 22px;
+    line-height: 1.3;
     font-weight: 700;
-    color: #1a1a1a;
+    color: #223244;
+}
+
+.onboarding-modal-subtitle {
+    margin: 8px 0 0;
+    color: #60758a;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
 .onboarding-modal-close {
-    background: none;
-    border: none;
-    font-size: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    background: #f5f8fb;
+    border: 1px solid #dbe5ef;
+    border-radius: 50%;
+    font-size: 14px;
     cursor: pointer;
-    color: #666;
-    line-height: 1;
-    padding: 2px 6px;
-    border-radius: 4px;
+    color: #536b82;
+    padding: 0;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .onboarding-modal-close:hover {
-    background: #f0f0f0;
-    color: #333;
+    background: #eaf1f8;
+    border-color: #a7bdd2;
 }
 
 .onboarding-modal-body {
     overflow-y: auto;
-    padding: 18px 22px;
+    min-height: 0;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    padding: 18px 24px;
+    background: #f6f9fc;
     flex: 1;
 }
 
-.onboarding-modal-body h3 {
-    font-size: 14px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #444;
-    margin: 18px 0 6px;
-    border-bottom: 1px solid #ececec;
-    padding-bottom: 4px;
+.onboarding-section {
+    background: #fff;
+    border: 1px solid #dbe5ef;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.onboarding-modal-body h3:first-child {
-    margin-top: 0;
+.onboarding-section:last-child { margin-bottom: 0; }
+.onboarding-section[open] {
+    border-color: #b8cfe3;
+    box-shadow: 0 3px 12px rgba(39, 66, 93, 0.05);
 }
 
-.onboarding-modal-body p {
-    font-size: 14px;
-    color: #333;
-    margin: 4px 0;
-    line-height: 1.55;
+.onboarding-section summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px;
+    cursor: pointer;
+    list-style: none;
+    transition: background-color 0.2s ease;
 }
 
-.onboarding-modal-body ul {
-    margin: 4px 0;
-    padding-left: 20px;
+.onboarding-section summary::-webkit-details-marker { display: none; }
+.onboarding-section summary:hover { background: #f0f6fc; }
+.onboarding-section summary h3 {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.4;
+    font-weight: 600;
+    color: #27425d;
 }
 
+.onboarding-section-chevron {
+    flex-shrink: 0;
+    color: #738da5;
+    font-size: 12px;
+    transition: transform 0.2s ease;
+}
+.onboarding-section[open] .onboarding-section-chevron { transform: rotate(180deg); }
+.onboarding-section-content { padding: 0 16px 18px; }
+.onboarding-section[open] .onboarding-section-content {
+    animation: onboarding-content-reveal 0.2s ease;
+}
+@keyframes onboarding-content-reveal {
+    from { opacity: 0; transform: translateY(-3px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.onboarding-modal-body p,
 .onboarding-modal-body li {
     font-size: 14px;
-    color: #333;
-    margin: 4px 0;
-    line-height: 1.55;
+    color: #44596f;
+    line-height: 1.7;
 }
+.onboarding-modal-body p { margin: 0; }
+.onboarding-modal-body strong { color: #27425d; font-weight: 600; }
+.onboarding-modal-body ul { margin: 0; padding-left: 20px; }
+.onboarding-modal-body li { margin: 0 0 12px; }
+.onboarding-modal-body li:last-child { margin-bottom: 0; }
 
 .onboarding-modal-footer {
-    padding: 12px 22px 18px;
+    padding: 16px 24px;
     display: flex;
     justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 10px;
-    border-top: 1px solid #e5e5e5;
+    border-top: 1px solid #e5edf4;
+    flex-shrink: 0;
 }
 
+.onboarding-modal-play,
+.onboarding-modal-dismiss {
+    border: 1px solid transparent;
+    border-radius: 5px;
+    min-height: 40px;
+    padding: 9px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
 .onboarding-modal-play {
     background: #3f84c2;
     color: #fff;
-    border: none;
-    border-radius: 5px;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
 }
-
-.onboarding-modal-play:hover {
-    background: #2f74b2;
+.onboarding-modal-play:hover { background: #2f74b2; }
+.onboarding-modal-dismiss { background: #fff; color: #44596f; border-color: #cbd9e6; }
+.onboarding-modal-dismiss:hover { background: #f2f7fc; border-color: #8eabc8; }
+.onboarding-modal button:focus-visible,
+.onboarding-section summary:focus-visible {
+    outline: 2px solid #3f84c2;
+    outline-offset: -3px;
 }
 
-.onboarding-modal-dismiss {
-    background: #2c3e50;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    padding: 8px 22px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.onboarding-modal-dismiss:hover {
-    background: #1a252f;
-}
-
-/* Icon chip mimicking the left sidebar buttons, used in onboarding modal text */
+/* Sidebar examples use the same responsive dimensions and hover treatment as the sidebar.
+   The dark background supplies the sidebar surface behind its transparent controls. */
 .onboarding-sidebar-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
-    min-width: 24px;
-    border-radius: 6px;
-    background: #2c3e50;
+    box-sizing: border-box;
+    width: var(--app-left-sidebar-icon-size, clamp(40px, 4vw, 46px));
+    height: var(--app-left-sidebar-icon-size, clamp(40px, 4vw, 46px));
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: #333;
     color: #fff;
-    font-size: 12px;
-    margin-right: 8px;
+    font-size: 19px;
+    line-height: 1;
     vertical-align: middle;
     flex-shrink: 0;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
 }
-
-/* Feature list with leading sidebar icons */
-.onboarding-feature-list {
-    list-style: none;
-    padding-left: 0 !important;
+.onboarding-sidebar-icon:hover {
+    background-color: #444a53;
+    color: #f5f8ff;
+    border-color: rgba(255, 255, 255, 0.22);
+    border-radius: 6px;
+    transform: translateY(-1px);
 }
+.onboarding-sidebar-icon:active { transform: translateY(0); background-color: #3d434c; }
+.onboarding-feature-list { list-style: none; padding-left: 0 !important; }
+.onboarding-feature-list li { display: flex; align-items: flex-start; gap: 14px; }
+.onboarding-feature-list li > span:last-child { flex: 1; min-width: 0; }
 
-.onboarding-feature-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 2px;
-}
-
-.onboarding-feature-list li .onboarding-sidebar-icon {
-    margin-top: 1px;
-}
-
-/* Small inline icon inside sentences (play / question mark / info) */
-.onboarding-panel-play-icon {
+/* Match the 28px Help and Tutorial controls used in panel headers. */
+.onboarding-panel-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -388,19 +439,30 @@
     line-height: 1;
     vertical-align: middle;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.onboarding-panel-icon--play svg { transform: translateX(1px); }
+.onboarding-panel-icon:hover {
+    border-color: #8eabc8;
+    background: #f2f7fc;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.12);
 }
 
-.onboarding-panel-play-icon svg {
-    transform: translateX(1px);
+@media (max-width: 480px) {
+    .onboarding-modal-overlay { padding: 10px; }
+    .onboarding-modal { max-height: 92dvh; border-radius: 8px; }
+    .onboarding-modal-header, .onboarding-modal-footer { padding: 16px; }
+    .onboarding-modal-body { padding: 12px; }
+    .onboarding-modal-header h2 { font-size: 19px; }
+    .onboarding-feature-list li { gap: 10px; }
 }
-
-.onboarding-inline-icon {
-    font-size: 12px;
-    color: #3f84c2;
-    vertical-align: baseline;
+@media (prefers-reduced-motion: reduce) {
+    .onboarding-modal *, .onboarding-modal *::before, .onboarding-modal *::after {
+        animation: none !important;
+        transition: none !important;
+    }
 }
-
-
 
 .main {
     display: grid; /* Use grid layout */

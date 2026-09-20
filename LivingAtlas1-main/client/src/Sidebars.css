@@ -23,7 +23,7 @@
     top: var(--app-navbar-height); /* Place the sidebar below the navbar */
     left: 0;
     z-index: 1000;
-    transition: width 0.3s ease, left 0.24s ease, transform 0.24s ease, opacity 0.24s ease;
+    transition: none;
     overflow: hidden;
 }
 
@@ -157,7 +157,7 @@
     transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
 }
 
-/* Mini Search Modal – slides out from behind the left sidebar */
+/* Mini Search Modal opens immediately beside the left sidebar. */
 .search-mini-modal {
     position: fixed;
     left: var(--app-left-sidebar-collapsed-width);          /* flush against the right edge of the sidebar */
@@ -174,7 +174,7 @@
     pointer-events: none;
     opacity: 0;
     transform: translateX(calc(-100% - 4px));
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+    transition: none;
 }
 
 .app-map-fullscreen .search-mini-modal {
@@ -466,7 +466,7 @@
     align-items: center;
     justify-content: flex-start;
     z-index: 1000; /* Ensures it is above the map */
-    transition: width 0.3s ease; /* Smooth transition effect */
+    transition: none;
   }
 
 .app-map-fullscreen #right-sidebar {

@@ -10,7 +10,7 @@
   z-index: 0;
   background: #eaeaea;
   overflow: hidden;
-  transition: left 0.2s ease, right 0.2s ease;
+  transition: none; /* Apply panel offsets immediately. */
 }
 
 /* Mapbox map container fills parent, no scrollbars */

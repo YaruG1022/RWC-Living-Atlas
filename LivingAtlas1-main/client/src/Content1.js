@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useLayoutEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 import './Content1.css';
@@ -671,51 +671,42 @@ const Content1 = (props) => {
 
 
 
-  // Resize map when container changes
-  useEffect(() => {
-    if (!mapRef.current) return;
+  // Read the committed layout before paint, without waiting for a slide animation.
+  const syncMapSize = useCallback(() => {
+    const map = mapRef.current;
+    const container = mapContainerRef.current;
+    if (!map || !container || !container.clientWidth || !container.clientHeight) return;
 
-    // Trigger resize immediately and once more after layout/transition settles.
-    mapRef.current.resize();
+    const canvas = map.getCanvas();
+    if (canvas.clientWidth !== container.clientWidth || canvas.clientHeight !== container.clientHeight) {
+      map.resize();
+    }
+  }, []);
 
-    const rafId = window.requestAnimationFrame(() => {
-      if (mapRef.current) mapRef.current.resize();
-    });
-
-    const timeoutId = window.setTimeout(() => {
-      if (mapRef.current) mapRef.current.resize();
-    }, 220);
-
-    return () => {
-      window.cancelAnimationFrame(rafId);
-      window.clearTimeout(timeoutId);
-    };
+  useLayoutEffect(() => {
+    syncMapSize();
   }, [
+    syncMapSize,
     props.isCollapsed,
     props.cardPanelWidth,
+    props.cardPanelSide,
     props.isUploadPanelOpen,
     props.isCustomLayerPanelOpen,
+    props.isBasemapOpen,
     props.isSidebarOpen,
     props.isMapFullscreen,
     props.isWatershedPanelOpen,
     props.isChatbotSidebarOpen
   ]);
 
-  // Keep map size in sync when the card panel finishes its open/close transition.
-  useEffect(() => {
-    const cardPanel = document.getElementById('content-2');
-    if (!cardPanel) return;
-
-    const handleTransitionEnd = (event) => {
-      if (event.propertyName !== 'transform') return;
-      if (mapRef.current) mapRef.current.resize();
-    };
-
-    cardPanel.addEventListener('transitionend', handleTransitionEnd);
-    return () => {
-      cardPanel.removeEventListener('transitionend', handleTransitionEnd);
-    };
-  }, []);
+  // Also cover responsive CSS, window resizing, and container changes outside React.
+  useLayoutEffect(() => {
+    const container = mapContainerRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver(syncMapSize);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [syncMapSize]);
 
   // MAIN MAP INITIALIZATION
   useEffect(() => {

@@ -324,6 +324,6 @@
     margin: 0 auto; /* Center align */
     width: calc(100% - 60px); /* Ensure width adapts */
     box-sizing: border-box;
-    transition: margin-left 0.3s ease; /* Smooth transition effect */
+    transition: none; /* Keep workspace offsets synchronous with panel state. */
 }
 

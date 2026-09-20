@@ -26,6 +26,21 @@ function ChangelogHistory() {
             <div className="changelog-history-body">
                 {activeTab === 'latest' && (
                     <>
+                        <h3>Update Date: 9/19/2026</h3>
+
+                        <h4>General Onboarding Improvements</h4>
+                        <p>Updated the welcome guide and app tour to match the current sidebar icons, chatbot modes, watershed tools, and top navigation. Sections can now be expanded or collapsed, with only the introduction open by default. Refined spacing, colors, and smaller corner radii; matched example buttons to the real controls, including their sizes and hover effects. Renamed the tour button to Start App Tour and preserved the What is the Living Atlas? introduction.</p>
+
+                        <h4>Changelog Modal Improvements</h4>
+                        <p>Refreshed the update dialog to match the welcome guide, with consistent colors, spacing, smaller corner radii, and button hover effects. Updates are grouped into collapsible date sections, with the latest release open by default. The header and footer remain visible while the update content scrolls.</p>
+
+                        <h4>Instant Panel and Map Resizing</h4>
+                        <p>Removed panel slide-in and map-shifting animations so layout changes happen immediately. Map dimensions now update with panel opening, closing, switching sides, and stacking, including Basemap changes. Container size changes are also tracked, eliminating the previous delayed resize.</p>
+
+                        <h4>Homepage Navigation Fix</h4>
+                        <p>Fixed a blank screen when returning to Home after visiting User Manual. Leaving the homepage now clears the old map reference so panels no longer try to access a map that has already been removed.</p>
+                        <hr />
+
                         <h3>Update Date: 9/1 - 9/15/2026</h3>
 
                         <h4>Watershed Delineation (New)</h4>

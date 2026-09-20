@@ -23,6 +23,34 @@ function ChangelogModal({ isOpen, onClose }) {
             <div className="onboarding-modal-body changelog-modal-body">
                 <details className="onboarding-section changelog-release" open>
                     <summary>
+                        <h3>Update Date: 9/19/2026</h3>
+                        <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />
+                    </summary>
+                    <div className="onboarding-section-content">
+                        <h4>General Onboarding Improvements</h4>
+                        <ul className="changelog-list">
+                            <li>Updated the welcome guide and app tour to match the current sidebar icons, chatbot modes, watershed tools, and top navigation. Sections can now be expanded or collapsed, with only the introduction open by default. Refined spacing, colors, and smaller corner radii; matched example buttons to the real controls, including their sizes and hover effects. Renamed the tour button to Start App Tour and preserved the What is the Living Atlas? introduction.</li>
+                        </ul>
+
+                        <h4>Changelog Modal Improvements</h4>
+                        <ul className="changelog-list">
+                            <li>Refreshed the update dialog to match the welcome guide, with consistent colors, spacing, smaller corner radii, and button hover effects. Updates are grouped into collapsible date sections, with the latest release open by default. The header and footer remain visible while the update content scrolls.</li>
+                        </ul>
+
+                        <h4>Instant Panel and Map Resizing</h4>
+                        <ul className="changelog-list">
+                            <li>Removed panel slide-in and map-shifting animations so layout changes happen immediately. Map dimensions now update with panel opening, closing, switching sides, and stacking, including Basemap changes. Container size changes are also tracked, eliminating the previous delayed resize.</li>
+                        </ul>
+
+                        <h4>Homepage Navigation Fix</h4>
+                        <ul className="changelog-list">
+                            <li>Fixed a blank screen when returning to Home after visiting User Manual. Leaving the homepage now clears the old map reference so panels no longer try to access a map that has already been removed.</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details className="onboarding-section changelog-release">
+                    <summary>
                         <h3>Update Date: 9/1 - 9/15/2026</h3>
                         <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />
                     </summary>

@@ -6,7 +6,7 @@ const STEP_DEFINITIONS = [
     {
         selector: '[data-onboarding-target="navbar-root"]',
         title: 'Top Navbar',
-        description: 'This top navbar provides global navigation across the app at all times.',
+        description: 'Use the top bar to return to the map, learn about the project, find contact information, read updates and the manual, or access your account.',
         placement: 'bottom',
     },
     {
@@ -18,7 +18,7 @@ const STEP_DEFINITIONS = [
     {
         selector: '[data-onboarding-target="navbar-cereo-link"]',
         title: 'CEREO Website Link',
-        description: 'Use this logo link to open the CEREO website in a new tab.',
+        description: 'Select the CEREO logo to visit the Center for Environmental Research, Education, and Outreach website.',
         placement: 'bottom',
     },
     {
@@ -52,15 +52,27 @@ const STEP_DEFINITIONS = [
         placement: 'bottom',
     },
     {
-        selector: '[data-onboarding-target="navbar-auth-link"]',
+        selector: '[data-onboarding-target="navbar-auth-link"][href="/signup"]',
+        title: 'Register',
+        description: 'Create an account to save favorite cards and access features available to signed-in users.',
+        placement: 'bottom',
+    },
+    {
+        selector: '[data-onboarding-target="navbar-auth-link"][href="/login"]',
+        title: 'Login',
+        description: 'Sign in to your existing account. Your avatar and username will replace Register and Login in the top bar.',
+        placement: 'bottom',
+    },
+    {
+        selector: '[data-onboarding-target="navbar-auth-link"].profile-button',
         title: 'Account Area',
-        description: 'Use this area to log in/register, or manage profile and account actions when signed in.',
+        description: 'Open your avatar menu for Profile, Switch Account, and Logout. Administrators also have an Administration option.',
         placement: 'bottom',
     },
     {
         selector: '[data-onboarding-target="left-sidebar-root"]',
         title: 'Left Sidebar',
-        description: 'This sidebar is the main launcher for map panels and global app controls.',
+        description: 'Open search, Cards, GIS layers, Custom Layers, Basemap, Watershed Delineation, and the chatbot here. The bell and information buttons at the bottom open updates and this app tour.',
         placement: 'right',
     },
     {
@@ -78,31 +90,37 @@ const STEP_DEFINITIONS = [
     {
         selector: '[data-onboarding-target="left-sidebar-cards"]',
         title: 'Cards Panel Button',
-        description: 'Open the Cards panel. To start its onboarding: open the panel, then click the play/start onboarding button in the card panel title bar.',
+        description: 'Show or hide data cards. Search, sort, and filter resources, then select a card to explore its details and location. The circular play button in the panel header starts its guided tour.',
         placement: 'right',
     },
     {
         selector: '[data-onboarding-target="left-sidebar-gis"]',
         title: 'GIS Services Button',
-        description: 'Open ArcGIS Upload Panel. To start its onboarding: open the panel, then click the Tutorial play button in the panel header.',
+        description: 'Use the earth button to browse ArcGIS services and add GIS layers to the map. Time-aware layers offer time filters. The circular play button in the panel header starts its guided tour.',
         placement: 'right',
     },
     {
         selector: '[data-onboarding-target="left-sidebar-customlayers"]',
         title: 'Custom Layers Button',
-        description: 'Open Custom Layers Panel. To start its onboarding: open the panel, then click the Tutorial play button in the panel header.',
+        description: 'Manage your saved custom layers with folders, pinning, ordering, and map visibility controls. The circular play button in the panel header starts its guided tour.',
         placement: 'right',
     },
     {
         selector: '[data-onboarding-target="left-sidebar-basemap"]',
         title: 'Basemap Button',
-        description: 'Open Basemap Panel. To start its onboarding: open the panel, then click the Tutorial play button in the panel header.',
+        description: 'Choose the background map style for your data. The circular play button in the panel header starts its guided tour.',
         placement: 'right',
     },
     {
         selector: '[data-onboarding-target="left-sidebar-watershed"]',
         title: 'Watershed Button',
-        description: 'Open Watershed Delineation to show StreamStats rivers, delineate a basin, and save it as a custom layer or polygon card. Use Tutorial in the panel header for a walkthrough, or Help for the manual.',
+        description: 'Show StreamStats rivers, delineate a basin, and save it as a custom layer or polygon card. The circular play button in the panel header starts its guided tour; the question mark opens the manual.',
+        placement: 'right',
+    },
+    {
+        selector: '[data-onboarding-target="left-sidebar-chatbot"]',
+        title: 'RWC Living Atlas Helper',
+        description: 'Ask the chatbot about data and app features. The speech-bubble button opens the sidebar chat. Switch between Sidebar and Floating in the chat header; in floating mode, use the floating helper handle instead of this disabled button.',
         placement: 'right',
     },
     {
@@ -167,8 +185,8 @@ const STEP_DEFINITIONS = [
     },
     {
         selector: '[data-onboarding-target="left-sidebar-general-onboarding"]',
-        title: 'General Onboarding Button',
-        description: 'To replay this general onboarding anytime: click this button, then press the Play button in the General Onboarding modal.',
+        title: 'App Onboarding',
+        description: 'Open the welcome guide to review app features and panel help. Select Start App Tour to replay this walkthrough anytime.',
         placement: 'right',
     },
 ];

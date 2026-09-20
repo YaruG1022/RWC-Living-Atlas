@@ -373,6 +373,27 @@
 }
 
 /* Small inline icon inside sentences (play / question mark / info) */
+.onboarding-panel-play-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 28px;
+    height: 28px;
+    border: 1px solid #bfd0e2;
+    border-radius: 50%;
+    background: #fff;
+    color: #27425d;
+    font-size: 13px;
+    line-height: 1;
+    vertical-align: middle;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.onboarding-panel-play-icon svg {
+    transform: translateX(1px);
+}
+
 .onboarding-inline-icon {
     font-size: 12px;
     color: #3f84c2;

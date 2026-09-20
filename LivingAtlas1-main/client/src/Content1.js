@@ -1683,6 +1683,10 @@ const Content1 = (props) => {
       // Clean up map instance on unmount.
       // Keep this lifecycle tied to mount/unmount rather than auth state to avoid
       // auth-transition races that can leave markers missing until a hard refresh.
+      // Panels mount before the next map and must not read this destroyed instance.
+      // Only clear references we own so an older cleanup cannot detach a newer map.
+      if (window.atlasMapInstance === map) window.atlasMapInstance = null;
+      if (mapRef.current === map) mapRef.current = null;
       map.remove();
     };
   }, []);

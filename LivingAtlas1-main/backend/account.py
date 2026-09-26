@@ -11,6 +11,7 @@ from database import conn, cur, get_connection
 from pydantic import BaseModel
 from typing import Dict, Any
 import json
+import psycopg2
 
 import urllib.parse
 import requests
@@ -632,14 +633,9 @@ async def signup_data(
             connection = get_connection()
             if connection is None:
                 return {"success": False, "message": "Database connection unavailable"}
-            # Serialize ID allocation and email checks across Uvicorn workers.
-            # The transaction-scoped lock is released by commit or rollback.
+            # Keep the email check and insert together; the database's unique
+            # indexes enforce both email and generated ID across all writers.
             with connection.cursor() as signup_cur:
-                signup_cur.execute("SELECT pg_advisory_xact_lock(%s)", (6212026,))
-                signup_cur.execute("SELECT MAX(SignupID) FROM SignupData")
-                max_signup_id = signup_cur.fetchone()[0] or 0
-                signup_id = max_signup_id + 1
-
                 signup_cur.execute("SELECT COUNT(*) FROM SignupData WHERE Email = %s", (email,))
                 if signup_cur.fetchone()[0] > 0:
                     connection.rollback()
@@ -647,8 +643,8 @@ async def signup_data(
 
                 desires_admin = str(desired_access_level).lower() == "admin"
                 signup_cur.execute(
-                    "INSERT INTO SignupData (SignupID, Username, Email, Pass, SponsorMessage, DesiresAdmin) VALUES (%s, %s, %s, %s, %s, %s)",
-                    (signup_id, username, email, password, sponsor_message, desires_admin),
+                    "INSERT INTO SignupData (Username, Email, Pass, SponsorMessage, DesiresAdmin) VALUES (%s, %s, %s, %s, %s)",
+                    (username, email, password, sponsor_message, desires_admin),
                 )
             connection.commit()
 
@@ -658,6 +654,8 @@ async def signup_data(
     except Exception as e:
         if connection is not None and not connection.closed:
             connection.rollback()
+        if isinstance(e, psycopg2.errors.UniqueViolation):
+            return {"success": False, "message": "Email must be unique"}
         return {"success": False, "message": str(e)}
 
 

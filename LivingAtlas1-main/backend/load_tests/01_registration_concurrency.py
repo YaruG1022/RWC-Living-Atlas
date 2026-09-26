@@ -4,7 +4,23 @@ import argparse
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 
-from common import cleanup_signups, report, require_local_target, signup_rows, summary, timed_request
+from common import cleanup_signups, db_connect, report, require_local_target, signup_rows, summary, timed_request
+
+
+def signup_schema_protected():
+    with db_connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT EXISTS (
+                    SELECT 1 FROM pg_indexes
+                    WHERE tablename = 'signupdata'
+                      AND indexname = 'signupdata_signupid_key'
+                ), column_default
+                FROM information_schema.columns
+                WHERE table_name = 'signupdata' AND column_name = 'signupid'
+            """)
+            unique_id, default = cur.fetchone()
+            return unique_id and default == "nextval('signupdata_id_seq'::regclass)"
 
 
 def register(email, index):
@@ -27,6 +43,7 @@ def main():
     if args.distinct < 2 or args.duplicates < 2:
         parser.error("Both request counts must be at least 2")
     require_local_target()
+    schema_protected = signup_schema_protected()
     prefix = f"load01_{uuid.uuid4().hex[:10]}"
     try:
         with ThreadPoolExecutor(max_workers=max(args.distinct, args.duplicates)) as pool:
@@ -50,11 +67,12 @@ def main():
             item["status"] == 200
             and item.get("body") == {"success": False, "message": "Email must be unique"}
         )]
-        passed = (distinct_ok == args.distinct and len(rows_after_distinct) == args.distinct
+        passed = (schema_protected and distinct_ok == args.distinct and len(rows_after_distinct) == args.distinct
                   and duplicate_ok == 1 and rejected_expected == args.duplicates - 1
                   and duplicate_rows == 1 and distinct_ids)
         report("registration_concurrency", {
             "passed": passed,
+            "database_id_constraint_and_sequence": schema_protected,
             "distinct": summary(distinct),
             "rows_after_distinct": len(rows_after_distinct),
             "duplicate_attempts": args.duplicates,

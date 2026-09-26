@@ -185,10 +185,31 @@ def _ensure_schema():
               ADD COLUMN IF NOT EXISTS LineStyle VARCHAR(20);
         """)
 
+        # Migration 014 — let PostgreSQL allocate signup IDs and reject any
+        # duplicate ID, including writes outside the active signup endpoint.
+        # Existing duplicate IDs must be resolved before this migration runs.
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS signupdata_signupid_key
+                ON SignupData (SignupID);
+            CREATE SEQUENCE IF NOT EXISTS signupdata_id_seq;
+            ALTER SEQUENCE signupdata_id_seq OWNED BY SignupData.SignupID;
+            ALTER TABLE SignupData ALTER COLUMN SignupID
+                SET DEFAULT nextval('signupdata_id_seq');
+            SELECT setval(
+                'signupdata_id_seq',
+                GREATEST(
+                    COALESCE((SELECT MAX(SignupID) FROM SignupData), 0) + 1,
+                    (SELECT last_value + 1 FROM signupdata_id_seq)
+                ),
+                false
+            );
+        """)
+
         conn.commit()
         print("[MIGRATIONS] Schema is up-to-date.")
     except Exception as e:
         conn.rollback()
         print(f"[MIGRATIONS] Error applying migrations: {e}")
+        raise
 
 _ensure_schema()

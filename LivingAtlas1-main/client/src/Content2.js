@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import './Content2.css';
 import './Sidebars.css';
@@ -15,6 +15,15 @@ import api from './api.js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAngleDoubleLeft, faAngleDoubleRight, faHeart, faSearch, faTimes, faPlus, faMapMarkerAlt, faList, faGrip, faRightLeft, faThumbtack, faEllipsisV, faQuestion, faPlay } from '@fortawesome/free-solid-svg-icons';
 import { useLocation } from 'react-router-dom';
+
+const dedupeCards = (items) => {
+    const seen = new Set();
+    return items.filter((card) => {
+        if (seen.has(card.cardID)) return false;
+        seen.add(card.cardID);
+        return true;
+    });
+};
 
 function Content2(props) {
     const { setCardPanelWidth, cardPanelSide, setCardPanelSide } = props;
@@ -305,9 +314,7 @@ function Content2(props) {
                     console.log('[Content2] /allCards response:', cardData.length, 'cards');
                     
                     // Deduplicate by cardID
-                    const uniqueCards = cardData.filter((card, index, self) => 
-                        index === self.findIndex(c => c.cardID === card.cardID)
-                    );
+                    const uniqueCards = dedupeCards(cardData);
                     // console.log('[Content2] After deduplication:', uniqueCards.length, 'unique cards');
                     // console.table(uniqueCards);
                     setCards(uniqueCards);
@@ -326,9 +333,7 @@ function Content2(props) {
                 const cardData = response.data?.data || [];
                 
                 // Deduplicate by cardID
-                const uniqueCards = cardData.filter((card, index, self) => 
-                    index === self.findIndex(c => c.cardID === card.cardID)
-                );
+                const uniqueCards = dedupeCards(cardData);
                 // console.log('[Content2] /allCardsByTag:', uniqueCards.length, 'unique cards from', cardData.length);
                 // console.table(uniqueCards);
                 setCards(uniqueCards);
@@ -602,9 +607,7 @@ function Content2(props) {
                         const cardData = response.data.data;
                         
                         // Deduplicate by cardID
-                        const uniqueCards = cardData.filter((card, index, self) => 
-                            index === self.findIndex(c => c.cardID === card.cardID)
-                        );
+                        const uniqueCards = dedupeCards(cardData);
                         // console.log('[Content2] Search results:', uniqueCards.length, 'unique cards from', cardData.length);
                         setCards(uniqueCards);
                         notifyCardsLoaded(uniqueCards.length);
@@ -734,9 +737,7 @@ function Content2(props) {
 
     // Viewport filter for cards based on current map bounds 
     // First deduplicate the cards array to prevent any duplicates
-    const uniqueCards = cards.filter((card, index, self) => 
-        index === self.findIndex(c => c.cardID === card.cardID)
-    );
+    const uniqueCards = useMemo(() => dedupeCards(cards), [cards]);
     
     const isViewportFilteringActive = showOnlyInView && !props.searchCondition;
 

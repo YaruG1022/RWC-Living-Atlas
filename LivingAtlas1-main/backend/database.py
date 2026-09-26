@@ -1,15 +1,22 @@
 import os
 import psycopg2
 from psycopg2 import OperationalError, errorcodes, errors
+from psycopg2.pool import ThreadedConnectionPool
+from threading import BoundedSemaphore, Lock
 
 conn = None  # Ensure conn is always defined
 cur = None
+_request_pool = None
+_request_pool_lock = Lock()
+_request_pool_size = max(1, min(int(os.environ.get("DB_REQUEST_POOL_SIZE", "1")), 10))
+_request_slots = BoundedSemaphore(_request_pool_size)
 
 
-def _connect_from_env():
+def _connection_params():
     database_url = os.environ.get("DATABASE_URL")
+    application_name = os.environ.get("DB_APPLICATION_NAME", "livingatlas_backend")
     if database_url:
-        return psycopg2.connect(database_url, connect_timeout=10)
+        return {"dsn": database_url, "connect_timeout": 10, "application_name": application_name}
 
     db_name = os.environ.get("DB_NAME")
     db_user = os.environ.get("DB_USER")
@@ -21,23 +28,27 @@ def _connect_from_env():
             "Missing database configuration. Set DATABASE_URL or DB_NAME, DB_USER, DB_PASSWORD, and DB_HOST."
         )
 
-    return psycopg2.connect(
-        dbname=db_name,
-        user=db_user,
-        password=db_password,
-        host=db_host,
-        port=os.environ.get("DB_PORT", "5432"),
-        sslmode=os.environ.get("DB_SSLMODE", "require"),
-        connect_timeout=10
-    )
+    return {
+        "dbname": db_name, "user": db_user, "password": db_password,
+        "host": db_host, "port": os.environ.get("DB_PORT", "5432"),
+        "sslmode": os.environ.get("DB_SSLMODE", "require"),
+        "application_name": application_name, "connect_timeout": 10,
+    }
+
+
+def _connect_from_env():
+    return psycopg2.connect(**_connection_params())
 
 
 def get_connection():
     """Return a live DB connection, reconnecting once if startup initialization failed."""
     global conn, cur
 
-    if conn:
+    if conn is not None and not conn.closed:
         return conn
+
+    conn = None
+    cur = None
 
     try:
         conn = _connect_from_env()
@@ -50,6 +61,51 @@ def get_connection():
         conn = None
         cur = None
         return None
+
+
+def get_request_connection():
+    """Borrow an exclusive connection, probing stale pooled sessions first."""
+    global _request_pool
+    if not _request_slots.acquire(timeout=10):
+        return None
+    try:
+        if _request_pool is None:
+            with _request_pool_lock:
+                if _request_pool is None:
+                    _request_pool = ThreadedConnectionPool(1, _request_pool_size, **_connection_params())
+        for attempt in range(2):
+            connection = _request_pool.getconn()
+            try:
+                with connection.cursor() as probe:
+                    probe.execute("SELECT 1")
+                connection.rollback()
+                return connection
+            except (OperationalError, psycopg2.InterfaceError):
+                _request_pool.putconn(connection, close=True)
+                if attempt:
+                    break
+    except (OperationalError, psycopg2.InterfaceError):
+        pass
+    except Exception:
+        _request_slots.release()
+        raise
+    _request_slots.release()
+    return None
+
+
+def release_request_connection(connection):
+    """End the request transaction and return the connection to the pool."""
+    try:
+        if connection.closed:
+            _request_pool.putconn(connection, close=True)
+        else:
+            try:
+                connection.rollback()
+                _request_pool.putconn(connection)
+            except (OperationalError, psycopg2.InterfaceError):
+                _request_pool.putconn(connection, close=True)
+    finally:
+        _request_slots.release()
 
 try:
     conn = _connect_from_env()
@@ -171,10 +227,75 @@ def _ensure_schema():
             ALTER TABLE CardPolygonVertices ADD COLUMN IF NOT EXISTS Icon VARCHAR(60);
         """)
 
+        # Migration 013 — polygon style columns. Run DDL at startup, not in
+        # read endpoints, where concurrent requests can block each other.
+        cur.execute("""
+            ALTER TABLE CardPolygonVertices
+              ADD COLUMN IF NOT EXISTS FillColor VARCHAR(20),
+              ADD COLUMN IF NOT EXISTS FillOpacity DOUBLE PRECISION,
+              ADD COLUMN IF NOT EXISTS LineStyle VARCHAR(20);
+        """)
+
+        # Migration 014 — allocate new signup IDs with a sequence. Historical
+        # duplicate IDs must not prevent the rest of the app from starting;
+        # create the unique index once those rows have been reconciled.
+        cur.execute("""
+            CREATE SEQUENCE IF NOT EXISTS signupdata_id_seq;
+            ALTER SEQUENCE signupdata_id_seq OWNED BY SignupData.SignupID;
+            ALTER TABLE SignupData ALTER COLUMN SignupID
+                SET DEFAULT nextval('signupdata_id_seq');
+            SELECT setval(
+                'signupdata_id_seq',
+                GREATEST(
+                    COALESCE((SELECT MAX(SignupID) FROM SignupData), 0) + 1,
+                    (SELECT last_value + 1 FROM signupdata_id_seq)
+                ),
+                false
+            );
+        """)
+        cur.execute("""
+            SELECT SignupID, COUNT(*) FROM SignupData
+            WHERE SignupID IS NOT NULL
+            GROUP BY SignupID HAVING COUNT(*) > 1
+            LIMIT 1
+        """)
+        duplicate_id = cur.fetchone()
+        if duplicate_id:
+            print(
+                f"[MIGRATIONS] WARNING: SignupID {duplicate_id[0]} appears "
+                f"{duplicate_id[1]} times; skipping unique index until "
+                "historical duplicates are resolved."
+            )
+        else:
+            cur.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS signupdata_signupid_key
+                    ON SignupData (SignupID);
+            """)
+
+        cur.execute("""
+            SELECT Email, COUNT(*) FROM SignupData
+            WHERE Email IS NOT NULL
+            GROUP BY Email HAVING COUNT(*) > 1
+            LIMIT 1
+        """)
+        duplicate_email = cur.fetchone()
+        if duplicate_email:
+            print(
+                "[MIGRATIONS] WARNING: duplicate SignupData.Email values "
+                "exist; skipping unique email index until historical "
+                "duplicates are resolved."
+            )
+        else:
+            cur.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS signupdata_email_key
+                    ON SignupData (Email);
+            """)
+
         conn.commit()
         print("[MIGRATIONS] Schema is up-to-date.")
     except Exception as e:
         conn.rollback()
         print(f"[MIGRATIONS] Error applying migrations: {e}")
+        raise
 
 _ensure_schema()

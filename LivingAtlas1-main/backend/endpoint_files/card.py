@@ -6,7 +6,7 @@ card
 
 """
 
-from fastapi import APIRouter, File, Form, UploadFile, HTTPException, Response
+from fastapi import APIRouter, File, Form, UploadFile, HTTPException, Response, Query
 from database import conn, cur
 from typing import Optional
 import psycopg2
@@ -14,7 +14,7 @@ import os
 import uuid
 import json
 import tempfile
-from database import get_connection
+from database import get_connection, get_request_connection, release_request_connection
 from .file_utils import compress_file #importing my function that handles compressing files for use in /uploadForm
 
 
@@ -23,14 +23,6 @@ card_router = APIRouter()
 from . import azure_storage
 DEFAULT_THUMBNAIL_URL = azure_storage.build_url("thumbnails/default_cereo_thumbnail.png")
 
-
-def ensure_polygon_vertex_style_columns(cursor):
-    cursor.execute("""
-        ALTER TABLE CardPolygonVertices
-          ADD COLUMN IF NOT EXISTS FillColor VARCHAR(20),
-          ADD COLUMN IF NOT EXISTS FillOpacity DOUBLE PRECISION,
-          ADD COLUMN IF NOT EXISTS LineStyle VARCHAR(20)
-    """)
 
 # Function to delete a blob from Azure Blob Storage (images container)
 def delete_from_bucket(blob_name):
@@ -290,19 +282,21 @@ def get_card_by_id(card_id: int):
 
 
 @card_router.get("/allCards")
-def allCards(viewer_email: Optional[str] = None):
+def allCards(viewer_email: Optional[str] = None,
+             limit: Optional[int] = Query(None, ge=1, le=500),
+             offset: int = Query(0, ge=0)):
     """
     Fetch all cards and their associated data (tags, files, etc.),
     while cleaning up filenames to remove the '.zip' suffix for display.
     If viewer_email is provided, private cards from other users are excluded.
     """
+    connection = None
     try:
-        connection = get_connection()
+        connection = get_request_connection()
         if connection is None:
             raise HTTPException(status_code=503, detail="Database connection unavailable")
 
         with connection.cursor() as local_cur:
-            ensure_polygon_vertex_style_columns(local_cur)
             local_cur.execute("""
             SELECT
                 u.Username,
@@ -386,8 +380,9 @@ def allCards(viewer_email: Optional[str] = None):
                 u.Username,
                 u.Email,
                 c.Name
-            ORDER BY c.CardID DESC;
-        """, {"viewer_email": viewer_email})
+            ORDER BY c.CardID DESC
+            LIMIT %(limit)s OFFSET %(offset)s;
+        """, {"viewer_email": viewer_email, "limit": limit, "offset": offset})
 
             rows = local_cur.fetchall()
 
@@ -412,14 +407,11 @@ def allCards(viewer_email: Optional[str] = None):
     except HTTPException:
         raise
     except Exception as e:
-        try:
-            connection = get_connection()
-            if connection:
-                connection.rollback()
-        except Exception:
-            pass
         print(f"An error occurred while fetching all cards: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+    finally:
+        if connection is not None:
+            release_request_connection(connection)
     
 from .file_utils import compress_file
 import tempfile
@@ -464,7 +456,6 @@ async def upload_form(
     print(f"[UPLOAD] username={username}, email={email}, orig_username={original_username or ''}, orig_email={original_email or ''}")
     print(f"[UPLOAD] location_type={location_type}, polygon_fill_color={polygon_fill_color!r}, polygon_line_style={polygon_line_style!r}")
     print(f"[UPLOAD] polygon_coordinates (first 200 chars): {str(polygon_coordinates)[:200] if polygon_coordinates else 'None'}")
-    ensure_polygon_vertex_style_columns(cur)
 
     try:
         # --------------------------------------------------

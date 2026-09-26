@@ -6,8 +6,8 @@ filterbar
     search bar            
 """
 
-from fastapi import APIRouter, HTTPException
-from database import get_connection
+from fastapi import APIRouter, HTTPException, Query
+from database import get_connection, get_request_connection, release_request_connection
 
 filterbar_router = APIRouter()
 
@@ -254,9 +254,12 @@ async def allCardsByTag(categoryString: str = None, tagString: str = None, sortS
 
 
 @filterbar_router.get("/searchBar")
-def searchBar(titleSearch: str):
+def searchBar(titleSearch: str,
+              limit: int | None = Query(None, ge=1, le=500),
+              offset: int = Query(0, ge=0)):
+    connection = None
     try:
-        connection = get_connection()
+        connection = get_request_connection()
         if connection is None:
             raise HTTPException(status_code=503, detail="Database connection unavailable")
 
@@ -303,16 +306,13 @@ def searchBar(titleSearch: str):
                             FROM CardImages ci2
                             WHERE ci2.CardID = c.CardID
                         ) img_sub
-                        rows = local_cur.fetchall()
+                    ),
+                    '[]'
                 ) AS images,
                 COALESCE(
                     json_agg(
-                except HTTPException:
-                    raise
                         DISTINCT jsonb_build_object(
-                    connection = get_connection()
-                    if connection:
-                        connection.rollback()
+                            'fileid', f.fileid,
                             'filename', f.filename,
                             'file_link', f.file_link,
                             'fileextension', f.fileextension
@@ -330,9 +330,10 @@ def searchBar(titleSearch: str):
             WHERE c.Title ILIKE %s
             GROUP BY c.CardID, cat.CategoryLabel, u.Username, u.Email, c.Name
             ORDER BY c.CardID DESC
-        """, (f"%{titleSearch}%",))
+            LIMIT %s OFFSET %s
+        """, (f"%{titleSearch}%", limit, offset))
 
-        rows = cur.fetchall()
+            rows = local_cur.fetchall()
         columns = [
             "username", "name", "email", "title", "cardID", "category", "date",
             "description", "org", "funding", "link", "tags",
@@ -341,7 +342,11 @@ def searchBar(titleSearch: str):
         data = [dict(zip(columns, row)) for row in rows]
         return {"data": data}
 
+    except HTTPException:
+        raise
     except Exception as e:
-        conn.rollback()
         print(f"[SEARCHBAR ERROR] {e}")
         raise HTTPException(status_code=500, detail="Error executing search query")
+    finally:
+        if connection is not None:
+            release_request_connection(connection)

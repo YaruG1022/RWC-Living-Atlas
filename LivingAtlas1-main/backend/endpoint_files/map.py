@@ -4,21 +4,12 @@ map
     update boundry
 """
 
-from fastapi import APIRouter, HTTPException
-from database import get_connection
+from fastapi import APIRouter, HTTPException, Query
+from database import get_connection, get_request_connection, release_request_connection
 from pydantic import BaseModel
 
 map_router = APIRouter()
 
-
-def ensure_polygon_vertex_style_columns(cursor):
-    cursor.execute("""
-        ALTER TABLE CardPolygonVertices
-          ADD COLUMN IF NOT EXISTS FillColor VARCHAR(20),
-          ADD COLUMN IF NOT EXISTS FillOpacity DOUBLE PRECISION,
-          ADD COLUMN IF NOT EXISTS LineStyle VARCHAR(20),
-          ADD COLUMN IF NOT EXISTS Icon VARCHAR(60)
-    """)
 
 class Point(BaseModel):
     lat: float
@@ -26,13 +17,14 @@ class Point(BaseModel):
 
 # GET ALL MARKERS
 @map_router.get("/getMarkers")
-def getMarkers():
+def getMarkers(limit: int | None = Query(None, ge=1, le=500),
+               offset: int = Query(0, ge=0)):
+    connection = None
     try:
-        connection = get_connection()
+        connection = get_request_connection()
         if connection is None:
             raise HTTPException(status_code=503, detail="Database connection unavailable")
         with connection.cursor() as local_cur:
-            ensure_polygon_vertex_style_columns(local_cur)
             local_cur.execute("""
                 SELECT
                     c.CardID,
@@ -117,7 +109,8 @@ def getMarkers():
                     c.Link,
                     c.Thumbnail_Link
                 ORDER BY c.CardID DESC
-            """)
+                LIMIT %s OFFSET %s
+            """, (limit, offset))
             rows = local_cur.fetchall() if local_cur.description else []
         columns = [
             "cardID", "title", "latitude", "longitude", "category", "name", "username", "email",
@@ -129,10 +122,10 @@ def getMarkers():
     except HTTPException:
         raise
     except Exception as e:
-        connection = get_connection()
-        if connection:
-            connection.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if connection is not None:
+            release_request_connection(connection)
 
 # GET MARKERS WITHIN BOUNDS
 @map_router.post("/updateBoundry")

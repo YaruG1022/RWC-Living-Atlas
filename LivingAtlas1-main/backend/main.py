@@ -6,6 +6,9 @@
 """
 import os
 import json
+from local_config import load_local_config
+
+load_local_config()
 
 #importing libraries for the backend
 import uvicorn

@@ -31,6 +31,7 @@ LivingAtlas1-main/backend/pc_trace.log
 **/ServiceKey_GoogleCloud.json
 
 # Local test credentials
+/AGENTS.md
 LivingAtlas1-main/backend/.env.local
 LivingAtlas1-main/backend/.local-postgres/
 LivingAtlas1-main/backend/.venv-local/

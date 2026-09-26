@@ -272,6 +272,25 @@ def _ensure_schema():
                     ON SignupData (SignupID);
             """)
 
+        cur.execute("""
+            SELECT Email, COUNT(*) FROM SignupData
+            WHERE Email IS NOT NULL
+            GROUP BY Email HAVING COUNT(*) > 1
+            LIMIT 1
+        """)
+        duplicate_email = cur.fetchone()
+        if duplicate_email:
+            print(
+                "[MIGRATIONS] WARNING: duplicate SignupData.Email values "
+                "exist; skipping unique email index until historical "
+                "duplicates are resolved."
+            )
+        else:
+            cur.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS signupdata_email_key
+                    ON SignupData (Email);
+            """)
+
         conn.commit()
         print("[MIGRATIONS] Schema is up-to-date.")
     except Exception as e:

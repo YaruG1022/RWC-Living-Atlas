@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
-from database import cur, conn
+from database import cur, conn, get_connection
 import json
 
 arcgis_router = APIRouter(prefix="/arcgis", tags=["ArcGIS"])
@@ -40,7 +40,8 @@ def get_services(
     state: Optional[str] = Query(None, description="WA|ID|OR or full state name"),
     type: Optional[str] = Query("MapServer", description="ArcGIS service type or 'all'"),
 ):
-    if cur is None:
+    connection = get_connection()
+    if connection is None:
         raise HTTPException(status_code=500, detail="Database connection not available")
 
     clauses: List[str] = []
@@ -70,8 +71,9 @@ def get_services(
     """.strip()
 
     try:
-        cur.execute(sql, params)
-        rows = cur.fetchall()
+        with connection.cursor() as local_cur:
+            local_cur.execute(sql, params)
+            rows = local_cur.fetchall()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Query failed: {e}")
 

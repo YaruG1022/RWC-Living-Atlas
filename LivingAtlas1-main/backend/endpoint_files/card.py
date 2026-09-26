@@ -24,14 +24,6 @@ from . import azure_storage
 DEFAULT_THUMBNAIL_URL = azure_storage.build_url("thumbnails/default_cereo_thumbnail.png")
 
 
-def ensure_polygon_vertex_style_columns(cursor):
-    cursor.execute("""
-        ALTER TABLE CardPolygonVertices
-          ADD COLUMN IF NOT EXISTS FillColor VARCHAR(20),
-          ADD COLUMN IF NOT EXISTS FillOpacity DOUBLE PRECISION,
-          ADD COLUMN IF NOT EXISTS LineStyle VARCHAR(20)
-    """)
-
 # Function to delete a blob from Azure Blob Storage (images container)
 def delete_from_bucket(blob_name):
     try:
@@ -302,7 +294,6 @@ def allCards(viewer_email: Optional[str] = None):
             raise HTTPException(status_code=503, detail="Database connection unavailable")
 
         with connection.cursor() as local_cur:
-            ensure_polygon_vertex_style_columns(local_cur)
             local_cur.execute("""
             SELECT
                 u.Username,
@@ -464,7 +455,6 @@ async def upload_form(
     print(f"[UPLOAD] username={username}, email={email}, orig_username={original_username or ''}, orig_email={original_email or ''}")
     print(f"[UPLOAD] location_type={location_type}, polygon_fill_color={polygon_fill_color!r}, polygon_line_style={polygon_line_style!r}")
     print(f"[UPLOAD] polygon_coordinates (first 200 chars): {str(polygon_coordinates)[:200] if polygon_coordinates else 'None'}")
-    ensure_polygon_vertex_style_columns(cur)
 
     try:
         # --------------------------------------------------

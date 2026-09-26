@@ -255,6 +255,7 @@ async def allCardsByTag(categoryString: str = None, tagString: str = None, sortS
 
 @filterbar_router.get("/searchBar")
 def searchBar(titleSearch: str):
+    connection = None
     try:
         connection = get_connection()
         if connection is None:
@@ -303,16 +304,13 @@ def searchBar(titleSearch: str):
                             FROM CardImages ci2
                             WHERE ci2.CardID = c.CardID
                         ) img_sub
-                        rows = local_cur.fetchall()
+                    ),
+                    '[]'
                 ) AS images,
                 COALESCE(
                     json_agg(
-                except HTTPException:
-                    raise
                         DISTINCT jsonb_build_object(
-                    connection = get_connection()
-                    if connection:
-                        connection.rollback()
+                            'fileid', f.fileid,
                             'filename', f.filename,
                             'file_link', f.file_link,
                             'fileextension', f.fileextension
@@ -332,7 +330,7 @@ def searchBar(titleSearch: str):
             ORDER BY c.CardID DESC
         """, (f"%{titleSearch}%",))
 
-        rows = cur.fetchall()
+            rows = local_cur.fetchall()
         columns = [
             "username", "name", "email", "title", "cardID", "category", "date",
             "description", "org", "funding", "link", "tags",
@@ -341,7 +339,10 @@ def searchBar(titleSearch: str):
         data = [dict(zip(columns, row)) for row in rows]
         return {"data": data}
 
+    except HTTPException:
+        raise
     except Exception as e:
-        conn.rollback()
+        if connection:
+            connection.rollback()
         print(f"[SEARCHBAR ERROR] {e}")
         raise HTTPException(status_code=500, detail="Error executing search query")

@@ -11,15 +11,6 @@ from pydantic import BaseModel
 map_router = APIRouter()
 
 
-def ensure_polygon_vertex_style_columns(cursor):
-    cursor.execute("""
-        ALTER TABLE CardPolygonVertices
-          ADD COLUMN IF NOT EXISTS FillColor VARCHAR(20),
-          ADD COLUMN IF NOT EXISTS FillOpacity DOUBLE PRECISION,
-          ADD COLUMN IF NOT EXISTS LineStyle VARCHAR(20),
-          ADD COLUMN IF NOT EXISTS Icon VARCHAR(60)
-    """)
-
 class Point(BaseModel):
     lat: float
     long: float
@@ -32,7 +23,6 @@ def getMarkers():
         if connection is None:
             raise HTTPException(status_code=503, detail="Database connection unavailable")
         with connection.cursor() as local_cur:
-            ensure_polygon_vertex_style_columns(local_cur)
             local_cur.execute("""
                 SELECT
                     c.CardID,

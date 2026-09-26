@@ -171,6 +171,15 @@ def _ensure_schema():
             ALTER TABLE CardPolygonVertices ADD COLUMN IF NOT EXISTS Icon VARCHAR(60);
         """)
 
+        # Migration 013 — polygon style columns. Run DDL at startup, not in
+        # read endpoints, where concurrent requests can block each other.
+        cur.execute("""
+            ALTER TABLE CardPolygonVertices
+              ADD COLUMN IF NOT EXISTS FillColor VARCHAR(20),
+              ADD COLUMN IF NOT EXISTS FillOpacity DOUBLE PRECISION,
+              ADD COLUMN IF NOT EXISTS LineStyle VARCHAR(20);
+        """)
+
         conn.commit()
         print("[MIGRATIONS] Schema is up-to-date.")
     except Exception as e:

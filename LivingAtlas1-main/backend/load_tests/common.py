@@ -1,6 +1,7 @@
 """Safety checks and measurements shared by local integration/load tests."""
 
 import json
+import math
 import os
 import sys
 import time
@@ -65,7 +66,7 @@ def timed_request(method, path, **kwargs):
 def summary(results):
     durations = sorted(item["seconds"] for item in results)
     def percentile(p):
-        return round(durations[min(len(durations) - 1, int((len(durations) - 1) * p))] * 1000, 1) if durations else 0
+        return round(durations[max(0, math.ceil(len(durations) * p) - 1)] * 1000, 1) if durations else 0
     return {
         "requests": len(results),
         "successes": sum(item["ok"] for item in results),

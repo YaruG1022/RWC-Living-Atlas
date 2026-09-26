@@ -72,9 +72,6 @@ function Home(props) {
     const [cardPanelSide, setCardPanelSide] = useState('right');
     const [folderExpanded, setFolderExpanded] = useState(false);
     const [itemExpanded, setItemExpanded] = useState(false);
-    const [arcgisLayers, setArcgisLayers] = useState([]);
-    const [arcgisLegend, setArcgisLegend] = useState(null);
-    const [arcgisLayerAdded, setArcgisLayerAdded] = useState(false);
     const [isChangelogOpen, setIsChangelogOpen] = useState(false);
     const [hasUnseenChangelog, setHasUnseenChangelog] = useState(() => {
         return !localStorage.getItem('changelog_seen_v19');
@@ -165,26 +162,6 @@ function Home(props) {
         window.addEventListener('open-arcgis-panel', handler);
         return () => window.removeEventListener('open-arcgis-panel', handler);
     }, [chatbotDisplayMode]);
-
-    // Fetch layers and legend for demo folder/item
-    useEffect(() => {
-        if (isUploadPanelOpen) {
-            const SERVICE_URL = "https://gis.ecology.wa.gov/serverext/rest/services/Authoritative/AQ/MapServer";
-            fetch(`${SERVICE_URL}/layers?f=json`)
-                .then(res => res.json())
-                .then(data => {
-                    setArcgisLayers(prevLayers => {
-                        if (JSON.stringify(prevLayers) !== JSON.stringify(data.layers || [])) {
-                            setCheckedArcgisLayerIds([]);
-                        }
-                        return data.layers || [];
-                    });
-                });
-            fetch(`${SERVICE_URL}/legend?f=json`)
-                .then(res => res.json())
-                .then(data => setArcgisLegend(data));
-        }
-    }, [isUploadPanelOpen]);
 
     const [selectedCardCoords, setSelectedCardCoords] = useState(null);
     const [selectedCardIdFromMap, setSelectedCardIdFromMap] = useState(null);
@@ -1075,85 +1052,6 @@ function Home(props) {
         chatbotDisplayMode,
     ]);
 
-    const addArcgisLayer = (layerIds = checkedArcgisLayerIds) => {
-        const map = window.atlasMapInstance;
-        if (!map) return;
-
-        if (map.getLayer('arcgis-raster-layer')) map.removeLayer('arcgis-raster-layer');
-        if (map.getSource('arcgis-raster')) map.removeSource('arcgis-raster');
-
-        let layersParam = '';
-        if (layerIds.length > 0) {
-            layersParam = '&layers=show:' + layerIds.join(',');
-        }
-
-        map.addSource('arcgis-raster', {
-            type: 'raster',
-            tiles: [
-                `https://gis.ecology.wa.gov/serverext/rest/services/Authoritative/AQ/MapServer/export?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=256,256&format=png&transparent=true&f=image${layersParam}`
-            ],
-            tileSize: 256,
-            minzoom: 5,
-            maxzoom: 12
-        });
-        map.addLayer({
-            id: 'arcgis-raster-layer',
-            type: 'raster',
-            source: 'arcgis-raster',
-            paint: {
-                'raster-opacity': 0.35
-            }
-        });
-        setArcgisLayerAdded(true);
-    };
-
-    const removeArcgisLayer = () => {
-        const map = window.atlasMapInstance;
-        if (!map) return;
-        if (map.getLayer('arcgis-raster-layer')) map.removeLayer('arcgis-raster-layer');
-        if (map.getSource('arcgis-raster')) map.removeSource('arcgis-raster');
-        setArcgisLayerAdded(false);
-    };
-
-    const [checkedArcgisLayerIds, setCheckedArcgisLayerIds] = useState([]);
-
-    const handleLayerCheckbox = (layerId) => {
-        let newChecked;
-        if (checkedArcgisLayerIds.includes(layerId)) {
-            newChecked = checkedArcgisLayerIds.filter(id => id !== layerId);
-        } else {
-            newChecked = [...checkedArcgisLayerIds, layerId];
-        }
-        setCheckedArcgisLayerIds(newChecked);
-        if (arcgisLayerAdded) {
-            addArcgisLayer(newChecked);
-        }
-    };
-
-    const handleSelectAll = () => {
-        if (checkedArcgisLayerIds.length === arcgisLayers.length) {
-            setCheckedArcgisLayerIds([]);
-            if (arcgisLayerAdded) removeArcgisLayer();
-        } else {
-            const allIds = arcgisLayers.map(l => l.id);
-            setCheckedArcgisLayerIds(allIds);
-            if (arcgisLayerAdded) addArcgisLayer(allIds);
-        }
-    };
-
-    useEffect(() => {
-        if (checkedArcgisLayerIds.length === 0) {
-            if (arcgisLayerAdded) removeArcgisLayer();
-        } else {
-            if (!arcgisLayerAdded) {
-                addArcgisLayer(checkedArcgisLayerIds);
-            } else {
-                addArcgisLayer(checkedArcgisLayerIds);
-            }
-        }
-        // eslint-disable-next-line
-    }, [checkedArcgisLayerIds]);
-
     // Card marker visibility state
     const [layerVisibility, setLayerVisibility] = useState({
         River: true,
@@ -1259,8 +1157,6 @@ function Home(props) {
                     onClose={() => setIsUploadPanelOpen(false)}
                     splitBottom={cardPanelSide === 'left' && !isCollapsed}
                     mapInstance={getMapboxMap}
-                    arcgisLayerAdded={arcgisLayerAdded}
-                    setArcgisLayerAdded={setArcgisLayerAdded}
                     areaVisibility={areaVisibility}
                     handleAreaCheckbox={handleAreaCheckbox}
                     navigateToItem={arcgisNavigateTarget}

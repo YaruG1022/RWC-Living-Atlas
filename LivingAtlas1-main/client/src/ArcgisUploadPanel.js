@@ -21,10 +21,6 @@ import {
 } from './arcgisServicesDb'; // Fetch from DB
 import { updateCurrentStateServices } from './arcgisUpdateServices';
 import ArcgisRenameItem from './ArcgisRenameItem';
-// Import local JSON files as fallback
-import WA_ARCGIS_SERVICES from './arcgis_services_wa.json';
-import ID_ARCGIS_SERVICES from './arcgis_services_id.json';
-import OR_ARCGIS_SERVICES from './arcgis_services_or.json';
 import { filterUploadPanelData } from './arcgisUploadSearchUtils';
 import { buildMatchList, useSearchNav } from './arcgisSearchNavUtils';
 import { buildLayerTree, getAllLeafLayers, getDescendantLeafLayers, LayerTreeNode } from './LayerTree';
@@ -58,13 +54,6 @@ const STATE_FULL_NAMES = { WA: 'Washington State ArcGIS Services', ID: 'Idaho Ar
 const STATE_CODE_TO_NAME = { WA: 'washington', ID: 'idaho', OR: 'oregon' };
 
 const normalizeLookupText = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-
-// Local JSON fallback data
-const ARCGIS_SERVICES_BY_STATE = {
-    WA: WA_ARCGIS_SERVICES || [],
-    ID: ID_ARCGIS_SERVICES || [],
-    OR: OR_ARCGIS_SERVICES || []
-};
 
 // State-specific attribution information
 const STATE_ATTRIBUTION = {
@@ -152,8 +141,6 @@ function ArcgisUploadPanel({
     onClose,
     splitBottom = false,
     mapInstance,
-    arcgisLayerAdded: propArcgisLayerAdded,
-    setArcgisLayerAdded: setPropArcgisLayerAdded,
     isAdmin = false,
     areaVisibility = {},
     handleAreaCheckbox,
@@ -167,19 +154,14 @@ function ArcgisUploadPanel({
     // Services fetched from DB
     const [servicesFromDb, setServicesFromDb] = useState({});
     const [isLoadingServices, setIsLoadingServices] = useState(false);
-    const [, setServicesError] = useState(null);
-    const [usingFallback, setUsingFallback] = useState(false);
-    // True once the first DB services fetch attempt (success or fallback) has
-    // finished, so pin auto-load can wait for authoritative service data
-    // instead of matching against the static fallback list prematurely.
+    const [servicesError, setServicesError] = useState(null);
+    // Pin auto-load waits until the first database fetch finishes.
     const [servicesInitialLoadDone, setServicesInitialLoadDone] = useState(false);
 
-    // Combine all states; prefer DB data, fall back to local JSON when DB is unavailable
+    // ArcGIS services are sourced only from the backend database.
     const ALL_SERVICES_BY_STATE = {};
     STATE_CODES.forEach(code => {
-        ALL_SERVICES_BY_STATE[code] = (servicesFromDb[code] && servicesFromDb[code].length > 0)
-            ? servicesFromDb[code]
-            : (ARCGIS_SERVICES_BY_STATE[code] || []);
+        ALL_SERVICES_BY_STATE[code] = servicesFromDb[code] || [];
     });
     const ARCGIS_SERVICES = STATE_CODES.flatMap(code => ALL_SERVICES_BY_STATE[code]);
 
@@ -491,9 +473,8 @@ function ArcgisUploadPanel({
     const [updateResults, setUpdateResults] = useState(null);
 
     // Fetch services from DB on mount (not gated on panel open, so pinned
-    // services/layers that only exist in the DB can be matched and auto-loaded
-    // before the panel is ever opened); retries on subsequent opens if the
-    // fallback was used.
+    // services/layers can be matched and auto-loaded before the panel is opened.
+    // Retry on subsequent opens if the database returned no services.
     useEffect(() => {
         // Skip if already successfully loaded from backend
         if (servicesLoadedRef.current) return;
@@ -503,7 +484,6 @@ function ArcgisUploadPanel({
         (async () => {
             setIsLoadingServices(true);
             setServicesError(null);
-            setUsingFallback(false);
 
             try {
                 console.log(`[ArcgisUploadPanel] Fetching services from backend for all states...`);
@@ -511,25 +491,20 @@ function ArcgisUploadPanel({
 
                 if (active) {
                     const totalCount = STATE_CODES.reduce((sum, c) => sum + (stateMap[c] || []).length, 0);
+                    setServicesFromDb(stateMap);
                     if (totalCount > 0) {
-                        setServicesFromDb(stateMap);
-                        setUsingFallback(false);
                         servicesLoadedRef.current = true;
                         console.log(`[ArcgisUploadPanel] Loaded ${totalCount} services from backend`);
                     } else {
-                        console.warn(`[ArcgisUploadPanel] Backend returned no services, using local fallback`);
-                        setServicesFromDb({});
-                        setUsingFallback(true);
-                        // Don't set servicesLoadedRef — retry on next open
+                        console.warn('[ArcgisUploadPanel] Backend returned no services');
+                        setServicesError('No ArcGIS services available from database');
                     }
                 }
             } catch (error) {
-                console.error(`[ArcgisUploadPanel] Failed to load from backend, using local fallback:`, error);
+                console.error('[ArcgisUploadPanel] Failed to load ArcGIS services from database:', error);
                 if (active) {
                     setServicesFromDb({});
-                    setUsingFallback(true);
-                    setServicesError(`Backend unavailable (using local data): ${error.message || 'Network error'}`);
-                    // Don't set servicesLoadedRef — retry on next open
+                    setServicesError(`Database unavailable: ${error.message || 'Network error'}`);
                 }
             } finally {
                 if (active) {
@@ -549,15 +524,15 @@ function ArcgisUploadPanel({
             addLoadingMessage(msgId, `🔄 Loading ArcGIS services from database...`);
         } else {
             removeLoadingMessage(msgId);
-            if (usingFallback) {
-                showFinishedMessage(msgId, `📂 Database unavailable, using local data`);
+            if (servicesError) {
+                showFinishedMessage(msgId, servicesError);
             } else if (ARCGIS_SERVICES.length > 0) {
                 showFinishedMessage(msgId, `🌐 Loaded from database: ${ARCGIS_SERVICES.length} services`);
             }
         }
-    }, [isLoadingServices, usingFallback, ARCGIS_SERVICES.length]);
+    }, [isLoadingServices, servicesError, ARCGIS_SERVICES.length]);
 
-    // Reset state when data source TYPE changes (local ↔ database toggle)
+    // Initialize service caches on mount.
     useEffect(() => {
         // Reset per-datasource caches/UI
         setServiceLayers({});
@@ -890,9 +865,7 @@ function ArcgisUploadPanel({
         const pinnedItemsReady = userEmail ? pinnedPreferencesLoaded : localPinnedPreferencesReady;
 
         if (!pinnedItemsReady) return;
-        // Wait for the DB services fetch to finish (success or fallback) so pins
-        // are matched against the authoritative service list, not just whatever
-        // the static local-JSON fallback happens to contain at mount time.
+        // Wait for the database service fetch before matching pinned items.
         if (!servicesInitialLoadDone) return;
         if (ARCGIS_SERVICES.length === 0 || pinnedItems.length === 0) return;
         if (selectionsLoadedRef.current) return;
@@ -2876,7 +2849,7 @@ function ArcgisUploadPanel({
                                                     </div>
                                                 ))}
                                                 <div className="upload-panel-attribution" style={{ marginTop: 4, marginBottom: 2 }}>
-                                                    Data sources: {usingFallback ? 'Local JSON Files' : 'Backend Database'} • <a href={STATE_ATTRIBUTION[stateCode]?.url} target="_blank" rel="noopener noreferrer">{STATE_ATTRIBUTION[stateCode]?.name} ArcGIS Services</a>
+                                                    Data sources: Backend Database • <a href={STATE_ATTRIBUTION[stateCode]?.url} target="_blank" rel="noopener noreferrer">{STATE_ATTRIBUTION[stateCode]?.name} ArcGIS Services</a>
                                                 </div>
                                             </div>
                                         )}
@@ -2996,7 +2969,7 @@ function ArcgisUploadPanel({
                                         </div>
                                     ))}
                                     <div className="upload-panel-attribution" style={{ marginTop: 4, marginBottom: 2 }}>
-                                        Data sources: {usingFallback ? 'Local JSON Files' : 'Backend Database'} • <a href={STATE_ATTRIBUTION[currentPath.stateCode]?.url} target="_blank" rel="noopener noreferrer">{STATE_ATTRIBUTION[currentPath.stateCode]?.name} ArcGIS Services</a>
+                                        Data sources: Backend Database • <a href={STATE_ATTRIBUTION[currentPath.stateCode]?.url} target="_blank" rel="noopener noreferrer">{STATE_ATTRIBUTION[currentPath.stateCode]?.name} ArcGIS Services</a>
                                     </div>
                                 </>
                             )}
@@ -3059,7 +3032,7 @@ function ArcgisUploadPanel({
                                         );
                                     })}
                                     <div className="upload-panel-attribution" style={{ marginTop: 4, marginBottom: 2 }}>
-                                        Data sources: {usingFallback ? 'Local JSON Files' : 'Backend Database'} • <a href={STATE_ATTRIBUTION[currentPath.stateCode]?.url} target="_blank" rel="noopener noreferrer">{STATE_ATTRIBUTION[currentPath.stateCode]?.name} ArcGIS Services</a>
+                                        Data sources: Backend Database • <a href={STATE_ATTRIBUTION[currentPath.stateCode]?.url} target="_blank" rel="noopener noreferrer">{STATE_ATTRIBUTION[currentPath.stateCode]?.name} ArcGIS Services</a>
                                     </div>
                                 </>
                             )}

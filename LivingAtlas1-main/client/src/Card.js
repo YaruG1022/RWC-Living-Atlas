@@ -14,11 +14,9 @@ import { descriptionToHtml, htmlToPlainText } from './richTextUtils';
 import PolygonDrawingModal from './PolygonDrawingModal';
 import CoordinatesPanel from './CoordinatesPanel';
 import ArcGISPickerModal from './ArcGISPickerModal';
+import { fetchAllArcgisServices } from './arcgisServicesDb';
 import CustomLayerPickerModal from './CustomLayerPickerModal';
 import LearnMoreOnboarding, { LEARN_MORE_EDIT_MODE_STEP } from './OnboardingLearnMore';
-import WA_ARCGIS_SERVICES from './arcgis_services_wa.json';
-import ID_ARCGIS_SERVICES from './arcgis_services_id.json';
-import OR_ARCGIS_SERVICES from './arcgis_services_or.json';
 
 const CARD_CATEGORIES = ['River', 'Watershed', 'Places', 'Other'];
 
@@ -27,19 +25,6 @@ const ARCGIS_STATE_FULL_NAMES = {
     ID: 'Idaho ArcGIS Services',
     OR: 'Oregon ArcGIS Services',
 };
-
-// Build a lookup map from service_key -> service label for breadcrumb display
-const _allArcgisServices = [
-    ...(WA_ARCGIS_SERVICES || []),
-    ...(ID_ARCGIS_SERVICES || []),
-    ...(OR_ARCGIS_SERVICES || []),
-];
-const ARCGIS_SERVICE_LABEL_BY_KEY = {};
-const ARCGIS_SERVICE_URL_BY_KEY = {};
-_allArcgisServices.forEach(s => {
-    ARCGIS_SERVICE_LABEL_BY_KEY[s.key] = s.label || s.key;
-    ARCGIS_SERVICE_URL_BY_KEY[s.key] = s.url || null;
-});
 
 // Pinned ArcGIS items live in the same user-preference list
 // (preferences.arcgis.pinnedItems) used by the ArcGIS upload panel, so pinned
@@ -122,6 +107,7 @@ function Card(props) {
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [linkedArcgisItems, setLinkedArcgisItems] = useState([]);
     const [arcgisLegends, setArcgisLegends] = useState({}); // { serviceKey: legendData }
+    const [arcgisServiceByKey, setArcgisServiceByKey] = useState({});
     const [isArcgisPickerOpen, setIsArcgisPickerOpen] = useState(false);
     // Track which linked items have their layer shown on the map (keyed by item.id)
     const [linkedArcgisChecked, setLinkedArcgisChecked] = useState({});
@@ -225,19 +211,32 @@ function Card(props) {
         }
     }, [props.forceOpenLearnMoreSignal]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Resolve linked services from the database when the card details open.
+    useEffect(() => {
+        if (!isModalOpen) return;
+        let active = true;
+        setArcgisServiceByKey({});
+        fetchAllArcgisServices({ type: 'all' })
+            .then(services => {
+                if (active) setArcgisServiceByKey(Object.fromEntries(services.map(service => [service.key, service])));
+            })
+            .catch(error => console.error('Failed to load ArcGIS services from database:', error));
+        return () => { active = false; };
+    }, [isModalOpen]);
+
     // Fetch ArcGIS legend data for all service keys in linkedArcgisItems
     useEffect(() => {
         if (linkedArcgisItems.length === 0) return;
         const uniqueKeys = [...new Set(linkedArcgisItems.map(i => i.service_key))];
         uniqueKeys.forEach(key => {
             if (arcgisLegends[key] !== undefined) return;
-            const serviceUrl = ARCGIS_SERVICE_URL_BY_KEY[key];
+            const serviceUrl = arcgisServiceByKey[key]?.url;
             if (!serviceUrl) return;
             fetchArcgisLegend(serviceUrl)
                 .then(legend => setArcgisLegends(prev => ({ ...prev, [key]: legend || {} })))
                 .catch(() => setArcgisLegends(prev => ({ ...prev, [key]: {} })));
         });
-    }, [linkedArcgisItems]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [linkedArcgisItems, arcgisServiceByKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Load pinned ArcGIS items from user preferences when the learn-more modal opens
     useEffect(() => {
@@ -2676,7 +2675,7 @@ function Card(props) {
                                 {linkedArcgisItems.map(item => {
                                     const stateLabel = ARCGIS_STATE_FULL_NAMES[item.state_code] || item.state_code;
                                     const isServiceLevel = item.item_type === 'service';
-                                    const serviceLabel = ARCGIS_SERVICE_LABEL_BY_KEY[item.service_key] || item.service_key;
+                                    const serviceLabel = arcgisServiceByKey[item.service_key]?.label || item.service_key;
                                     const isPinnedItem = pinnedArcgisItems.some(pin => pinMatchesLinkedItem(pin, item));
                                     const isLayerChecked = isPinnedItem || !!linkedArcgisChecked[item.id];
 

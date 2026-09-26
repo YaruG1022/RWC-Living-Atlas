@@ -8,9 +8,6 @@ import { buildMatchList, useSearchNav } from './arcgisSearchNavUtils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faTimes, faChevronUp, faChevronDown, faFolder } from '@fortawesome/free-solid-svg-icons';
 import './ArcGISPickerModal.css';
-import WA_ARCGIS_SERVICES from './arcgis_services_wa.json';
-import ID_ARCGIS_SERVICES from './arcgis_services_id.json';
-import OR_ARCGIS_SERVICES from './arcgis_services_or.json';
 
 const STATE_CODES = ['WA', 'ID', 'OR'];
 const STATE_FULL_NAMES = {
@@ -18,12 +15,6 @@ const STATE_FULL_NAMES = {
     ID: 'Idaho ArcGIS Services',
     OR: 'Oregon ArcGIS Services',
 };
-const LOCAL_SERVICES = {
-    WA: WA_ARCGIS_SERVICES || [],
-    ID: ID_ARCGIS_SERVICES || [],
-    OR: OR_ARCGIS_SERVICES || [],
-};
-
 function ArcGISPickerModal({ onAdd, onClose }) {
     const [servicesFromDb, setServicesFromDb] = useState({});
     const [isLoading, setIsLoading] = useState(true);
@@ -46,10 +37,10 @@ function ArcGISPickerModal({ onAdd, onClose }) {
     const allServicesByState = useMemo(() => {
         const result = {};
         STATE_CODES.forEach(code => {
-            result[code] = servicesFromDb[code]?.length > 0 ? servicesFromDb[code] : LOCAL_SERVICES[code] || [];
+            result[code] = servicesFromDb[code] || [];
         });
         return result;
-    }, [servicesFromDb]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [servicesFromDb]);
     const allServices = STATE_CODES.flatMap(code => allServicesByState[code]);
 
     // Search navigation
@@ -81,8 +72,7 @@ function ArcGISPickerModal({ onAdd, onClose }) {
             setIsLoading(true);
             try {
                 const stateMap = await fetchServicesByStateMap(STATE_CODES, { type: 'MapServer' });
-                const total = STATE_CODES.reduce((s, c) => s + (stateMap[c] || []).length, 0);
-                if (active && total > 0) setServicesFromDb(stateMap);
+                if (active) setServicesFromDb(stateMap);
             } catch { }
             if (active) setIsLoading(false);
         })();
@@ -510,6 +500,9 @@ function ArcGISPickerModal({ onAdd, onClose }) {
     const renderTree = () => {
         if (isLoading) {
             return <p className="arcgis-picker-loading-msg">Loading ArcGIS services...</p>;
+        }
+        if (allServices.length === 0) {
+            return <p className="arcgis-picker-loading-msg">No ArcGIS services available from database.</p>;
         }
 
         // SEARCH MODE: accordion across all states that have matching items

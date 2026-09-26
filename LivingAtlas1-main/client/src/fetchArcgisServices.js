@@ -65,7 +65,7 @@ const STATE_NAMES = {
   OR: 'oregon'
 };
 
-// Output files (kept next to existing arcgis_services.json for WA-only)
+// Output files for one-time database seeding and maintenance
 const OUTPUT_FILES = {
   WA: path.join(__dirname, 'arcgis_services_wa.json'),
   ID: path.join(__dirname, 'arcgis_services_id.json'),
@@ -149,7 +149,6 @@ async function fetchAndSave(serverKey) {
     console.log(' - arcgis_services_wa.json (Washington)');
     console.log(' - arcgis_services_id.json (Idaho)');
     console.log(' - arcgis_services_or.json (Oregon)');
-    console.log('Note: arcgis_services.json remains your Washington-only legacy file.');
   } catch (err) {
     console.error('[fetchArcgisServices] Error:', err);
     process.exit(1);

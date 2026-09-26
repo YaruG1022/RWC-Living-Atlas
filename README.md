@@ -90,15 +90,7 @@ Now you can follow the steps in the following sections to start the frontend or 
 4. Access API docs at `http://localhost:8000/docs`.  
 
 #### Updating ArcGIS Services List  
-If new services are added to ArcGIS and you want them to appear in the application, you need to update the local services list:
-
-1. Open a terminal and navigate to `/LivingAtlas1-main/client/src`.
-2. Run the fetch script to regenerate the services file:
-   ```
-   node fetchArcgisServices.js
-   ```
-3. This will update `arcgis_services.json` with the latest services from ArcGIS.
-4. Restart the frontend server if it is running, so the changes take effect.
+The application reads ArcGIS services from the backend database. To add newly published services, use the update control in the ArcGIS Upload Panel. It scans the selected state's ArcGIS REST catalog and adds new services to the database; existing labels and folders are preserved.
 
 #### Connecting Frontend to Local Backend  
 1. Open `/client/src/api.js`.  

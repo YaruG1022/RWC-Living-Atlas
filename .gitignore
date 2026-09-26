@@ -2,6 +2,8 @@
 **/node_modules/
 **/myenv/
 **/.vs/
+**/.netlify/
+LivingAtlas1-main/client/src/ArcgisData/
 
 *.pyc
 *.pyo

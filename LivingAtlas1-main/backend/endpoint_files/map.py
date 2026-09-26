@@ -5,7 +5,7 @@ map
 """
 
 from fastapi import APIRouter, HTTPException
-from database import get_connection
+from database import get_connection, get_request_connection, release_request_connection
 from pydantic import BaseModel
 
 map_router = APIRouter()
@@ -18,8 +18,9 @@ class Point(BaseModel):
 # GET ALL MARKERS
 @map_router.get("/getMarkers")
 def getMarkers():
+    connection = None
     try:
-        connection = get_connection()
+        connection = get_request_connection()
         if connection is None:
             raise HTTPException(status_code=503, detail="Database connection unavailable")
         with connection.cursor() as local_cur:
@@ -119,10 +120,10 @@ def getMarkers():
     except HTTPException:
         raise
     except Exception as e:
-        connection = get_connection()
-        if connection:
-            connection.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if connection is not None:
+            release_request_connection(connection)
 
 # GET MARKERS WITHIN BOUNDS
 @map_router.post("/updateBoundry")

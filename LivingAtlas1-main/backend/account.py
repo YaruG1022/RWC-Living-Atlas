@@ -7,7 +7,7 @@ account
 """
 
 from fastapi import APIRouter, Form, HTTPException, UploadFile, File
-from database import conn, cur, get_connection
+from database import conn, cur, get_request_connection, release_request_connection
 from pydantic import BaseModel
 from typing import Dict, Any
 import json
@@ -630,7 +630,7 @@ async def signup_data(
     connection = None
     try:
         if username and email and password:
-            connection = get_connection()
+            connection = get_request_connection()
             if connection is None:
                 return {"success": False, "message": "Database connection unavailable"}
             # Keep the email check and insert together; the database's unique
@@ -657,6 +657,9 @@ async def signup_data(
         if isinstance(e, psycopg2.errors.UniqueViolation):
             return {"success": False, "message": "Email must be unique"}
         return {"success": False, "message": str(e)}
+    finally:
+        if connection is not None:
+            release_request_connection(connection)
 
 
 

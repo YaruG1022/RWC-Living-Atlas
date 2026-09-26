@@ -25,6 +25,7 @@ def run_phase(name, users, operations, prefix):
         samples = []
         for index in range(operations):
             if index == 0:
+                path = "/uploadSignup"
                 result = timed_request("POST", "/uploadSignup", data={
                     "username": f"spike_{name}_{user}",
                     "email": f"{prefix}_{name}_{user}@example.invalid",
@@ -40,6 +41,7 @@ def run_phase(name, users, operations, prefix):
                     isinstance(body, list) if path.startswith("/arcgis/")
                     else isinstance(body, dict) and isinstance(body.get("data"), list)
                 )
+            result["path"] = path.split("?")[0]
             samples.append(result)
         return samples
 
@@ -54,7 +56,9 @@ def run_phase(name, users, operations, prefix):
         "elapsed_s": round(elapsed, 2),
         "requests_per_s": round(len(samples) / elapsed, 1),
         "metrics": summary(samples),
-        "sample_errors": [item.get("body") or item.get("error") for item in samples if not item["ok"]][:3],
+        "sample_errors": [{"path": item["path"], "status": item["status"],
+                           "detail": item.get("body") or item.get("error")}
+                          for item in samples if not item["ok"]][:3],
     }
 
 

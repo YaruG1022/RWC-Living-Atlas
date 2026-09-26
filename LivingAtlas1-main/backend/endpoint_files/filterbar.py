@@ -7,7 +7,7 @@ filterbar
 """
 
 from fastapi import APIRouter, HTTPException
-from database import get_connection
+from database import get_connection, get_request_connection, release_request_connection
 
 filterbar_router = APIRouter()
 
@@ -257,7 +257,7 @@ async def allCardsByTag(categoryString: str = None, tagString: str = None, sortS
 def searchBar(titleSearch: str):
     connection = None
     try:
-        connection = get_connection()
+        connection = get_request_connection()
         if connection is None:
             raise HTTPException(status_code=503, detail="Database connection unavailable")
 
@@ -342,7 +342,8 @@ def searchBar(titleSearch: str):
     except HTTPException:
         raise
     except Exception as e:
-        if connection:
-            connection.rollback()
         print(f"[SEARCHBAR ERROR] {e}")
         raise HTTPException(status_code=500, detail="Error executing search query")
+    finally:
+        if connection is not None:
+            release_request_connection(connection)

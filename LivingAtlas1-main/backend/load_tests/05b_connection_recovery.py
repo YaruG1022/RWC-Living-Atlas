@@ -64,7 +64,7 @@ def main():
             time.sleep(0.2)
 
         stored = len(signup_rows(prefix))
-        passed = (all(item["ok"] for item in reads[-6:])
+        passed = (all(item["ok"] for item in reads)
                   and all(item["ok"] for item in endpoint_checks)
                   and all(item["ok"] for item in signups) and stored == 4)
         report("connection_recovery", {"passed": passed, "read_attempts": reads,

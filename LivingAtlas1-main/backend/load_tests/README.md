@@ -41,3 +41,8 @@ PostgreSQL service. Run it only when other local work is not using this test
 backend. The soak test lasts five minutes by default. Local results do not
 establish production throughput or capacity; those require a representative
 environment and agreed service targets.
+
+The core read and signup routes use one pooled database connection per worker
+by default. Set `DB_REQUEST_POOL_SIZE` to 1–10 to tune this after measuring a
+representative deployment. Other legacy routes still use module-level database
+objects and are outside the connection-recovery test's coverage.

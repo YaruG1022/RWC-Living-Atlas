@@ -1,134 +1,161 @@
-# CEREO Living Atlas Enhancements
-## Project Summary
-### One-sentence description of the project:
-Enhancing the CEREO Living Atlas to improve scalability, performance, and usability for environmental data visualization and collaboration.
+<p align="center">
+  <strong>Language:</strong>
+  <a href="README.md">en</a> ·
+  <a href="README.es.md">es</a> ·
+  <a href="README.zh-CN.md">zh-CN</a>
+</p>
 
-### Elevator Pitch:
-The CEREO Living Atlas is a geospatial web application designed to support researchers, tribal communities, and government agencies in monitoring and sharing environmental data, particularly water quality in the Columbia River Basin. This project focuses on improving the system's scalability, automating workflows, and refining its user interface to create a more robust and user-friendly platform for environmental collaboration.
+<div align="center">
+  <img src="LivingAtlas1-main/client/public/CEREO-logo.png" alt="CEREO logo" width="300">
 
-### Additional Information About the Project
-The Living Atlas is a vital tool developed by the Center for Environmental Research, Education, and Outreach (CEREO) at Washington State University. It enables dynamic, user-contributed geospatial data visualization and serves as a platform for fostering collaboration on environmental issues. This enhancement project will address limitations in the current system, such as performance bottlenecks and usability challenges, while introducing new features and optimizing the backend for handling larger datasets.
+  <h1>RWC Living Atlas</h1>
 
-## Installation
+  <p><strong>Explore environmental projects, data, and map layers in one place.</strong></p>
+
+  <p>A web atlas for discovering and sharing research across the Columbia River Basin.</p>
+</div>
+
+<p align="center">
+  <a href="#features">Features</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#getting-started">Getting started</a> ·
+  <a href="#project-structure">Project structure</a> ·
+  <a href="#contributing">Contributing</a>
+</p>
+
+## Overview
+
+RWC Living Atlas brings environmental project cards and geospatial layers into an interactive map. Visitors can explore and filter projects; contributors can submit cards and related files; administrators can manage accounts and content. The application was developed in collaboration with Washington State University's Center for Environmental Research, Education, and Outreach (CEREO).
+
+## Features
+
+| Explore | Contribute | Manage |
+| --- | --- | --- |
+| Browse project cards and map markers | Create and edit cards with locations, descriptions, images, and links | Review account requests and administer users |
+| Search and filter by category, tags, and map area | Add point and polygon locations | Maintain ArcGIS service listings and custom layers |
+| View ArcGIS layers alongside Mapbox basemaps | Save layer selections and bookmarks | View atlas summaries |
+
+The interface also includes an optional helper chatbot. It needs a separately configured chatbot service; the main FastAPI application in this repository does not provide `/chat/ask`.
+
+## Architecture
+
+The diagram shows the main runtime layers and their data flow. External map and storage services are used by specific features, so they are not required for every API request.
+
+```mermaid
+flowchart TB
+    U[Browser]
+    subgraph UI[Presentation layer · React]
+        Pages[Pages and panels]
+        Map[Mapbox map and ArcGIS layers]
+        Client[Axios API client]
+    end
+    subgraph API[Application layer · FastAPI]
+        Routes[Account, card, map, search, image, and ArcGIS routes]
+        Data[Database access]
+    end
+    DB[(PostgreSQL)]
+    GIS[ArcGIS REST services]
+    Tiles[Mapbox tiles]
+    Blob[Azure Blob Storage]
+    Chat[Optional chatbot service]
+
+    U --> Pages
+    Pages --> Map
+    Pages --> Client
+    Client -->|HTTP / JSON| Routes
+    Routes --> Data --> DB
+    Map --> Tiles
+    Map --> GIS
+    Routes -->|image and file operations| Blob
+    Client -.->|when configured| Chat
+```
+
+**Stack:** React 18, React Router, Mapbox GL JS, FastAPI, PostgreSQL, and optional Azure Blob Storage. The frontend is configured for Netlify in [`netlify.toml`](netlify.toml). Backend routes and database startup logic are in [`main.py`](LivingAtlas1-main/backend/main.py) and [`database.py`](LivingAtlas1-main/backend/database.py).
+
+## Getting started
+
 ### Prerequisites
-Git: Ensure Git is installed on your machine. <br>
-Python: Python 3.8 or higher is required. <br>
-PostgreSQL: Version 13 or higher with PostGIS extension enabled. <br>
-Node.js: Version 16 or higher for frontend dependencies. <br>
-pipenv: For managing Python dependencies.
-### Add-ons 
-Mapbox: For geospatial data visualization and advanced mapping features. <br>
-React: Frontend framework for building a dynamic and responsive user interface. <br>
-FastAPI: Backend framework for efficient server-side operations. <br>
-PostGIS: Geospatial database extension for PostgreSQL to store and query spatial data.
-### Installation Steps
-* Clone the repository: <br>
+
+- Python 3.12 and `pip`
+- Node.js and `npm`
+- PostgreSQL with the `psql` command-line tool
+- Network access for Mapbox tiles and live ArcGIS layers
+
+The repository has no one-command setup. Start the database and backend first, then the frontend in a second terminal.
+
+### 1. Prepare a local database
+
+Create an **empty local PostgreSQL database** and apply the base schema. From the repository root, for example:
+
+```sh
+createdb livingatlas_dev
+psql -d livingatlas_dev -f LivingAtlas1-main/database/database_schema/livingAtlasTables.sql
 ```
-git clone https://github.com/yourusername/cereo-living-atlas.git <br>
-cd cereo-living-atlas <br>
+
+Use your PostgreSQL user's normal authentication settings. The backend applies additional idempotent schema changes at startup, so use a disposable local database while developing. The files under [`LivingAtlas1-main/database`](LivingAtlas1-main/database) contain the base schema and migration history; sample data is optional.
+
+### 2. Start the backend
+
+```sh
+cd LivingAtlas1-main/backend
+python -m venv .venv
 ```
-* Set up the backend: <br>
+
+Activate the environment with `source .venv/bin/activate` on macOS/Linux or `.\.venv\Scripts\Activate.ps1` in PowerShell. Then install dependencies:
+
+```sh
+python -m pip install -r requirements.txt
 ```
-cd backend <br>
-pipenv install <br>
-pipenv shell <br>
-python manage.py migrate <br>
-python manage.py runserver <br>
+
+Set the database variables in your shell before starting the server. `DATABASE_URL` takes precedence; otherwise the backend needs `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and `DB_HOST`. `DB_PORT` defaults to `5432`; set `DB_SSLMODE=disable` for a local PostgreSQL server that does not use TLS. Keep credentials in your local environment and out of Git.
+
+```sh
+uvicorn main:app --reload
 ```
-* Set up the frontend: <br>
+
+The API runs at <http://localhost:8000>; interactive endpoint docs are at <http://localhost:8000/docs>. A response from `/` confirms the server is running, while database-backed routes such as `/allCards` confirm the database connection and schema.
+
+### 3. Start the frontend
+
+In another terminal, from the repository root:
+
+```sh
+cd LivingAtlas1-main/client
+npm install
+npm start
 ```
-cd frontend <br>
-npm install <br>
-npm start <br>
+
+Open <http://localhost:3000>. **Current configuration:** [`client/src/api.js`](LivingAtlas1-main/client/src/api.js) points to the hosted backend by default. Starting a local backend alone does not redirect frontend requests to it. For full local development, configure that Axios `baseURL` for `http://localhost:8000` in your local checkout and review the change before committing. The optional chatbot can use `REACT_APP_CHATBOT_API_URL` to reach a separate service.
+
+Some features need external services: map tiles and ArcGIS layers need network access, while image/file uploads may need Azure Blob Storage credentials. Basic browsing depends on the database being populated.
+
+## Project structure
+
+```text
+.
+├── LivingAtlas1-main/
+│   ├── client/                 # React application and map interface
+│   │   ├── public/             # Static assets
+│   │   └── src/                # Pages, components, and API client
+│   ├── backend/                # FastAPI app, routers, and dependencies
+│   │   └── endpoint_files/     # Feature-specific API routes
+│   └── database/               # Base schema, sample data, and migrations
+├── documentation/              # Reports and project documents
+├── netlify.toml                # Frontend build configuration
+└── LICENSE.txt
 ```
-* Seed the database (optional): <br>
-python manage.py loaddata seed_data.json <br>
 
-### Usage Instructions
-- Launch the application by running the backend and frontend servers.
-- Access the application via `http://localhost:3000` locally or visit `https://rwc-living-atlas.netlify.app/` in your browser.
-- Log in or create an account to contribute data.
-- Use the map interface to explore datasets or upload new geospatial information.
-- Click on 'Add Custom Filters' button add a new filter by tag
-- Click on the 'upload' button on the navigation bar to upload a new card
+## Development and support
 
-### Running the Application Locally
-
-Ensure the following are installed:
-- Python 3.12 or higher  
-- Pip (for backend dependencies)  
-- Node.js (enables npm commands)
-- Postgresql
-
-Before running the application, ensure the following are installed:
-- Python 3.12 or higher
-- Pip (for backend dependencies)  
-- Node.js (enables npm commands)
-- PostgreSQL 17
-
-If you want to directly downloading the application and run it, follow the steps below:
-
-1. Download the ZIP file by clicking on `Download ZIP` option.
-2. Extract the zip file named `-cereo-fullstackapp--main.zip`.
-3. Open your the folder where you extract the zip, navigate to directory `-cereo-fullstackapp-`.
-4. Right click anywhere in that directory, select `Open in Terminal` option.
-   
-Now you can follow the steps in the following sections to start the frontend or the backend.
-
-#### Starting the Frontend
-1. Navitage to `/client`. On a terminal console, you can do it by simply entering `cd ./LivingAtlas1-main/client`
-2. Navigate to `/client` and open a terminal.  
-3. Run `npm install` to install dependencies if you haven't.  
-4. Start the frontend with `npm start` (runs on port 3000).  
-
-#### Starting the Backend  
-1. Open a terminal and go to `/backend`. On a terminal console, you can do it by simply entering `cd ./LivingAtlas1-main/backend`
-2. Run `pip install -r requirements.txt` to install dependencies if you haven't. 
-   - If it prompts pg_config-related errors, make sure PostgreSQL is installed, then run `setx PATH "%PATH%;C:\Program Files\PostgreSQL\17\bin` in terminal as an administrator.
-3. Start the backend with `uvicorn main:app --reload` (runs on port 8000).  
-   - If this fails, try `python .\main.py` instead.  
-4. Access API docs at `http://localhost:8000/docs`.  
-
-#### Updating ArcGIS Services List  
-The application reads ArcGIS services from the backend database. To add newly published services, use the update control in the ArcGIS Upload Panel. It scans the selected state's ArcGIS REST catalog and adds new services to the database; existing labels and folders are preserved.
-
-#### Connecting Frontend to Local Backend  
-1. Open `/client/src/api.js`.  
-2. Comment out hosted `baseURL` lines.  
-3. Uncomment `baseURL: 'http://localhost:8000'`.  
-
-#### Stopping the Application  
-Press **Ctrl + C** in each terminal to free ports 3000 and 8000. If not stopped, `npm start` may prompt using port 3001 instead.  
-
-
-## Functionality
-The Living Atlas supports the following features:
-
-- Interactive map visualization for water quality and environmental datasets.
-- User-contributed data with dynamic updates.
-- Advanced filtering options for geospatial data.
-- View external GIS spatial data collected from geodatabases.
-- Automated workflows for user account management and data input.
-- Scalability to handle larger datasets and more concurrent users.
-
-## Known Problems
-Performance under high load: Scaling tests are in progress to address potential issues with large datasets. <br>
-UI responsiveness: Some pages may load slowly during heavy operations; optimizations are planned. <br>
-Map rendering bugs: Occasional glitches with rendering layers; debugging in progress.  <br>
-Card rendering bugs: Cards may load into the application missing some information. <br>
-App security and data integrity: There is a lack of protection of user account data.
+- Frontend scripts: run `npm test` or `npm run build` from [`LivingAtlas1-main/client`](LivingAtlas1-main/client). The test command starts Create React App's interactive runner by default.
+- API reference: run the backend and open <http://localhost:8000/docs>.
+- Project background: see the [`documentation/`](documentation/) folder and the [in-app user manual](LivingAtlas1-main/client/src/UserManual.js).
+- Report a bug or request a feature through [GitHub Issues](https://github.com/YaruG1022/RWC-Living-Atlas/issues), including reproduction steps and the relevant frontend or backend logs. Remove credentials and personal data before sharing logs.
 
 ## Contributing
-* Fork it!
-* Create your feature branch: `git checkout -b my-new-feature`
-* Commit your changes: `git commit -am 'Add some feature'`
-* Push to the branch: `git push origin my-new-feature`
-* Submit a pull request! 🎉
 
-## Additional Documentation
-[All Documentation](https://github.com/WSUCptSCapstone-S25-F25/-cereo-fullstackapp-/tree/main/documentation) <br>
-[Sprint Reports](https://github.com/WSUCptSCapstone-S25-F25/-cereo-fullstackapp-/tree/main/documentation/sprint_report) <br>
-[Client Meeting Reports](https://github.com/WSUCptSCapstone-S25-F25/-cereo-fullstackapp-/tree/main/documentation/client_report)
+Open an issue to discuss substantial changes, then submit a focused pull request. Include a short description of the behavior, how you checked it, and screenshots for visible UI changes. Keep local environment files, database files, and service credentials out of commits.
 
 ## License
-https://github.com/WSUCptSCapstone-S25-F25/-cereo-fullstackapp-/blob/main/LICENSE.txt
+
+This repository is licensed under the terms in [`LICENSE.txt`](LICENSE.txt).

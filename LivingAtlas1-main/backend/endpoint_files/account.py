@@ -417,7 +417,7 @@ async def upload_profile_image(email: str = Form(...), image: UploadFile = File(
             raise HTTPException(status_code=404, detail="User not found")
 
         from endpoint_files.images import save_uploaded_file
-        image_url = save_uploaded_file(image, require_gcs=True)
+        image_url = save_uploaded_file(image)
 
         cur.execute("UPDATE users SET profile_image = %s WHERE email = %s", (image_url, email))
         conn.commit()

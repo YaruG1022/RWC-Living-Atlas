@@ -8,10 +8,7 @@ card
 
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException, Response
 from database import conn, cur
-from io import BytesIO
 from typing import Optional
-from fastapi.responses import FileResponse
-# from google.cloud import storage   # (GCS legacy — storage moved to Azure Blob)
 import psycopg2
 import os
 import uuid
@@ -22,20 +19,6 @@ from .file_utils import compress_file #importing my function that handles compre
 
 
 card_router = APIRouter()
-
-import os, base64
-
-# ---- OLD GCS setup (commented out — storage moved to Azure Blob) ----
-# gcs_key = os.environ.get("GOOGLE_CREDENTIALS_BASE64")
-# if gcs_key:
-#     with open("ServiceKey_GoogleCloud.json", "wb") as f:
-#         f.write(base64.b64decode(gcs_key))
-#     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "ServiceKey_GoogleCloud.json"
-# _______________________________________
-# storage_client = storage.Client()
-# bucket_name = "cereo_atlas_storage"
-# bucket = storage_client.bucket(bucket_name)
-# DEFAULT_THUMBNAIL_URL = "https://storage.googleapis.com/cereo_atlas_storage/thumbnails/default_cereo_thumbnail.png"
 
 from . import azure_storage
 DEFAULT_THUMBNAIL_URL = azure_storage.build_url("thumbnails/default_cereo_thumbnail.png")
@@ -263,7 +246,7 @@ def get_bookmarked_cards(username: str):
 @card_router.get("/downloadFile")
 async def downloadFile(fileID: int):
     """
-    Return the public Google Cloud Storage link for a file by fileID,
+    Return the stored file link by fileID,
     and include Content-Disposition headers so the browser downloads it cleanly.
     """
     cur.execute("SELECT filename, file_link FROM files WHERE fileid = %s", (fileID,))
@@ -274,7 +257,7 @@ async def downloadFile(fileID: int):
     filename, file_link = result
 
     # Option A: redirect to the public link
-    # (preferred for large files; GCS handles it directly)
+    # (preferred for large files; storage handles it directly)
     return Response(
         content=f"Redirecting to {file_link}",
         media_type="text/plain",
@@ -284,17 +267,6 @@ async def downloadFile(fileID: int):
         },
         status_code=302,  # Redirect
     )
-    # Option B: stream through backend (uncomment if you want proxying)
-    # blob_name = file_link.replace(f"https://storage.googleapis.com/{bucket_name}/", "")
-    # blob = bucket.blob(blob_name)
-    # file_content = BytesIO()
-    # blob.download_to_file(file_content)
-    # file_content.seek(0)
-    # return Response(
-    #     file_content.read(),
-    #     media_type="application/octet-stream",
-    #     headers={"Content-Disposition": f"attachment; filename={filename}"}
-    # )
 
 @card_router.get("/card/{card_id}")
 def get_card_by_id(card_id: int):
@@ -486,7 +458,7 @@ async def upload_form(
 ):
     """
     Create or update a Card with metadata, thumbnail, and optional files.
-    Ensures uploaded files are compressed, stored in GCS, and recorded in the database.
+    Ensures uploaded files are compressed, stored in Azure, and recorded in the database.
     """
     enable_commits = False
     print(f"[UPLOAD] username={username}, email={email}, orig_username={original_username or ''}, orig_email={original_email or ''}")
@@ -873,7 +845,7 @@ async def upload_form(
                 if images:
                     for idx, img_file in enumerate(images):
                         try:
-                            img_url = _save_img(img_file, require_gcs=True)
+                            img_url = _save_img(img_file)
                             cur.execute(
                                 "INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText) VALUES (%s, %s, %s, '')",
                                 (nextcardid, img_url, idx)
@@ -900,7 +872,7 @@ async def upload_form(
                 if images and len(images) > 1:
                     for idx, img_file in enumerate(images[1:], start=1):
                         try:
-                            img_url = _save_img(img_file, require_gcs=True)
+                            img_url = _save_img(img_file)
                             cur.execute(
                                 "INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText) VALUES (%s, %s, %s, '')",
                                 (nextcardid, img_url, idx)
@@ -930,52 +902,3 @@ async def upload_form(
             conn.rollback()
         except:
             pass
-
-# New API's to support edit card funtions for thumbnails and for attached files
-
-# ------------------------------------------------------------
-# DEPRECATED LOCAL FS EXAMPLES (kept for reference)
-# ------------------------------------------------------------
-"""
-# THESE TWO ENDPOINTS UPLOAD AND DOWNLOAD ARE MADE FOR WHEN THE BACKEND HAS A LOCAL FILE SYSTEM TO USE. 
-# WE HAVE SWITCHED TO USE A CLOUD SERVICE TO STORE OUR FILES SO THESE ARE NOW DEPRICATED
-
-@card_router.post("/uploadFile")
-async def uploadFile(file: UploadFile = File(...)):
-    #Im using os.path.join to make it cross-platform compatible
-    #This will use the correct path separator for the platform as well 
-    pc_folder_path = os.path.dirname(os.path.abspath(__file__))
-    innerfolder = "savedFiles"
-    folder_path = os.path.join(pc_folder_path, innerfolder)
-    print(pc_folder_path, folder_path, innerfolder)
-
-    #Makes sure the file name and extension are formatted correctly
-    file_name, file_ext = file.filename.split(".")
-
-    #folder_path = "savedfiles"  # Specifies the folder where I want to save the files
-    os.makedirs(folder_path, exist_ok=True)  # Creates the folder if it doesn't exist
-    file_path = os.path.join(folder_path, f"{file_name}.{file_ext}")
-    
-    print(file_path)
-    #Should probably write to folder in chunks for larger files but that will come in time
-    with open(file_path, "wb") as f:
-        content = await file.read()
-        f.write(content)
-    
-    return {"success": True, "file path": file_path, "message": "File Uploaded Successfully"}
-
-Im working on implementing google cloud storage functionality to fastAPI backend endpoints. One endpoint I have is called download_file. I want this endpoint to retieve the file from my google cloud bucket and send it to the user to download on my react frontend. I have inlcuded my endpoint that I want you to work off of, this endpoint downloadFile current downloads the selected file to the users local file system and the google cloud code that I have that can retirieve files from my bucket. The issue Im having is that my current google cloud code only works with local files systems. I need you to adjust this code to work with my fastAPI endpoint.
-
-@card_router.get("/downloadFile")
-async def downloadFile(fileTitle: str):
-    #Im using os.path.join to make it cross-platform compatible
-    #This will use the correct path separator for the platform as well 
-    folder_path = os.path.dirname(os.path.abspath(__file__))
-    innerfolder = "savedFiles/"
-    file_path = os.path.join(folder_path, innerfolder, fileTitle)
-    #print(folder_path, innerfolder)
-    #print(file_path)
-    if os.path.exists(file_path):
-        return FileResponse(file_path)
-    return {"error": "File doesn't exist"}
-"""

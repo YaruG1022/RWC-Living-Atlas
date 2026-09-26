@@ -10,8 +10,6 @@ from typing import Optional
 import os
 import uuid
 import datetime
-import base64
-import tempfile
 import requests as _requests
 from pathlib import Path
 from . import azure_storage
@@ -22,48 +20,7 @@ images_router = APIRouter()
 IMAGE_UPLOAD_DIR = "uploads/card_images"
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
-# GCS_BUCKET_NAME = "cereo_atlas_storage"   # (GCS legacy — storage moved to Azure)
-GCS_IMAGE_FOLDER = "card_images"           # folder prefix inside the Azure container
-
-
-# ---- OLD GCS client helper (commented out — storage moved to Azure Blob) ----
-# def _get_gcs_client():
-#     """
-#     Return a GCS storage client if credentials are available, else None.
-#     """
-#     try:
-#         from google.cloud import storage as gcs
-#
-#         gcs_b64 = os.environ.get("GOOGLE_CREDENTIALS_BASE64")
-#         if gcs_b64:
-#             key_bytes = base64.b64decode(gcs_b64)
-#             tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".json")
-#             tmp.write(key_bytes)
-#             tmp.flush()
-#             tmp.close()
-#             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = tmp.name
-#             return gcs.Client()
-#
-#         existing_credentials_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-#         if existing_credentials_path and os.path.exists(existing_credentials_path):
-#             return gcs.Client()
-#
-#         backend_root = os.path.dirname(os.path.dirname(__file__))
-#         candidate_keys = [
-#             os.path.join(os.path.dirname(__file__), "ServiceKey_GoogleCloud.json"),
-#             os.path.join(backend_root, "ServiceKey_GoogleCloud.json"),
-#             os.path.join(os.getcwd(), "ServiceKey_GoogleCloud.json"),
-#         ]
-#
-#         for candidate in candidate_keys:
-#             if os.path.exists(candidate):
-#                 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = candidate
-#                 return gcs.Client()
-#
-#     except Exception as e:
-#         print(f"[images] Unable to initialize GCS client: {e}")
-#
-#     return None
+IMAGE_FOLDER = "card_images"
 
 
 def ensure_upload_dir():
@@ -76,11 +33,9 @@ def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def save_uploaded_file(file: UploadFile, require_gcs: bool = True) -> str:
+def save_uploaded_file(file: UploadFile) -> str:
     """
     Save uploaded file to Azure Blob Storage and return its public URL.
-    (require_gcs is a legacy parameter kept for call-site compatibility; storage
-    is now Azure, and upload failures always raise.)
     """
     if not allowed_file(file.filename):
         raise HTTPException(status_code=400, detail="File type not allowed")
@@ -95,38 +50,13 @@ def save_uploaded_file(file: UploadFile, require_gcs: bool = True) -> str:
     content_type = f"image/{file_ext}" if file_ext != 'jpg' else "image/jpeg"
 
     # Azure Blob Storage upload (primary storage)
-    blob_name = f"{GCS_IMAGE_FOLDER}/{unique_filename}"
+    blob_name = f"{IMAGE_FOLDER}/{unique_filename}"
     try:
         return azure_storage.upload_bytes(blob_name, content, content_type)
     except HTTPException:
         raise
     except Exception as az_err:
         raise HTTPException(status_code=500, detail=f"Azure upload failed: {az_err}")
-
-    # ---- OLD GCS / local upload (commented out — storage moved to Azure) ----
-    # gcs_client = _get_gcs_client()
-    # if gcs_client is not None:
-    #     try:
-    #         bucket = gcs_client.bucket(GCS_BUCKET_NAME)
-    #         blob_name = f"{GCS_IMAGE_FOLDER}/{unique_filename}"
-    #         blob = bucket.blob(blob_name)
-    #         content_type = f"image/{file_ext}" if file_ext != 'jpg' else "image/jpeg"
-    #         blob.upload_from_string(content, content_type=content_type)
-    #         return blob.public_url
-    #     except Exception as gcs_err:
-    #         if require_gcs:
-    #             raise HTTPException(status_code=500, detail=f"GCS upload failed: {gcs_err}")
-    #         print(f"[images] GCS upload failed, falling back to local storage: {gcs_err}")
-    #
-    # if require_gcs:
-    #     raise HTTPException(status_code=500, detail="Image upload requires GCS credentials.")
-    #
-    # ensure_upload_dir()
-    # filepath = os.path.join(IMAGE_UPLOAD_DIR, unique_filename)
-    # with open(filepath, 'wb') as f:
-    #     f.write(content)
-    # return f"/uploads/card_images/{unique_filename}"
-
 
 def _should_sync_thumbnail_with_gallery(card_id: int) -> bool:
     cur.execute("SELECT COALESCE(LocationType, 'point') FROM Cards WHERE CardID = %s", (card_id,))
@@ -156,8 +86,7 @@ async def upload_card_image(
         if not cur.fetchone():
             raise HTTPException(status_code=404, detail="Card not found")
         
-        # Save file (persistent GCS storage required)
-        image_url = save_uploaded_file(image, require_gcs=True)
+        image_url = save_uploaded_file(image)
         
         # Get next display order
         cur.execute(
@@ -234,7 +163,7 @@ async def upload_card_images(
 
         created_images = []
         for index, image in enumerate(images):
-            image_url = save_uploaded_file(image, require_gcs=True)
+            image_url = save_uploaded_file(image)
             alt_text = alt_text_values[index] if index < len(alt_text_values) else ""
 
             cur.execute(
@@ -305,20 +234,6 @@ async def delete_card_image(imageID: int):
         except Exception as az_err:
             print(f"[images] Azure delete failed (non-fatal): {az_err}")
 
-        # ---- OLD GCS / local delete (commented out — storage moved to Azure) ----
-        # if image_url.startswith('https://storage.googleapis.com/'):
-        #     try:
-        #         gcs_client = _get_gcs_client()
-        #         if gcs_client is not None:
-        #             blob_name = '/'.join(image_url.split(f"/{GCS_BUCKET_NAME}/")[1:])
-        #             gcs_client.bucket(GCS_BUCKET_NAME).blob(blob_name).delete()
-        #     except Exception as gcs_err:
-        #         print(f"[images] GCS delete failed (non-fatal): {gcs_err}")
-        # elif image_url.startswith('/uploads/card_images/'):
-        #     filepath = image_url.lstrip('/')
-        #     if os.path.exists(filepath):
-        #         os.remove(filepath)
-        
         # Reorder remaining images
         cur.execute("""
             SELECT ImageID FROM CardImages 

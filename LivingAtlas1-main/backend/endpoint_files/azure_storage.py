@@ -1,8 +1,8 @@
 """
-Azure Blob Storage helpers — replaces GCS for card image / thumbnail / file storage.
+Azure Blob Storage helpers for card image, thumbnail, and file storage.
 
 Requires AZURE_STORAGE_CONNECTION_STRING (set in backend/.env or Render env vars).
-Blobs are stored in a single public container (default "images"), keeping GCS-like
+Blobs are stored in a single public container (default "images") with
 relative paths (card_images/, thumbnails/, files/).
 """
 import os

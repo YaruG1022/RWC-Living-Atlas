@@ -6,7 +6,7 @@ filterbar
     search bar            
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from database import get_connection, get_request_connection, release_request_connection
 
 filterbar_router = APIRouter()
@@ -254,7 +254,9 @@ async def allCardsByTag(categoryString: str = None, tagString: str = None, sortS
 
 
 @filterbar_router.get("/searchBar")
-def searchBar(titleSearch: str):
+def searchBar(titleSearch: str,
+              limit: int | None = Query(None, ge=1, le=500),
+              offset: int = Query(0, ge=0)):
     connection = None
     try:
         connection = get_request_connection()
@@ -328,7 +330,8 @@ def searchBar(titleSearch: str):
             WHERE c.Title ILIKE %s
             GROUP BY c.CardID, cat.CategoryLabel, u.Username, u.Email, c.Name
             ORDER BY c.CardID DESC
-        """, (f"%{titleSearch}%",))
+            LIMIT %s OFFSET %s
+        """, (f"%{titleSearch}%", limit, offset))
 
             rows = local_cur.fetchall()
         columns = [

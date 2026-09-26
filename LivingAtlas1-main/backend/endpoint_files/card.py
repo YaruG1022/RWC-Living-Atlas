@@ -6,7 +6,7 @@ card
 
 """
 
-from fastapi import APIRouter, File, Form, UploadFile, HTTPException, Response
+from fastapi import APIRouter, File, Form, UploadFile, HTTPException, Response, Query
 from database import conn, cur
 from typing import Optional
 import psycopg2
@@ -282,7 +282,9 @@ def get_card_by_id(card_id: int):
 
 
 @card_router.get("/allCards")
-def allCards(viewer_email: Optional[str] = None):
+def allCards(viewer_email: Optional[str] = None,
+             limit: Optional[int] = Query(None, ge=1, le=500),
+             offset: int = Query(0, ge=0)):
     """
     Fetch all cards and their associated data (tags, files, etc.),
     while cleaning up filenames to remove the '.zip' suffix for display.
@@ -378,8 +380,9 @@ def allCards(viewer_email: Optional[str] = None):
                 u.Username,
                 u.Email,
                 c.Name
-            ORDER BY c.CardID DESC;
-        """, {"viewer_email": viewer_email})
+            ORDER BY c.CardID DESC
+            LIMIT %(limit)s OFFSET %(offset)s;
+        """, {"viewer_email": viewer_email, "limit": limit, "offset": offset})
 
             rows = local_cur.fetchall()
 

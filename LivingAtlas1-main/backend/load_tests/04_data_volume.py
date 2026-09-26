@@ -78,6 +78,29 @@ def measured_reads(prefix, expected_all, expected_search, repeats):
     return results
 
 
+def measured_pages(prefix, repeats):
+    results = {}
+    for path in ("/allCards", "/getMarkers", "/searchBar"):
+        samples = []
+        for _ in range(repeats):
+            pages = []
+            for offset in (0, 100):
+                params = {"limit": 100, "offset": offset}
+                if path == "/searchBar":
+                    params["titleSearch"] = prefix
+                item = timed_request("GET", path, params=params)
+                body = item.pop("body", None)
+                cards = body.get("data") if isinstance(body, dict) else None
+                item["ok"] = item["ok"] and isinstance(cards, list) and len(cards) == 100
+                samples.append(item)
+                pages.append(cards or [])
+            ids = [card["cardID"] for page in pages for card in page]
+            if len(ids) != 200 or len(set(ids)) != 200:
+                samples[-1]["ok"] = False
+        results[path] = summary(samples)
+    return results
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--levels", default="100,1000,5000")
@@ -101,8 +124,11 @@ def main():
             seed_cards(user_id, prefix, previous, level)
             stored = count_own_cards(user_id)
             reads = measured_reads(prefix, baseline + level, level, args.repeats)
-            level_ok = stored == level and all(item["metrics"]["errors"] == 0 for item in reads.values())
-            report("data_volume", {"cards": level, "stored_cards": stored, "passed": level_ok, "endpoints": reads})
+            pages = measured_pages(prefix, args.repeats) if level >= 1000 else None
+            level_ok = (stored == level and all(item["metrics"]["errors"] == 0 for item in reads.values())
+                        and (pages is None or all(item["errors"] == 0 for item in pages.values())))
+            report("data_volume", {"cards": level, "stored_cards": stored, "passed": level_ok,
+                                   "endpoints": reads, "paged_endpoints": pages})
             passed = passed and level_ok
             previous = level
             if not level_ok:

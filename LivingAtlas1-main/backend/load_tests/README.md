@@ -46,3 +46,8 @@ The core read and signup routes use one pooled database connection per worker
 by default. Set `DB_REQUEST_POOL_SIZE` to 1–10 to tune this after measuring a
 representative deployment. Other legacy routes still use module-level database
 objects and are outside the connection-recovery test's coverage.
+
+The volume script also checks the first two pages of `/allCards`, `/getMarkers`,
+and `/searchBar` when testing at least 1,000 cards. Use `limit=100&offset=0`
+and then `offset=100` to request these pages; omitting `limit` preserves the
+existing full-response behavior.

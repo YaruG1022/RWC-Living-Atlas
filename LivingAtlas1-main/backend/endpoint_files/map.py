@@ -4,7 +4,7 @@ map
     update boundry
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from database import get_connection, get_request_connection, release_request_connection
 from pydantic import BaseModel
 
@@ -17,7 +17,8 @@ class Point(BaseModel):
 
 # GET ALL MARKERS
 @map_router.get("/getMarkers")
-def getMarkers():
+def getMarkers(limit: int | None = Query(None, ge=1, le=500),
+               offset: int = Query(0, ge=0)):
     connection = None
     try:
         connection = get_request_connection()
@@ -108,7 +109,8 @@ def getMarkers():
                     c.Link,
                     c.Thumbnail_Link
                 ORDER BY c.CardID DESC
-            """)
+                LIMIT %s OFFSET %s
+            """, (limit, offset))
             rows = local_cur.fetchall() if local_cur.description else []
         columns = [
             "cardID", "title", "latitude", "longitude", "category", "name", "username", "email",

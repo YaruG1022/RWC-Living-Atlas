@@ -628,12 +628,16 @@ async def signup_data(
 ):
     try:
         if username and email and password:
+            # Serialize ID allocation and email checks across Uvicorn workers.
+            # The transaction-scoped lock is released by commit or rollback.
+            cur.execute("SELECT pg_advisory_xact_lock(%s)", (6212026,))
             cur.execute("SELECT MAX(SignupID) FROM SignupData")
             max_signup_id = cur.fetchone()[0] or 0
             signup_id = max_signup_id + 1
 
             cur.execute("SELECT COUNT(*) FROM SignupData WHERE Email = %s", (email,))
             if cur.fetchone()[0] > 0:
+                conn.rollback()
                 return {"success": False, "message": "Email must be unique"}
 
             desires_admin = str(desired_access_level).lower() == "admin"
@@ -647,6 +651,8 @@ async def signup_data(
 
         return {"success": False, "message": "All fields must be filled in"}
     except Exception as e:
+        if conn:
+            conn.rollback()
         return {"success": False, "message": str(e)}
 
 

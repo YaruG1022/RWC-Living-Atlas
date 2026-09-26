@@ -7,7 +7,7 @@ account
 """
 
 from fastapi import APIRouter, Form, HTTPException, UploadFile, File
-from database import conn, cur
+from database import conn, cur, get_connection
 from pydantic import BaseModel
 from typing import Dict, Any
 import json
@@ -626,33 +626,38 @@ async def signup_data(
     sponsor_message: str = Form(None),
     desired_access_level: str = Form("regular")
 ):
+    connection = None
     try:
         if username and email and password:
+            connection = get_connection()
+            if connection is None:
+                return {"success": False, "message": "Database connection unavailable"}
             # Serialize ID allocation and email checks across Uvicorn workers.
             # The transaction-scoped lock is released by commit or rollback.
-            cur.execute("SELECT pg_advisory_xact_lock(%s)", (6212026,))
-            cur.execute("SELECT MAX(SignupID) FROM SignupData")
-            max_signup_id = cur.fetchone()[0] or 0
-            signup_id = max_signup_id + 1
+            with connection.cursor() as signup_cur:
+                signup_cur.execute("SELECT pg_advisory_xact_lock(%s)", (6212026,))
+                signup_cur.execute("SELECT MAX(SignupID) FROM SignupData")
+                max_signup_id = signup_cur.fetchone()[0] or 0
+                signup_id = max_signup_id + 1
 
-            cur.execute("SELECT COUNT(*) FROM SignupData WHERE Email = %s", (email,))
-            if cur.fetchone()[0] > 0:
-                conn.rollback()
-                return {"success": False, "message": "Email must be unique"}
+                signup_cur.execute("SELECT COUNT(*) FROM SignupData WHERE Email = %s", (email,))
+                if signup_cur.fetchone()[0] > 0:
+                    connection.rollback()
+                    return {"success": False, "message": "Email must be unique"}
 
-            desires_admin = str(desired_access_level).lower() == "admin"
-            cur.execute(
-                "INSERT INTO SignupData (SignupID, Username, Email, Pass, SponsorMessage, DesiresAdmin) VALUES (%s, %s, %s, %s, %s, %s)",
-                (signup_id, username, email, password, sponsor_message, desires_admin),
-            )
-            conn.commit()
+                desires_admin = str(desired_access_level).lower() == "admin"
+                signup_cur.execute(
+                    "INSERT INTO SignupData (SignupID, Username, Email, Pass, SponsorMessage, DesiresAdmin) VALUES (%s, %s, %s, %s, %s, %s)",
+                    (signup_id, username, email, password, sponsor_message, desires_admin),
+                )
+            connection.commit()
 
             return {"success": True, "message": "New signup data added successfully"}
 
         return {"success": False, "message": "All fields must be filled in"}
     except Exception as e:
-        if conn:
-            conn.rollback()
+        if connection is not None and not connection.closed:
+            connection.rollback()
         return {"success": False, "message": str(e)}
 
 

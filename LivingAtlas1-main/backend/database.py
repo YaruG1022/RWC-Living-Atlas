@@ -8,8 +8,9 @@ cur = None
 
 def _connect_from_env():
     database_url = os.environ.get("DATABASE_URL")
+    application_name = os.environ.get("DB_APPLICATION_NAME", "livingatlas_backend")
     if database_url:
-        return psycopg2.connect(database_url, connect_timeout=10)
+        return psycopg2.connect(database_url, connect_timeout=10, application_name=application_name)
 
     db_name = os.environ.get("DB_NAME")
     db_user = os.environ.get("DB_USER")
@@ -28,6 +29,7 @@ def _connect_from_env():
         host=db_host,
         port=os.environ.get("DB_PORT", "5432"),
         sslmode=os.environ.get("DB_SSLMODE", "require"),
+        application_name=application_name,
         connect_timeout=10
     )
 
@@ -36,8 +38,11 @@ def get_connection():
     """Return a live DB connection, reconnecting once if startup initialization failed."""
     global conn, cur
 
-    if conn:
+    if conn is not None and not conn.closed:
         return conn
+
+    conn = None
+    cur = None
 
     try:
         conn = _connect_from_env()

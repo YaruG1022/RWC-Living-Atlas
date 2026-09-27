@@ -1,7 +1,7 @@
 <p align="center">
   <strong>Language:</strong>
-  <a href="README.md">en</a> ·
-  <a href="README.es.md">es</a> ·
+  <a href="README.md">en-US</a> ·
+  <a href="README.es.md">es-ES</a> ·
   <a href="README.zh-CN.md">zh-CN</a>
 </p>
 

@@ -1,8 +1,8 @@
 # Living Atlas 工程化测试总览
 
-[EN-us](TEST_STRATEGY.md) · [CN-zh](TEST_STRATEGY.zh-CN.md)
+[en-US](TEST_STRATEGY.md) · [es-ES](TEST_STRATEGY.es-ES.md) · [zh-CN](TEST_STRATEGY.zh-CN.md)
 
-版本：2026-09-26 初版。适用范围：本仓库的 React 前端、FastAPI 后端、PostgreSQL 数据库及其 Netlify/Render 部署。此文档是测试策略与覆盖清单，不代表列出的未来测试已经完成。每轮具体结果记录于 [本地测试报告](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.md)。
+版本：2026-09-26 初版。适用范围：本仓库的 React 前端、FastAPI 后端、PostgreSQL 数据库及其 Netlify/Render 部署。此文档是测试策略与覆盖清单，不代表列出的未来测试已经完成。每轮具体结果记录于 [本地测试报告](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.zh-CN.md)。
 
 ## 1. 目标、边界和质量判据
 
@@ -46,7 +46,7 @@ flowchart TD
 
 | 环境 | 用途 | 准入与限制 |
 |---|---|---|
-| 本地隔离环境 | 开发回归、脚本调试、故障注入、可控数据量 | React `localhost:3000`、FastAPI `127.0.0.1:8000`、PostgreSQL `livingatlas_test`；按 [本地环境指南](../LivingAtlas1-main/backend/LOCAL_TESTING.md) 建立。不可用生产数据库做写入或压力测试。 |
+| 本地隔离环境 | 开发回归、脚本调试、故障注入、可控数据量 | React `localhost:3000`、FastAPI `127.0.0.1:8000`、PostgreSQL `livingatlas_test`；按 [本地环境指南](../LivingAtlas1-main/backend/LOCAL_TESTING.zh-CN.md) 建立。不可用生产数据库做写入或压力测试。 |
 | CI/PR 预览（待建设） | 自动静态、单元、集成、构建与只读 E2E 冒烟 | 独立短命数据库和测试数据；绿色状态需能对应实际执行的检查，不把中性/取消部署视为通过。 |
 | 代表性预发布环境（待建设） | 容量、真实数据分布、故障恢复、回滚演练 | 与生产相近的 Render 资源、数据库规格、索引与匿名化数据；定义负载模型与 SLO 后才判定容量。 |
 | 生产 | 部署后只读/低影响冒烟、监控 | 不执行高并发、清库或故障注入；检查 Netlify/Render 部署、迁移日志和用户路径。 |
@@ -55,16 +55,16 @@ flowchart TD
 
 ## 4. 已执行测试与可追溯证据
 
-下表“已执行”仅指 2026-09-26 的本地运行；详细命令、数字、首次失败、修复及局限见 [TEST_REPORT.md](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.md)，运行说明见 [load_tests/README.md](../LivingAtlas1-main/backend/load_tests/README.md)。
+下表“已执行”仅指 2026-09-26 的本地运行；详细命令、数字、首次失败、修复及局限见 [TEST_REPORT.zh-CN.md](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.zh-CN.md)，运行说明见 [load_tests/README.zh-CN.md](../LivingAtlas1-main/backend/load_tests/README.zh-CN.md)。
 
 | 编号 | 类型 / 级别 | 场景及判定重点 | 状态与证据 | 暴露问题 / 后续 |
 |---|---|---|---|---|
-| 1 | 功能：注册、数据完整性；非功能：并发；API+DB 集成 | 不同/相同邮箱并发注册；HTTP 结果、行数、`SignupID` 与邮箱唯一性 | 已执行：[脚本](../LivingAtlas1-main/backend/load_tests/01_registration_concurrency.py)、[报告 §1 与注册约束回归](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.md#1-注册正确性与并发) | `MAX+1` ID 竞态；改为 sequence，并在历史数据允许时建立唯一索引。需审计生产历史重复值。 |
-| 2 | 非功能：基础负载；功能：读接口回归；API+DB 系统 | 5/10/20 用户混合注册和四个读接口；响应、延迟、数据一致性 | 已执行：[脚本](../LivingAtlas1-main/backend/load_tests/02_baseline_load.py)、[报告 §2](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.md#2-基础负载) | 请求时 DDL 锁等待、共享游标冲突和一次未稳定复现的超时；核心路径已改造。 |
-| 3 | 非功能：突增与恢复；API+DB 系统 | 5→50→5 用户短时变化；错误率、p95/p99、恢复 | 已执行：[脚本](../LivingAtlas1-main/backend/load_tests/03_spike.py)、[报告 §3](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.md#3-流量突增) | 后续回归出现偶发 15 秒超时，原因未定位；短突增不能证明持续峰值容量。 |
-| 4 | 非功能：数据量/性能；功能：分页正确性；API+DB 系统 | 100/1,000/5,000 卡片，全量与前两页响应；条数与重复 ID | 已执行：[脚本](../LivingAtlas1-main/backend/load_tests/04_data_volume.py)、[报告 §4](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.md#4-大量数据) | 全量响应成本随规模上升；API 已加可选分页，前端仍使用全量数据，浏览器渲染未测。 |
-| 5a | 非功能：稳定性/持续运行；API+DB 系统 | 五分钟混合请求，成功率、延迟、连接数与数据清理 | 已执行：[脚本](../LivingAtlas1-main/backend/load_tests/05a_soak.py)、[报告 §5](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.md#5-持续运行与故障恢复) | 原版完成 300 秒；后续改动只做 60 秒综合回归，需重跑完整持续测试。 |
-| 5b | 非功能：可靠性/故障恢复；功能：事务正确性；API+DB 系统 | 终止专用 DB 会话后连续读取和注册，检查自动恢复 | 已执行：[脚本](../LivingAtlas1-main/backend/load_tests/05b_connection_recovery.py)、[报告 §5 与连接隔离回归](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.md#5-持续运行与故障恢复) | 修复前首次请求失败；核心读/注册路径使用池并复测。旧模块级连接路径、整库停机与事务中断仍未覆盖。 |
+| 1 | 功能：注册、数据完整性；非功能：并发；API+DB 集成 | 不同/相同邮箱并发注册；HTTP 结果、行数、`SignupID` 与邮箱唯一性 | 已执行：[脚本](../LivingAtlas1-main/backend/load_tests/01_registration_concurrency.py)、[报告 §1 与注册约束回归](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.zh-CN.md#1-注册正确性与并发) | `MAX+1` ID 竞态；改为 sequence，并在历史数据允许时建立唯一索引。需审计生产历史重复值。 |
+| 2 | 非功能：基础负载；功能：读接口回归；API+DB 系统 | 5/10/20 用户混合注册和四个读接口；响应、延迟、数据一致性 | 已执行：[脚本](../LivingAtlas1-main/backend/load_tests/02_baseline_load.py)、[报告 §2](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.zh-CN.md#2-基础负载) | 请求时 DDL 锁等待、共享游标冲突和一次未稳定复现的超时；核心路径已改造。 |
+| 3 | 非功能：突增与恢复；API+DB 系统 | 5→50→5 用户短时变化；错误率、p95/p99、恢复 | 已执行：[脚本](../LivingAtlas1-main/backend/load_tests/03_spike.py)、[报告 §3](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.zh-CN.md#3-流量突增) | 后续回归出现偶发 15 秒超时，原因未定位；短突增不能证明持续峰值容量。 |
+| 4 | 非功能：数据量/性能；功能：分页正确性；API+DB 系统 | 100/1,000/5,000 卡片，全量与前两页响应；条数与重复 ID | 已执行：[脚本](../LivingAtlas1-main/backend/load_tests/04_data_volume.py)、[报告 §4](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.zh-CN.md#4-大量数据) | 全量响应成本随规模上升；API 已加可选分页，前端仍使用全量数据，浏览器渲染未测。 |
+| 5a | 非功能：稳定性/持续运行；API+DB 系统 | 五分钟混合请求，成功率、延迟、连接数与数据清理 | 已执行：[脚本](../LivingAtlas1-main/backend/load_tests/05a_soak.py)、[报告 §5](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.zh-CN.md#5-持续运行与故障恢复) | 原版完成 300 秒；后续改动只做 60 秒综合回归，需重跑完整持续测试。 |
+| 5b | 非功能：可靠性/故障恢复；功能：事务正确性；API+DB 系统 | 终止专用 DB 会话后连续读取和注册，检查自动恢复 | 已执行：[脚本](../LivingAtlas1-main/backend/load_tests/05b_connection_recovery.py)、[报告 §5 与连接隔离回归](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.zh-CN.md#5-持续运行与故障恢复) | 修复前首次请求失败；核心读/注册路径使用池并复测。旧模块级连接路径、整库停机与事务中断仍未覆盖。 |
 
 已存在的其他测试资产包括 [前端 `main.test.js`](../LivingAtlas1-main/client/src/__tests__/main.test.js) 与 [后端 Azure 上传/删除测试](../LivingAtlas1-main/backend/tests/test_azure_upload_delete.py)；本轮未执行或评估其覆盖率，不能将它们标为本轮通过。
 

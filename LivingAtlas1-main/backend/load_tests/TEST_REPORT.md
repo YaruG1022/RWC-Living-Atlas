@@ -1,105 +1,107 @@
-# Living Atlas 本地测试报告
+# Living Atlas Local Test Report
 
-测试日期：2026-09-26。代码分支：`codex/local-test-suite`。
+[en-US](TEST_REPORT.md) · [es-ES](TEST_REPORT.es-ES.md) · [zh-CN](TEST_REPORT.zh-CN.md)
 
-## 测试环境与范围
+Test date: 2026-09-26. Code branch: `codex/local-test-suite`.
 
-- 前端：本地 React 开发服务器 `localhost:3000`。
-- 后端：本地 FastAPI；并发注册测试使用 2 个 Uvicorn worker。
-- 数据库：独立 PostgreSQL 17 测试库 `livingatlas_test`，`127.0.0.1:5433`。
-- 本机测试用于验证正确性和定位瓶颈；延迟与吞吐量不能外推为线上容量。
-- 测试生成的数据使用每轮唯一前缀，结束后检查并清理。
+## Environment and scope
 
-## 1. 注册正确性与并发
+- Frontend: local React development server at `localhost:3000`.
+- Backend: local FastAPI; concurrent-signup tests used two Uvicorn workers.
+- Database: isolated PostgreSQL 17 database `livingatlas_test` at `127.0.0.1:5433`.
+- Local tests checked correctness and located bottlenecks. Their latency and throughput cannot be extrapolated to production capacity.
+- Generated data used a unique prefix for each run and was checked and removed afterward.
 
-脚本：`01_registration_concurrency.py`。同时发送不同邮箱的注册请求，再同时发送同一邮箱的请求；检查 HTTP 响应、数据库记录数、`SignupID` 唯一性及清理结果。
+## 1. Registration correctness and concurrency
 
-| 阶段 | 条件 | 结果 |
+Script: `01_registration_concurrency.py`. Concurrent requests first used distinct emails and then the same email. Checks covered HTTP responses, database row count, `SignupID` uniqueness, and cleanup.
+
+| Stage | Conditions | Result |
 |---|---|---|
-| 初次双进程运行 | 50 个不同邮箱、20 次重复邮箱请求 | 50 个不同邮箱均获成功响应，但数据库出现重复 `SignupID`；测试失败。 |
-| 修复 | 注册事务在计算 `MAX(SignupID)+1` 前取得 PostgreSQL 事务级 advisory lock；重复邮箱及异常路径回滚。 | 多进程之间的 ID 分配与邮箱检查被串行化。 |
-| 修复后运行 | 100 个不同邮箱、30 次重复邮箱请求 | 100 个不同邮箱全部成功且 ID 唯一；重复邮箱 1 次成功、29 次按预期拒绝；p95 为 52.1 ms；101 条测试记录全部清理。 |
-| 最终复测 | 50 个不同邮箱、20 次重复邮箱请求 | 50 个不同邮箱全部成功且 ID 唯一；重复邮箱 1 次成功、19 次按预期拒绝；p95 为 57.4 ms；51 条测试记录全部清理。 |
+| Initial two-worker run | 50 distinct emails and 20 duplicate-email requests | All 50 distinct-email requests reported success, but duplicate `SignupID` values appeared in the database; the test failed. |
+| Intermediate fix | Acquire a PostgreSQL transaction-level advisory lock before computing `MAX(SignupID)+1`; roll back duplicate-email and error paths. | ID allocation and email checks were serialized across processes. This was later replaced by a database sequence. |
+| Run after intermediate fix | 100 distinct emails and 30 duplicate-email requests | All 100 distinct emails succeeded with unique IDs; one duplicate-email request succeeded and 29 were rejected as expected; p95 was 52.1 ms; all 101 test rows were removed. |
+| Final retest at this stage | 50 distinct emails and 20 duplicate-email requests | All 50 distinct emails succeeded with unique IDs; one duplicate-email request succeeded and 19 were rejected as expected; p95 was 57.4 ms; all 51 rows were removed. |
 
-结论：本地双进程注册正确性测试通过。该测试没有测定系统的最大注册吞吐量。原始 schema 未对 `SignupID` 设置唯一约束，因此当前修复依赖注册写入方遵守同一事务锁；其他写入路径仍需在后续数据库设计中统一。
+Conclusion at this stage: local two-worker signup correctness passed. The test did not measure maximum signup throughput. The original schema had no `SignupID` unique constraint, so the intermediate fix depended on every writer using the same transaction lock. The later database constraint work is documented below.
 
-## 2. 基础负载
+## 2. Baseline load
 
-脚本：`02_baseline_load.py`。双进程后端；5、10、20 个并发虚拟用户，每人 20 次顺序操作。请求组合为 10% 注册，其余轮流访问 `/allCards`、`/getMarkers`、`/searchBar`、`/arcgis/services`。数据库为空，因此读请求主要验证接口与并发处理，不能代表实际地图数据量。
+Script: `02_baseline_load.py`. The two-worker backend handled 5, 10, and 20 concurrent virtual users, each making 20 sequential requests. The mix was 10% signup; the rest rotated through `/allCards`, `/getMarkers`, `/searchBar`, and `/arcgis/services`. The database was empty, so reads mainly checked interface behavior and concurrency, not realistic map-data volume.
 
-| 运行 | 请求与结果 | 观察 |
+| Run | Requests and result | Observation |
 |---|---|---|
-| 首轮 | 未完成 | 地图读取接口在请求中执行 `ALTER TABLE`，跨进程产生数据库锁等待；中止该轮。 |
-| 修正后首轮 | 5 用户 100/100 成功；10 用户 200/200 成功；20 用户 399/400 成功 | ArcGIS 共享游标曾返回 `no results to fetch`，修正为请求内游标。20 用户级别出现一次 `/searchBar` 15 秒超时，未稳定复现。 |
-| 最终复测 | 5 用户 100/100；10 用户 200/200；20 用户 400/400 | 20 用户总 p95 32.0 ms，p99 36.1 ms；70 条注册数据全部核对并清理。 |
+| First run | Not completed | Map read endpoints executed `ALTER TABLE` during requests, causing database lock waits across processes; the run was stopped. |
+| First run after fixes | 5 users: 100/100; 10 users: 200/200; 20 users: 399/400 | An ArcGIS shared cursor returned `no results to fetch` and was replaced with a request-local cursor. One `/searchBar` request timed out at 15 seconds at the 20-user level; this did not reproduce consistently. |
+| Final retest | 5 users: 100/100; 10 users: 200/200; 20 users: 400/400 | At 20 users, overall p95 was 32.0 ms and p99 was 36.1 ms. All 70 signup rows were reconciled and removed. |
 
-已将 polygon 样式列的 DDL 移到启动迁移，修复 `/searchBar` 的查询代码，并让 ArcGIS 列表请求使用独立游标。首次被强制中止的运行遗留了 10 条带唯一运行前缀的注册记录；最终审计时已按该前缀删除，并复查所有 `load0%` 注册记录为 0。结论：本地基础负载复测通过；一次间歇性超时未稳定复现。上表吞吐量和延迟仅供本机比较，未设生产 SLO。
+Polygon-style DDL moved to startup migrations; `/searchBar` query code was corrected; ArcGIS list requests now use independent cursors. The stopped first run left 10 signup rows with a unique run prefix; the final audit removed them and confirmed zero remaining `load0%` signup rows. Conclusion: the local baseline retest passed, while one intermittent timeout remained unexplained. Latency and throughput are local comparisons only; no production SLO was set.
 
-## 3. 流量突增
+## 3. Traffic spike
 
-脚本：`03_spike.py`。双进程后端；5 用户预热 → 50 用户同步开始 → 5 用户恢复，每人 10 次操作（1 次注册及 9 次读取）。
+Script: `03_spike.py`. With two backend workers, the workload went from 5 warm-up users to 50 users starting together and back to 5 recovery users. Each user made 10 requests: one signup and nine reads.
 
-| 阶段 | 请求成功 | 耗时 | p95 | p99 |
+| Stage | Successful requests | Duration | p95 | p99 |
 |---|---:|---:|---:|---:|
-| 预热 | 50/50 | 0.12 s | 28.6 ms | 30.1 ms |
-| 突增 | 500/500 | 0.46 s | 70.5 ms | 77.7 ms |
-| 恢复 | 50/50 | 0.11 s | 25.0 ms | 29.4 ms |
+| Warm-up | 50/50 | 0.12 s | 28.6 ms | 30.1 ms |
+| Spike | 500/500 | 0.46 s | 70.5 ms | 77.7 ms |
+| Recovery | 50/50 | 0.11 s | 25.0 ms | 29.4 ms |
 
-上表是百分位计算修正后的最终复测；原始运行也无错误。60 条注册记录与响应一致，测试后全部清理。结论：本地短时突增和回落检查通过；突增仅持续 0.46 秒，不能代表持续高峰或线上容量。
+These percentiles are from the final retest after a percentile-calculation correction; the original run also had no request errors. All 60 signup rows matched responses and were removed. Conclusion: the brief local spike and recovery passed. A 0.46-second spike does not represent a sustained peak or production capacity.
 
-## 4. 大量数据
+## 4. Data volume
 
-脚本：`04_data_volume.py`。在独立测试库中分级生成 100、1,000、5,000 张公开点位卡片；每级分别请求 `/allCards`、`/getMarkers`、`/searchBar` 各 5 次，并逐次核对返回条数。下表为本地响应时间 p95（每组仅 5 次，因此此值等于该组最大值）。
+Script: `04_data_volume.py`. The isolated database was populated in stages with 100, 1,000, and 5,000 public point cards. At each size, `/allCards`, `/getMarkers`, and `/searchBar` were requested five times each and response counts were checked. The table shows local p95 response time; with only five samples per group, p95 equals the group's maximum.
 
-| 卡片数 | `/allCards` | `/getMarkers` | `/searchBar` | 正确性 |
+| Cards | `/allCards` | `/getMarkers` | `/searchBar` | Correctness |
 |---:|---:|---:|---:|---|
-| 100 | 35.2 ms | 33.9 ms | 36.5 ms | 15/15 请求正确 |
-| 1,000 | 105.6 ms | 107.6 ms | 108.3 ms | 15/15 请求正确 |
-| 5,000 | 419.9 ms | 339.2 ms | 378.0 ms | 15/15 请求正确 |
+| 100 | 35.2 ms | 33.9 ms | 36.5 ms | 15/15 correct requests |
+| 1,000 | 105.6 ms | 107.6 ms | 108.3 ms | 15/15 correct requests |
+| 5,000 | 419.9 ms | 339.2 ms | 378.0 ms | 15/15 correct requests |
 
-测试后删除 5,000 张卡片和 1 个测试用户，确认无残留。结论：本地 API 数据量测试通过，响应时间随卡片数明显上升。本轮没有测试浏览器地图渲染、文件上传、复杂图层或生产规模数据；p95 样本量小，仅反映这次运行。
+The 5,000 cards and one test user were removed with no residue. Conclusion: the local API volume test passed, but response time rose noticeably with card count. Browser map rendering, uploads, complex layers, and production-scale data were not tested. The small p95 sample describes this run only.
 
-## 5. 持续运行与故障恢复
+## 5. Soak and fault recovery
 
-脚本：`05a_soak.py`、`05b_connection_recovery.py`。双进程后端，5 个虚拟用户持续 300 秒，每人约每 0.5 秒发出 1 次请求，混合注册、卡片读取、地图读取、搜索和 ArcGIS 列表。
+Scripts: `05a_soak.py` and `05b_connection_recovery.py`. Two backend workers served five virtual users for 300 seconds, each sending roughly one request every 0.5 seconds. The mix included signup, card and map reads, search, and ArcGIS lists.
 
-| 检查 | 结果 |
+| Check | Result |
 |---|---|
-| 5 分钟持续运行 | 2,858/2,858 次请求成功；p50 26.3 ms、p95 32.7 ms、p99 69.9 ms、最大 354.0 ms。 |
-| 数据与连接 | 145 条注册记录与成功响应一致，测试后全部清理；每分钟检查到 2 条后端数据库连接。 |
-| 修复前连接断开 | 定向终止 2 条后端数据库会话后，12 次读取均返回 500，4 次注册也失败；后端没有自行重新连接。 |
-| 修复后连接断开 | 再次终止 2 条会话；最初 2 次读取返回 500，随后 10 次读取成功；4 个关键读取接口均返回 200；4 次注册成功并与数据库一致，清理后无残留；后端连接数恢复为 2。 |
+| Five-minute soak | 2,858/2,858 requests succeeded; p50 26.3 ms, p95 32.7 ms, p99 69.9 ms, maximum 354.0 ms. |
+| Data and connections | 145 signup rows matched successful responses and were removed; two backend DB connections were observed at each minute check. |
+| Disconnection before fix | After terminating two targeted backend DB sessions, all 12 reads returned 500 and four signups failed; the backend did not reconnect by itself. |
+| Disconnection after fix | After terminating two sessions again, the first two reads returned 500 and the next 10 succeeded. All four key read endpoints returned 200; four signups succeeded and matched the database; cleanup left no rows; connection count returned to two. |
 
-修复：数据库连接管理在发现连接已关闭时重新连接，注册接口每次取得当前连接与游标。修复后又重跑测试 1：50 个不同邮箱及 20 次重复邮箱并发检查通过。结论：5 分钟本地持续运行通过；连接丢失后所测接口可自动恢复，但每个进程首次遇到失效连接时仍可能出现一次 500。故障注入只模拟后端数据库会话断开，没有停止 PostgreSQL 服务，也不是长达数小时的耐久测试。其他仍直接引用模块级数据库连接或游标的接口未纳入本次恢复验证。
+The intermediate fix reconnected when a closed connection was detected and made signup obtain the current connection and cursor for each request. Test 1 was rerun afterward: 50 distinct-email and 20 duplicate-email concurrent checks passed. Conclusion: the five-minute local soak passed. The tested endpoints recovered after lost connections, although the first request in each process could still return one 500. Fault injection terminated backend DB sessions; it did not stop PostgreSQL, run for hours, or cover other endpoints still using module-level connections/cursors. Later pooling improvements are below.
 
-## 下一轮改进：注册约束
+## Follow-up: signup constraints
 
-测试库原本已有邮箱唯一索引，但 `SignupID` 没有唯一约束或数据库默认生成值。本轮新增 PostgreSQL sequence，注册接口改为由数据库分配 ID，并保留重复邮箱的原有响应格式。迁移会分别检查历史 `SignupID` 和 `Email` 是否重复；没有重复值时建立对应唯一索引，有重复值时发出明确警告并暂缓该索引，避免新版本后端因历史数据无法启动。上线后仍需检查迁移日志并处理可能的历史重复记录。
+The test database already had an email unique index, but `SignupID` had neither a unique constraint nor a database-generated default. A PostgreSQL sequence now assigns IDs; signup retains its original duplicate-email response format. The migration checks existing `SignupID` and `Email` values separately. It creates each unique index when values are distinct; otherwise it logs a warning and defers that index so historical duplicates do not prevent backend startup. After deployment, migration logs and any historical duplicates still need review.
 
-双进程后端在本地端口 8001 最终复测：50 个不同邮箱全部成功且 ID 唯一；同一邮箱 20 次并发请求中 1 次成功、19 次按预期拒绝；不同邮箱请求 p95 为 27.2 ms。51 条测试记录全部清理。脚本还核对了本地测试库的 ID 唯一索引与 sequence 默认值；PR 复核后又验证了邮箱唯一索引存在。此结果仅针对本地测试库，未验证线上数据库现存记录。
+Final local retest with two backend processes on port 8001: all 50 distinct-email requests succeeded with unique IDs; of 20 same-email requests, one succeeded and 19 were rejected as expected. Distinct-email p95 was 27.2 ms. All 51 test rows were removed. The script checked the local ID unique index and sequence default; PR review also verified that the email unique index exists. This covers the local test database, not existing production records.
 
-## 下一轮改进：核心接口连接隔离与恢复
+## Follow-up: core-route connection isolation and recovery
 
-注册及 `/allCards`、`/getMarkers`、`/searchBar`、`/arcgis/services` 改用每个进程有上限的请求连接池，借出前检查连接存活，归还时结束事务。默认每进程 1 条连接，可用 `DB_REQUEST_POOL_SIZE` 调整至最多 10；其他仍直接引用模块级连接或游标的接口尚未改造。
+Signup plus `/allCards`, `/getMarkers`, `/searchBar`, and `/arcgis/services` now use a bounded request connection pool per process. Borrowed connections are checked before use, and transactions end before return. The default is one connection per process; `DB_REQUEST_POOL_SIZE` can raise it to at most 10. Other endpoints still using module-level connections or cursors were not changed.
 
-双进程本地复测：终止 4 条已标记的测试后端会话后，12/12 次连续读取成功，四个关键读取接口均为 200，4/4 次注册成功且数据库记录一致。20 用户基础负载 400/400 成功，p95 47.7 ms；检查后端连接状态为 2 条 `idle`，没有 `idle in transaction`。50 用户短时突增第一次运行出现 2 次 15 秒超时，第二次运行 500/500 突增请求及 50/50 恢复请求成功，突增 p95 101.2 ms；间歇性超时原因仍未定位。此故障测试未覆盖正在执行事务时的数据库断开，也未覆盖数据库服务整体停止。
+In a local two-process retest, four tagged test-backend sessions were terminated. All 12 consecutive reads succeeded, the four key read endpoints returned 200, and all four signups succeeded and matched database rows. At 20 users, baseline load was 400/400 with p95 47.7 ms. Two backend connections were `idle`, with none `idle in transaction`. The first 50-user spike retest had two 15-second timeouts; a second run completed 500/500 spike and 50/50 recovery requests with spike p95 101.2 ms. The intermittent timeouts remain unexplained. This fault test did not cover disconnection during an active transaction or a full database outage.
 
-## 下一轮改进：大量卡片的分页与前端去重
+## Follow-up: pagination and frontend deduplication
 
-`/allCards`、`/getMarkers` 和 `/searchBar` 现在接受可选的 `limit`（1–500）及 `offset`（非负）。未指定时保持全量返回。前端卡片列表的四处去重由逐项 `findIndex` 改为 `Set` 一次遍历，并缓存渲染期间的去重结果。
+`/allCards`, `/getMarkers`, and `/searchBar` now accept optional `limit` (1–500) and nonnegative `offset` parameters. Without `limit`, the full response remains available. Four frontend card-list deduplication paths changed from repeated `findIndex` scans to one-pass `Set` traversal, with results cached during rendering.
 
-在 5,000 张本地测试卡片上，每个全量接口重复 5 次，每个接口的前两页（每页 100 张）重复 5 次；所有响应条数正确，前两页无重复 ID，测试数据全部清理。下表 p95 样本量分别为 5 和 10，结果仅供本机比较。
+With 5,000 local test cards, each full-response endpoint ran five times and the first two 100-card pages of each endpoint ran five times. Every response count was correct, the first two pages had no duplicate IDs, and all test data was removed. The p95 sample counts below are five for full responses and 10 for paged responses; these are local comparisons only.
 
-| 接口 | 全量 5,000 张 p95 | 分页 100 张 p95 |
+| Endpoint | Full 5,000-card p95 | 100-card page p95 |
 |---|---:|---:|
 | `/allCards` | 429.0 ms | 127.2 ms |
 | `/getMarkers` | 383.3 ms | 92.6 ms |
 | `/searchBar` | 433.3 ms | 133.5 ms |
 
-当前前端仍使用全量接口来展示完整卡片和地图，因此现有用户流程的网络传输与后端全量查询成本并未消除。前端去重的实际浏览器渲染耗时尚未测量。后续若要让列表按页加载，需要设计滚动加载、筛选后的分页及地图点位范围查询，并做浏览器端到端验证。
+The frontend still requests full datasets for the existing card and map journeys, so their network transfer and full-query costs remain. Browser rendering time after deduplication was not measured. Paged list loading would require scrolling, post-filter pagination, map viewport queries, and browser E2E verification.
 
-前端生产构建成功，但输出了仓库现有的 ESLint、CSS 压缩及 bundle 大小警告；构建成功不代表已完成浏览器端到端验证。
+The frontend production build succeeded with existing ESLint, CSS minification, and bundle-size warnings. A successful build does not establish browser E2E coverage.
 
-## 下一轮综合回归
+## Follow-up: combined regression
 
-连接池及分页改动后，5 个虚拟用户持续运行 60 秒，573/573 次混合请求成功；p95 32.7 ms、p99 94.5 ms。30 条注册记录与响应一致，测试后全部清理。结束时测试库内有 4 条带同一应用标签的后端连接；本机同时运行了另一个旧后端实例，因此这个数量不能单独归因于本轮服务。此前的 300 秒测试是在上一版连接实现上运行的，本轮只完成 60 秒回归。
+After pooling and pagination changes, five virtual users ran mixed requests for 60 seconds: 573/573 succeeded, with p95 32.7 ms and p99 94.5 ms. All 30 signup rows matched responses and were removed. Four backend connections carrying the same application tag remained in the test database, but another older backend process was running locally, so that number cannot be attributed solely to this run. The earlier 300-second soak covered the previous connection implementation; this version received only a 60-second regression.

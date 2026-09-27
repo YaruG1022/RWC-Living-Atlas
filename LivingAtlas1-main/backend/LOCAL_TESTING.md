@@ -1,5 +1,7 @@
 # Local test environment
 
+[en-US](LOCAL_TESTING.md) · [es-ES](LOCAL_TESTING.es-ES.md) · [zh-CN](LOCAL_TESTING.zh-CN.md)
+
 Use this isolated setup before registration or data-load tests. The test database
 is `livingatlas_test` on `127.0.0.1:5433`. The local database files and passwords
 are ignored by Git.

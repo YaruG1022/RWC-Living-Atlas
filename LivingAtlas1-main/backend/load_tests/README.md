@@ -1,8 +1,10 @@
 # Local integration and load tests
 
+[en-US](README.md) · [es-ES](README.es-ES.md) · [zh-CN](README.zh-CN.md)
+
 These scripts target only the isolated `livingatlas_test` database and a local
 HTTP backend. Test-created rows are checked and removed at the end of each run.
-Measured results and limitations are in `TEST_REPORT.md`.
+Measured results and limitations are in [TEST_REPORT.md](TEST_REPORT.md).
 
 From `LivingAtlas1-main/backend`, start the local backend with two workers in
 one terminal:

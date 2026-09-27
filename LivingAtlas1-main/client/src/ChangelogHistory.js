@@ -35,7 +35,7 @@ function ChangelogHistory() {
                         <p>Card APIs now support optional pagination, card lists remove duplicates more efficiently, and key requests recover from dropped database connections.</p>
 
                         <h4>Testing and Documentation</h4>
-                        <p>Added an isolated local test setup, automated load and recovery checks, and a bilingual testing strategy.</p>
+                        <p>Added an isolated local test setup, automated load and recovery checks, and testing guides in English, Spanish, and Chinese.</p>
 
                         <h4>Project README</h4>
                         <p>Refreshed the project README with setup steps and an architecture diagram; added Spanish and Chinese versions with language links.</p>

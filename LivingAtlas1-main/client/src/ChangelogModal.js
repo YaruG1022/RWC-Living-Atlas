@@ -39,7 +39,7 @@ function ChangelogModal({ isOpen, onClose }) {
 
                         <h4>Testing and Documentation</h4>
                         <ul className="changelog-list">
-                            <li>Added an isolated local test setup, automated load and recovery checks, and a bilingual testing strategy.</li>
+                            <li>Added an isolated local test setup, automated load and recovery checks, and testing guides in English, Spanish, and Chinese.</li>
                         </ul>
 
                         <h4>Project README</h4>

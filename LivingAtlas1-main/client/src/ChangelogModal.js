@@ -23,6 +23,29 @@ function ChangelogModal({ isOpen, onClose }) {
             <div className="onboarding-modal-body changelog-modal-body">
                 <details className="onboarding-section changelog-release" open>
                     <summary>
+                        <h3>Update Date: 9/27/2026</h3>
+                        <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />
+                    </summary>
+                    <div className="onboarding-section-content">
+                        <h4>Registration Reliability</h4>
+                        <ul className="changelog-list">
+                            <li>Signup IDs now come from the database to avoid collisions during simultaneous registration.</li>
+                        </ul>
+
+                        <h4>Card Loading and Database Recovery</h4>
+                        <ul className="changelog-list">
+                            <li>Card APIs now support optional pagination, card lists remove duplicates more efficiently, and key requests recover from dropped database connections.</li>
+                        </ul>
+
+                        <h4>Testing and Documentation</h4>
+                        <ul className="changelog-list">
+                            <li>Added an isolated local test setup, automated load and recovery checks, and a bilingual testing strategy.</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details className="onboarding-section changelog-release">
+                    <summary>
                         <h3>Update Date: 9/25/2026</h3>
                         <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />
                     </summary>

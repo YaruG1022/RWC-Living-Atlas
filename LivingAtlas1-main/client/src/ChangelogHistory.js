@@ -26,6 +26,18 @@ function ChangelogHistory() {
             <div className="changelog-history-body">
                 {activeTab === 'latest' && (
                     <>
+                        <h3>Update Date: 9/27/2026</h3>
+
+                        <h4>Registration Reliability</h4>
+                        <p>Signup IDs now come from the database to avoid collisions during simultaneous registration.</p>
+
+                        <h4>Card Loading and Database Recovery</h4>
+                        <p>Card APIs now support optional pagination, card lists remove duplicates more efficiently, and key requests recover from dropped database connections.</p>
+
+                        <h4>Testing and Documentation</h4>
+                        <p>Added an isolated local test setup, automated load and recovery checks, and a bilingual testing strategy.</p>
+                        <hr />
+
                         <h3>Update Date: 9/25/2026</h3>
 
                         <h4>Azure Storage Cleanup</h4>

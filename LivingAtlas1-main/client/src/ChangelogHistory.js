@@ -26,6 +26,18 @@ function ChangelogHistory() {
             <div className="changelog-history-body">
                 {activeTab === 'latest' && (
                     <>
+                        <h3>Update Date: 9/25/2026</h3>
+
+                        <h4>Azure Storage Cleanup</h4>
+                        <p>Removed retired Google Cloud Storage code and dependencies after the move to Azure Blob Storage.</p>
+
+                        <h4>ArcGIS Service Catalog</h4>
+                        <p>WA, ID, and OR service lists now come from the database in the GIS panel, service picker, and card details. An unavailable catalog shows a message instead of loading stale local data.</p>
+
+                        <h4>Project Cleanup</h4>
+                        <p>Removed generated dependencies, editor files, pre-fetched ArcGIS data, and a local Netlify configuration from the repository.</p>
+                        <hr />
+
                         <h3>Update Date: 9/19/2026</h3>
 
                         <h4>General Onboarding Improvements</h4>
@@ -327,4 +339,3 @@ function ChangelogHistory() {
 }
 
 export default ChangelogHistory;
-

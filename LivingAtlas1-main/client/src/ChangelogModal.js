@@ -23,6 +23,29 @@ function ChangelogModal({ isOpen, onClose }) {
             <div className="onboarding-modal-body changelog-modal-body">
                 <details className="onboarding-section changelog-release" open>
                     <summary>
+                        <h3>Update Date: 9/25/2026</h3>
+                        <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />
+                    </summary>
+                    <div className="onboarding-section-content">
+                        <h4>Azure Storage Cleanup</h4>
+                        <ul className="changelog-list">
+                            <li>Removed retired Google Cloud Storage code and dependencies after the move to Azure Blob Storage.</li>
+                        </ul>
+
+                        <h4>ArcGIS Service Catalog</h4>
+                        <ul className="changelog-list">
+                            <li>WA, ID, and OR service lists now come from the database in the GIS panel, service picker, and card details. An unavailable catalog shows a message instead of loading stale local data.</li>
+                        </ul>
+
+                        <h4>Project Cleanup</h4>
+                        <ul className="changelog-list">
+                            <li>Removed generated dependencies, editor files, pre-fetched ArcGIS data, and a local Netlify configuration from the repository.</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details className="onboarding-section changelog-release">
+                    <summary>
                         <h3>Update Date: 9/19/2026</h3>
                         <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />
                     </summary>

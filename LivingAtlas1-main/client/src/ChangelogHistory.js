@@ -36,6 +36,9 @@ function ChangelogHistory() {
 
                         <h4>Testing and Documentation</h4>
                         <p>Added an isolated local test setup, automated load and recovery checks, and a bilingual testing strategy.</p>
+
+                        <h4>Project README</h4>
+                        <p>Refreshed the project README with setup steps and an architecture diagram; added Spanish and Chinese versions with language links.</p>
                         <hr />
 
                         <h3>Update Date: 9/25/2026</h3>

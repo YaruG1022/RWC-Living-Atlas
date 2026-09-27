@@ -74,7 +74,7 @@ function Home(props) {
     const [itemExpanded, setItemExpanded] = useState(false);
     const [isChangelogOpen, setIsChangelogOpen] = useState(false);
     const [hasUnseenChangelog, setHasUnseenChangelog] = useState(() => {
-        return !localStorage.getItem('changelog_seen_v21');
+        return !localStorage.getItem('changelog_seen_v22');
     });
     const [isGeneralOnboardingOpen, setIsGeneralOnboardingOpen] = useState(false);
     const [isGeneralOnboardingTourOpen, setIsGeneralOnboardingTourOpen] = useState(false);
@@ -83,7 +83,7 @@ function Home(props) {
     const [isMapFullscreen, setIsMapFullscreen] = useState(false);
 
     const closeChangelog = () => {
-        localStorage.setItem('changelog_seen_v21', 'true');
+        localStorage.setItem('changelog_seen_v22', 'true');
         setHasUnseenChangelog(false);
         setIsChangelogOpen(false);
     };

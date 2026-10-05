@@ -9,8 +9,10 @@ export default function LearnMoreGallery({ images, layout = 'featured', editing,
     const [dragOver, setDragOver] = useState(null);
     const draggedIndex = useRef(null);
     const validLayout = GALLERY_LAYOUTS.includes(layout) ? layout : 'featured';
+    // A lone image always uses the whole region, regardless of the saved grid.
+    const gridLayout = images.length === 1 ? 'grid-1' : validLayout;
     const activeSlide = Math.min(slide, Math.max(0, images.length - 1));
-    const count = validLayout.startsWith('grid-') ? Number(validLayout.slice(5)) : 5;
+    const count = gridLayout.startsWith('grid-') ? Number(gridLayout.slice(5)) : 5;
     const canAdd = editing && !busy && images.length < MAX_CARD_IMAGES;
     const slots = Array.from({ length: count }, (_, index) => images[index] || null);
     const reorder = (from, to) => {
@@ -80,8 +82,11 @@ export default function LearnMoreGallery({ images, layout = 'featured', editing,
                 <span aria-live="polite">{activeSlide + 1} / {images.length}</span>
             </div>}
             {editing && <button type="button" data-gallery-control className="lm-gallery-add" disabled={!canAdd} onClick={(event) => onAdd(event, null)}>{images.length >= MAX_CARD_IMAGES ? '8-image limit reached' : '+ Add image'}</button>}
-        </> : <div className={`lm-gallery-grid lm-gallery-layout-${validLayout}`}>
-            {slots.map(renderTile)}
-        </div>}
+        </> : <>
+            <div className={`lm-gallery-grid lm-gallery-layout-${gridLayout}`}>
+                {slots.map(renderTile)}
+            </div>
+            {editing && <button type="button" data-gallery-control className="lm-gallery-add" disabled={!canAdd} onClick={(event) => onAdd(event, null)}>{images.length >= MAX_CARD_IMAGES ? '8-image limit reached' : '+ Add image'}</button>}
+        </>}
     </section>;
 }

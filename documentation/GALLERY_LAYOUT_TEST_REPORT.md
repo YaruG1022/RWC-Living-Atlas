@@ -79,3 +79,26 @@ Production fallback URLs and database environment precedence were not changed.
 No deployment, preview release, production load, or migration against a live
 database was performed. Application rollback can leave the additive column in
 place. Deploy backend support before relying on saved frontend layout choices.
+
+## Single-image display correction (2026-10-04)
+
+User browser feedback on the local `test 1` card reproduced two defects: a
+325 × 87 logo was enlarged and cropped by `object-fit: cover`, and the featured
+layout rendered four empty cells around its only image. The actual DOM confirmed
+five cells and `object-fit: cover` before the fix.
+
+A single image now occupies the full grid in both view and edit modes, regardless
+of the saved layout. The saved multi-image layout is retained for future uploads.
+All gallery images use `scale-down`: large images fit proportionally, small images
+remain at native size, and their contents are not cropped. Edit mode has a separate
+Add image button so a full-width single image does not prevent further uploads.
+
+Two new single-image regression cases failed before the fix (five cells instead of
+one), then passed. All 20 gallery/Card tests pass. The development server rebuilt
+the changes; no additional production build was needed for this focused correction.
+Local browser verification on the user's open card found one cell, zero empty
+cells, `scale-down`, and equal grid/cell dimensions of approximately 985 × 340.
+The user's active editor was left intact and no card data was saved or changed.
+
+Raw evidence in the directory above: `gallery-single-before.log`,
+`gallery-single-after.log`, and `gallery-single-fixed.png`.

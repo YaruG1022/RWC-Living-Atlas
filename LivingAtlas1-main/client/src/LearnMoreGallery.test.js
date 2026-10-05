@@ -13,7 +13,7 @@ test.each([1, 2, 3, 4, 5, 6, 7, 8])('grid-%i shows the requested number of slots
 
 test('layout changes and empty-slot uploads are delegated to the editor', () => {
     const callbacks = props();
-    render(<LearnMoreGallery {...callbacks} images={images.slice(0, 1)} layout="grid-6" />);
+    render(<LearnMoreGallery {...callbacks} images={images.slice(0, 2)} layout="grid-6" />);
     fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'slideshow' } });
     expect(callbacks.onLayoutChange).toHaveBeenCalledWith('slideshow');
     fireEvent.click(screen.getByRole('button', { name: 'Add image 3' }));
@@ -77,4 +77,17 @@ test('eight-image cards cannot upload more while all eight remain navigable', ()
     expect(callbacks.onAdd).not.toHaveBeenCalled();
     expect(screen.getAllByRole('button', { name: /^Show gallery image/ })).toHaveLength(8);
     expect(screen.getByLabelText('Image layout').querySelector('option[value="grid-8"]')).toBeTruthy();
+});
+
+test.each([false, true])('a single image fills the gallery without empty slots (editing=%s)', editing => {
+    const callbacks = props();
+    const { container } = render(<LearnMoreGallery {...callbacks} images={images.slice(0, 1)} layout="featured" editing={editing} />);
+    expect(screen.getAllByRole('button', { name: /^Open image/ })).toHaveLength(1);
+    expect(screen.queryByText('No image')).toBeNull();
+    expect(container.querySelectorAll('.lm-gallery-cell')).toHaveLength(1);
+    expect(container.querySelector('.lm-gallery-layout-grid-1')).toBeTruthy();
+    if (editing) {
+        fireEvent.click(screen.getByRole('button', { name: '+ Add image' }));
+        expect(callbacks.onAdd).toHaveBeenCalledWith(expect.anything(), null);
+    }
 });

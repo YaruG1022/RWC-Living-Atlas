@@ -611,6 +611,22 @@ const Content1 = (props) => {
 
     root.appendChild(mediaContainer);
     root.appendChild(infoPanel);
+    const actions = document.createElement('div');
+    actions.className = 'card-pin-popup-actions';
+    const editButton = document.createElement('button');
+    editButton.type = 'button';
+    editButton.className = 'card-pin-popup-edit-btn';
+    editButton.setAttribute('aria-label', 'Edit card location');
+    editButton.innerHTML = `${icon(faPencil).html[0]}<span>Edit</span>`;
+    editButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      window.dispatchEvent(new CustomEvent('atlas:open-card-learn-more', {
+        detail: { cardID: feature.cardID, editLocation: true }
+      }));
+    });
+    actions.appendChild(editButton);
+    root.appendChild(actions);
     root.cleanupImageOverlay = cleanupImageOverlay;
     return root;
   }, [resolveImageUrl]);

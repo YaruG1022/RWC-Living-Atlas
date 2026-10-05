@@ -830,6 +830,7 @@ function Content2(props) {
 
             setLearnMoreRequest({
                 cardID: String(cardID),
+                editLocation: event.detail.editLocation === true,
                 token: Date.now()
             });
         };
@@ -1087,7 +1088,7 @@ function Content2(props) {
                         {(() => {
                             console.log('[Content2] Rendering cards:', prioritizedDisplayedCards.map(c => ({ cardID: c.cardID, title: c.title })));
                             return prioritizedDisplayedCards.map((card, index) => {
-                                const cardKey = `card-${card.cardID}-${index}`;
+                                const cardKey = `card-${card.cardID}`;
                                 const learnMoreSignal =
                                     learnMoreRequest && String(card.cardID) === learnMoreRequest.cardID
                                         ? learnMoreRequest.token
@@ -1178,6 +1179,7 @@ function Content2(props) {
                                                         cardID: card.cardID
                                                     }}
                                                     forceOpenLearnMoreSignal={learnMoreSignal}
+                                                    forceEditLocation={Boolean(learnMoreSignal && learnMoreRequest?.editLocation)}
                                                     isSelectedFromMap={false}
                                                     isFavorited={bookmarkedCardIDs.has(card.cardID)}
                                                     username={resolvedUsername}
@@ -1207,6 +1209,7 @@ function Content2(props) {
                                                 cardID: card.cardID
                                             }}
                                             forceOpenLearnMoreSignal={learnMoreSignal}
+                                            forceEditLocation={Boolean(learnMoreSignal && learnMoreRequest?.editLocation)}
                                             isSelectedFromMap={!!selectedCardIdFromMap && String(card.cardID) === selectedCardIdFromMap}
                                             isFavorited={bookmarkedCardIDs.has(card.cardID)}
                                             username={resolvedUsername}

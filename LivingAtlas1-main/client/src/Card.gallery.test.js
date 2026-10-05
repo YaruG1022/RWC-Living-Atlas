@@ -11,8 +11,8 @@ jest.mock('./arcgisDataUtils', () => ({ fetchArcgisLegend: jest.fn() }));
 jest.mock('./userPreferencesApi', () => ({ fetchUserPreferences: jest.fn().mockResolvedValue({}) }));
 jest.mock('./arcgisServicesDb', () => ({ fetchAllArcgisServices: jest.fn().mockResolvedValue([]) }));
 jest.mock('./RichTextEditor', () => () => null);
-jest.mock('./PolygonDrawingModal', () => () => null);
-jest.mock('./CoordinatesPanel', () => () => null);
+jest.mock('./PolygonDrawingModal', () => ({ mode, initialVertices, onCancel }) => <div data-testid="shape-editor" data-mode={mode} data-vertices={JSON.stringify(initialVertices)}><button onClick={onCancel}>Cancel shape editing</button></div>);
+jest.mock('./CoordinatesPanel', () => ({ initialPoints, onCancel }) => <div data-testid="coordinate-editor" data-points={JSON.stringify(initialPoints)}><button onClick={onCancel}>Cancel coordinate editing</button></div>);
 jest.mock('./ArcGISPickerModal', () => () => null);
 jest.mock('./CustomLayerPickerModal', () => () => null);
 jest.mock('./OnboardingLearnMore', () => ({ __esModule: true, default: () => null, LEARN_MORE_EDIT_MODE_STEP: 0 }));
@@ -44,6 +44,36 @@ async function editCard() {
     await waitFor(() => expect(screen.getByLabelText('Image layout').value).toBe('grid-3'));
     return screen.getByRole('region', { name: 'Card image gallery' });
 }
+
+test.each(['point', 'multipoint', 'polygon', 'image'])('map popup editing opens the existing %s tool and cancel returns to the card draft', async locationType => {
+    window.atlasMapInstance = { flyTo: jest.fn(), fitBounds: jest.fn(), getLayer: jest.fn(() => false), setLayoutProperty: jest.fn() };
+    const vertices = [{ lat: 46, lng: -117, icon: 'pin', markerColor: '#123456', markerOpacity: .7 }, { lat: 47, lng: -117 }, { lat: 47, lng: -116 }, { lat: 46, lng: -116 }];
+    savedCard = { ...savedCard, location_type: locationType, polygon_vertices: vertices };
+    render(<Card formData={savedCard} isLoggedIn forceOpenLearnMoreSignal={100} forceEditLocation />);
+    const isShape = locationType === 'polygon' || locationType === 'image';
+    const editor = await screen.findByTestId(isShape ? 'shape-editor' : 'coordinate-editor');
+    if (isShape) {
+        expect(editor.getAttribute('data-mode')).toBe(locationType);
+        expect(JSON.parse(editor.getAttribute('data-vertices'))).toEqual(vertices);
+    } else {
+        const points = JSON.parse(editor.getAttribute('data-points'));
+        expect(points).toHaveLength(locationType === 'multipoint' ? 4 : 1);
+        if (locationType === 'multipoint') expect(points[0]).toMatchObject({ color: '#123456', opacity: .7, icon: 'pin' });
+    }
+    fireEvent.click(screen.getByRole('button', { name: isShape ? 'Cancel shape editing' : 'Cancel coordinate editing' }));
+    expect(await screen.findByRole('button', { name: 'Save', exact: true })).toBeTruthy();
+    expect(api.post).not.toHaveBeenCalled();
+    delete window.atlasMapInstance;
+});
+
+test('map popup editing preserves owner permissions', () => {
+    localStorage.setItem('email', 'other@example.invalid');
+    localStorage.setItem('isAdmin', 'false');
+    render(<Card formData={savedCard} isLoggedIn forceOpenLearnMoreSignal={101} forceEditLocation />);
+    expect(window.alert).toHaveBeenCalledWith(expect.stringContaining("don't have permission"));
+    expect(screen.queryByTestId('coordinate-editor')).toBeNull();
+    expect(screen.queryByTestId('shape-editor')).toBeNull();
+});
 
 test('cancel restores layout, image order and staged deletion without database writes', async () => {
     const gallery = await editCard();

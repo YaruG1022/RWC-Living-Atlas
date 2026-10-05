@@ -1009,6 +1009,7 @@ function Card(props) {
         setIsLocationTypeMenuOpen(false);
         setHideCardPointMarkers(true);
         setIsEditingCoordinate(true);
+        document.querySelectorAll('.card-pin-rich-popup .mapboxgl-popup-close-button').forEach(button => button.click());
         const lat = parseFloat(formData.latitude);
         const lng = parseFloat(formData.longitude);
         if (!isNaN(lat) && !isNaN(lng)) {
@@ -1352,7 +1353,7 @@ function Card(props) {
 
         if (!props.isLoggedIn && !isLearnMoreOnboardingOpen) {
             setShowLoginPrompt(true);
-            return;
+            return false;
         }
 
         const _viewerEmail = localStorage.getItem('email') || '';
@@ -1360,7 +1361,7 @@ function Card(props) {
         const _isAdmin = (() => { try { return JSON.parse(localStorage.getItem('isAdmin')); } catch { return false; } })();
         if (!_isAdmin && _viewerEmail && _cardOwnerEmail && _viewerEmail !== _cardOwnerEmail) {
             alert("You don't have permission to edit this card. Only the card's creator or an admin can edit it.");
-            return;
+            return false;
         }
         setLearnMoreBackup({ ...formData });
         setLearnMoreLinks(parseLinks(formData.link, formData.link_text));
@@ -1383,7 +1384,18 @@ function Card(props) {
                 console.error('Failed to refresh card images:', error);
             });
         }
+        return true;
     };
+
+    useEffect(() => {
+        if (!props.forceOpenLearnMoreSignal || !props.forceEditLocation) return;
+        if (!handleLearnMoreEditStart({ stopPropagation() {} })) return;
+        if (formData.location_type === 'polygon' || formData.location_type === 'image') {
+            handleEditPolygon();
+        } else {
+            handleEditCoordinate();
+        }
+    }, [props.forceOpenLearnMoreSignal]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const rollbackSessionUploads = async () => {
         if (sessionUploadedImageIDs.length === 0) return;

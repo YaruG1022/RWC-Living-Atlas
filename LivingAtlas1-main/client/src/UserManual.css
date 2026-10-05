@@ -818,3 +818,12 @@ nav.um-nav-sidebar {
 }
 
 
+
+.um-gallery-demo .lm-gallery-grid { height: 180px; }
+.um-gallery-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.um-all-images-demo .learn-more-all-images-header { flex-wrap: wrap; }
+
+.um-all-images-demo .learn-more-all-image-item { aspect-ratio: 1; border: 1px solid #d5e1ef; border-radius: 12px; overflow: hidden; }
+.um-all-images-demo .learn-more-all-image-btn { width: 100%; height: 100%; }
+.um-all-images-demo .is-main-selected { border-color: #7c9bbf; box-shadow: 0 0 0 2px rgba(100,116,139,.18); }
+.um-all-images-demo .learn-more-gallery-selection { position: absolute; bottom: 10px; left: 10px; z-index: 1; }

@@ -366,7 +366,9 @@ def allCards(viewer_email: Optional[str] = None,
                     ),
                     '[]'
                 ) AS polygon_vertices,
-                COALESCE(c.is_public, TRUE) AS is_public
+                COALESCE(c.is_public, TRUE) AS is_public,
+                COALESCE(c.GalleryLayout, 'featured') AS gallery_layout,
+                c.GalleryImageIDs AS gallery_image_ids
             FROM Cards c
             INNER JOIN Categories cat ON c.CategoryID = cat.CategoryID
             LEFT JOIN Files f ON c.CardID = f.CardID
@@ -390,7 +392,7 @@ def allCards(viewer_email: Optional[str] = None,
             "username", "email", "name", "title", "cardID", "category", "date", "description",
             "org", "funding", "link", "link_text", "tags", "latitude", "longitude", "thumbnail_link",
             "location_type", "polygon_fill_color", "polygon_line_style", "images", "files", "polygon_vertices",
-            "is_public"
+            "is_public", "gallery_layout", "gallery_image_ids"
         ]
 
         data = [dict(zip(columns, row)) for row in rows]
@@ -428,6 +430,8 @@ async def upload_form(
     original_title: Optional[str] = Form(None),
     requester_email: Optional[str] = Form(None),
     is_public: Optional[str] = Form("true"),
+    gallery_layout: Optional[str] = Form(None),
+    gallery_image_ids: Optional[str] = Form(None),
     category: Optional[str] = Form("None"),
     latitude: Optional[str] = Form(None),
     longitude: Optional[str] = Form(None),
@@ -452,6 +456,23 @@ async def upload_form(
     Create or update a Card with metadata, thumbnail, and optional files.
     Ensures uploaded files are compressed, stored in Azure, and recorded in the database.
     """
+    if gallery_layout is not None and gallery_layout not in {
+        'multi', 'featured', 'grid-1', 'grid-2', 'grid-3', 'grid-4', 'grid-5', 'grid-6', 'grid-7', 'grid-8', 'slideshow'
+    }:
+        raise HTTPException(status_code=422, detail="Invalid gallery layout")
+    selected_image_ids = None
+    if gallery_image_ids is not None:
+        try:
+            selected_image_ids = json.loads(gallery_image_ids)
+        except (ValueError, TypeError):
+            raise HTTPException(status_code=422, detail="Invalid gallery image selection")
+        if (not isinstance(selected_image_ids, list) or len(selected_image_ids) > 6
+                or any(type(image_id) is not int or image_id <= 0 for image_id in selected_image_ids)
+                or len(set(selected_image_ids)) != len(selected_image_ids)):
+            raise HTTPException(status_code=422, detail="Select at most 6 distinct card images")
+    from endpoint_files.images import MAX_CARD_IMAGES
+    if images and len(images) > MAX_CARD_IMAGES:
+        raise HTTPException(status_code=422, detail=f"A card can have at most {MAX_CARD_IMAGES} images")
     enable_commits = False
     print(f"[UPLOAD] username={username}, email={email}, orig_username={original_username or ''}, orig_email={original_email or ''}")
     print(f"[UPLOAD] location_type={location_type}, polygon_fill_color={polygon_fill_color!r}, polygon_line_style={polygon_line_style!r}")
@@ -552,7 +573,7 @@ async def upload_form(
             thumbnail_url = thumbnail_link
         else:
             # No thumbnail provided at all — use default
-            thumbnail_url = DEFAULT_THUMBNAIL_URL
+            thumbnail_url = None if update else DEFAULT_THUMBNAIL_URL
 
         print(f"[THUMBNAIL HANDLING] Using thumbnail URL: {thumbnail_url}")
 
@@ -596,12 +617,12 @@ async def upload_form(
                     Description=%s, Organization=%s, Funding=%s, Link=%s, LinkText=%s,
                     Thumbnail_Link=COALESCE(%s, Thumbnail_Link), UserID=%s,
                     LocationType=%s, PolygonFillColor=%s, PolygonLineStyle=%s,
-                    is_public=%s
+                    is_public=%s, GalleryLayout=COALESCE(%s, GalleryLayout)
                 WHERE CardID=%s
             """, (name, title, latitude_val, longitude_val, categoryID, description, org,
                   funding, link, link_text, thumbnail_url, userID, location_type or "point",
                   polygon_fill_color or '#0077c0', polygon_line_style or 'solid',
-                  (is_public or 'true').lower() != 'false', nextcardid))
+                  (is_public or 'true').lower() != 'false', gallery_layout, nextcardid))
             cur.execute("DELETE FROM CardTags WHERE CardID=%s", (nextcardid,))
             # Delete old polygon vertices on update
             cur.execute("DELETE FROM CardPolygonVertices WHERE CardID=%s", (nextcardid,))
@@ -610,17 +631,26 @@ async def upload_form(
                 INSERT INTO Cards
                     (CardID, UserID, Name, Title, Latitude, Longitude, CategoryID,
                      Description, Organization, Funding, Link, LinkText, Thumbnail_Link, LocationType,
-                     PolygonFillColor, PolygonLineStyle, is_public)
+                     PolygonFillColor, PolygonLineStyle, is_public, GalleryLayout)
                 VALUES
-                    (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (nextcardid, userID, name, title, latitude_val, longitude_val,
                   categoryID, description, org, funding, link, link_text, thumbnail_url, location_type or "point",
                   polygon_fill_color or '#0077c0', polygon_line_style or 'solid',
-                  (is_public or 'true').lower() != 'false'))
+                  (is_public or 'true').lower() != 'false', gallery_layout or 'featured'))
 
         # --------------------------------------------------
         # Handle overlay vertices (polygon/image)
         # --------------------------------------------------
+        if selected_image_ids is not None:
+            cur.execute("SELECT ImageID FROM CardImages WHERE CardID=%s", (nextcardid,))
+            owned_image_ids = {row[0] for row in cur.fetchall()}
+            if not set(selected_image_ids).issubset(owned_image_ids):
+                raise HTTPException(status_code=422, detail="Selected images must belong to this card")
+            cur.execute("UPDATE Cards SET GalleryImageIDs=%s::jsonb WHERE CardID=%s", (json.dumps(selected_image_ids), nextcardid))
+            from endpoint_files.images import sync_gallery_thumbnail
+            sync_gallery_thumbnail(nextcardid)
+
         if location_type in ("polygon", "image") and polygon_coordinates:
             try:
                 parsed = json.loads(polygon_coordinates)
@@ -851,7 +881,7 @@ async def upload_form(
                     conn.rollback()
                 except Exception:
                     pass
-        elif not update and thumbnail_url != DEFAULT_THUMBNAIL_URL:
+        elif not update:
             try:
                 from endpoint_files.images import save_uploaded_file as _save_img
                 # Use the already-uploaded thumbnail as the first gallery image

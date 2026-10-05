@@ -8,7 +8,6 @@ import {
   faSort,
   faFilter,
   faThumbtack,
-  faHeart,
   faSearch,
   faTimes,
   faList,
@@ -20,6 +19,7 @@ import {
   faSync,
   faChevronUp,
   faChevronDown,
+  faArrowLeft,
   faFolderPlus,
   faMap,
   faCamera,
@@ -49,6 +49,7 @@ import {
   faUpload,
 } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as regularHeart, faFolder } from '@fortawesome/free-regular-svg-icons';
+import LearnMoreGallery, { GalleryLayoutSelector } from './LearnMoreGallery';
 import './Card.css';
 import './Content2.css';
 import './SortDropdown.css';
@@ -80,8 +81,9 @@ const SECTION_GROUPS = [
     id: 'getting-started',
     label: 'Getting Started',
     sections: [
-      { id: 'home', label: '🏠  Overview' },
+      { id: 'home', label: 'Overview' },
       { id: 'feature-search-panel', label: 'Feature Search Panel' },
+      { id: 'chatbot', label: 'Atlas Helper' },
     ],
   },
   {
@@ -246,6 +248,7 @@ function UserManual() {
               <span className="um-home-card-title">{s.label}</span>
               {{
                 'feature-search-panel': 'Use the left sidebar search panel to locate app features by keyword and launch them directly.',
+                'chatbot':        'Ask app questions and switch between sidebar and floating chat.',
                 'card-container': 'How cards are displayed, navigated, pinned, and favorited.',
                 'toolbar':        'Tools for adding cards, sorting, filtering, and switching views.',
                 'detail-view':    'The full-screen modal with editing, images, files, and ArcGIS layers.',
@@ -741,24 +744,34 @@ function UserManual() {
       </section>
       )}
 
+      {activeSection === 'chatbot' && (
+        <section className="um-section">
+          <h2>RWC Living Atlas Helper</h2>
+          <p className="um-section-desc">Open the speech-bubble button in the left sidebar to ask questions about the app. Type a question and press the send button. The circular two-arrow icon in the chat header switches between the sidebar and the floating window; hover it to see the destination.</p>
+          <div className="um-isolated-demo"><FontAwesomeIcon icon={faRightLeft} /> Switch to sidebar panel / Switch to floating widget</div>
+          <p>The floating window is 400 × 500 pixels on desktop and fits smaller screens. Use the floating helper handle to open or hide it and drag it to reposition. The header close button hides the conversation. Panel headers use compact question-mark, play, and close buttons where available: open the manual, start a guided tour, or close the panel.</p>
+        </section>
+      )}
+
       {activeSection === 'toolbar' && (
       <section className="um-section">
         <h2>Card Panel Toolbar</h2>
         <p className="um-section-desc">
           The toolbar at the top of the card panel provides controls to add cards, adjust the
-          map, sort, filter, and switch view modes. Hover each element in the demo below to
+          sort order, filters, view modes, and docking side. Hover each element in the demo below to
           see its interactive state.
         </p>
 
         {/* Full toolbar demo */}
         <div className="um-toolbar-demo-wrapper">
           <div className="card-panel-top" style={{ borderRadius: '8px', border: '1px solid #d8e1ea' }}>
+            <div className="card-panel-titlebar">
+              <span className="card-panel-title">Cards</span>
+              <span className="card-panel-subtitle">24 all cards</span>
+            </div>
             <div className="card-panel-toolbar">
-              <button type="button" className="card-toolbar-button card-toolbar-button--icon" title="Add Card">
-                <FontAwesomeIcon icon={faPlus} />
-              </button>
-              <button type="button" className="card-toolbar-button card-toolbar-button--icon" title="Hide Markers">
-                <FontAwesomeIcon icon={faMapMarkerAlt} />
+              <button type="button" className="card-toolbar-button" title="Add Card">
+                <FontAwesomeIcon icon={faPlus} /> Add Card
               </button>
               <div className="sort-dropdown" style={{ width: 'auto' }}>
                 <button type="button" className="sort-dropdown-trigger" title="Sort cards">
@@ -769,13 +782,9 @@ function UserManual() {
               <div className="filter-dropdown">
                 <button type="button" className="filter-dropdown-trigger" title="Filter">
                   <FontAwesomeIcon icon={faFilter} />
-                  <span>Filter</span>
+                  <span>Filter By</span>
                 </button>
               </div>
-              <button type="button" className="card-toolbar-button" title="Show only favorited cards">
-                <FontAwesomeIcon icon={faHeart} />
-                <span>Favorites</span>
-              </button>
               <button type="button" className="card-toolbar-button card-toolbar-button--scope all-cards" title="Scope">
                 All Cards
               </button>
@@ -795,10 +804,7 @@ function UserManual() {
                 <FontAwesomeIcon icon={faTimes} />
               </button>
             </div>
-            <div className="card-panel-info-bar">
-              <span className="card-panel-title">Cards</span>
-              <span className="card-panel-subtitle">24 all cards</span>
-            </div>
+
           </div>
         </div>
 
@@ -808,8 +814,8 @@ function UserManual() {
           <div className="um-feature-row">
             <div className="um-feature-demo">
               <div className="um-isolated-demo">
-                <button type="button" className="card-toolbar-button card-toolbar-button--icon" title="Add Card" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faPlus} />
+                <button type="button" className="card-toolbar-button" title="Add Card" style={{ pointerEvents: 'none' }}>
+                  <FontAwesomeIcon icon={faPlus} /> Add Card
                 </button>
               </div>
             </div>
@@ -819,28 +825,6 @@ function UserManual() {
                 Opens the card creation form so you can add a new dataset entry to the atlas.
                 You must be logged in to use this button; if you are not, a prompt will
                 appear asking you to sign in first.
-              </p>
-            </div>
-          </div>
-
-          {/* 2. Toggle Markers */}
-          <div className="um-feature-row">
-            <div className="um-feature-demo">
-              <div className="um-isolated-demo" style={{ display: 'flex', gap: '8px' }}>
-                <button type="button" className="card-toolbar-button card-toolbar-button--icon" title="Hide Markers" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faMapMarkerAlt} />
-                </button>
-                <button type="button" className="card-toolbar-button card-toolbar-button--icon active" title="Show Markers" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faMapMarkerAlt} />
-                </button>
-              </div>
-            </div>
-            <div className="um-feature-info">
-              <p className="um-feature-title">Toggle Map Markers</p>
-              <p className="um-feature-desc">
-                Shows or hides all card location markers on the map. The button becomes
-                highlighted (amber tint) when markers are currently hidden, so you can
-                quickly tell whether markers are visible or not.
               </p>
             </div>
           </div>
@@ -875,49 +859,35 @@ function UserManual() {
                 <div className="filter-dropdown">
                   <button type="button" className="filter-dropdown-trigger" style={{ pointerEvents: 'none' }}>
                     <FontAwesomeIcon icon={faFilter} />
-                    <span>Filter</span>
+                    <span>Filter By</span>
                   </button>
                 </div>
                 <div className="filter-dropdown">
                   <button type="button" className="filter-dropdown-trigger active" style={{ pointerEvents: 'none' }}>
                     <FontAwesomeIcon icon={faFilter} />
-                    <span>Filter</span>
+                    <span>Filter By</span>
                     <span className="filter-dropdown-badge">2</span>
                   </button>
                 </div>
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Filter</p>
+              <p className="um-feature-title">Filter By</p>
               <p className="um-feature-desc">
                 Opens a dropdown to filter cards by category (River, Watershed, Places,
-                Other) and by custom tags. When one or more filters are active the button
+                Other), custom tags, and favorites. Select Apply to confirm or Clear to reset all filters. When one or more filters are active the button
                 turns amber and shows a blue badge with the number of active filters.
               </p>
             </div>
           </div>
 
-          {/* 5. Favorites toggle */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
-              <div className="um-isolated-demo" style={{ display: 'flex', gap: '8px' }}>
-                <button type="button" className="card-toolbar-button" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faHeart} />
-                  <span>Favorites</span>
-                </button>
-                <button type="button" className="card-toolbar-button active" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faHeart} />
-                  <span>Favorites On</span>
-                </button>
-              </div>
-            </div>
+            <div className="um-feature-demo"><div className="um-isolated-demo">
+              <label><input type="checkbox" defaultChecked readOnly /> Show only favorited cards</label>
+            </div></div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Favorites Filter</p>
-              <p className="um-feature-desc">
-                Toggles a filter that shows only your bookmarked (favorited) cards. When
-                active the button turns amber and the label changes to "Favorites On". You
-                must be logged in to use this feature.
-              </p>
+              <p className="um-feature-title">Favorites in Filter By</p>
+              <p className="um-feature-desc">Open Filter By, select Show only favorited cards, then Apply. Combine favorites with category and tags. Clear resets all filters; closing without Apply discards pending changes. Login is required for the favorites option.</p>
             </div>
           </div>
 
@@ -962,7 +932,7 @@ function UserManual() {
                 Switches the card panel between <strong>grid view</strong> (card thumbnails
                 laid out in a grid) and <strong>list view</strong> (compact rows showing just
                 the title and action buttons). The icon shows the mode you will switch
-                <em>to</em> when clicked. The button is highlighted when list view is active.
+                <em>to</em> when clicked. The button is highlighted when list view is active. List view is fixed at 310 pixels wide and cannot be resized. Grid view restores its adjustable width. When Cards and GIS both dock on the left, list view is used automatically.
               </p>
             </div>
           </div>
@@ -1043,7 +1013,7 @@ function UserManual() {
         <h2>Card Creation Form</h2>
         <p className="um-section-desc">
           The Card Creation form lets you submit a new research entry to the atlas. Click the{' '}
-          <strong>+</strong> button in the card panel toolbar to open it. You must be logged
+          <strong>Add Card</strong> button in the card panel toolbar to open it. You must be logged
           in — a login prompt appears otherwise. You can also start location-first creation
           from the map toolbar using <strong>Add Cards from Map</strong>, then choose
           <strong> Add Single Point</strong>, <strong>Polygon Tools</strong>, or
@@ -1096,15 +1066,15 @@ function UserManual() {
           <div className="um-feature-row">
             <div className="um-feature-demo">
               <div className="um-isolated-demo">
-                <button type="button" className="card-toolbar-button card-toolbar-button--icon" title="Add Card" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faPlus} />
+                <button type="button" className="card-toolbar-button" title="Add Card" style={{ pointerEvents: 'none' }}>
+                  <FontAwesomeIcon icon={faPlus} /> Add Card
                 </button>
               </div>
             </div>
             <div className="um-feature-info">
               <p className="um-feature-title">Opening the Form</p>
               <p className="um-feature-desc">
-                Click the <strong>+</strong> button in the card panel toolbar. Login is
+                Click the <strong>Add Card</strong> button in the card panel toolbar. Login is
                 required; if you are not logged in, a prompt appears instead. You can also
                 open this form from map toolbar shortcuts (single point, polygon, image overlay)
                 with location pre-filled. The form slides in as a side panel over the map.
@@ -1376,7 +1346,7 @@ function UserManual() {
                 Clicking a card marker pin or a card polygon on the map opens a rich popup.
                 The top section shows the card's thumbnail image — if multiple images are
                 attached, <strong>❮ ❯</strong> arrows appear on hover to cycle through them;
-                clicking the image opens a fullscreen lightbox. The bottom section shows the
+                clicking the image opens a fullscreen lightbox. The popup is 275 × 250 pixels, with a compact Edit footer for cards you can edit and a scrollable information area. The bottom section shows the
                 card <strong>title</strong>, <strong>category</strong>, and <strong>tags</strong>.
                 Clicking anywhere on the info area opens the full <strong>Card Detail View</strong>.
               </p>
@@ -1624,18 +1594,7 @@ function UserManual() {
               </div>
             </div>
             <div className="learn-more-modal-body um-modal-body-preview">
-              <div className="learn-more-gallery" style={{ margin: '0 0 16px' }}>
-                <button type="button" className="learn-more-gallery-tile learn-more-gallery-tile--primary" style={{ pointerEvents: 'none', minHeight: '200px' }}>
-                  <img className="learn-more-gallery-image" src="/CEREO-logo.png" alt="Primary" />
-                </button>
-                <div className="learn-more-gallery-side-grid">
-                  {[1, 2, 3, 4].map(i => (
-                    <button key={i} type="button" className="learn-more-gallery-tile" style={{ pointerEvents: 'none', minHeight: '80px' }}>
-                      <img className="learn-more-gallery-image" src="/CEREO-logo.png" alt={`Image ${i + 1}`} />
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <LearnMoreGallery images={[1, 2, 3, 4, 5].map(id => ({ id, url: '/CEREO-logo.png' }))} editing={false} onOpen={() => {}} />
               <button type="button" className="learn-more-see-all-images-btn" style={{ pointerEvents: 'none' }}>See all 5 images</button>
               <div className="learn-more-modal-title-section">
                 <h2>Yakima River Basin Watershed Study</h2>
@@ -1647,11 +1606,6 @@ function UserManual() {
                 <p><strong>Email:</strong> j.smith@cereo.edu</p>
                 <p><strong>Funding:</strong> NSF Grant #12345</p>
                 <p><strong>Organization:</strong> CEREO</p>
-                <p className="learn-more-coordinate-readonly">
-                  <strong>Latitude:</strong> 46.6
-                  <span className="learn-more-coordinate-separator"> | </span>
-                  <strong>Longitude:</strong> -120.5
-                </p>
               </div>
               <div className="learn-more-location-section">
                 <p><strong>Representation:</strong></p>
@@ -1795,29 +1749,19 @@ function UserManual() {
           <div className="um-feature-row">
             <div className="um-feature-demo">
               <div className="um-isolated-demo um-gallery-demo">
-                <div className="learn-more-gallery" style={{ margin: 0 }}>
-                  <button type="button" className="learn-more-gallery-tile learn-more-gallery-tile--primary" style={{ pointerEvents: 'none', minHeight: '120px' }}>
-                    <img className="learn-more-gallery-image" src="/CEREO-logo.png" alt="Primary" />
-                  </button>
-                  <div className="learn-more-gallery-side-grid">
-                    {[1, 2, 3, 4].map(i => (
-                      <button key={i} type="button" className="learn-more-gallery-tile" style={{ pointerEvents: 'none', minHeight: '55px' }}>
-                        <img className="learn-more-gallery-image" src="/CEREO-logo.png" alt={`img ${i}`} />
-                      </button>
-                    ))}
-                  </div>
+                <LearnMoreGallery images={[1, 2, 3, 4, 5].map(id => ({ id, url: '/CEREO-logo.png' }))} editing coverUrl="/CEREO-logo.png" onOpen={() => {}} onReorder={() => {}} onDelete={() => {}} />
+                <div className="um-gallery-controls">
+                  <button type="button" className="learn-more-see-all-images-btn">See all 5 images</button>
+                  <GalleryLayoutSelector layout="multi" onChange={() => {}} />
                 </div>
-                <button type="button" className="learn-more-see-all-images-btn" style={{ pointerEvents: 'none', marginTop: '8px' }}>See all 5 images</button>
               </div>
             </div>
             <div className="um-feature-info">
               <p className="um-feature-title">Image Gallery</p>
               <p className="um-feature-desc">
-                The top of the Detail View displays images in a two-column gallery: a large
-                primary image on the left and up to four smaller thumbnails on the right.
+                The Detail View displays up to six selected images. Multiple images adapts the grid to the selected count; Slideshow shows one selected image at a time with navigation inside the image area.
                 Click any tile to open the image in a full-screen lightbox. Below the
-                gallery, <strong>See all N images</strong> opens a scrollable list of every
-                uploaded image.
+                gallery, <strong>See all N images</strong> opens a grid of every uploaded image. In edit mode the Image layout dropdown sits beside this button. Drag images or use the arrow icons to reorder; the first image becomes the card cover. Its neutral badge and selection border appear only in edit mode.
               </p>
             </div>
           </div>
@@ -1828,38 +1772,36 @@ function UserManual() {
               <div className="um-isolated-demo um-all-images-demo">
                 <div className="learn-more-all-images-view">
                   <div className="learn-more-all-images-header">
-                    <button type="button" className="learn-more-all-images-back-link" style={{ pointerEvents: 'none' }}>← Back to Learn More</button>
-                    <p className="learn-more-all-images-count">Showing 3 images</p>
-                  </div>
-                  <div className="learn-more-all-images-list">
-                    <div className="learn-more-all-image-item">
-                      <div className="learn-more-all-image-sort-controls">
-                        <button type="button" className="learn-more-all-image-sort-btn learn-more-all-image-sort-up" disabled style={{ pointerEvents: 'none' }}>▲</button>
-                        <button type="button" className="learn-more-all-image-sort-btn learn-more-all-image-sort-down" style={{ pointerEvents: 'none' }}>▼</button>
-                      </div>
-                      <button type="button" className="learn-more-all-image-btn" style={{ pointerEvents: 'none' }}>
-                        <img className="learn-more-all-image" src="/CEREO-logo.png" alt="Image 1" style={{ maxHeight: '80px' }} />
-                      </button>
-                      <button type="button" className="learn-more-all-image-select is-selected" style={{ pointerEvents: 'none' }}>
-                        <span className="learn-more-all-image-select-mark" />
-                      </button>
-                    </div>
-                  </div>
+                    <button type="button" className="learn-more-all-images-back-link" style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" /> Back to Learn More</button>
                   <div className="learn-more-all-images-actions">
                     <button type="button" className="learn-more-all-images-delete-selected-btn" style={{ pointerEvents: 'none' }}>Delete Selected (1)</button>
                     <button type="button" className="learn-more-modal-toolbar-btn save" style={{ pointerEvents: 'none' }}>Add New Image</button>
                   </div>
+                    <p className="learn-more-all-images-count">Showing 1 image</p>
+                  </div>
+                  <div className="learn-more-all-images-list">
+                    <div className="learn-more-all-image-item is-main-selected">
+                      <button type="button" className="learn-more-all-image-btn" style={{ pointerEvents: 'none' }}>
+                        <img className="learn-more-all-image" src="/CEREO-logo.png" alt="Image 1" />
+                      </button>
+                      <label className="learn-more-gallery-selection"><span className="learn-more-gallery-checkbox"><input type="checkbox" defaultChecked readOnly aria-label="Main gallery image 1" /><span className="learn-more-gallery-order">1</span></span></label>
+                      <button type="button" className="learn-more-all-image-select is-selected" style={{ pointerEvents: 'none' }}>
+                        <span className="learn-more-all-image-select-mark">✓</span>
+                      </button>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
             <div className="um-feature-info">
               <p className="um-feature-title">All Images View</p>
               <p className="um-feature-desc">
-                The "See all images" view lists every image in full width. In edit mode:
-                <br />• <strong>▲ / ▼ sort buttons</strong> reorder images — the order here becomes the gallery order
-                <br />• <strong>Select circle</strong> (top-right of each image) toggles selection; turns blue when selected
+                The "See all images" view displays square thumbnails, four per row on desktop and fewer on narrow screens. In edit mode:
+                <br />• <strong>Numbered checkboxes</strong> choose up to six images for the main gallery; number 1 is the card cover. Selected images have a special border. Deselecting a number leaves it available for the next selection. Drag images on the main gallery to change their order. Numbered checkboxes and selection borders are hidden outside edit mode.
+                <br />• <strong>Select circle</strong> (top-right of each image) selects images for deletion independently of the numbered checkbox
                 <br />• <strong>Delete Selected</strong> removes all selected images at once
-                <br />• <strong>Add New Image</strong> uploads an additional image to the card
+                <br />• <strong>Add New Image</strong> uploads an additional image, up to 30 total. Add New Image and Delete Selected sit beside Back to Learn More at the top. Save pending deletions before uploading if the stored card is at the limit. Save commits changes; Cancel discards them.
               </p>
             </div>
           </div>
@@ -1895,11 +1837,6 @@ function UserManual() {
                   <p><strong>Email:</strong> j.smith@cereo.edu</p>
                   <p><strong>Funding:</strong> NSF Grant #12345</p>
                   <p><strong>Organization:</strong> CEREO</p>
-                  <p className="learn-more-coordinate-readonly">
-                    <strong>Latitude:</strong> 46.6
-                    <span className="learn-more-coordinate-separator"> | </span>
-                    <strong>Longitude:</strong> -120.5
-                  </p>
                 </div>
               </div>
             </div>
@@ -1907,8 +1844,7 @@ function UserManual() {
               <p className="um-feature-title">Information Fields</p>
               <p className="um-feature-desc">
                 Dataset metadata is laid out in a two-column grid: Author, Card Creator,
-                Email, Funding, and Organization. Latitude and Longitude appear together on
-                a full-width row. In edit mode each field becomes an editable input; Card
+                Email, Funding, and Organization. Point coordinates appear in Representation. In edit mode metadata fields become editable inputs; Card
                 Creator is read-only and cannot be changed.
               </p>
             </div>
@@ -2154,7 +2090,7 @@ function UserManual() {
                 <strong>Polygon</strong>, or <strong>Image</strong> overlay. In edit mode it
                 also shows <strong>Edit Coordinate</strong>, <strong>Edit Polygon / Edit
                 Image</strong>, and <strong>Change location type</strong> buttons; Change
-                location type opens a menu to switch between Point, Polygon, and Image.
+                location type opens a menu to switch between Point, Polygon, and Image. Point and multi-point coordinates are displayed here as read-only text. Use Edit Coordinate to change them; there are no coordinate input boxes in the metadata area.
               </p>
             </div>
           </div>
@@ -3014,7 +2950,7 @@ function UserManual() {
 
         {/* ---- Panel shell demo ---- */}
         <div className="um-arcgis-panel-mock">
-          <div className="custom-layers-panel-header" style={{ padding: '10px 12px 8px', borderBottom: '1px solid #d8e1ea' }}>
+          <div className="custom-layers-panel-header" style={{ padding: '2px 12px', borderBottom: '1px solid #d8e1ea' }}>
             <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#223244', flex: 1 }}>Custom Layers</h3>
             <button className="custom-layers-panel-close-btn custom-layers-panel-close-btn--help" style={{ pointerEvents: 'none' }}>
               <FontAwesomeIcon icon={faQuestion} />

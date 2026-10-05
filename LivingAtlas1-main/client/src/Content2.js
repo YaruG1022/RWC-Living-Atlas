@@ -10,7 +10,6 @@ import CardPanelOnboarding from './OnboardingCardPanel';
 import axios from 'axios';
 import { showAll, filterCategory, filterTag, filterCategoryAndTag } from "./Filter.js";
 import { curLocationCoordinates, searchLocationCoordinates } from './Content1.js';
-import { allMarkers } from './Content1.js';
 import api from './api.js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAngleDoubleLeft, faAngleDoubleRight, faHeart, faSearch, faTimes, faPlus, faMapMarkerAlt, faList, faGrip, faRightLeft, faThumbtack, faEllipsisV, faQuestion, faPlay } from '@fortawesome/free-solid-svg-icons';
@@ -26,14 +25,16 @@ const dedupeCards = (items) => {
 };
 
 function Content2(props) {
-    const { setCardPanelWidth, cardPanelSide, setCardPanelSide } = props;
+    const { setCardPanelWidth, cardPanelSide, setCardPanelSide, onCardListViewChange } = props;
     const isOnLeft = cardPanelSide === 'left';
     const bothOnLeft = isOnLeft && !props.isCollapsed && props.isUploadPanelOpen;
     const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
     const [pendingPolygonData, setPendingPolygonData] = useState(null);
     const [pendingImageOverlayData, setPendingImageOverlayData] = useState(null);
     const [pendingPointToolSignal, setPendingPointToolSignal] = useState(null);
-    const containerWidth = props.cardPanelWidth ?? 300;
+    const [prefersListView, setIsListView] = useState((props.initialCardViewMode || 'grid') === 'list');
+    const isListView = bothOnLeft || prefersListView;
+    const containerWidth = isListView ? 310 : (props.cardPanelWidth ?? 300);
     const containerRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
     const startX = useRef(0);
@@ -116,6 +117,7 @@ function Content2(props) {
 
     // Drag handlers for resizing
     const onMouseDown = (e) => {
+        if (isListView) return;
         e.preventDefault(); // Prevent text selection
         setIsDragging(true);
         startX.current = e.clientX;
@@ -179,13 +181,11 @@ function Content2(props) {
     const resolvedUsername = props.username || location.state?.username || localStorage.getItem("username");
 
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-    const [markersVisible, setMarkersVisible] = useState(true);
     const [cardSearchKeyword, setCardSearchKeyword] = useState(props.searchCondition || '');
     const [cardTypeFilter, setCardTypeFilter] = useState(props.CategoryCondition || '');
     const [sortMode, setSortMode] = useState((props.sortCondition || '').split(',')[0] || '');
     const [showOnlyInView, setShowOnlyInView] = useState(false);
     const [learnMoreRequest, setLearnMoreRequest] = useState(null);
-    const [isListView, setIsListView] = useState((props.initialCardViewMode || 'grid') === 'list');
     const [containerPanelSearchVersion, setContainerPanelSearchVersion] = useState(0);
     const PINNED_CARDS_STORAGE_KEY = 'pinned_card_ids';
     const [pinnedCardIDs, setPinnedCardIDs] = useState(() => {
@@ -207,19 +207,10 @@ function Content2(props) {
             return next;
         });
     };
-    const prevWidthBeforeList = useRef(null);
-    const prevListViewBeforeBothLeft = useRef(null);
-
-    // Force list view when card panel + upload panel both on left
+    // Report layout mode without modifying the saved grid width.
     useEffect(() => {
-        if (bothOnLeft && !isListView) {
-            prevListViewBeforeBothLeft.current = false;
-            setIsListView(true);
-        } else if (!bothOnLeft && prevListViewBeforeBothLeft.current === false) {
-            prevListViewBeforeBothLeft.current = null;
-            setIsListView(false);
-        }
-    }, [bothOnLeft]); // eslint-disable-line react-hooks/exhaustive-deps
+        onCardListViewChange?.(isListView);
+    }, [isListView, onCardListViewChange]);
 
     useEffect(() => {
         if (!props.initialCardViewMode) return;
@@ -229,12 +220,12 @@ function Content2(props) {
         ? String(props.selectedCardIdFromMap)
         : null;
 
-    const handleFavoritesToggle = () => {
-        if (!props.isLoggedIn) {
+    const handleFavoritesChange = (enabled) => {
+        if (enabled && !props.isLoggedIn) {
             setShowLoginPrompt(true);
             return;
         }
-        setShowFavoritesOnly(prev => !prev);
+        setShowFavoritesOnly(enabled);
     };
 
     const toggleViewScope = () => {
@@ -830,6 +821,7 @@ function Content2(props) {
 
             setLearnMoreRequest({
                 cardID: String(cardID),
+                editLocation: event.detail.editLocation === true,
                 token: Date.now()
             });
         };
@@ -893,12 +885,13 @@ function Content2(props) {
     
             <section
                 id="content-2"
-                className={`${props.isCollapsed ? 'collapsed' : ''} ${isOnLeft ? 'content-2--left' : ''} ${bothOnLeft ? 'content-2--split-top' : ''}`}
+                className={`${props.isCollapsed ? 'collapsed' : ''} ${isOnLeft ? 'content-2--left' : ''} ${bothOnLeft ? 'content-2--split-top' : ''} ${isListView ? 'content-2--list' : ''}`}
                 ref={containerRef}
                 style={{ width: containerWidth }}
             >
                 {/* Draggable edge handle */}
-                <div
+                {!isListView && <div
+                    className="card-panel-resize-handle"
                     style={{
                         position: 'absolute',
                         [isOnLeft ? 'right' : 'left']: 0,
@@ -910,7 +903,7 @@ function Content2(props) {
                         background: 'transparent',
                     }}
                     onMouseDown={onMouseDown}
-                />
+                />}
 
                 <div className="card-panel-top">
                     <div className="card-panel-titlebar" data-onboarding-target="card-titlebar">
@@ -947,7 +940,7 @@ function Content2(props) {
                     <div className="card-panel-toolbar" data-onboarding-target="card-toolbar">
                             <button
                                 type="button"
-                                className="card-toolbar-button card-toolbar-button--icon"
+                                className="card-toolbar-button"
                                 title={props.isLoggedIn ? 'Add Card' : 'Log in to add a card'}
                                 onClick={() => {
                                     if (!props.isLoggedIn) {
@@ -958,22 +951,7 @@ function Content2(props) {
                                 }}
                             >
                                 <FontAwesomeIcon icon={faPlus} />
-                            </button>
-
-                            <button
-                                type="button"
-                                className={`card-toolbar-button card-toolbar-button--icon ${!markersVisible ? 'active' : ''}`}
-                                title={markersVisible ? 'Hide Markers' : 'Show Markers'}
-                                onClick={() => {
-                                    const newVisible = !markersVisible;
-                                    setMarkersVisible(newVisible);
-                                    allMarkers.forEach(m => {
-                                        const el = m.getElement();
-                                        if (el) el.style.display = newVisible ? '' : 'none';
-                                    });
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faMapMarkerAlt} />
+                                <span>Add Card</span>
                             </button>
 
                             <SortDropdown
@@ -982,6 +960,9 @@ function Content2(props) {
                             />
 
                             <FilterDropdown
+                                favoritesOnly={showFavoritesOnly}
+                                onFavoritesChange={handleFavoritesChange}
+                                canUseFavorites={props.isLoggedIn}
                                 categoryValue={cardTypeFilter}
                                 onCategoryChange={(newValue) => {
                                     setCardTypeFilter(newValue);
@@ -993,16 +974,6 @@ function Content2(props) {
                                     props.setFilterCondition?.(newTags.join(','));
                                 }}
                             />
-
-                            <button
-                                type="button"
-                                className={`card-toolbar-button ${showFavoritesOnly ? 'active' : ''}`}
-                                onClick={handleFavoritesToggle}
-                                title={props.isLoggedIn ? 'Show only favorited cards' : 'Log in to use favorites filter'}
-                            >
-                                <FontAwesomeIcon icon={faHeart} />
-                                <span>{showFavoritesOnly ? 'Favorites On' : 'Favorites'}</span>
-                            </button>
 
                             <button
                                 type="button"
@@ -1019,14 +990,6 @@ function Content2(props) {
                                 disabled={bothOnLeft}
                                 onClick={() => {
                                     const goingToList = !isListView;
-                                    if (goingToList) {
-                                        prevWidthBeforeList.current = containerWidth;
-                                        const minW = Math.round(window.innerWidth * 0.25);
-                                        setCardPanelWidth?.(minW);
-                                    } else if (prevWidthBeforeList.current) {
-                                        setCardPanelWidth?.(prevWidthBeforeList.current);
-                                        prevWidthBeforeList.current = null;
-                                    }
                                     setIsListView(goingToList);
                                     props.onCardViewModeChange?.(goingToList ? 'list' : 'grid');
                                 }}
@@ -1087,7 +1050,7 @@ function Content2(props) {
                         {(() => {
                             console.log('[Content2] Rendering cards:', prioritizedDisplayedCards.map(c => ({ cardID: c.cardID, title: c.title })));
                             return prioritizedDisplayedCards.map((card, index) => {
-                                const cardKey = `card-${card.cardID}-${index}`;
+                                const cardKey = `card-${card.cardID}`;
                                 const learnMoreSignal =
                                     learnMoreRequest && String(card.cardID) === learnMoreRequest.cardID
                                         ? learnMoreRequest.token
@@ -1178,6 +1141,7 @@ function Content2(props) {
                                                         cardID: card.cardID
                                                     }}
                                                     forceOpenLearnMoreSignal={learnMoreSignal}
+                                                    forceEditLocation={Boolean(learnMoreSignal && learnMoreRequest?.editLocation)}
                                                     isSelectedFromMap={false}
                                                     isFavorited={bookmarkedCardIDs.has(card.cardID)}
                                                     username={resolvedUsername}
@@ -1207,6 +1171,7 @@ function Content2(props) {
                                                 cardID: card.cardID
                                             }}
                                             forceOpenLearnMoreSignal={learnMoreSignal}
+                                            forceEditLocation={Boolean(learnMoreSignal && learnMoreRequest?.editLocation)}
                                             isSelectedFromMap={!!selectedCardIdFromMap && String(card.cardID) === selectedCardIdFromMap}
                                             isFavorited={bookmarkedCardIDs.has(card.cardID)}
                                             username={resolvedUsername}

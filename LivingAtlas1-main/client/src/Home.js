@@ -48,6 +48,7 @@ function Home(props) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(true);
+    const [isCardListView, setIsCardListView] = useState(false);
     const [cardPanelWidth, setCardPanelWidth] = useState(() => {
         // Derive default panel width from the card size formula so it always fits exactly 2 columns.
         // Card width in CSS = 20vw, grid-gap = 16px, padding = 16px × 2 sides = 32px
@@ -527,13 +528,13 @@ function Home(props) {
             id: 'card-toggle-markers',
             label: 'Toggle Markers',
             keywords: ['markers', 'toggle markers', 'hide markers', 'show markers', 'card markers'],
-            action: () => clickElementByTitle({ titles: ['Hide Markers', 'Show Markers'], rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
+            action: () => clickElementByTitle({ titles: ['Toggle markers & polygons visibility', 'Hide markers & polygons', 'Show markers & polygons'] }),
         },
         {
             id: 'card-favorites-filter',
             label: 'Favorites Filter',
             keywords: ['favorites', 'favorite cards', 'bookmark filter', 'show favorited cards'],
-            action: () => clickElementByTitle({ titles: ['Show only favorited cards', 'Log in to use favorites filter'], rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
+            action: () => clickElementByTitle({ titles: 'Filter cards', rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
         },
         {
             id: 'card-scope-toggle',
@@ -933,9 +934,6 @@ function Home(props) {
         );
         const newCardViewMode = uiPrefs.cardViewMode === 'list' ? 'list' : 'grid';
         setCardViewModePreference(newCardViewMode);
-        if (newCardViewMode === 'list') {
-            setCardPanelWidth(Math.round(window.innerWidth * 0.25));
-        }
         setCardPanelSide(uiPrefs.cardPanelSide === 'left' ? 'left' : 'right');
         setChatbotDisplayMode(uiPrefs.chatbotDisplayMode === 'sidebar' ? 'sidebar' : 'floating');
     };
@@ -1429,7 +1427,7 @@ function Home(props) {
                 isChatbotSidebarOpen={isChatbotOpen && chatbotDisplayMode === 'sidebar'}
                 selectedCardCoords={selectedCardCoords}
                 onMarkerCardSelect={setSelectedCardIdFromMap}
-                cardPanelWidth={cardPanelWidth}
+                cardPanelWidth={isCardListView ? 310 : cardPanelWidth}
                 cardPanelSide={cardPanelSide}
                 isMapFullscreen={isMapFullscreen}
             />
@@ -1455,6 +1453,7 @@ function Home(props) {
                 selectedCardIdFromMap={selectedCardIdFromMap}
                 cardPanelWidth={cardPanelWidth}
                 setCardPanelWidth={setCardPanelWidth}
+                onCardListViewChange={setIsCardListView}
                 cardPanelSide={cardPanelSide}
                 setCardPanelSide={setCardPanelSide}
                 initialCardViewMode={cardViewModePreference}

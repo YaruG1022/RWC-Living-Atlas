@@ -4,8 +4,10 @@ import Modal from 'react-modal';
 import api from './api.js';
 import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
+import LearnMoreGallery, { MAX_CARD_IMAGES, GalleryLayoutSelector } from './LearnMoreGallery';
+import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, toggleGallerySelection } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon, faArrowLeft, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
 import { faHeart as regularHeart, faQuestionCircle, faCirclePlay } from '@fortawesome/free-regular-svg-icons';
 import { fetchUserPreferences } from './userPreferencesApi';
@@ -147,6 +149,8 @@ function Card(props) {
                 return {
                     ...props.formData,
                     images: mergedImages,
+                    gallery_layout: props.formData?.gallery_layout ?? (isSameCard ? prev.gallery_layout : undefined),
+                    gallery_image_ids: props.formData?.gallery_image_ids !== undefined ? props.formData.gallery_image_ids : (isSameCard ? prev.gallery_image_ids : undefined),
                     files: props.formData?.files || [],
                     filesToUpload: [],
                     is_public: props.formData?.is_public !== false
@@ -810,6 +814,7 @@ function Card(props) {
             key !== "files" &&
             key !== "filesToUpload" &&
             key !== "images" &&
+            key !== "gallery_image_ids" &&
             key !== "thumbnail_link" &&
             key !== "polygon_vertices" &&
             key !== "category" &&
@@ -819,6 +824,10 @@ function Card(props) {
             formDataToSend.append(key, formData[key]);
         }
     });
+    if (Array.isArray(formData.gallery_image_ids)) {
+        const existingIDs = new Set((formData.images || []).map(galleryImageID));
+        formDataToSend.append('gallery_image_ids', JSON.stringify(formData.gallery_image_ids.filter(id => existingIDs.has(id)).slice(0, MAX_GALLERY_IMAGES)));
+    }
     if (linkOverride) {
         formDataToSend.append('link', linkOverride.link ?? '');
         formDataToSend.append('link_text', linkOverride.link_text ?? '');
@@ -936,7 +945,7 @@ function Card(props) {
     try {
         await api.post("/uploadForm", formDataToSend);
         alert("Card Information Saved.");
-        isEditingRef.current = false; // Unlock editing state
+        isEditingRef.current = !closeEditModal; // Keep learn-more drafts protected through image saves.
         if (closeEditModal) {
             setIsEditModalOpen(false);
         }
@@ -1007,6 +1016,7 @@ function Card(props) {
         setIsLocationTypeMenuOpen(false);
         setHideCardPointMarkers(true);
         setIsEditingCoordinate(true);
+        document.querySelectorAll('.card-pin-rich-popup .mapboxgl-popup-close-button').forEach(button => button.click());
         const lat = parseFloat(formData.latitude);
         const lng = parseFloat(formData.longitude);
         if (!isNaN(lat) && !isNaN(lng)) {
@@ -1350,7 +1360,7 @@ function Card(props) {
 
         if (!props.isLoggedIn && !isLearnMoreOnboardingOpen) {
             setShowLoginPrompt(true);
-            return;
+            return false;
         }
 
         const _viewerEmail = localStorage.getItem('email') || '';
@@ -1358,7 +1368,7 @@ function Card(props) {
         const _isAdmin = (() => { try { return JSON.parse(localStorage.getItem('isAdmin')); } catch { return false; } })();
         if (!_isAdmin && _viewerEmail && _cardOwnerEmail && _viewerEmail !== _cardOwnerEmail) {
             alert("You don't have permission to edit this card. Only the card's creator or an admin can edit it.");
-            return;
+            return false;
         }
         setLearnMoreBackup({ ...formData });
         setLearnMoreLinks(parseLinks(formData.link, formData.link_text));
@@ -1381,7 +1391,18 @@ function Card(props) {
                 console.error('Failed to refresh card images:', error);
             });
         }
+        return true;
     };
+
+    useEffect(() => {
+        if (!props.forceOpenLearnMoreSignal || !props.forceEditLocation) return;
+        if (!handleLearnMoreEditStart({ stopPropagation() {} })) return;
+        if (formData.location_type === 'polygon' || formData.location_type === 'image') {
+            handleEditPolygon();
+        } else {
+            handleEditCoordinate();
+        }
+    }, [props.forceOpenLearnMoreSignal]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const rollbackSessionUploads = async () => {
         if (sessionUploadedImageIDs.length === 0) return;
@@ -1462,43 +1483,52 @@ function Card(props) {
         } catch (error) {
             const errorMsg = error.response?.data?.detail || error.message || 'Unknown error';
             console.error('Failed to reorder images:', errorMsg);
-            alert(`Failed to save image order: ${errorMsg}`);
+            throw error;
         }
     };
 
     const handleLearnMoreEditSave = async (e) => {
         e.stopPropagation();
-        const serializedLink = serializeLinks(learnMoreLinks);
-        const success = await saveEdits({
-            skipReload: true,
-            closeEditModal: false,
-            linkOverride: { link: serializedLink, link_text: '' },
-        });
-        if (success) {
-            try {
-                await applyPendingImageDeletes();
-            } catch (error) {
-                console.error('Failed to apply pending image deletions:', error);
-                alert('Some selected images could not be deleted. Please try saving again.');
+        if (loading || isImageMutationLoading) return;
+        setIsImageMutationLoading(true);
+        try {
+            const serializedLink = serializeLinks(learnMoreLinks);
+            const success = await saveEdits({
+                skipReload: true,
+                closeEditModal: false,
+                linkOverride: { link: serializedLink, link_text: '' },
+            });
+            if (success) {
+                try {
+                    await applyPendingImageDeletes();
+                } catch (error) {
+                    console.error('Failed to apply pending image deletions:', error);
+                    alert('Some selected images could not be deleted. Please try saving again.');
+                    return;
+                }
+                try {
+                    await applyImageReordering();
+                } catch (error) {
+                    console.error('Failed to apply image reordering:', error);
+                    alert('Image order could not be saved. Please try saving again.');
+                    return;
+                }
+                isEditingRef.current = false;
+                await refreshCardRecord();
+                await refreshCardImages();
+                // This save path skips the page reload, so the map still shows the
+                // pre-edit markers and polygons. Ask Content1/Content2 to re-fetch, the
+                // same way creating a card from the map does.
+                setHideCardPointMarkers(false);
+                window.dispatchEvent(new CustomEvent('atlas:card-uploaded'));
+                setIsLearnMoreEditMode(false);
+                setLearnMoreBackup(null);
+                setSessionUploadedImageIDs([]);
+                setSelectedAllImageIDs([]);
+                setPendingDeletedImageIDs([]);
             }
-            try {
-                await applyImageReordering();
-            } catch (error) {
-                console.error('Failed to apply image reordering:', error);
-                alert('Warning: Image reordering may not have been saved.');
-            }
-            await refreshCardRecord();
-            await refreshCardImages();
-            // This save path skips the page reload, so the map still shows the
-            // pre-edit markers and polygons. Ask Content1/Content2 to re-fetch, the
-            // same way creating a card from the map does.
-            setHideCardPointMarkers(false);
-            window.dispatchEvent(new CustomEvent('atlas:card-uploaded'));
-            setIsLearnMoreEditMode(false);
-            setLearnMoreBackup(null);
-            setSessionUploadedImageIDs([]);
-            setSelectedAllImageIDs([]);
-            setPendingDeletedImageIDs([]);
+        } finally {
+            setIsImageMutationLoading(false);
         }
     };
 
@@ -1511,7 +1541,7 @@ function Card(props) {
             'title', 'description', 'tags', 'category', 'username', 'name',
             'latitude', 'longitude', 'location_type',
             'polygon_vertices', 'polygon_fill_color', 'polygon_line_style', 'polygon_fill_opacity',
-            'website_link', 'thumbnail_link', 'files',
+            'website_link', 'thumbnail_link', 'files', 'gallery_layout', 'gallery_image_ids',
         ];
         for (const field of trackedFields) {
             if (JSON.stringify(formData[field]) !== JSON.stringify(learnMoreBackup[field])) return true;
@@ -1645,7 +1675,7 @@ function Card(props) {
         };
     };
 
-    const refreshCardImages = async (preferredIndex = null) => {
+    const refreshCardImages = async (preferredIndex = null, includeNewUploads = false) => {
         const rawCardID = formData.cardID || props.cardID;
         const cardID = Number(rawCardID);
         if (!Number.isInteger(cardID) || cardID <= 0) return;
@@ -1653,10 +1683,29 @@ function Card(props) {
         const response = await api.get(`/cardImages/${cardID}`);
         const freshImages = (response.data?.images || []).map((img, idx) => normalizeImageRecord(img, idx));
 
-        setFormData((prev) => ({
-            ...prev,
-            images: freshImages
-        }));
+        setFormData((prev) => {
+            let images = freshImages;
+            if (isEditingRef.current) {
+                const remaining = freshImages.filter(image => !pendingDeletedImageIDs.includes(image.imageID));
+                const byID = new Map(remaining.map(image => [image.imageID, image]));
+                const ordered = (prev.images || []).map(image => byID.get(image.imageID)).filter(Boolean);
+                const knownIDs = new Set(ordered.map(image => image.imageID));
+                images = [...ordered, ...remaining.filter(image => !knownIDs.has(image.imageID))];
+            }
+            let selection = isEditingRef.current && prev.gallery_image_ids !== undefined ? prev.gallery_image_ids : response.data?.galleryImageIDs;
+            if (includeNewUploads && isEditingRef.current && Array.isArray(selection)) {
+                const previousIDs = new Set((prev.images || []).map(galleryImageID));
+                images.map(galleryImageID).filter(id => !previousIDs.has(id) && !selection.includes(id)).forEach(id => {
+                    selection = toggleGallerySelection(selection, id);
+                });
+            }
+            return {
+                ...prev,
+                images,
+                gallery_layout: (isEditingRef.current && prev.gallery_layout) || response.data?.galleryLayout || 'multi',
+                gallery_image_ids: selection
+            };
+        });
 
         setCurrentImageIndex((prev) => {
             if (freshImages.length === 0) return 0;
@@ -1700,6 +1749,10 @@ function Card(props) {
         }
 
         if (!isLearnMoreEditMode || isImageMutationLoading) return;
+        if ((formData.images || []).length >= MAX_CARD_IMAGES) {
+            alert(`A card can have at most ${MAX_CARD_IMAGES} images.`);
+            return;
+        }
 
         setPendingImageSlotIndex(slotIndex);
         if (learnMoreImageInputRef.current) {
@@ -1733,10 +1786,10 @@ function Card(props) {
                 setSessionUploadedImageIDs((prev) => [...prev, uploadedImageID]);
             }
 
-            await refreshCardImages(pendingImageSlotIndex);
+            await refreshCardImages(pendingImageSlotIndex, true);
         } catch (error) {
             console.error('Failed to upload card images:', error);
-            alert('Failed to upload image.');
+            alert(error.response?.data?.detail || 'Failed to upload image.');
         } finally {
             setIsImageMutationLoading(false);
             setPendingImageSlotIndex(null);
@@ -1748,29 +1801,31 @@ function Card(props) {
 
         if (isImageMutationLoading) return;
 
-        if (!image?.imageID) {
-            alert('This image cannot be deleted because no image ID was found.');
+        if (!window.confirm('Delete this image?')) return;
+        let imageID = resolveImageServerID(image);
+        // A modal opened before the cover migration may still hold a fallback.
+        if (!imageID) {
+            try {
+                const response = await api.get(`/cardImages/${formData.cardID || props.cardID}`);
+                const record = (response.data?.images || []).find(item => resolveImageUrl(item.url) === image.url);
+                imageID = resolveImageServerID(record);
+            } catch (error) {
+                alert('Could not refresh this image. Please try again.');
+                return;
+            }
+        }
+        if (!imageID) {
+            alert('This image is no longer available. Please reopen the card.');
             return;
         }
-
-        if (!window.confirm('Delete this image?')) return;
-
-        setIsImageMutationLoading(true);
-        try {
-            await api.delete(`/deleteCardImage/${image.imageID}`);
-            setSessionUploadedImageIDs((prev) => prev.filter((id) => id !== image.imageID));
-            await refreshCardImages();
-        } catch (error) {
-            console.error('Failed to delete card image:', error);
-            alert('Failed to delete image.');
-        } finally {
-            setIsImageMutationLoading(false);
-        }
+        setPendingDeletedImageIDs(prev => [...new Set([...prev, imageID])]);
+        setFormData(prev => ({ ...prev, images: (prev.images || []).filter(item => resolveImageServerID(item) !== imageID) }));
     };
 
     const displayCardData = isLearnMoreEditMode && learnMoreBackup ? learnMoreBackup : formData;
 
     const cardThumbnailSrc =
+        displayCardData.thumbnail_link === '' ? '' :
         displayCardData.thumbnail_link && displayCardData.thumbnail_link.trim() !== ""
             ? resolveImageUrl(displayCardData.thumbnail_link)
             : "/CEREO-logo.png";
@@ -1803,8 +1858,15 @@ function Card(props) {
                             ? `${(formData.polygon_vertices || []).length} vertices`
                             : formData.location_type === 'multipoint'
                             ? `${(formData.polygon_vertices || []).length} points`
-                            : `${formData.latitude ?? ''}, ${formData.longitude ?? ''}`}
+                            : ''}
                     </span>
+                    {!isOverlayCard && (
+                        <span className="learn-more-representation-coordinates">
+                            <strong>Latitude:</strong> {formData.latitude ?? 'N/A'}
+                            {' | '}
+                            <strong>Longitude:</strong> {formData.longitude ?? 'N/A'}
+                        </span>
+                    )}
                 </div>
             </div>
         </>
@@ -1813,7 +1875,12 @@ function Card(props) {
     const cardImageList = isImageCard
         ? [{ url: cardThumbnailSrc, id: 'card-representation', imageID: null, alt: 'Card representation' }]
         : displayCardData.images && Array.isArray(displayCardData.images) && displayCardData.images.length > 0
-        ? displayCardData.images.map((img, idx) => normalizeImageRecord(img, idx))
+        ? (() => {
+            const images = displayCardData.images.map((img, idx) => normalizeImageRecord(img, idx));
+            const selected = selectedGalleryImages(images, displayCardData.gallery_image_ids);
+            const selectedIDs = new Set(selected.map(galleryImageID));
+            return [...selected, ...images.filter(image => !selectedIDs.has(galleryImageID(image)))];
+        })()
         : [{ url: cardThumbnailSrc, id: 0 }];
 
     // Multi-image support: use images array if available, otherwise fall back to single thumbnail
@@ -1823,7 +1890,9 @@ function Card(props) {
             : [])
         : formData.images && Array.isArray(formData.images) && formData.images.length > 0
         ? formData.images.map((img, idx) => normalizeImageRecord(img, idx))
-        : [{ url: cardThumbnailSrc, id: 0 }];
+        : (!pendingDeletedImageIDs.length && formData.thumbnail_link
+            ? [{ url: resolveImageUrl(formData.thumbnail_link), id: 0 }]
+            : []);
 
     const allImagesList = imageList;
 
@@ -1840,35 +1909,6 @@ function Card(props) {
         setSelectedAllImageIDs((prev) =>
             prev.includes(imageID) ? prev.filter((id) => id !== imageID) : [...prev, imageID]
         );
-    };
-
-    const handleMoveImageUp = (e, index) => {
-        e.stopPropagation();
-        if (index <= 0) return;
-
-        setFormData((prev) => {
-            const newImages = [...(prev.images || [])];
-            [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
-            return {
-                ...prev,
-                images: newImages
-            };
-        });
-    };
-
-    const handleMoveImageDown = (e, index) => {
-        e.stopPropagation();
-        const images = formData.images || [];
-        if (index >= images.length - 1) return;
-
-        setFormData((prev) => {
-            const newImages = [...(prev.images || [])];
-            [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
-            return {
-                ...prev,
-                images: newImages
-            };
-        });
     };
 
     const handleDeleteSelectedAllImages = (e) => {
@@ -1928,21 +1968,40 @@ function Card(props) {
             })
             .slice(0, 2)
     );
-    const learnMoreGalleryImages = (Array.isArray(formData.images) && formData.images.length > 0)
-        ? formData.images.map((img, idx) => normalizeImageRecord(img, idx)).slice(0, 5)
-        : (!isImageCard && displayCardData.thumbnail_link && displayCardData.thumbnail_link.trim() !== ""
-            ? [{ url: cardThumbnailSrc, id: 0, imageID: null }]
-            : []);
-    const learnMoreGallerySlots = Array.from({ length: 5 }, (_, index) => learnMoreGalleryImages[index] || null);
+    const learnMoreGalleryImages = selectedGalleryImages(allImagesList, formData.gallery_image_ids);
+    const visibleGalleryIDs = learnMoreGalleryImages.map(galleryImageID);
+    const gallerySelectionSlots = Array.isArray(formData.gallery_image_ids)
+        ? formData.gallery_image_ids.map(id => visibleGalleryIDs.includes(id) ? id : null)
+        : visibleGalleryIDs;
+    const toggleGalleryImage = (image) => {
+        const id = galleryImageID(image);
+        const next = toggleGallerySelection(gallerySelectionSlots, id);
+        setFormData(prev => ({ ...prev, gallery_image_ids: next }));
+    };
+
+    const reorderGalleryImages = (from, to) => {
+        setFormData(prev => {
+            const images = [...(prev.images || [])];
+            const fromIndex = images.findIndex(image => galleryImageID(image) === visibleGalleryIDs[from]);
+            const toIndex = images.findIndex(image => galleryImageID(image) === visibleGalleryIDs[to]);
+            if (fromIndex < 0 || toIndex < 0) return prev;
+            const [moved] = images.splice(fromIndex, 1);
+            images.splice(toIndex, 0, moved);
+            const selection = [...visibleGalleryIDs];
+            const [movedID] = selection.splice(from, 1);
+            selection.splice(to, 0, movedID);
+            return { ...prev, images, gallery_image_ids: selection };
+        });
+    };
 
     const goToPrevImage = (e) => {
         e.stopPropagation();
-        setCurrentImageIndex((prev) => (prev === 0 ? cardImageList.length - 1 : prev - 1));
+        setCurrentImageIndex((prev) => (prev === 0 ? (isImagePreviewOpen ? imageList.length : cardImageList.length) - 1 : prev - 1));
     };
 
     const goToNextImage = (e) => {
         e.stopPropagation();
-        setCurrentImageIndex((prev) => (prev === cardImageList.length - 1 ? 0 : prev + 1));
+        setCurrentImageIndex((prev) => (prev >= (isImagePreviewOpen ? imageList.length : cardImageList.length) - 1 ? 0 : prev + 1));
     };
 
     const goToImageByIndex = (e, index) => {
@@ -1976,7 +2035,7 @@ function Card(props) {
             </span>
 
             <div className="card-thumbnail-container">
-                <img
+                {cardCurrentImage.url ? <img
                     src={cardCurrentImage.url}
                     alt={cardCurrentImage.alt || "Card Thumbnail"}
                     className={`card-thumbnail${isCardCurrentImageDefault ? '' : ' card-thumbnail--cover'}`}
@@ -1985,7 +2044,7 @@ function Card(props) {
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOpenImagePreview(e); }}
                     role="button"
                     tabIndex={0}
-                />
+                /> : <div className="card-thumbnail card-thumbnail--empty">No image</div>}
                 
                 {/* Navigation arrows (only show if multiple images) */}
                 {hasMultipleImages && (
@@ -2160,40 +2219,53 @@ function Card(props) {
                                         setIsAllImagesView(false);
                                     }}
                                 >
-                                    ← Back to Learn More
+                                    <FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" /> Back to Learn More
                                 </button>
+                                {isLearnMoreEditMode && (
+                                    <div className="learn-more-all-images-actions">
+                                        <button
+                                            type="button"
+                                            className="learn-more-all-images-delete-selected-btn"
+                                            onClick={handleDeleteSelectedAllImages}
+                                            disabled={isImageMutationLoading || selectedAllImageIDs.length === 0}
+                                        >
+                                            {`Delete Selected (${selectedAllImageIDs.length})`}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="learn-more-modal-toolbar-btn save"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setPendingImageSlotIndex(null);
+                                                learnMoreImageInputRef.current?.click();
+                                            }}
+                                            disabled={isImageMutationLoading || (formData.images || []).length >= MAX_CARD_IMAGES}
+                                        >
+                                            {isImageMutationLoading ? 'Uploading...' : 'Add New Image'}
+                                        </button>
+                                    </div>
+                                )}
                                 <p className="learn-more-all-images-count">
                                     {`Showing ${allImagesList.length} image${allImagesList.length === 1 ? '' : 's'}`}
                                 </p>
                             </div>
 
+                            <p className="learn-more-gallery-selection-hint">{`${learnMoreGalleryImages.length} / 6 images selected. Choose up to 6 images here for Multiple images and Slideshow; number 1 is the card cover. Drag images on the main page to change their order. Up to ${MAX_CARD_IMAGES} images total.`}</p>
                             <div className="learn-more-all-images-list">
                                 {allImagesList.map((image, index) => (
-                                    <div className="learn-more-all-image-item" key={`all-image-${image.imageID || image.id || index}`}>
+                                    <div className={`learn-more-all-image-item ${isLearnMoreEditMode && visibleGalleryIDs.includes(galleryImageID(image)) ? 'is-main-selected' : ''}`} key={`all-image-${image.imageID || image.id || index}`}>
                                         {isLearnMoreEditMode && (
-                                            <div className="learn-more-all-image-sort-controls">
-                                                <button
-                                                    type="button"
-                                                    className="learn-more-all-image-sort-btn learn-more-all-image-sort-up"
-                                                    onClick={(e) => handleMoveImageUp(e, index)}
-                                                    disabled={index === 0}
-                                                    title="Move image up"
-                                                    aria-label="Move image up"
-                                                >
-                                                    ▲
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="learn-more-all-image-sort-btn learn-more-all-image-sort-down"
-                                                    onClick={(e) => handleMoveImageDown(e, index)}
-                                                    disabled={index === allImagesList.length - 1}
-                                                    title="Move image down"
-                                                    aria-label="Move image down"
-                                                >
-                                                    ▼
-                                                </button>
-                                            </div>
+                                            <label className="learn-more-gallery-selection" title={gallerySelectionSlots[0] === galleryImageID(image) ? 'Card cover' : 'Show on main page'} onClick={e => e.stopPropagation()}>
+                                                <span className="learn-more-gallery-checkbox">
+                                                    <input type="checkbox" aria-label={`Show image ${index + 1} on main page`}
+                                                        checked={visibleGalleryIDs.includes(galleryImageID(image))}
+                                                        disabled={!isLearnMoreEditMode || isImageMutationLoading || !resolveImageServerID(image) || (!visibleGalleryIDs.includes(galleryImageID(image)) && visibleGalleryIDs.length >= MAX_GALLERY_IMAGES)}
+                                                        onChange={() => toggleGalleryImage(image)} />
+                                                    <span className="learn-more-gallery-order" aria-label={visibleGalleryIDs.includes(galleryImageID(image)) ? `Display order ${gallerySelectionSlots.indexOf(galleryImageID(image)) + 1}` : undefined}>{visibleGalleryIDs.includes(galleryImageID(image)) ? gallerySelectionSlots.indexOf(galleryImageID(image)) + 1 : ''}</span>
+                                                </span>
+                                            </label>
                                         )}
+
 
                                         <button
                                             type="button"
@@ -2217,118 +2289,34 @@ function Card(props) {
                                                 aria-label={selectedAllImageIDs.includes(resolveImageServerID(image)) ? 'Unselect image' : 'Select image'}
                                                 aria-pressed={selectedAllImageIDs.includes(resolveImageServerID(image)) ? 'true' : 'false'}
                                             >
-                                                <span className="learn-more-all-image-select-mark" aria-hidden="true" />
+                                                <FontAwesomeIcon icon={faCheck} className="learn-more-all-image-select-mark" aria-hidden="true" />
                                             </button>
                                         )}
                                     </div>
                                 ))}
                             </div>
 
-                            {isLearnMoreEditMode && (
-                                <div className="learn-more-all-images-actions">
-                                    <button
-                                        type="button"
-                                        className="learn-more-all-images-delete-selected-btn"
-                                        onClick={handleDeleteSelectedAllImages}
-                                        disabled={isImageMutationLoading || selectedAllImageIDs.length === 0}
-                                    >
-                                        {`Delete Selected (${selectedAllImageIDs.length})`}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="learn-more-modal-toolbar-btn save"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setPendingImageSlotIndex(null);
-                                            learnMoreImageInputRef.current?.click();
-                                        }}
-                                        disabled={isImageMutationLoading}
-                                    >
-                                        {isImageMutationLoading ? 'Uploading...' : 'Add New Image'}
-                                    </button>
-                                </div>
-                            )}
+
                         </div>
                     ) : (
                         <>
 
                     <div data-onboarding-target="learn-more-image-area">
 
-                    <div className="learn-more-gallery">
-                        <button
-                            type="button"
-                            className={`learn-more-gallery-tile learn-more-gallery-tile--primary${!learnMoreGallerySlots[0] ? ` learn-more-gallery-tile--placeholder${isLearnMoreEditMode ? ' learn-more-gallery-tile--placeholder-editable' : ''}` : ''}`}
-                            onClick={(e) => handleLearnMoreGalleryTileClick(e, learnMoreGallerySlots[0], 0)}
-                            title={learnMoreGallerySlots[0] ? 'Open image preview' : (isLearnMoreEditMode ? 'Click to add image' : 'No image available')}
-                        >
-                            {learnMoreGallerySlots[0] ? (
-                                <img
-                                    className="learn-more-gallery-image"
-                                    src={learnMoreGallerySlots[0].url}
-                                    alt={learnMoreGallerySlots[0].alt || 'Card image 1'}
-                                />
-                            ) : (
-                                <span className="learn-more-gallery-placeholder">No Image</span>
-                            )}
-                            {isLearnMoreEditMode && learnMoreGallerySlots[0]?.imageID && (
-                                <span
-                                    className="learn-more-gallery-delete-btn"
-                                    onClick={(e) => handleLearnMoreImageDelete(e, learnMoreGallerySlots[0])}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            handleLearnMoreImageDelete(e, learnMoreGallerySlots[0]);
-                                        }
-                                    }}
-                                    title="Delete image"
-                                    aria-label="Delete image"
-                                    role="button"
-                                    tabIndex={0}
-                                >
-                                    ×
-                                </span>
-                            )}
-                        </button>
+                    <LearnMoreGallery
+                        images={learnMoreGalleryImages}
+                        totalImageCount={allImagesList.length}
+                        layout={formData.gallery_layout || 'featured'}
+                        editing={isLearnMoreEditMode}
+                        busy={loading || isImageMutationLoading}
+                        coverUrl={isImageCard ? cardThumbnailSrc : learnMoreGalleryImages[0]?.url}
+                        onReorder={reorderGalleryImages}
+                        onOpen={(event, index) => openImagePreviewAtIndex(event, allImagesList.findIndex(image => galleryImageID(image) === galleryImageID(learnMoreGalleryImages[index])))}
+                        onAdd={(event, index) => handleLearnMoreGalleryTileClick(event, null, index)}
+                        onDelete={handleLearnMoreImageDelete}
+                    />
 
-                        <div className="learn-more-gallery-side-grid">
-                            {learnMoreGallerySlots.slice(1).map((image, index) => (
-                                <button
-                                    key={`learn-more-gallery-slot-${index + 1}`}
-                                    type="button"
-                                    className={`learn-more-gallery-tile ${image ? '' : `learn-more-gallery-tile--placeholder${isLearnMoreEditMode ? ' learn-more-gallery-tile--placeholder-editable' : ''}`}`}
-                                    onClick={(e) => handleLearnMoreGalleryTileClick(e, image, index + 1)}
-                                    title={image ? `Open image ${index + 2}` : (isLearnMoreEditMode ? `Click to add image ${index + 2}` : 'No image available')}
-                                >
-                                    {image ? (
-                                        <img
-                                            className="learn-more-gallery-image"
-                                            src={image.url}
-                                            alt={image.alt || `Card image ${index + 2}`}
-                                        />
-                                    ) : (
-                                        <span className="learn-more-gallery-placeholder">No Image</span>
-                                    )}
-                                    {isLearnMoreEditMode && image?.imageID && (
-                                        <span
-                                            className="learn-more-gallery-delete-btn"
-                                            onClick={(e) => handleLearnMoreImageDelete(e, image)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' || e.key === ' ') {
-                                                    handleLearnMoreImageDelete(e, image);
-                                                }
-                                            }}
-                                            title="Delete image"
-                                            aria-label="Delete image"
-                                            role="button"
-                                            tabIndex={0}
-                                        >
-                                            ×
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
+                    <div className="learn-more-gallery-actions-row">
                     <button
                         type="button"
                         className="learn-more-see-all-images-btn"
@@ -2339,6 +2327,8 @@ function Card(props) {
                     >
                         {`See all ${allImagesList.length} image${allImagesList.length === 1 ? '' : 's'}`}
                     </button>
+                    {isLearnMoreEditMode && <GalleryLayoutSelector layout={formData.gallery_layout} busy={loading || isImageMutationLoading} onChange={gallery_layout => setFormData(prev => ({ ...prev, gallery_layout }))} />}
+                    </div>
                     </div>
 
                     <div data-onboarding-target="learn-more-text-area">
@@ -2397,21 +2387,6 @@ function Card(props) {
                                     <p><strong>Organization:</strong></p>
                                     <input className="learn-more-inline-input" type="text" name="org" value={formData.org || ''} onChange={handleInputChange} />
                                 </div>
-                                {!isOverlayCard && (
-                                    <div className="learn-more-field-cell learn-more-coordinate-cell">
-                                        <p><strong>Coordinates:</strong></p>
-                                        <div className="learn-more-coordinate-row">
-                                            <div className="learn-more-coordinate-item">
-                                                <span className="learn-more-coordinate-label">Latitude</span>
-                                                <input className="learn-more-inline-input" type="number" step="any" name="latitude" value={formData.latitude || ''} onChange={handleInputChange} />
-                                            </div>
-                                            <div className="learn-more-coordinate-item">
-                                                <span className="learn-more-coordinate-label">Longitude</span>
-                                                <input className="learn-more-inline-input" type="number" step="any" name="longitude" value={formData.longitude || ''} onChange={handleInputChange} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
 
                             <p><strong>Links:</strong></p>
@@ -2548,13 +2523,6 @@ function Card(props) {
                                 <p><strong>Email:</strong> {formData.email}</p>
                                 <p><strong>Funding:</strong> {formData.funding || 'N/A'}</p>
                                 <p><strong>Organization:</strong> {formData.org || 'N/A'}</p>
-                                {!isOverlayCard && (
-                                    <p className="learn-more-coordinate-readonly">
-                                        <strong>Latitude:</strong> {formData.latitude}
-                                        <span className="learn-more-coordinate-separator"> | </span>
-                                        <strong>Longitude:</strong> {formData.longitude}
-                                    </p>
-                                )}
                             </div>
                             <div className="learn-more-location-section">
                                 {renderRepresentationPreview()}
@@ -2954,16 +2922,16 @@ function Card(props) {
                 >
                     ×
                 </button>
-                {hasMultipleImages && (
+                {imageList.length > 1 && (
                     <button className="image-preview-nav image-preview-nav-prev" onClick={goToPrevImage} aria-label="Previous image">&#8249;</button>
                 )}
                 <img src={currentImage.url} alt="Card enlarged preview" className="image-preview-content" onError={(e) => { e.target.onerror = null; e.target.src = '/CEREO-logo.png'; }} />
-                {hasMultipleImages && (
+                {imageList.length > 1 && (
                     <button className="image-preview-nav image-preview-nav-next" onClick={goToNextImage} aria-label="Next image">&#8250;</button>
                 )}
-                {hasMultipleImages && (
+                {imageList.length > 1 && (
                     <div className="image-preview-indicators">
-                        {cardImageList.map((img, idx) => (
+                        {imageList.map((img, idx) => (
                             <button
                                 key={img.id ?? idx}
                                 className={`image-preview-bar${idx === currentImageIndex ? ' active' : ''}`}

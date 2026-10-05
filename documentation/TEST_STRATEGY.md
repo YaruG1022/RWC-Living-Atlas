@@ -55,6 +55,16 @@ Use synthetic or de-identified data. Give each run a unique prefix and auditable
 
 ## 4. Completed tests and traceable evidence
 
+Gallery layout verification (2026-10-04): 1–8 image grids, slideshow navigation,
+drag/button ordering, draft save/cancel and upload limits are covered by offline
+component and backend contract tests. See [gallery verification report](GALLERY_LAYOUT_TEST_REPORT.md)
+for commands, browser checks, first failures, and database/deployment limitations.
+Local upload verification (2026-10-04): isolated single/batch image uploads,
+database reconciliation, static/proxy serving, deletion and zero-residue cleanup
+are implemented in `backend/scripts/check_local_upload.py`; the same report
+records evidence. Offline `test_local_storage.py` covers local/hosted routing and
+local path containment without contacting Azure.
+
 “Completed” below refers only to local runs on 2026-09-26. Exact commands, metrics, first failures, fixes, and limitations are in [TEST_REPORT.md](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.md). Execution instructions are in [load_tests/README.md](../LivingAtlas1-main/backend/load_tests/README.md).
 
 | ID | Type / level | Scenario and oracle | Status and evidence | Defect exposed / remaining work |
@@ -74,6 +84,7 @@ Other existing assets include the [frontend `main.test.js`](../LivingAtlas1-main
 |---|---|---|---|
 | Functional: signup/authentication/authorization | High | Input boundaries, duplicate/case-variant emails, privilege escalation, expired sessions, unauthorized access; verify status and DB invariants. | Unit + API integration + selected E2E. |
 | Functional: cards and maps | High | Create/edit/delete cards, combined filters, sort/page behavior, empty results, list/map agreement, concurrent updates. | API/DB integration + browser E2E. |
+| Functional: selected main-page gallery (GALLERY-SEL-01) | High | At most six selected images in both gallery modes; save/cancel, foreign-image rejection, empty selection, eight total images retained. | Component + contract + [local API/DB script](../LivingAtlas1-main/backend/scripts/check_gallery_selection.py); [evidence](GALLERY_SELECTION_TEST_REPORT.md). |
 | Functional: files and external integrations | High | Upload size/type limits, delete rollback, Azure faults, malformed ArcGIS responses, Mapbox timeouts; no orphaned file or row. | Contract + integration. |
 | Functional: user journeys | High | Signup → login → map → filter → card detail → upload/edit; verify frontend/backend configuration. | Browser automation such as Playwright; low-impact production smoke only. |
 | Non-functional: security | High | Derive controls from [OWASP ASVS](https://owasp.org/projects/asvs): auth, authorization, SQL injection, XSS, uploads, secrets, dependencies. | Static/dependency scans + API security tests + human review. |
@@ -111,3 +122,7 @@ For requirements-to-evidence traceability, assign stable IDs to new cases (for e
 ## 8. Method references
 
 The cycle follows planning, analysis/design, implementation/execution, monitoring/control, and completion concepts in [ISTQB CTFL v4.0.1](https://www.istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/). [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) provides a product-quality model for coverage planning. Security and accessibility references are [OWASP ASVS](https://owasp.org/projects/asvs) and [W3C WCAG 2.2](https://www.w3.org/TR/WCAG22/). [Google SRE guidance on SLOs](https://sre.google/workbook/implementing-slos/) informs future production reliability targets. These references guide test design; they do not certify this application.
+
+## GUI guide navigation regression
+
+`UserManual.test.js` renders guide sections and exercises reused image-gallery callbacks. Local GUI-copy and layout verification is recorded in [GUI_GUIDE_UPDATE_TEST_REPORT.md](GUI_GUIDE_UPDATE_TEST_REPORT.md).

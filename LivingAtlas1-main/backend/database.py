@@ -236,6 +236,23 @@ def _ensure_schema():
               ADD COLUMN IF NOT EXISTS LineStyle VARCHAR(20);
         """)
 
+        # Persist the learn-more image presentation; existing cards retain their layout.
+        cur.execute("""
+            ALTER TABLE Cards ADD COLUMN IF NOT EXISTS GalleryLayout VARCHAR(20) DEFAULT 'featured';
+            ALTER TABLE Cards ADD COLUMN IF NOT EXISTS GalleryImageIDs JSONB;
+        """)
+
+        # Give legacy fallback covers a deletable identity. An empty thumbnail is
+        # the intentional no-image state and must never be materialized again.
+        cur.execute("""
+            INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText)
+            SELECT c.CardID, c.Thumbnail_Link, 0, 'Card cover'
+            FROM Cards c
+            WHERE COALESCE(c.LocationType, 'point') <> 'image'
+              AND COALESCE(c.Thumbnail_Link, '') <> ''
+              AND NOT EXISTS (SELECT 1 FROM CardImages i WHERE i.CardID = c.CardID);
+        """)
+
         # Migration 014 — allocate new signup IDs with a sequence. Historical
         # duplicate IDs must not prevent the rest of the app from starting;
         # create the unique index once those rows have been reconciled.

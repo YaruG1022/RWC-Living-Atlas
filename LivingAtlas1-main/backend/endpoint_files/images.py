@@ -21,6 +21,17 @@ IMAGE_UPLOAD_DIR = "uploads/card_images"
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 IMAGE_FOLDER = "card_images"
+MAX_CARD_IMAGES = 30
+
+
+def reserve_image_slots(card_id: int, incoming_count: int):
+    """Lock the card until commit so concurrent uploads cannot exceed its limit."""
+    cur.execute("SELECT CardID FROM Cards WHERE CardID = %s FOR UPDATE", (card_id,))
+    if not cur.fetchone():
+        raise HTTPException(status_code=404, detail="Card not found")
+    cur.execute("SELECT COUNT(*) FROM CardImages WHERE CardID = %s", (card_id,))
+    if cur.fetchone()[0] + incoming_count > MAX_CARD_IMAGES:
+        raise HTTPException(status_code=422, detail=f"A card can have at most {MAX_CARD_IMAGES} images. Save pending deletions before adding more.")
 
 
 def ensure_upload_dir():
@@ -63,6 +74,18 @@ def _should_sync_thumbnail_with_gallery(card_id: int) -> bool:
     row = cur.fetchone()
     return not row or row[0] != 'image'
 
+
+def sync_gallery_thumbnail(card_id: int):
+    if _should_sync_thumbnail_with_gallery(card_id):
+        cur.execute("""
+            UPDATE Cards c SET Thumbnail_Link = COALESCE((
+                SELECT ImageURL FROM CardImages WHERE CardID = %s
+                ORDER BY COALESCE(array_position(ARRAY(
+                    SELECT jsonb_array_elements_text(COALESCE(c.GalleryImageIDs, '[]'::jsonb))
+                ), ImageID::text), 2147483647), DisplayOrder, ImageID LIMIT 1
+            ), '') WHERE CardID = %s
+        """, (card_id, card_id))
+
 @images_router.post("/uploadCardImage")
 async def upload_card_image(
     cardID: int = Form(...),
@@ -82,9 +105,7 @@ async def upload_card_image(
     """
     try:
         # Verify card exists
-        cur.execute("SELECT CardID FROM Cards WHERE CardID = %s", (cardID,))
-        if not cur.fetchone():
-            raise HTTPException(status_code=404, detail="Card not found")
+        reserve_image_slots(cardID, 1)
         
         image_url = save_uploaded_file(image)
         
@@ -104,12 +125,7 @@ async def upload_card_image(
         
         image_id = cur.fetchone()[0]
 
-        if _should_sync_thumbnail_with_gallery(cardID):
-            # Keep legacy thumbnail field in sync for list/map endpoints that still read Cards.Thumbnail_Link
-            cur.execute(
-                "UPDATE Cards SET Thumbnail_Link = %s WHERE CardID = %s",
-                (image_url, cardID)
-            )
+        sync_gallery_thumbnail(cardID)
         conn.commit()
         
         return {
@@ -121,6 +137,7 @@ async def upload_card_image(
         }
     
     except HTTPException:
+        conn.rollback()
         raise
     except Exception as e:
         conn.rollback()
@@ -147,9 +164,7 @@ async def upload_card_images(
         if not images:
             raise HTTPException(status_code=400, detail="No images provided")
 
-        cur.execute("SELECT CardID FROM Cards WHERE CardID = %s", (cardID,))
-        if not cur.fetchone():
-            raise HTTPException(status_code=404, detail="Card not found")
+        reserve_image_slots(cardID, len(images))
 
         alt_text_values = []
         if altTexts:
@@ -183,12 +198,7 @@ async def upload_card_images(
                 "altText": alt_text
             })
 
-        if created_images and _should_sync_thumbnail_with_gallery(cardID):
-            # Keep legacy thumbnail in sync to first newly uploaded image
-            cur.execute(
-                "UPDATE Cards SET Thumbnail_Link = %s WHERE CardID = %s",
-                (created_images[0]["imageURL"], cardID)
-            )
+        sync_gallery_thumbnail(cardID)
         conn.commit()
 
         return {
@@ -198,6 +208,7 @@ async def upload_card_images(
         }
 
     except HTTPException:
+        conn.rollback()
         raise
     except Exception as e:
         conn.rollback()
@@ -230,7 +241,9 @@ async def delete_card_image(imageID: int):
         
         # Delete the backing file from Azure Blob Storage (non-fatal on failure)
         try:
-            azure_storage.delete_from_url(image_url)
+            # Default covers are shared assets; deleting their record is enough.
+            if image_url not in {'/CEREO-logo.png', 'CEREO-logo.png'} and not image_url.endswith('/thumbnails/default_cereo_thumbnail.png'):
+                azure_storage.delete_from_url(image_url)
         except Exception as az_err:
             print(f"[images] Azure delete failed (non-fatal): {az_err}")
 
@@ -247,24 +260,7 @@ async def delete_card_image(imageID: int):
                 (idx, img_id)
             )
 
-        if _should_sync_thumbnail_with_gallery(card_id):
-            # After delete, reset thumbnail to first remaining image or default logo.
-            cur.execute(
-                """
-                SELECT ImageURL
-                FROM CardImages
-                WHERE CardID = %s
-                ORDER BY DisplayOrder ASC, ImageID ASC
-                LIMIT 1
-                """,
-                (card_id,)
-            )
-            first_image = cur.fetchone()
-            next_thumbnail = first_image[0] if first_image else "/CEREO-logo.png"
-            cur.execute(
-                "UPDATE Cards SET Thumbnail_Link = %s WHERE CardID = %s",
-                (next_thumbnail, card_id)
-            )
+        sync_gallery_thumbnail(card_id)
         
         conn.commit()
         
@@ -310,6 +306,7 @@ async def reorder_card_images(cardID: int, imageOrder: list = Body(...)):
                 (display_idx, image_id)
             )
         
+        sync_gallery_thumbnail(cardID)
         conn.commit()
         
         return {
@@ -336,6 +333,10 @@ async def get_card_images(cardID: int):
         List of images sorted by DisplayOrder
     """
     try:
+        cur.execute("SELECT COALESCE(GalleryLayout, 'featured'), GalleryImageIDs FROM Cards WHERE CardID = %s", (cardID,))
+        card = cur.fetchone()
+        if not card:
+            raise HTTPException(status_code=404, detail="Card not found")
         cur.execute("""
             SELECT ImageID, ImageURL, DisplayOrder, AltText, DateAdded
             FROM CardImages
@@ -358,9 +359,13 @@ async def get_card_images(cardID: int):
         return {
             "cardID": cardID,
             "totalImages": len(images),
+            "galleryLayout": card[0],
+            "galleryImageIDs": card[1],
             "images": images
         }
     
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Query failed: {str(e)}")
 

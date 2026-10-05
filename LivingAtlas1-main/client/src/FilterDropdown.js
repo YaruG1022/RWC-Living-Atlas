@@ -15,10 +15,14 @@ function FilterDropdown({
   onCategoryChange,
   activeTagFilters,
   onTagFiltersChange,
+  favoritesOnly = false,
+  onFavoritesChange,
+  canUseFavorites = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingCategory, setPendingCategory] = useState(categoryValue || '');
   const [pendingTags, setPendingTags] = useState(activeTagFilters || []);
+  const [pendingFavorites, setPendingFavorites] = useState(favoritesOnly);
   const [tagInput, setTagInput] = useState('');
   const dropdownRef = useRef(null);
 
@@ -27,8 +31,9 @@ function FilterDropdown({
     if (!isOpen) {
       setPendingCategory(categoryValue || '');
       setPendingTags(activeTagFilters || []);
+      setPendingFavorites(favoritesOnly);
     }
-  }, [categoryValue, activeTagFilters, isOpen]);
+  }, [categoryValue, activeTagFilters, favoritesOnly, isOpen]);
 
   // Close on outside click
   useEffect(() => {
@@ -61,20 +66,23 @@ function FilterDropdown({
   const handleApply = () => {
     onCategoryChange(pendingCategory);
     onTagFiltersChange(pendingTags);
+    onFavoritesChange?.(canUseFavorites && pendingFavorites);
     setIsOpen(false);
   };
 
   const handleClear = () => {
     setPendingCategory('');
     setPendingTags([]);
+    setPendingFavorites(false);
     setTagInput('');
     onCategoryChange('');
     onTagFiltersChange([]);
+    onFavoritesChange?.(false);
     setIsOpen(false);
   };
 
   const activeCount =
-    (categoryValue ? 1 : 0) + (activeTagFilters ? activeTagFilters.length : 0);
+    (categoryValue ? 1 : 0) + (activeTagFilters ? activeTagFilters.length : 0) + (favoritesOnly ? 1 : 0);
 
   return (
     <div className="filter-dropdown" ref={dropdownRef}>
@@ -135,6 +143,17 @@ function FilterDropdown({
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="filter-dropdown-section">
+            <div className="filter-dropdown-section-title">Favorites</div>
+            <label className="filter-dropdown-option">
+              <input type="checkbox" className="filter-dropdown-checkbox"
+                checked={pendingFavorites} disabled={!canUseFavorites}
+                onChange={event => setPendingFavorites(event.target.checked)} />
+              <span className="filter-dropdown-label">Show only favorited cards</span>
+            </label>
+            {!canUseFavorites && <p className="filter-dropdown-note">Log in to use favorites filter.</p>}
           </div>
 
           {/* Footer */}

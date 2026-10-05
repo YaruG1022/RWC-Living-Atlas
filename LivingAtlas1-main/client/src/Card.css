@@ -887,7 +887,7 @@
   transition: border-color .2s ease, box-shadow .2s ease;
 }
 
-.learn-more-all-image-item.is-main-selected { border-color: #6b8cab; box-shadow: 0 0 0 2px rgba(107,140,171,.22); }
+.learn-more-all-image-item.is-main-selected { border-color: #6b8cab; }
 
 .Modal--learn-more .learn-more-all-image-item .learn-more-gallery-selection {
   position: absolute;

@@ -73,7 +73,9 @@ test('selected numbers and cover follow main-page dragging; all-images has no so
     expect(screen.queryByRole('button', { name: 'Move image up' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Move image down' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
-    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Show image 1 on main page' }).disabled).toBe(true));
+    await waitFor(() => expect(screen.queryAllByRole('checkbox', { name: /on main page/ })).toHaveLength(0));
+    expect(screen.queryByRole('button', { name: 'Save', exact: true })).toBeNull();
+    expect(document.querySelector('.learn-more-all-image-item.is-main-selected')).toBeNull();
     expect(api.post.mock.calls[0][1].get('gallery_image_ids')).toBe('[3,2]');
 });
 
@@ -177,7 +179,9 @@ test('selection saves as JSON and remains visible after refreshing the saved car
         return Promise.resolve({ data: {} });
     });
     fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
-    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Show image 1 on main page' }).disabled).toBe(true));
+    await waitFor(() => expect(screen.queryAllByRole('checkbox', { name: /on main page/ })).toHaveLength(0));
+    expect(screen.queryByRole('button', { name: 'Save', exact: true })).toBeNull();
+    expect(document.querySelector('.learn-more-all-image-item.is-main-selected')).toBeNull();
     expect(api.post.mock.calls[0][1].get('gallery_image_ids')).toBe('[2,3]');
     fireEvent.click(screen.getByRole('button', { name: 'Back to Learn More', exact: true }));
     expect(within(screen.getByRole('region', { name: 'Card image gallery' })).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual(['/fixture-2.jpg','/fixture-3.jpg']);

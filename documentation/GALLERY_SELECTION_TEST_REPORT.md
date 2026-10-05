@@ -215,6 +215,28 @@ gallery-square-tests.log, gallery-square-tests-run2.log, gallery-square-controls
 This change does not modify backend/database behavior. Development compilation
 and diff checks pass.
 
+## Edit-only indicators and Font Awesome tile tools
+
+All-images numbered checkboxes and selected borders now render only in edit mode.
+Main-gallery cover border/badge also render only in edit mode, for both Multiple
+images and Slideshow. Both pages share one CSS rule for the gray-blue border,
+ten-pixel corners, and soft outer ring. Selection/order persistence is unchanged.
+
+Main-gallery tile tools use Font Awesome arrow-left, grip-vertical, arrow-right,
+and xmark icons at 12 pixels, preserving button labels, disabled states, drag
+behavior, and deletion handlers. Browser inspection confirmed all four SVG icons
+and no character text in each of five toolbars. The user's existing draft was
+preserved. The computed cover border, radius, and shadow match the shared rule.
+
+36 frontend gallery/Card checks pass. New cases exercise viewing/editing cover
+visibility in both modes, absence of all-images checkboxes after save, and the
+four icons alongside existing reorder behavior. Initial runs failed because the
+test treated disappearance of Save during an asynchronous save as completion;
+it now waits for checkbox removal after saving finishes. Failure logs remain
+gallery-edit-only-tests.log and gallery-edit-only-icons-tests.log. Passing output
+is gallery-edit-only-icons-tests-run2.log, and browser evidence is gallery-fa-tools.png.
+No backend/database changes or production calls were needed.
+
 ## Four-column refinement (2026-10-04)
 
 The latest CSS-only request sets four equal columns in the all-images grid.

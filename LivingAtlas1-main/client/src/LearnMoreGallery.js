@@ -1,4 +1,6 @@
 import React, { useRef, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft, faArrowRight, faGripVertical, faXmark } from '@fortawesome/free-solid-svg-icons';
 import './LearnMoreGallery.css';
 import { MAX_GALLERY_IMAGES } from './gallerySelection';
 
@@ -22,7 +24,7 @@ export default function LearnMoreGallery({ images: allImages, totalImageCount = 
         onReorder(from, to);
     };
     const renderTile = (image, index) => {
-        const isCover = image && index === images.findIndex(item => item.url === coverUrl);
+        const isCover = editing && image && index === images.findIndex(item => item.url === coverUrl);
         return (
             <div key={image?.id ?? `empty-${index}`} className={`lm-gallery-cell${isCover ? ' is-cover' : ''}${dragOver === index ? ' is-drop-target' : ''}`}
                 draggable={Boolean(editing && !busy && image)}
@@ -53,10 +55,10 @@ export default function LearnMoreGallery({ images: allImages, totalImageCount = 
                 </button>
                 {isCover && <span className="lm-gallery-cover">Card cover</span>}
                 {editing && image && <div className="lm-gallery-tile-tools">
-                    <button type="button" data-gallery-control disabled={busy || index === 0} onClick={() => reorder(index, index - 1)} aria-label={`Move image ${index + 1} earlier`}>←</button>
-                    <span aria-hidden="true">⠿</span>
-                    <button type="button" data-gallery-control disabled={busy || index === images.length - 1} onClick={() => reorder(index, index + 1)} aria-label={`Move image ${index + 1} later`}>→</button>
-                    <button type="button" data-gallery-control disabled={busy} onClick={(event) => onDelete(event, image)} aria-label={`Delete image ${index + 1}`}>×</button>
+                    <button type="button" data-gallery-control disabled={busy || index === 0} onClick={() => reorder(index, index - 1)} aria-label={`Move image ${index + 1} earlier`}><FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" /></button>
+                    <span aria-hidden="true"><FontAwesomeIcon icon={faGripVertical} /></span>
+                    <button type="button" data-gallery-control disabled={busy || index === images.length - 1} onClick={() => reorder(index, index + 1)} aria-label={`Move image ${index + 1} later`}><FontAwesomeIcon icon={faArrowRight} aria-hidden="true" /></button>
+                    <button type="button" data-gallery-control disabled={busy} onClick={(event) => onDelete(event, image)} aria-label={`Delete image ${index + 1}`}><FontAwesomeIcon icon={faXmark} aria-hidden="true" /></button>
                 </div>}
             </div>
         );

@@ -5,6 +5,16 @@ import LearnMoreGallery from './LearnMoreGallery';
 const images = Array.from({ length: 8 }, (_, i) => ({ id: i + 1, imageID: i + 1, url: `/image-${i + 1}.jpg`, alt: `Photo ${i + 1}` }));
 const props = () => ({ images, coverUrl: images[0].url, editing: true, onLayoutChange: jest.fn(), onReorder: jest.fn(), onOpen: jest.fn(), onAdd: jest.fn(), onDelete: jest.fn() });
 
+test.each(['multi', 'slideshow'])('%s marks the cover only while editing', layout => {
+    const callbacks = props();
+    const { container, rerender } = render(<LearnMoreGallery {...callbacks} layout={layout} editing={false} />);
+    expect(container.querySelector('.is-cover')).toBeNull();
+    expect(screen.queryByText('Card cover')).toBeNull();
+    rerender(<LearnMoreGallery {...callbacks} layout={layout} editing />);
+    expect(container.querySelector('.is-cover')).toBeTruthy();
+    expect(screen.getByText('Card cover')).toBeTruthy();
+});
+
 test.each([1, 2, 3, 4, 5, 6])('grid-%i shows the requested number of slots and marks the cover', count => {
     render(<LearnMoreGallery {...props()} images={images.slice(0, count)} layout="multi" />);
     expect(screen.getAllByRole('button', { name: /^Open image/ })).toHaveLength(count);
@@ -29,6 +39,10 @@ test('layout changes are delegated and the main page has no add-image button', (
 test('dragging and keyboard-accessible arrows reorder images without opening the preview', () => {
     const callbacks = props();
     render(<LearnMoreGallery {...callbacks} layout="grid-6" />);
+    expect(screen.getByRole('button', { name: 'Move image 2 earlier' }).querySelector('svg[data-icon="arrow-left"]')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Move image 2 later' }).querySelector('svg[data-icon="arrow-right"]')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Delete image 2' }).querySelector('svg[data-icon="xmark"]')).toBeTruthy();
+    expect(document.querySelector('.lm-gallery-tile-tools svg[data-icon="grip-vertical"]')).toBeTruthy();
     const dataTransfer = { setData: jest.fn() };
     fireEvent.dragStart(screen.getByRole('button', { name: 'Open image 3' }).parentElement, { dataTransfer });
     const target = screen.getByRole('button', { name: 'Open image 1' }).parentElement;

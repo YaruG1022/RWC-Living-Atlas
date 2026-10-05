@@ -2246,16 +2246,18 @@ function Card(props) {
                             <p className="learn-more-gallery-selection-hint">{`${learnMoreGalleryImages.length} / 6 images selected. Numbers set the order in Multiple images and Slideshow; 1 is the card cover. Drag images on the main page to change their order.`}</p>
                             <div className="learn-more-all-images-list">
                                 {allImagesList.map((image, index) => (
-                                    <div className={`learn-more-all-image-item ${visibleGalleryIDs.includes(galleryImageID(image)) ? 'is-main-selected' : ''}`} key={`all-image-${image.imageID || image.id || index}`}>
-                                        <label className="learn-more-gallery-selection" title={gallerySelectionSlots[0] === galleryImageID(image) ? 'Card cover' : 'Show on main page'} onClick={e => e.stopPropagation()}>
-                                            <span className="learn-more-gallery-checkbox">
-                                                <input type="checkbox" aria-label={`Show image ${index + 1} on main page`}
-                                                    checked={visibleGalleryIDs.includes(galleryImageID(image))}
-                                                    disabled={!isLearnMoreEditMode || isImageMutationLoading || !resolveImageServerID(image) || (!visibleGalleryIDs.includes(galleryImageID(image)) && visibleGalleryIDs.length >= MAX_GALLERY_IMAGES)}
-                                                    onChange={() => toggleGalleryImage(image)} />
-                                                <span className="learn-more-gallery-order" aria-label={visibleGalleryIDs.includes(galleryImageID(image)) ? `Display order ${gallerySelectionSlots.indexOf(galleryImageID(image)) + 1}` : undefined}>{visibleGalleryIDs.includes(galleryImageID(image)) ? gallerySelectionSlots.indexOf(galleryImageID(image)) + 1 : ''}</span>
-                                            </span>
-                                        </label>
+                                    <div className={`learn-more-all-image-item ${isLearnMoreEditMode && visibleGalleryIDs.includes(galleryImageID(image)) ? 'is-main-selected' : ''}`} key={`all-image-${image.imageID || image.id || index}`}>
+                                        {isLearnMoreEditMode && (
+                                            <label className="learn-more-gallery-selection" title={gallerySelectionSlots[0] === galleryImageID(image) ? 'Card cover' : 'Show on main page'} onClick={e => e.stopPropagation()}>
+                                                <span className="learn-more-gallery-checkbox">
+                                                    <input type="checkbox" aria-label={`Show image ${index + 1} on main page`}
+                                                        checked={visibleGalleryIDs.includes(galleryImageID(image))}
+                                                        disabled={!isLearnMoreEditMode || isImageMutationLoading || !resolveImageServerID(image) || (!visibleGalleryIDs.includes(galleryImageID(image)) && visibleGalleryIDs.length >= MAX_GALLERY_IMAGES)}
+                                                        onChange={() => toggleGalleryImage(image)} />
+                                                    <span className="learn-more-gallery-order" aria-label={visibleGalleryIDs.includes(galleryImageID(image)) ? `Display order ${gallerySelectionSlots.indexOf(galleryImageID(image)) + 1}` : undefined}>{visibleGalleryIDs.includes(galleryImageID(image)) ? gallerySelectionSlots.indexOf(galleryImageID(image)) + 1 : ''}</span>
+                                                </span>
+                                            </label>
+                                        )}
 
 
                                         <button

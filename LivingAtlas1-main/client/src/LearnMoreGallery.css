@@ -15,7 +15,7 @@
 .lm-gallery-layout-featured { grid-template-columns: 2fr 1fr 1fr; }
 .lm-gallery-layout-featured .lm-gallery-cell:first-child { grid-row: span 2; }
 .lm-gallery-cell { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: #eef2f7; }
-.lm-gallery-cell.is-cover { outline: 3px solid #0077c0; outline-offset: -3px; }
+.lm-gallery-cell.is-cover, .learn-more-all-image-item.is-main-selected { border: 1px solid #6b8cab; border-radius: 10px; box-shadow: 0 0 0 2px rgba(107,140,171,.22); }
 .lm-gallery-cell.is-drop-target { outline: 4px dashed #0077c0; outline-offset: -4px; }
 .lm-gallery-cell[draggable="true"] { cursor: grab; }
 .Modal--learn-more .lm-gallery-section button { margin: 0; border: 0; border-radius: 0; padding: 0; background: transparent; color: #334155; box-shadow: none; }
@@ -24,6 +24,7 @@
 .lm-gallery-empty { display: flex; height: 100%; align-items: center; justify-content: center; color: #64748b; background: #f1f5f9; }
 .lm-gallery-cover { position: absolute; top: 8px; left: 8px; padding: 4px 8px; border-radius: 5px; background: #0077c0; color: white; font-size: .7rem; font-weight: 600; pointer-events: none; }
 .lm-gallery-tile-tools { display: flex; align-items: center; position: absolute; bottom: 8px; right: 8px; gap: 4px; padding: 3px; border-radius: 7px; background: rgba(255,255,255,.95); }
+.lm-gallery-tile-tools .svg-inline--fa { width: 12px; height: 12px; }
 .Modal--learn-more .lm-gallery-tile-tools button { width: 28px; height: 28px; border-radius: 4px; cursor: pointer; }
 .Modal--learn-more .lm-gallery-section button:disabled { opacity: .45; cursor: default; }
 .Modal--learn-more .lm-gallery-section button:focus-visible { outline: 3px solid #0077c0; outline-offset: -3px; }

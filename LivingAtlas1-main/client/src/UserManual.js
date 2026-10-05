@@ -1833,10 +1833,6 @@ function UserManual() {
                   </div>
                   <div className="learn-more-all-images-list">
                     <div className="learn-more-all-image-item">
-                      <div className="learn-more-all-image-sort-controls">
-                        <button type="button" className="learn-more-all-image-sort-btn learn-more-all-image-sort-up" disabled style={{ pointerEvents: 'none' }}>▲</button>
-                        <button type="button" className="learn-more-all-image-sort-btn learn-more-all-image-sort-down" style={{ pointerEvents: 'none' }}>▼</button>
-                      </div>
                       <button type="button" className="learn-more-all-image-btn" style={{ pointerEvents: 'none' }}>
                         <img className="learn-more-all-image" src="/CEREO-logo.png" alt="Image 1" style={{ maxHeight: '80px' }} />
                       </button>
@@ -1855,8 +1851,8 @@ function UserManual() {
             <div className="um-feature-info">
               <p className="um-feature-title">All Images View</p>
               <p className="um-feature-desc">
-                The "See all images" view lists every image in full width. In edit mode:
-                <br />• <strong>▲ / ▼ sort buttons</strong> reorder images — the order here becomes the gallery order
+                The "See all images" view displays compact thumbnails in a responsive grid. In edit mode:
+                <br />• <strong>Numbered checkboxes</strong> choose up to six images for the main gallery; number 1 is the card cover. Drag images on the main gallery to change their order
                 <br />• <strong>Select circle</strong> (top-right of each image) toggles selection; turns blue when selected
                 <br />• <strong>Delete Selected</strong> removes all selected images at once
                 <br />• <strong>Add New Image</strong> uploads an additional image to the card

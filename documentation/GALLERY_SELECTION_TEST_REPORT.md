@@ -122,3 +122,25 @@ change. Evidence: gallery-order-frontend.log, gallery-numbered-checkbox-frontend
 gallery-order-final-frontend.log, gallery-order-integration.log,
 gallery-order-build.log, gallery-order-build-run2.log, and
 gallery-numbered-checkbox.png in the evidence directory above.
+
+## Compact all-images grid and sorting removal (2026-10-04)
+
+The latest request removes all-images up/down controls and their handlers/styles.
+The corresponding user-manual description/demo no longer advertises that feature.
+Main-gallery dragging remains the ordering control and still updates checkbox
+numbers. The all-images list uses an adaptive grid with 260-pixel minimum columns
+and 190-pixel image regions; images remain contained and open the existing preview.
+Numbered selection is placed below each thumbnail, preserving cover visibility
+and separate bulk-deletion selection.
+
+Thirty frontend gallery/Card checks pass, including absence of all-images sorting
+buttons and preservation of main-gallery drag ordering and selection saves.
+The first run began before the handler removal completed (the default python
+command was unavailable); its new removal assertion failed. After executing the
+removal with the existing backend Python runtime, the full rerun passed.
+Both runs remain in gallery-compact-grid-tests.log and
+gallery-compact-grid-tests-run2.log. Read-only browser measurement confirmed
+three columns, approximately 304 pixels each, and five 190-pixel image regions.
+gallery-compact-grid.png shows the user's existing editing page without changing
+its draft. This is a frontend-only change; no database/storage mutation or new
+backend test run was necessary. Development compilation and diff checks pass.

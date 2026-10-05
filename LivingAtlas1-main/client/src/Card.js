@@ -5,7 +5,7 @@ import api from './api.js';
 import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
 import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
-import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, gallerySelectionAfterReorder } from './gallerySelection';
+import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
@@ -1902,37 +1902,6 @@ function Card(props) {
         );
     };
 
-    const handleMoveImageUp = (e, index) => {
-        e.stopPropagation();
-        if (index <= 0) return;
-
-        setFormData((prev) => {
-            const newImages = [...(prev.images || [])];
-            [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
-            return {
-                ...prev,
-                images: newImages,
-                gallery_image_ids: gallerySelectionAfterReorder(newImages, prev.gallery_image_ids)
-            };
-        });
-    };
-
-    const handleMoveImageDown = (e, index) => {
-        e.stopPropagation();
-        const images = formData.images || [];
-        if (index >= images.length - 1) return;
-
-        setFormData((prev) => {
-            const newImages = [...(prev.images || [])];
-            [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
-            return {
-                ...prev,
-                images: newImages,
-                gallery_image_ids: gallerySelectionAfterReorder(newImages, prev.gallery_image_ids)
-            };
-        });
-    };
-
     const handleDeleteSelectedAllImages = (e) => {
         e.stopPropagation();
 
@@ -2246,7 +2215,7 @@ function Card(props) {
                                 </p>
                             </div>
 
-                            <p className="learn-more-gallery-selection-hint">{`${learnMoreGalleryImages.length} / 6 images selected. Numbers set the order in Multiple images and Slideshow; 1 is the card cover. Reorder here with the arrows or drag on the main page.`}</p>
+                            <p className="learn-more-gallery-selection-hint">{`${learnMoreGalleryImages.length} / 6 images selected. Numbers set the order in Multiple images and Slideshow; 1 is the card cover. Drag images on the main page to change their order.`}</p>
                             <div className="learn-more-all-images-list">
                                 {allImagesList.map((image, index) => (
                                     <div className="learn-more-all-image-item" key={`all-image-${image.imageID || image.id || index}`}>
@@ -2260,30 +2229,7 @@ function Card(props) {
                                             </span>
                                             <span>{visibleGalleryIDs[0] === galleryImageID(image) ? 'Card cover · Show on main page' : 'Show on main page'}</span>
                                         </label>
-                                        {isLearnMoreEditMode && (
-                                            <div className="learn-more-all-image-sort-controls">
-                                                <button
-                                                    type="button"
-                                                    className="learn-more-all-image-sort-btn learn-more-all-image-sort-up"
-                                                    onClick={(e) => handleMoveImageUp(e, index)}
-                                                    disabled={index === 0}
-                                                    title="Move image up"
-                                                    aria-label="Move image up"
-                                                >
-                                                    ▲
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="learn-more-all-image-sort-btn learn-more-all-image-sort-down"
-                                                    onClick={(e) => handleMoveImageDown(e, index)}
-                                                    disabled={index === allImagesList.length - 1}
-                                                    title="Move image down"
-                                                    aria-label="Move image down"
-                                                >
-                                                    ▼
-                                                </button>
-                                            </div>
-                                        )}
+
 
                                         <button
                                             type="button"

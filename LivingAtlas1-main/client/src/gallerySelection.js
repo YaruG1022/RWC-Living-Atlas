@@ -6,9 +6,3 @@ export function selectedGalleryImages(images, selection) {
     const byID = new Map(images.map(image => [galleryImageID(image), image]));
     return [...new Set(selection)].map(id => byID.get(id)).filter(Boolean).slice(0, MAX_GALLERY_IMAGES);
 }
-
-export function gallerySelectionAfterReorder(images, selection) {
-    if (!Array.isArray(selection)) return selection;
-    const selected = new Set(selection);
-    return images.map(galleryImageID).filter(id => selected.has(id));
-}

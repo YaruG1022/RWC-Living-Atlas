@@ -45,7 +45,7 @@ async function editCard() {
     return screen.getByRole('region', { name: 'Card image gallery' });
 }
 
-test('selected numbers and cover follow main-page and all-images reordering', async () => {
+test('selected numbers and cover follow main-page dragging; all-images has no sorting arrows', async () => {
     await editCard();
     fireEvent.click(screen.getByRole('button', { name: 'See all 3 images' }));
     const label = index => screen.getByRole('checkbox', { name: `Show image ${index} on main page` }).closest('label');
@@ -70,11 +70,8 @@ test('selected numbers and cover follow main-page and all-images reordering', as
     expect(within(label(2)).getByLabelText('Display order 1')).toBeTruthy();
     expect(label(2).textContent).toContain('Card cover');
     expect(within(label(3)).getByLabelText('Display order 2')).toBeTruthy();
-    fireEvent.click(within(document.querySelectorAll('.learn-more-all-image-item')[2]).getByRole('button', { name: 'Move image up' }));
-    expect(within(label(2)).getByLabelText('Display order 1')).toBeTruthy();
-    expect(label(2).textContent).toContain('Card cover');
-    fireEvent.click(within(document.querySelectorAll('.learn-more-all-image-item')[2]).getByRole('button', { name: 'Move image up' }));
-    expect(within(label(2)).getByLabelText('Display order 1')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Move image up' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Move image down' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
     await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Show image 1 on main page' }).disabled).toBe(true));
     expect(api.post.mock.calls[0][1].get('gallery_image_ids')).toBe('[3,2]');

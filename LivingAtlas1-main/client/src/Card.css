@@ -1397,10 +1397,17 @@
   margin: 0;
 }
 .learn-more-change-to-polygon-btn {
-  background: #1d4ed8 !important;
+  color: #334155 !important;
+  background: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
 }
 .learn-more-change-to-polygon-btn:hover {
-  background: #1e40af !important;
+  background: #cbd5e1 !important;
+  border-color: #94a3b8 !important;
+}
+.learn-more-change-to-polygon-btn:focus-visible {
+  outline: 2px solid #64748b;
+  outline-offset: 2px;
 }
 
 .learn-more-location-type-btn-wrap {

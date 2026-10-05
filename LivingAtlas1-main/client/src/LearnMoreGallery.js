@@ -54,7 +54,7 @@ export default function LearnMoreGallery({ images, layout = 'featured', editing,
                     <button type="button" data-gallery-control disabled={busy || index === 0} onClick={() => reorder(index, index - 1)} aria-label={`Move image ${index + 1} earlier`}>←</button>
                     <span aria-hidden="true">⠿</span>
                     <button type="button" data-gallery-control disabled={busy || index === images.length - 1} onClick={() => reorder(index, index + 1)} aria-label={`Move image ${index + 1} later`}>→</button>
-                    {image.imageID && <button type="button" data-gallery-control disabled={busy} onClick={(event) => onDelete(event, image)} aria-label={`Delete image ${index + 1}`}>×</button>}
+                    <button type="button" data-gallery-control disabled={busy} onClick={(event) => onDelete(event, image)} aria-label={`Delete image ${index + 1}`}>×</button>
                 </div>}
             </div>
         );

@@ -1774,20 +1774,31 @@ function Card(props) {
 
         if (isImageMutationLoading) return;
 
-        if (!image?.imageID) {
-            alert('This image cannot be deleted because no image ID was found.');
+        if (!window.confirm('Delete this image?')) return;
+        let imageID = resolveImageServerID(image);
+        // A modal opened before the cover migration may still hold a fallback.
+        if (!imageID) {
+            try {
+                const response = await api.get(`/cardImages/${formData.cardID || props.cardID}`);
+                const record = (response.data?.images || []).find(item => resolveImageUrl(item.url) === image.url);
+                imageID = resolveImageServerID(record);
+            } catch (error) {
+                alert('Could not refresh this image. Please try again.');
+                return;
+            }
+        }
+        if (!imageID) {
+            alert('This image is no longer available. Please reopen the card.');
             return;
         }
-
-        if (!window.confirm('Delete this image?')) return;
-
-        setPendingDeletedImageIDs(prev => [...new Set([...prev, image.imageID])]);
-        setFormData(prev => ({ ...prev, images: (prev.images || []).filter(item => resolveImageServerID(item) !== image.imageID) }));
+        setPendingDeletedImageIDs(prev => [...new Set([...prev, imageID])]);
+        setFormData(prev => ({ ...prev, images: (prev.images || []).filter(item => resolveImageServerID(item) !== imageID) }));
     };
 
     const displayCardData = isLearnMoreEditMode && learnMoreBackup ? learnMoreBackup : formData;
 
     const cardThumbnailSrc =
+        displayCardData.thumbnail_link === '' ? '' :
         displayCardData.thumbnail_link && displayCardData.thumbnail_link.trim() !== ""
             ? resolveImageUrl(displayCardData.thumbnail_link)
             : "/CEREO-logo.png";
@@ -1840,7 +1851,9 @@ function Card(props) {
             : [])
         : formData.images && Array.isArray(formData.images) && formData.images.length > 0
         ? formData.images.map((img, idx) => normalizeImageRecord(img, idx))
-        : [{ url: cardThumbnailSrc, id: 0 }];
+        : (!pendingDeletedImageIDs.length && formData.thumbnail_link
+            ? [{ url: resolveImageUrl(formData.thumbnail_link), id: 0 }]
+            : []);
 
     const allImagesList = imageList;
 
@@ -1947,8 +1960,8 @@ function Card(props) {
     );
     const learnMoreGalleryImages = (Array.isArray(formData.images) && formData.images.length > 0)
         ? formData.images.map((img, idx) => normalizeImageRecord(img, idx))
-        : (!isImageCard && displayCardData.thumbnail_link && displayCardData.thumbnail_link.trim() !== ''
-            ? [{ url: cardThumbnailSrc, id: 0, imageID: null }]
+        : (!isImageCard && !pendingDeletedImageIDs.length && formData.thumbnail_link && formData.thumbnail_link.trim() !== ''
+            ? [{ url: resolveImageUrl(formData.thumbnail_link), id: 0, imageID: null }]
             : []);
 
     const reorderGalleryImages = (from, to) => {
@@ -2002,7 +2015,7 @@ function Card(props) {
             </span>
 
             <div className="card-thumbnail-container">
-                <img
+                {cardCurrentImage.url ? <img
                     src={cardCurrentImage.url}
                     alt={cardCurrentImage.alt || "Card Thumbnail"}
                     className={`card-thumbnail${isCardCurrentImageDefault ? '' : ' card-thumbnail--cover'}`}
@@ -2011,7 +2024,7 @@ function Card(props) {
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOpenImagePreview(e); }}
                     role="button"
                     tabIndex={0}
-                />
+                /> : <div className="card-thumbnail card-thumbnail--empty">No image</div>}
                 
                 {/* Navigation arrows (only show if multiple images) */}
                 {hasMultipleImages && (

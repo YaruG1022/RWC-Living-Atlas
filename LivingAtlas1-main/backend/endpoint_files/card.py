@@ -560,7 +560,7 @@ async def upload_form(
             thumbnail_url = thumbnail_link
         else:
             # No thumbnail provided at all — use default
-            thumbnail_url = DEFAULT_THUMBNAIL_URL
+            thumbnail_url = None if update else DEFAULT_THUMBNAIL_URL
 
         print(f"[THUMBNAIL HANDLING] Using thumbnail URL: {thumbnail_url}")
 
@@ -859,7 +859,7 @@ async def upload_form(
                     conn.rollback()
                 except Exception:
                     pass
-        elif not update and thumbnail_url != DEFAULT_THUMBNAIL_URL:
+        elif not update:
             try:
                 from endpoint_files.images import save_uploaded_file as _save_img
                 # Use the already-uploaded thumbnail as the first gallery image

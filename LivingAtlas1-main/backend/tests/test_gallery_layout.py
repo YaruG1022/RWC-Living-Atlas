@@ -76,6 +76,24 @@ class GalleryContractTests(unittest.TestCase):
         sql, params = next(call.args for call in self.cur.execute.call_args_list if 'UPDATE Cards' in call.args[0])
         self.assertIn('GalleryLayout=COALESCE(%s, GalleryLayout)', sql)
         self.assertIsNone(params[-2])
+        self.assertIsNone(params[10])  # Preserve an intentionally empty thumbnail.
+
+    def test_new_cards_include_a_deletable_default_cover(self):
+        self.cur.fetchone.side_effect = [(100,), (1,)]
+        self.form()
+        inserts = [call.args for call in self.cur.execute.call_args_list if 'INSERT INTO CardImages' in call.args[0]]
+        self.assertEqual(len(inserts), 1)
+        self.assertEqual(inserts[0][1], (101, self.cards.DEFAULT_THUMBNAIL_URL))
+
+    def test_deleting_a_shared_default_cover_does_not_delete_its_asset(self):
+        for url in ('/CEREO-logo.png', self.cards.DEFAULT_THUMBNAIL_URL):
+            with self.subTest(url=url):
+                self.cur.fetchone.side_effect = [(url, 101), ('point',)]
+                self.cur.fetchall.return_value = []
+                with patch.object(self.images.azure_storage, 'delete_from_url', create=True) as delete:
+                    result = asyncio.run(self.images.delete_card_image(61))
+                    self.assertTrue(result['success'])
+                    delete.assert_not_called()
 
     def test_invalid_layout_and_nine_images_fail_before_database_access(self):
         for values in ({'gallery_layout': 'grid-9'}, {'images': [object()] * 9}):

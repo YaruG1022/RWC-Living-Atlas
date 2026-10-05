@@ -770,6 +770,14 @@
   white-space: nowrap;
 }
 
+.card-thumbnail--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef2f7;
+  color: #64748b;
+}
+
 .learn-more-gallery {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

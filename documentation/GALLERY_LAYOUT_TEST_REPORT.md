@@ -137,3 +137,44 @@ Repeat from the backend directory:
 This verifies local storage; no Azure credential or production storage integration
 was tested. Rollback to Azure-only helpers prevents future local uploads without
 credentials, but the existing static mount can still serve already uploaded files.
+
+## Explicit default-cover deletion (2026-10-04)
+
+Default covers now have a Delete image button in edit mode. Uploads append to the
+gallery and preserve its first image as the card cover. Deletion is staged until
+Save; Cancel restores the previous gallery. Removing the final image persists an
+empty thumbnail, including after subsequent metadata-only saves.
+
+New cards store the default cover as a CardImages row. Startup backfills nonempty
+legacy thumbnails only when the card has no gallery rows; image-overlay cards
+are excluded. Intentionally empty thumbnails are excluded, so restart does not
+restore a deleted cover. Shared default assets are retained when their card image
+record is deleted. The default cover counts toward the eight-image limit.
+
+All 22 frontend gallery/Card tests and eight backend gallery contract tests pass.
+The production frontend build succeeds with existing lint/dependency warnings;
+its output is recorded in `default-cover-build.log`.
+The guarded `scripts/check_default_cover.py` verified actual creation, upload,
+cover preservation, explicit deletion, final-image deletion, and metadata save
+against the dedicated local database. Cleanup verified zero fixture cards and
+removed owned local files. The adjacent local single/batch upload check also
+passes. Browser inspection confirmed the default cover's delete button while
+preserving the user's active draft.
+
+The first integration run failed creating its fixture because this local database
+does not contain category River (ID 1). The fixture was changed to the existing
+Other category and rerun successfully; no product category changes were made.
+Both failure and success output are preserved as `default-cover-integration.log`
+and `default-cover-integration-run2.log`. Other evidence: `default-cover-frontend.log`,
+`default-cover-backend.log`, and `default-cover-delete-button.png` in the evidence
+directory above. External storage and production were excluded.
+
+Repeat from the backend directory:
+
+```powershell
+./.venv-local/Scripts/python.exe scripts/check_default_cover.py
+```
+
+Rollback may leave the additional default-cover rows intact; they contain existing
+thumbnail references and preserve image ordering. Older deletion behavior would
+restore a logo after final-image deletion, so rollback changes that user behavior.

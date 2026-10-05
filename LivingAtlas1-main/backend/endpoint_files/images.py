@@ -78,9 +78,11 @@ def _should_sync_thumbnail_with_gallery(card_id: int) -> bool:
 def sync_gallery_thumbnail(card_id: int):
     if _should_sync_thumbnail_with_gallery(card_id):
         cur.execute("""
-            UPDATE Cards SET Thumbnail_Link = COALESCE((
+            UPDATE Cards c SET Thumbnail_Link = COALESCE((
                 SELECT ImageURL FROM CardImages WHERE CardID = %s
-                ORDER BY DisplayOrder, ImageID LIMIT 1
+                ORDER BY COALESCE(array_position(ARRAY(
+                    SELECT jsonb_array_elements_text(COALESCE(c.GalleryImageIDs, '[]'::jsonb))
+                ), ImageID::text), 2147483647), DisplayOrder, ImageID LIMIT 1
             ), '') WHERE CardID = %s
         """, (card_id, card_id))
 

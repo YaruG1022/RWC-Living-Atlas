@@ -647,6 +647,8 @@ async def upload_form(
             if not set(selected_image_ids).issubset(owned_image_ids):
                 raise HTTPException(status_code=422, detail="Selected images must belong to this card")
             cur.execute("UPDATE Cards SET GalleryImageIDs=%s::jsonb WHERE CardID=%s", (json.dumps(selected_image_ids), nextcardid))
+            from endpoint_files.images import sync_gallery_thumbnail
+            sync_gallery_thumbnail(nextcardid)
 
         if location_type in ("polygon", "image") and polygon_coordinates:
             try:

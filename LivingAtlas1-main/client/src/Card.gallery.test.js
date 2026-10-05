@@ -45,6 +45,41 @@ async function editCard() {
     return screen.getByRole('region', { name: 'Card image gallery' });
 }
 
+test('selected numbers and cover follow main-page and all-images reordering', async () => {
+    await editCard();
+    fireEvent.click(screen.getByRole('button', { name: 'See all 3 images' }));
+    const label = index => screen.getByRole('checkbox', { name: `Show image ${index} on main page` }).closest('label');
+    expect(within(label(1)).getByLabelText('Display order 1')).toBeTruthy();
+    expect(label(1).textContent).toContain('Card cover');
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Show image 1 on main page' }));
+    expect(within(label(2)).getByLabelText('Display order 1')).toBeTruthy();
+    expect(label(2).textContent).toContain('Card cover');
+    expect(label(1).querySelector('.learn-more-gallery-order').textContent).toBe('');
+    expect(label(2).querySelector('input').nextElementSibling.getAttribute('aria-label')).toBe('Display order 1');
+    fireEvent.click(screen.getByRole('button', { name: '← Back to Learn More', exact: true }));
+    const returnedGallery = screen.getByRole('region', { name: 'Card image gallery' });
+    const dataTransfer = { setData: jest.fn() };
+    fireEvent.dragStart(within(returnedGallery).getByRole('button', { name: 'Open image 2' }).parentElement, { dataTransfer });
+    const target = within(returnedGallery).getByRole('button', { name: 'Open image 1' }).parentElement;
+    fireEvent.dragOver(target, { dataTransfer });
+    fireEvent.drop(target, { dataTransfer });
+    expect(within(returnedGallery).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual(['/fixture-3.jpg', '/fixture-2.jpg']);
+    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'slideshow' } });
+    expect(within(returnedGallery).getByRole('img').getAttribute('src')).toBe('/fixture-3.jpg');
+    fireEvent.click(screen.getByRole('button', { name: 'See all 3 images' }));
+    expect(within(label(2)).getByLabelText('Display order 1')).toBeTruthy();
+    expect(label(2).textContent).toContain('Card cover');
+    expect(within(label(3)).getByLabelText('Display order 2')).toBeTruthy();
+    fireEvent.click(within(document.querySelectorAll('.learn-more-all-image-item')[2]).getByRole('button', { name: 'Move image up' }));
+    expect(within(label(2)).getByLabelText('Display order 1')).toBeTruthy();
+    expect(label(2).textContent).toContain('Card cover');
+    fireEvent.click(within(document.querySelectorAll('.learn-more-all-image-item')[2]).getByRole('button', { name: 'Move image up' }));
+    expect(within(label(2)).getByLabelText('Display order 1')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Show image 1 on main page' }).disabled).toBe(true));
+    expect(api.post.mock.calls[0][1].get('gallery_image_ids')).toBe('[3,2]');
+});
+
 test.each(['point', 'multipoint', 'polygon', 'image'])('map popup editing opens the existing %s tool and cancel returns to the card draft', async locationType => {
     window.atlasMapInstance = { flyTo: jest.fn(), fitBounds: jest.fn(), getLayer: jest.fn(() => false), setLayoutProperty: jest.fn() };
     const vertices = [{ lat: 46, lng: -117, icon: 'pin', markerColor: '#123456', markerOpacity: .7 }, { lat: 47, lng: -117 }, { lat: 47, lng: -116 }, { lat: 46, lng: -116 }];

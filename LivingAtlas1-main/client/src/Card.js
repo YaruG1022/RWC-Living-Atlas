@@ -5,7 +5,7 @@ import api from './api.js';
 import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
 import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
-import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages } from './gallerySelection';
+import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, gallerySelectionAfterReorder } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
@@ -1675,7 +1675,7 @@ function Card(props) {
         };
     };
 
-    const refreshCardImages = async (preferredIndex = null) => {
+    const refreshCardImages = async (preferredIndex = null, includeNewUploads = false) => {
         const rawCardID = formData.cardID || props.cardID;
         const cardID = Number(rawCardID);
         if (!Number.isInteger(cardID) || cardID <= 0) return;
@@ -1692,11 +1692,16 @@ function Card(props) {
                 const knownIDs = new Set(ordered.map(image => image.imageID));
                 images = [...ordered, ...remaining.filter(image => !knownIDs.has(image.imageID))];
             }
+            let selection = isEditingRef.current && prev.gallery_image_ids !== undefined ? prev.gallery_image_ids : response.data?.galleryImageIDs;
+            if (includeNewUploads && isEditingRef.current && Array.isArray(selection)) {
+                const previousIDs = new Set((prev.images || []).map(galleryImageID));
+                selection = [...new Set([...selection, ...images.map(galleryImageID).filter(id => !previousIDs.has(id))])].slice(0, MAX_GALLERY_IMAGES);
+            }
             return {
                 ...prev,
                 images,
                 gallery_layout: (isEditingRef.current && prev.gallery_layout) || response.data?.galleryLayout || 'multi',
-                gallery_image_ids: isEditingRef.current && prev.gallery_image_ids !== undefined ? prev.gallery_image_ids : response.data?.galleryImageIDs
+                gallery_image_ids: selection
             };
         });
 
@@ -1779,7 +1784,7 @@ function Card(props) {
                 setSessionUploadedImageIDs((prev) => [...prev, uploadedImageID]);
             }
 
-            await refreshCardImages(pendingImageSlotIndex);
+            await refreshCardImages(pendingImageSlotIndex, true);
         } catch (error) {
             console.error('Failed to upload card images:', error);
             alert(error.response?.data?.detail || 'Failed to upload image.');
@@ -1861,7 +1866,12 @@ function Card(props) {
     const cardImageList = isImageCard
         ? [{ url: cardThumbnailSrc, id: 'card-representation', imageID: null, alt: 'Card representation' }]
         : displayCardData.images && Array.isArray(displayCardData.images) && displayCardData.images.length > 0
-        ? displayCardData.images.map((img, idx) => normalizeImageRecord(img, idx))
+        ? (() => {
+            const images = displayCardData.images.map((img, idx) => normalizeImageRecord(img, idx));
+            const selected = selectedGalleryImages(images, displayCardData.gallery_image_ids);
+            const selectedIDs = new Set(selected.map(galleryImageID));
+            return [...selected, ...images.filter(image => !selectedIDs.has(galleryImageID(image)))];
+        })()
         : [{ url: cardThumbnailSrc, id: 0 }];
 
     // Multi-image support: use images array if available, otherwise fall back to single thumbnail
@@ -1901,7 +1911,8 @@ function Card(props) {
             [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
             return {
                 ...prev,
-                images: newImages
+                images: newImages,
+                gallery_image_ids: gallerySelectionAfterReorder(newImages, prev.gallery_image_ids)
             };
         });
     };
@@ -1916,7 +1927,8 @@ function Card(props) {
             [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
             return {
                 ...prev,
-                images: newImages
+                images: newImages,
+                gallery_image_ids: gallerySelectionAfterReorder(newImages, prev.gallery_image_ids)
             };
         });
     };
@@ -1995,7 +2007,10 @@ function Card(props) {
             if (fromIndex < 0 || toIndex < 0) return prev;
             const [moved] = images.splice(fromIndex, 1);
             images.splice(toIndex, 0, moved);
-            return { ...prev, images };
+            const selection = [...visibleGalleryIDs];
+            const [movedID] = selection.splice(from, 1);
+            selection.splice(to, 0, movedID);
+            return { ...prev, images, gallery_image_ids: selection };
         });
     };
 
@@ -2231,16 +2246,19 @@ function Card(props) {
                                 </p>
                             </div>
 
-                            <p className="learn-more-gallery-selection-hint">{`${learnMoreGalleryImages.length} / 6 images selected for the main page. Applies to Multiple images and Slideshow.`}</p>
+                            <p className="learn-more-gallery-selection-hint">{`${learnMoreGalleryImages.length} / 6 images selected. Numbers set the order in Multiple images and Slideshow; 1 is the card cover. Reorder here with the arrows or drag on the main page.`}</p>
                             <div className="learn-more-all-images-list">
                                 {allImagesList.map((image, index) => (
                                     <div className="learn-more-all-image-item" key={`all-image-${image.imageID || image.id || index}`}>
                                         <label className="learn-more-gallery-selection" onClick={e => e.stopPropagation()}>
-                                            <input type="checkbox" aria-label={`Show image ${index + 1} on main page`}
-                                                checked={visibleGalleryIDs.includes(galleryImageID(image))}
-                                                disabled={!isLearnMoreEditMode || isImageMutationLoading || !resolveImageServerID(image) || (!visibleGalleryIDs.includes(galleryImageID(image)) && visibleGalleryIDs.length >= MAX_GALLERY_IMAGES)}
-                                                onChange={() => toggleGalleryImage(image)} />
-                                            <span>Show on main page</span>
+                                            <span className="learn-more-gallery-checkbox">
+                                                <input type="checkbox" aria-label={`Show image ${index + 1} on main page`}
+                                                    checked={visibleGalleryIDs.includes(galleryImageID(image))}
+                                                    disabled={!isLearnMoreEditMode || isImageMutationLoading || !resolveImageServerID(image) || (!visibleGalleryIDs.includes(galleryImageID(image)) && visibleGalleryIDs.length >= MAX_GALLERY_IMAGES)}
+                                                    onChange={() => toggleGalleryImage(image)} />
+                                                <span className="learn-more-gallery-order" aria-label={visibleGalleryIDs.includes(galleryImageID(image)) ? `Display order ${visibleGalleryIDs.indexOf(galleryImageID(image)) + 1}` : undefined}>{visibleGalleryIDs.includes(galleryImageID(image)) ? visibleGalleryIDs.indexOf(galleryImageID(image)) + 1 : ''}</span>
+                                            </span>
+                                            <span>{visibleGalleryIDs[0] === galleryImageID(image) ? 'Card cover · Show on main page' : 'Show on main page'}</span>
                                         </label>
                                         {isLearnMoreEditMode && (
                                             <div className="learn-more-all-image-sort-controls">
@@ -2332,7 +2350,7 @@ function Card(props) {
                         layout={formData.gallery_layout || 'featured'}
                         editing={isLearnMoreEditMode}
                         busy={loading || isImageMutationLoading}
-                        coverUrl={isImageCard ? cardThumbnailSrc : allImagesList[0]?.url}
+                        coverUrl={isImageCard ? cardThumbnailSrc : learnMoreGalleryImages[0]?.url}
                         onLayoutChange={(gallery_layout) => setFormData(prev => ({ ...prev, gallery_layout }))}
                         onReorder={reorderGalleryImages}
                         onOpen={(event, index) => openImagePreviewAtIndex(event, allImagesList.findIndex(image => galleryImageID(image) === galleryImageID(learnMoreGalleryImages[index])))}

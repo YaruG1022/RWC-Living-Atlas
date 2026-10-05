@@ -8,8 +8,9 @@ The all-images page has a labeled checkbox for every image. Edit mode permits
 selection changes; view mode displays the saved selection read-only. Multiple
 images automatically arranges the selected images; Slideshow uses the same set.
 The layout menu contains only these two modes. Old grid/featured values render
-as Multiple images without removing records. Saved order and card-cover identity
-remain independent of main-page visibility. Preview/reorder callbacks map the
+as Multiple images without removing records. The initial implementation kept
+card-cover identity independent of visibility; the numbered selection refinement
+below supersedes that behavior. Preview/reorder callbacks map the
 displayed subset back to the full image list.
 
 The user's subsequent Back to Learn More style request is included: a neutral
@@ -88,3 +89,36 @@ rerun passed all 29 in under ten seconds. Both outputs are retained as
 `gallery-remove-main-add.log` and `gallery-remove-main-add-run2.log`. The timeout's
 cause was not established; it is recorded as test-timing variability, not evidence
 of a product failure or performance compliance. No new API/database changes.
+
+## Numbered selection and cover (2026-10-04)
+
+Selected images now have consecutive numbers inside the checkbox square itself,
+as requested in the follow-up sketch. Unselected squares are empty. The real
+checkbox remains keyboard accessible with visible focus and a labeled checked
+state. View mode keeps the number visible while disabling changes.
+
+GalleryImageIDs array order is authoritative for both gallery modes. Main-page
+dragging and all-images arrows update those IDs and their displayed ranks.
+Number 1 is labeled Card cover. Ordinary card thumbnails are synchronized to the
+first surviving selected ID on selection saves and subsequent image mutations;
+image-overlay cards retain their separate map representation. NULL remains the
+legacy first-six selection, and empty selection retains existing image records.
+New uploads append to an explicit selection when space remains.
+
+Verification: 30 frontend tests and 11 backend contract tests pass. The new case
+checks deselection, numbering inside the checkbox, main-page drag/drop, Slideshow
+order, all-images arrows, cover labeling, and ordered JSON save. The guarded local
+integration script saves a non-natural six-image order in both modes and checks
+the database thumbnail, preservation after full-list reordering, invalid requests,
+empty selection, and cleanup. No fixture records or uploaded files remain.
+Read-only browser inspection confirmed five 24-by-24 pixel checkbox squares with
+numbers inside matching input bounds; the user's existing page/draft was preserved.
+
+The first new frontend case clicked a detached gallery node after returning from
+all-images and failed; it now queries the rendered gallery after navigation.
+An initial CI=true build rejected existing lint and postcss-calc warnings; the
+normal local build rerun uses CI=false. Existing warnings remain outside this
+change. Evidence: gallery-order-frontend.log, gallery-numbered-checkbox-frontend.log,
+gallery-order-final-frontend.log, gallery-order-integration.log,
+gallery-order-build.log, gallery-order-build-run2.log, and
+gallery-numbered-checkbox.png in the evidence directory above.

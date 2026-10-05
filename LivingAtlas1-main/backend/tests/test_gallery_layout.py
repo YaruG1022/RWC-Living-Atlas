@@ -89,7 +89,7 @@ class GalleryContractTests(unittest.TestCase):
         for selection in ('[1, 3]', '[]'):
             with self.subTest(selection=selection):
                 self.cur.reset_mock()
-                self.cur.fetchone.side_effect = [(100,), (1,), (101,)]
+                self.cur.fetchone.side_effect = [(100,), (1,), (101,), ('point',)]
                 self.cur.fetchall.return_value = [(1,), (2,), (3,)]
                 self.form(update=True, gallery_image_ids=selection)
                 sql, params = next(call.args for call in self.cur.execute.call_args_list if 'SET GalleryImageIDs' in call.args[0])

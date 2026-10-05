@@ -37,7 +37,8 @@ def main():
         files = [image['url'] for image in gallery['images']]
         ids = [image['imageID'] for image in gallery['images']]
         assert len(ids) == 8 and gallery['galleryImageIDs'] is None
-        chosen = ids[2:]
+        chosen = [ids[7], ids[2], ids[6], ids[3], ids[5], ids[4]]
+        cover_url = next(image['url'] for image in gallery['images'] if image['imageID'] == chosen[0])
         update_fields = {**fields, 'update': 'true', 'original_username': username, 'original_email': email, 'original_title': title, 'requester_email': email}
         for layout in ('multi', 'slideshow'):
             saved = requests.post(base + '/uploadForm', data={**update_fields, 'gallery_layout': layout, 'gallery_image_ids': json.dumps(chosen)}, timeout=15)
@@ -46,8 +47,13 @@ def main():
             assert gallery['galleryLayout'] == layout and gallery['galleryImageIDs'] == chosen
             assert [image['imageID'] for image in gallery['images']] == ids
             with conn, conn.cursor() as cur:
-                cur.execute('SELECT GalleryImageIDs FROM Cards WHERE CardID=%s', (card_id,))
-                assert cur.fetchone()[0] == chosen
+                cur.execute('SELECT GalleryImageIDs, Thumbnail_Link FROM Cards WHERE CardID=%s', (card_id,))
+                assert cur.fetchone() == (chosen, cover_url)
+        reordered = requests.put(f'{base}/reorderCardImages?cardID={card_id}', json=list(reversed(ids)), timeout=15)
+        assert reordered.status_code == 200
+        with conn, conn.cursor() as cur:
+            cur.execute('SELECT GalleryImageIDs, Thumbnail_Link FROM Cards WHERE CardID=%s', (card_id,))
+            assert cur.fetchone() == (chosen, cover_url)
         listing = requests.get(base + '/allCards', timeout=15).json()['data']
         assert next(card for card in listing if card['cardID'] == card_id)['gallery_image_ids'] == chosen
         assert requests.post(base + '/uploadForm', data=update_fields, timeout=15).status_code == 200

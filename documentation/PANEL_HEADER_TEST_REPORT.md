@@ -15,3 +15,9 @@ Local browser checks at `http://localhost:3000/`:
 - `git diff --check` passed. No new tests were added for these reversible CSS-only changes. No full build or backend tests were repeated.
 
 Evidence: `C:/Users/yarug/.codex/visualizations/2026/10/05/01a109cf-a51e-71e3-9e03-71304bf43699/compact-panel-headers.png`.
+
+## Chatbot appearance follow-up
+
+2026-10-05, baseline `8138db0`: removed the beta notice paragraph and its unused CSS; replaced the mode-toggle text with the existing Font Awesome `right-left` icon and an accessible destination label; removed the pill override so it uses the shared 28px circular button style. Floating panel dimensions changed to 400×500px; sidebar dimension overrides are preserved.
+
+Local browser verification: opened the floating panel through its visible handle icon (the parent handle extends beyond the viewport when collapsed). Measured panel width 400px and height 500px; mode button width/height 28px, border radius 50%, empty visible text, and `right-left` SVG icon; notice element count zero. Screenshot `chatbot-400x500.png` in the same evidence directory was visually reviewed. Hot reload rendered the new icon and layout successfully, and `git diff --check` passed. No chat messages were submitted or backend data changed. Existing mode-toggle handler was retained; no new tests or full build were needed for this small appearance change.

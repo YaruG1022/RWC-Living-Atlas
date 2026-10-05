@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEarthAmericas } from '@fortawesome/free-solid-svg-icons';
+import { faEarthAmericas, faRightLeft } from '@fortawesome/free-solid-svg-icons';
 import api from './api';
 import './ChatbotWidget.css';
 
@@ -313,9 +313,10 @@ export default function ChatbotWidget({
                 className="chatbot-widget__mode-toggle"
                 onClick={handleDisplayModeToggle}
                 type="button"
-                title={displayMode === 'floating' ? 'Switch to sidebar panel' : 'Switch to floating widget'}
-              >
-                {displayMode === 'floating' ? '⇄ Sidebar' : '⇄ Floating'}
+                  title={displayMode === 'floating' ? 'Switch to sidebar panel' : 'Switch to floating widget'}
+                  aria-label={displayMode === 'floating' ? 'Switch to sidebar panel' : 'Switch to floating widget'}
+                >
+                  <FontAwesomeIcon icon={faRightLeft} />
               </button>
               <button
                 className="chatbot-widget__close"
@@ -327,9 +328,6 @@ export default function ChatbotWidget({
               </button>
             </div>
           </div>
-          <p className="chatbot-widget__notice">
-            Beta: The chatbot is functional, but still under testing. Responses may be inaccurate.
-          </p>
         </div>
 
         <div className="chatbot-widget__messages">

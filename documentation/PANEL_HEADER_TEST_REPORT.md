@@ -43,3 +43,19 @@ Local browser confirmed the Add Card label, absence of Hide/Show Markers, and
 `panel-toolbar-compact-buttons.png` in the evidence directory; controls remain
 aligned in the narrow Cards panel. Development rendering and `git diff --check`
 passed. No card creation, data writes, new tests, or full build were needed.
+
+## Fixed-width card list
+
+2026-10-05, baseline `54f4248`: list-mode Cards panel is exactly 310px wide,
+including initial/restored preferences and automatic list mode. Removed its
+resize handle while in list mode and guarded the drag handler. Parent width
+state stays synchronized for map layout; returning to grid restores the previous
+width and retains resizing. List-specific CSS overrides the percentage minimum
+and split-panel width.
+
+Local browser measured 310px with zero resize handles in list mode. Switching
+to grid restored the previous width (311px in this session) and one resize
+handle; switching back measured 310px and zero handles again. Reviewed
+`card-list-fixed-310.png` in the evidence directory. Development rendering and
+`git diff --check` passed. No data writes, new tests, full build, mobile viewport
+or split-panel browser checks were performed.

@@ -51,6 +51,12 @@
   width: var(--app-secondary-panel-width) !important;
 }
 
+#content-2.content-2--list {
+  width: 310px !important;
+  min-width: 310px;
+  max-width: 310px;
+}
+
 .collapse-toggle {
   position: absolute;
   top: 50%;

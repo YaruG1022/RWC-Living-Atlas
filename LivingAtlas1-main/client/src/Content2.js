@@ -32,7 +32,8 @@ function Content2(props) {
     const [pendingPolygonData, setPendingPolygonData] = useState(null);
     const [pendingImageOverlayData, setPendingImageOverlayData] = useState(null);
     const [pendingPointToolSignal, setPendingPointToolSignal] = useState(null);
-    const containerWidth = props.cardPanelWidth ?? 300;
+    const [isListView, setIsListView] = useState((props.initialCardViewMode || 'grid') === 'list');
+    const containerWidth = isListView ? 310 : (props.cardPanelWidth ?? 300);
     const containerRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
     const startX = useRef(0);
@@ -115,6 +116,7 @@ function Content2(props) {
 
     // Drag handlers for resizing
     const onMouseDown = (e) => {
+        if (isListView) return;
         e.preventDefault(); // Prevent text selection
         setIsDragging(true);
         startX.current = e.clientX;
@@ -183,7 +185,6 @@ function Content2(props) {
     const [sortMode, setSortMode] = useState((props.sortCondition || '').split(',')[0] || '');
     const [showOnlyInView, setShowOnlyInView] = useState(false);
     const [learnMoreRequest, setLearnMoreRequest] = useState(null);
-    const [isListView, setIsListView] = useState((props.initialCardViewMode || 'grid') === 'list');
     const [containerPanelSearchVersion, setContainerPanelSearchVersion] = useState(0);
     const PINNED_CARDS_STORAGE_KEY = 'pinned_card_ids';
     const [pinnedCardIDs, setPinnedCardIDs] = useState(() => {
@@ -207,6 +208,21 @@ function Content2(props) {
     };
     const prevWidthBeforeList = useRef(null);
     const prevListViewBeforeBothLeft = useRef(null);
+
+    // Keep the map layout in sync, including restored and forced list views.
+    useEffect(() => {
+        if (isListView) {
+            if (props.cardPanelWidth !== 310) {
+                if (prevWidthBeforeList.current == null) {
+                    prevWidthBeforeList.current = props.cardPanelWidth;
+                }
+                setCardPanelWidth?.(310);
+            }
+        } else if (prevWidthBeforeList.current != null) {
+            setCardPanelWidth?.(prevWidthBeforeList.current);
+            prevWidthBeforeList.current = null;
+        }
+    }, [isListView, props.cardPanelWidth, setCardPanelWidth]);
 
     // Force list view when card panel + upload panel both on left
     useEffect(() => {
@@ -892,12 +908,13 @@ function Content2(props) {
     
             <section
                 id="content-2"
-                className={`${props.isCollapsed ? 'collapsed' : ''} ${isOnLeft ? 'content-2--left' : ''} ${bothOnLeft ? 'content-2--split-top' : ''}`}
+                className={`${props.isCollapsed ? 'collapsed' : ''} ${isOnLeft ? 'content-2--left' : ''} ${bothOnLeft ? 'content-2--split-top' : ''} ${isListView ? 'content-2--list' : ''}`}
                 ref={containerRef}
                 style={{ width: containerWidth }}
             >
                 {/* Draggable edge handle */}
-                <div
+                {!isListView && <div
+                    className="card-panel-resize-handle"
                     style={{
                         position: 'absolute',
                         [isOnLeft ? 'right' : 'left']: 0,
@@ -909,7 +926,7 @@ function Content2(props) {
                         background: 'transparent',
                     }}
                     onMouseDown={onMouseDown}
-                />
+                />}
 
                 <div className="card-panel-top">
                     <div className="card-panel-titlebar" data-onboarding-target="card-titlebar">
@@ -1003,14 +1020,6 @@ function Content2(props) {
                                 disabled={bothOnLeft}
                                 onClick={() => {
                                     const goingToList = !isListView;
-                                    if (goingToList) {
-                                        prevWidthBeforeList.current = containerWidth;
-                                        const minW = Math.round(window.innerWidth * 0.25);
-                                        setCardPanelWidth?.(minW);
-                                    } else if (prevWidthBeforeList.current) {
-                                        setCardPanelWidth?.(prevWidthBeforeList.current);
-                                        prevWidthBeforeList.current = null;
-                                    }
                                     setIsListView(goingToList);
                                     props.onCardViewModeChange?.(goingToList ? 'list' : 'grid');
                                 }}

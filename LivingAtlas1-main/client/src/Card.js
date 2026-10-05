@@ -1858,8 +1858,15 @@ function Card(props) {
                             ? `${(formData.polygon_vertices || []).length} vertices`
                             : formData.location_type === 'multipoint'
                             ? `${(formData.polygon_vertices || []).length} points`
-                            : `${formData.latitude ?? ''}, ${formData.longitude ?? ''}`}
+                            : ''}
                     </span>
+                    {!isOverlayCard && (
+                        <span className="learn-more-representation-coordinates">
+                            <strong>Latitude:</strong> {formData.latitude ?? 'N/A'}
+                            {' | '}
+                            <strong>Longitude:</strong> {formData.longitude ?? 'N/A'}
+                        </span>
+                    )}
                 </div>
             </div>
         </>
@@ -2380,21 +2387,6 @@ function Card(props) {
                                     <p><strong>Organization:</strong></p>
                                     <input className="learn-more-inline-input" type="text" name="org" value={formData.org || ''} onChange={handleInputChange} />
                                 </div>
-                                {!isOverlayCard && (
-                                    <div className="learn-more-field-cell learn-more-coordinate-cell">
-                                        <p><strong>Coordinates:</strong></p>
-                                        <div className="learn-more-coordinate-row">
-                                            <div className="learn-more-coordinate-item">
-                                                <span className="learn-more-coordinate-label">Latitude</span>
-                                                <input className="learn-more-inline-input" type="number" step="any" name="latitude" value={formData.latitude || ''} onChange={handleInputChange} />
-                                            </div>
-                                            <div className="learn-more-coordinate-item">
-                                                <span className="learn-more-coordinate-label">Longitude</span>
-                                                <input className="learn-more-inline-input" type="number" step="any" name="longitude" value={formData.longitude || ''} onChange={handleInputChange} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
 
                             <p><strong>Links:</strong></p>
@@ -2531,13 +2523,6 @@ function Card(props) {
                                 <p><strong>Email:</strong> {formData.email}</p>
                                 <p><strong>Funding:</strong> {formData.funding || 'N/A'}</p>
                                 <p><strong>Organization:</strong> {formData.org || 'N/A'}</p>
-                                {!isOverlayCard && (
-                                    <p className="learn-more-coordinate-readonly">
-                                        <strong>Latitude:</strong> {formData.latitude}
-                                        <span className="learn-more-coordinate-separator"> | </span>
-                                        <strong>Longitude:</strong> {formData.longitude}
-                                    </p>
-                                )}
                             </div>
                             <div className="learn-more-location-section">
                                 {renderRepresentationPreview()}

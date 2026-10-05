@@ -283,3 +283,19 @@ tests passed, including multi-image and slideshow cases that verify the cover
 mark is present only while editing. `git diff --check` passed. Browser inspection
 did not reach the modal during this follow-up, so visual verification of the new
 badge color is not claimed. No card data was saved.
+
+## Point coordinates in Representation (2026-10-05)
+
+Removed point/multipoint latitude and longitude inputs from the Learn More edit
+fields grid. Moved the read-only coordinate display into the shared Representation
+preview, including view mode, with explicit Latitude/Longitude labels. Point-count
+details and the existing Edit Coordinate tool remain. Nullish values display N/A;
+zero coordinates remain visible. Polygon/image previews are unaffected.
+
+Added point and multipoint component checks for the new location, zero latitude,
+absence of inline coordinate inputs, and retained Edit Coordinate button. All 20
+Card.gallery tests passed, including existing point/multipoint/polygon/image editor
+regressions. Existing asynchronous React `act` warnings appeared in the suite.
+Browser confirmed zero coordinate inputs and correct values in Representation;
+reviewed `representation-coordinates.png` in the task evidence directory. No draft
+was saved or canceled. `git diff --check` passed; no backend changes or deployment.

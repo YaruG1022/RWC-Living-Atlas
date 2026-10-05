@@ -1343,6 +1343,13 @@
   text-overflow: ellipsis;
 }
 
+.learn-more-representation-coordinates {
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: #475569;
+  overflow-wrap: anywhere;
+}
+
 .learn-more-select-location-btn {
   display: inline-block;
   margin: 4px 0 12px;

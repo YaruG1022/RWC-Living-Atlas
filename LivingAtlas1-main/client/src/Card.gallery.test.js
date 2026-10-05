@@ -45,6 +45,19 @@ async function editCard() {
     return screen.getByRole('region', { name: 'Card image gallery' });
 }
 
+test.each(['point', 'multipoint'])('%s shows coordinates only in Representation without inline coordinate inputs', async locationType => {
+    savedCard = { ...savedCard, location_type: locationType, latitude: 0, longitude: -117,
+        polygon_vertices: locationType === 'multipoint' ? [{ lat: 0, lng: -117 }] : [] };
+    await editCard();
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.querySelector('input[name="latitude"]')).toBeNull();
+    expect(dialog.querySelector('input[name="longitude"]')).toBeNull();
+    const representation = dialog.querySelector('.learn-more-representation-preview');
+    expect(representation.textContent).toContain('Latitude: 0');
+    expect(representation.textContent).toContain('Longitude: -117');
+    expect(within(dialog).getByRole('button', { name: 'Edit Coordinate' })).toBeTruthy();
+});
+
 test('selected numbers and cover follow main-page dragging; all-images has no sorting arrows', async () => {
     await editCard();
     fireEvent.click(screen.getByRole('button', { name: 'See all 3 images' }));

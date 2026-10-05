@@ -7,7 +7,7 @@ import './Card.css';
 import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
 import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, toggleGallerySelection } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon, faArrowLeft, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
 import { faHeart as regularHeart, faQuestionCircle, faCirclePlay } from '@fortawesome/free-regular-svg-icons';
 import { fetchUserPreferences } from './userPreferencesApi';
@@ -2214,6 +2214,30 @@ function Card(props) {
                                 >
                                     <FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" /> Back to Learn More
                                 </button>
+                                {isLearnMoreEditMode && (
+                                    <div className="learn-more-all-images-actions">
+                                        <button
+                                            type="button"
+                                            className="learn-more-all-images-delete-selected-btn"
+                                            onClick={handleDeleteSelectedAllImages}
+                                            disabled={isImageMutationLoading || selectedAllImageIDs.length === 0}
+                                        >
+                                            {`Delete Selected (${selectedAllImageIDs.length})`}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="learn-more-modal-toolbar-btn save"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setPendingImageSlotIndex(null);
+                                                learnMoreImageInputRef.current?.click();
+                                            }}
+                                            disabled={isImageMutationLoading || (formData.images || []).length >= MAX_CARD_IMAGES}
+                                        >
+                                            {isImageMutationLoading ? 'Uploading...' : 'Add New Image'}
+                                        </button>
+                                    </div>
+                                )}
                                 <p className="learn-more-all-images-count">
                                     {`Showing ${allImagesList.length} image${allImagesList.length === 1 ? '' : 's'}`}
                                 </p>
@@ -2222,8 +2246,8 @@ function Card(props) {
                             <p className="learn-more-gallery-selection-hint">{`${learnMoreGalleryImages.length} / 6 images selected. Numbers set the order in Multiple images and Slideshow; 1 is the card cover. Drag images on the main page to change their order.`}</p>
                             <div className="learn-more-all-images-list">
                                 {allImagesList.map((image, index) => (
-                                    <div className="learn-more-all-image-item" key={`all-image-${image.imageID || image.id || index}`}>
-                                        <label className="learn-more-gallery-selection" onClick={e => e.stopPropagation()}>
+                                    <div className={`learn-more-all-image-item ${visibleGalleryIDs.includes(galleryImageID(image)) ? 'is-main-selected' : ''}`} key={`all-image-${image.imageID || image.id || index}`}>
+                                        <label className="learn-more-gallery-selection" title={gallerySelectionSlots[0] === galleryImageID(image) ? 'Card cover' : 'Show on main page'} onClick={e => e.stopPropagation()}>
                                             <span className="learn-more-gallery-checkbox">
                                                 <input type="checkbox" aria-label={`Show image ${index + 1} on main page`}
                                                     checked={visibleGalleryIDs.includes(galleryImageID(image))}
@@ -2231,7 +2255,6 @@ function Card(props) {
                                                     onChange={() => toggleGalleryImage(image)} />
                                                 <span className="learn-more-gallery-order" aria-label={visibleGalleryIDs.includes(galleryImageID(image)) ? `Display order ${gallerySelectionSlots.indexOf(galleryImageID(image)) + 1}` : undefined}>{visibleGalleryIDs.includes(galleryImageID(image)) ? gallerySelectionSlots.indexOf(galleryImageID(image)) + 1 : ''}</span>
                                             </span>
-                                            <span>{gallerySelectionSlots[0] === galleryImageID(image) ? 'Card cover · Show on main page' : 'Show on main page'}</span>
                                         </label>
 
 
@@ -2257,37 +2280,14 @@ function Card(props) {
                                                 aria-label={selectedAllImageIDs.includes(resolveImageServerID(image)) ? 'Unselect image' : 'Select image'}
                                                 aria-pressed={selectedAllImageIDs.includes(resolveImageServerID(image)) ? 'true' : 'false'}
                                             >
-                                                <span className="learn-more-all-image-select-mark" aria-hidden="true" />
+                                                <FontAwesomeIcon icon={faCheck} className="learn-more-all-image-select-mark" aria-hidden="true" />
                                             </button>
                                         )}
                                     </div>
                                 ))}
                             </div>
 
-                            {isLearnMoreEditMode && (
-                                <div className="learn-more-all-images-actions">
-                                    <button
-                                        type="button"
-                                        className="learn-more-all-images-delete-selected-btn"
-                                        onClick={handleDeleteSelectedAllImages}
-                                        disabled={isImageMutationLoading || selectedAllImageIDs.length === 0}
-                                    >
-                                        {`Delete Selected (${selectedAllImageIDs.length})`}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="learn-more-modal-toolbar-btn save"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setPendingImageSlotIndex(null);
-                                            learnMoreImageInputRef.current?.click();
-                                        }}
-                                        disabled={isImageMutationLoading || (formData.images || []).length >= MAX_CARD_IMAGES}
-                                    >
-                                        {isImageMutationLoading ? 'Uploading...' : 'Add New Image'}
-                                    </button>
-                                </div>
-                            )}
+
                         </div>
                     ) : (
                         <>

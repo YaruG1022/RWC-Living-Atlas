@@ -189,3 +189,28 @@ border. The screenshot preserves the user's current draft and shows the changed
 icon and transparent overlays. Evidence: gallery-overlay-vacancy-tests.log and
 gallery-overlay-vacancy.png. Backend selection validation is unchanged; null
 vacancies exist only in the editing draft and are excluded from saved JSON.
+
+## Square thumbnails and top actions (2026-10-04)
+
+All-images tiles now have a 1:1 aspect ratio and contain each image without
+cropping. The bottom overlay contains only the numbered checkbox. Cover context
+remains in its tooltip; the selected tile uses a gray-blue border and soft outer
+ring, while an unselected tile retains the ordinary border. Main selection remains
+separate from bulk-deletion selection.
+
+Bulk-selection buttons use a light circular surface, subtle border/shadow, faint
+check icon when unselected, and a filled gray-blue state with a visible check when
+selected. Hover/focus and opacity/scale transitions replace the plain dark dot.
+Delete Selected and Add New Image moved into the header alongside Back to Learn
+More. The header wraps on narrower windows. A specific margin override removes
+the generic modal button rule's five-pixel top margin so all three align exactly.
+
+34 frontend checks pass, including selection-border state changes, number-only
+labels, bulk-selection check/pressed state, enabled delete count, and both action
+buttons within the header. Browser measurements show seven square tiles at
+approximately 304x304 pixels, six selected borders and one ordinary border, and
+identical header-button vertical centers. The user's draft was preserved; only
+keyboard focus was moved to bring the header into view. Evidence:
+gallery-square-tests.log, gallery-square-tests-run2.log, gallery-square-controls.png.
+This change does not modify backend/database behavior. Development compilation
+and diff checks pass.

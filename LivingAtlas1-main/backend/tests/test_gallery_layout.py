@@ -56,7 +56,7 @@ class GalleryContractTests(unittest.TestCase):
             return asyncio.run(self.cards.upload_form(**values))
 
     def test_create_and_update_all_layouts(self):
-        layouts = ['featured', 'slideshow'] + [f'grid-{i}' for i in range(1, 9)]
+        layouts = ['multi', 'featured', 'slideshow'] + [f'grid-{i}' for i in range(1, 9)]
         for update in (False, True):
             for layout in layouts:
                 with self.subTest(update=update, layout=layout):
@@ -84,6 +84,34 @@ class GalleryContractTests(unittest.TestCase):
         inserts = [call.args for call in self.cur.execute.call_args_list if 'INSERT INTO CardImages' in call.args[0]]
         self.assertEqual(len(inserts), 1)
         self.assertEqual(inserts[0][1], (101, self.cards.DEFAULT_THUMBNAIL_URL))
+
+    def test_gallery_selection_validates_and_persists_without_deleting_images(self):
+        for selection in ('[1, 3]', '[]'):
+            with self.subTest(selection=selection):
+                self.cur.reset_mock()
+                self.cur.fetchone.side_effect = [(100,), (1,), (101,)]
+                self.cur.fetchall.return_value = [(1,), (2,), (3,)]
+                self.form(update=True, gallery_image_ids=selection)
+                sql, params = next(call.args for call in self.cur.execute.call_args_list if 'SET GalleryImageIDs' in call.args[0])
+                self.assertEqual(params, (selection, 101))
+                self.assertFalse(any('DELETE FROM CardImages' in call.args[0] for call in self.cur.execute.call_args_list))
+
+    def test_invalid_selection_is_rejected_before_database_access(self):
+        for selection in ('not-json', '{}', '[1,2,3,4,5,6,7]', '[1,1]', '[true]', '[0]', '["1"]'):
+            with self.subTest(selection=selection):
+                self.cur.reset_mock()
+                with self.assertRaises(self.cards.HTTPException) as error:
+                    self.form(update=True, gallery_image_ids=selection)
+                self.assertEqual(error.exception.status_code, 422)
+                self.cur.execute.assert_not_called()
+
+    def test_other_cards_images_cannot_be_selected(self):
+        self.cur.fetchone.side_effect = [(100,), (1,), (101,)]
+        self.cur.fetchall.return_value = [(1,)]
+        with self.assertRaises(self.cards.HTTPException) as error:
+            self.form(update=True, gallery_image_ids='[999]')
+        self.assertEqual(error.exception.status_code, 422)
+        self.conn.rollback.assert_called()
 
     def test_deleting_a_shared_default_cover_does_not_delete_its_asset(self):
         for url in ('/CEREO-logo.png', self.cards.DEFAULT_THUMBNAIL_URL):
@@ -125,10 +153,11 @@ class GalleryContractTests(unittest.TestCase):
                 self.conn.rollback.assert_called_once()
 
     def test_gallery_response_includes_saved_layout_and_missing_card_is_404(self):
-        self.cur.fetchone.return_value = ('grid-8',)
+        self.cur.fetchone.return_value = ('grid-8', [1])
         self.cur.fetchall.return_value = [(1, '/fixture.jpg', 0, 'Fixture', None)]
         result = asyncio.run(self.images.get_card_images(101))
         self.assertEqual(result['galleryLayout'], 'grid-8')
+        self.assertEqual(result['galleryImageIDs'], [1])
         self.assertEqual(result['images'][0]['imageID'], 1)
         self.cur.fetchone.return_value = None
         with self.assertRaises(self.images.HTTPException) as error:

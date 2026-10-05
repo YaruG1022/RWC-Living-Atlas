@@ -239,6 +239,7 @@ def _ensure_schema():
         # Persist the learn-more image presentation; existing cards retain their layout.
         cur.execute("""
             ALTER TABLE Cards ADD COLUMN IF NOT EXISTS GalleryLayout VARCHAR(20) DEFAULT 'featured';
+            ALTER TABLE Cards ADD COLUMN IF NOT EXISTS GalleryImageIDs JSONB;
         """)
 
         # Give legacy fallback covers a deletable identity. An empty thumbnail is

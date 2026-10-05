@@ -5,6 +5,7 @@ import api from './api.js';
 import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
 import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
+import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
@@ -149,6 +150,7 @@ function Card(props) {
                     ...props.formData,
                     images: mergedImages,
                     gallery_layout: props.formData?.gallery_layout ?? (isSameCard ? prev.gallery_layout : undefined),
+                    gallery_image_ids: props.formData?.gallery_image_ids !== undefined ? props.formData.gallery_image_ids : (isSameCard ? prev.gallery_image_ids : undefined),
                     files: props.formData?.files || [],
                     filesToUpload: [],
                     is_public: props.formData?.is_public !== false
@@ -812,6 +814,7 @@ function Card(props) {
             key !== "files" &&
             key !== "filesToUpload" &&
             key !== "images" &&
+            key !== "gallery_image_ids" &&
             key !== "thumbnail_link" &&
             key !== "polygon_vertices" &&
             key !== "category" &&
@@ -821,6 +824,10 @@ function Card(props) {
             formDataToSend.append(key, formData[key]);
         }
     });
+    if (Array.isArray(formData.gallery_image_ids)) {
+        const existingIDs = new Set((formData.images || []).map(galleryImageID));
+        formDataToSend.append('gallery_image_ids', JSON.stringify(formData.gallery_image_ids.filter(id => existingIDs.has(id)).slice(0, MAX_GALLERY_IMAGES)));
+    }
     if (linkOverride) {
         formDataToSend.append('link', linkOverride.link ?? '');
         formDataToSend.append('link_text', linkOverride.link_text ?? '');
@@ -1534,7 +1541,7 @@ function Card(props) {
             'title', 'description', 'tags', 'category', 'username', 'name',
             'latitude', 'longitude', 'location_type',
             'polygon_vertices', 'polygon_fill_color', 'polygon_line_style', 'polygon_fill_opacity',
-            'website_link', 'thumbnail_link', 'files', 'gallery_layout',
+            'website_link', 'thumbnail_link', 'files', 'gallery_layout', 'gallery_image_ids',
         ];
         for (const field of trackedFields) {
             if (JSON.stringify(formData[field]) !== JSON.stringify(learnMoreBackup[field])) return true;
@@ -1688,7 +1695,8 @@ function Card(props) {
             return {
                 ...prev,
                 images,
-                gallery_layout: (isEditingRef.current && prev.gallery_layout) || response.data?.galleryLayout || 'featured'
+                gallery_layout: (isEditingRef.current && prev.gallery_layout) || response.data?.galleryLayout || 'multi',
+                gallery_image_ids: isEditingRef.current && prev.gallery_image_ids !== undefined ? prev.gallery_image_ids : response.data?.galleryImageIDs
             };
         });
 
@@ -1970,18 +1978,23 @@ function Card(props) {
             })
             .slice(0, 2)
     );
-    const learnMoreGalleryImages = (Array.isArray(formData.images) && formData.images.length > 0)
-        ? formData.images.map((img, idx) => normalizeImageRecord(img, idx))
-        : (!isImageCard && !pendingDeletedImageIDs.length && formData.thumbnail_link && formData.thumbnail_link.trim() !== ''
-            ? [{ url: resolveImageUrl(formData.thumbnail_link), id: 0, imageID: null }]
-            : []);
+    const learnMoreGalleryImages = selectedGalleryImages(allImagesList, formData.gallery_image_ids);
+    const visibleGalleryIDs = learnMoreGalleryImages.map(galleryImageID);
+    const toggleGalleryImage = (image) => {
+        const id = galleryImageID(image);
+        const next = visibleGalleryIDs.includes(id) ? visibleGalleryIDs.filter(value => value !== id) : [...visibleGalleryIDs, id];
+        if (next.length > MAX_GALLERY_IMAGES) return;
+        setFormData(prev => ({ ...prev, gallery_image_ids: next }));
+    };
 
     const reorderGalleryImages = (from, to) => {
         setFormData(prev => {
             const images = [...(prev.images || [])];
-            if (from >= images.length || to >= images.length) return prev;
-            const [moved] = images.splice(from, 1);
-            images.splice(to, 0, moved);
+            const fromIndex = images.findIndex(image => galleryImageID(image) === visibleGalleryIDs[from]);
+            const toIndex = images.findIndex(image => galleryImageID(image) === visibleGalleryIDs[to]);
+            if (fromIndex < 0 || toIndex < 0) return prev;
+            const [moved] = images.splice(fromIndex, 1);
+            images.splice(toIndex, 0, moved);
             return { ...prev, images };
         });
     };
@@ -2218,9 +2231,17 @@ function Card(props) {
                                 </p>
                             </div>
 
+                            <p className="learn-more-gallery-selection-hint">{`${learnMoreGalleryImages.length} / 6 images selected for the main page. Applies to Multiple images and Slideshow.`}</p>
                             <div className="learn-more-all-images-list">
                                 {allImagesList.map((image, index) => (
                                     <div className="learn-more-all-image-item" key={`all-image-${image.imageID || image.id || index}`}>
+                                        <label className="learn-more-gallery-selection" onClick={e => e.stopPropagation()}>
+                                            <input type="checkbox" aria-label={`Show image ${index + 1} on main page`}
+                                                checked={visibleGalleryIDs.includes(galleryImageID(image))}
+                                                disabled={!isLearnMoreEditMode || isImageMutationLoading || !resolveImageServerID(image) || (!visibleGalleryIDs.includes(galleryImageID(image)) && visibleGalleryIDs.length >= MAX_GALLERY_IMAGES)}
+                                                onChange={() => toggleGalleryImage(image)} />
+                                            <span>Show on main page</span>
+                                        </label>
                                         {isLearnMoreEditMode && (
                                             <div className="learn-more-all-image-sort-controls">
                                                 <button
@@ -2307,13 +2328,14 @@ function Card(props) {
 
                     <LearnMoreGallery
                         images={learnMoreGalleryImages}
+                        totalImageCount={allImagesList.length}
                         layout={formData.gallery_layout || 'featured'}
                         editing={isLearnMoreEditMode}
                         busy={loading || isImageMutationLoading}
-                        coverUrl={isImageCard ? cardThumbnailSrc : learnMoreGalleryImages[0]?.url}
+                        coverUrl={isImageCard ? cardThumbnailSrc : allImagesList[0]?.url}
                         onLayoutChange={(gallery_layout) => setFormData(prev => ({ ...prev, gallery_layout }))}
                         onReorder={reorderGalleryImages}
-                        onOpen={openImagePreviewAtIndex}
+                        onOpen={(event, index) => openImagePreviewAtIndex(event, allImagesList.findIndex(image => galleryImageID(image) === galleryImageID(learnMoreGalleryImages[index])))}
                         onAdd={(event, index) => handleLearnMoreGalleryTileClick(event, null, index)}
                         onDelete={handleLearnMoreImageDelete}
                     />

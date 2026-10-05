@@ -367,7 +367,8 @@ def allCards(viewer_email: Optional[str] = None,
                     '[]'
                 ) AS polygon_vertices,
                 COALESCE(c.is_public, TRUE) AS is_public,
-                COALESCE(c.GalleryLayout, 'featured') AS gallery_layout
+                COALESCE(c.GalleryLayout, 'featured') AS gallery_layout,
+                c.GalleryImageIDs AS gallery_image_ids
             FROM Cards c
             INNER JOIN Categories cat ON c.CategoryID = cat.CategoryID
             LEFT JOIN Files f ON c.CardID = f.CardID
@@ -391,7 +392,7 @@ def allCards(viewer_email: Optional[str] = None,
             "username", "email", "name", "title", "cardID", "category", "date", "description",
             "org", "funding", "link", "link_text", "tags", "latitude", "longitude", "thumbnail_link",
             "location_type", "polygon_fill_color", "polygon_line_style", "images", "files", "polygon_vertices",
-            "is_public", "gallery_layout"
+            "is_public", "gallery_layout", "gallery_image_ids"
         ]
 
         data = [dict(zip(columns, row)) for row in rows]
@@ -430,6 +431,7 @@ async def upload_form(
     requester_email: Optional[str] = Form(None),
     is_public: Optional[str] = Form("true"),
     gallery_layout: Optional[str] = Form(None),
+    gallery_image_ids: Optional[str] = Form(None),
     category: Optional[str] = Form("None"),
     latitude: Optional[str] = Form(None),
     longitude: Optional[str] = Form(None),
@@ -455,9 +457,19 @@ async def upload_form(
     Ensures uploaded files are compressed, stored in Azure, and recorded in the database.
     """
     if gallery_layout is not None and gallery_layout not in {
-        'featured', 'grid-1', 'grid-2', 'grid-3', 'grid-4', 'grid-5', 'grid-6', 'grid-7', 'grid-8', 'slideshow'
+        'multi', 'featured', 'grid-1', 'grid-2', 'grid-3', 'grid-4', 'grid-5', 'grid-6', 'grid-7', 'grid-8', 'slideshow'
     }:
         raise HTTPException(status_code=422, detail="Invalid gallery layout")
+    selected_image_ids = None
+    if gallery_image_ids is not None:
+        try:
+            selected_image_ids = json.loads(gallery_image_ids)
+        except (ValueError, TypeError):
+            raise HTTPException(status_code=422, detail="Invalid gallery image selection")
+        if (not isinstance(selected_image_ids, list) or len(selected_image_ids) > 6
+                or any(type(image_id) is not int or image_id <= 0 for image_id in selected_image_ids)
+                or len(set(selected_image_ids)) != len(selected_image_ids)):
+            raise HTTPException(status_code=422, detail="Select at most 6 distinct card images")
     if images and len(images) > 8:
         raise HTTPException(status_code=422, detail="A card can have at most 8 images")
     enable_commits = False
@@ -629,6 +641,13 @@ async def upload_form(
         # --------------------------------------------------
         # Handle overlay vertices (polygon/image)
         # --------------------------------------------------
+        if selected_image_ids is not None:
+            cur.execute("SELECT ImageID FROM CardImages WHERE CardID=%s", (nextcardid,))
+            owned_image_ids = {row[0] for row in cur.fetchall()}
+            if not set(selected_image_ids).issubset(owned_image_ids):
+                raise HTTPException(status_code=422, detail="Selected images must belong to this card")
+            cur.execute("UPDATE Cards SET GalleryImageIDs=%s::jsonb WHERE CardID=%s", (json.dumps(selected_image_ids), nextcardid))
+
         if location_type in ("polygon", "image") and polygon_coordinates:
             try:
                 parsed = json.loads(polygon_coordinates)

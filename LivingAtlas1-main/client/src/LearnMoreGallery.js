@@ -1,19 +1,21 @@
 import React, { useRef, useState } from 'react';
 import './LearnMoreGallery.css';
+import { MAX_GALLERY_IMAGES } from './gallerySelection';
 
 export const MAX_CARD_IMAGES = 8;
-export const GALLERY_LAYOUTS = ['featured', 'grid-1', 'grid-2', 'grid-3', 'grid-4', 'grid-5', 'grid-6', 'slideshow'];
+export const GALLERY_LAYOUTS = ['multi', 'slideshow'];
 
-export default function LearnMoreGallery({ images, layout = 'featured', editing, busy, coverUrl, onLayoutChange, onReorder, onOpen, onAdd, onDelete }) {
+export default function LearnMoreGallery({ images: allImages, totalImageCount = allImages.length, layout = 'multi', editing, busy, coverUrl, onLayoutChange, onReorder, onOpen, onAdd, onDelete }) {
+    const images = allImages.slice(0, MAX_GALLERY_IMAGES);
     const [slide, setSlide] = useState(0);
     const [dragOver, setDragOver] = useState(null);
     const draggedIndex = useRef(null);
-    const validLayout = ['grid-7', 'grid-8'].includes(layout) ? 'grid-6' : GALLERY_LAYOUTS.includes(layout) ? layout : 'featured';
+    const validLayout = layout === 'slideshow' ? 'slideshow' : 'multi';
     // A lone image always uses the whole region, regardless of the saved grid.
-    const gridLayout = images.length === 1 ? 'grid-1' : validLayout;
+    const gridLayout = `grid-${Math.max(1, Math.min(6, images.length))}`;
     const activeSlide = Math.min(slide, Math.max(0, images.length - 1));
-    const count = gridLayout.startsWith('grid-') ? Number(gridLayout.slice(5)) : 5;
-    const canAdd = editing && !busy && images.length < MAX_CARD_IMAGES;
+    const count = Number(gridLayout.slice(5));
+    const canAdd = editing && !busy && totalImageCount < MAX_CARD_IMAGES;
     const slots = Array.from({ length: count }, (_, index) => images[index] || null);
     const reorder = (from, to) => {
         if (!editing || busy || from === to || from < 0 || to < 0 || from >= images.length || to >= images.length) return;
@@ -47,7 +49,7 @@ export default function LearnMoreGallery({ images, layout = 'featured', editing,
                     onClick={(event) => image ? onOpen(event, index) : onAdd(event, index)}
                     aria-label={image ? `Open image ${index + 1}` : `Add image ${index + 1}`}>
                     {image ? <img src={image.url} alt={image.alt || `Card image ${index + 1}`} draggable={false} />
-                        : <span className="lm-gallery-empty">{editing && images.length < MAX_CARD_IMAGES ? '+ Add image' : 'No image'}</span>}
+                        : <span className="lm-gallery-empty">{totalImageCount > 0 ? 'No images selected' : editing && canAdd ? '+ Add image' : 'No image'}</span>}
                 </button>
                 {isCover && <span className="lm-gallery-cover">Card cover</span>}
                 {editing && image && <div className="lm-gallery-tile-tools">
@@ -64,10 +66,10 @@ export default function LearnMoreGallery({ images, layout = 'featured', editing,
         {editing && <div className="lm-gallery-editor">
             <label className="lm-gallery-layout-label">Image layout
                 <select aria-label="Image layout" value={validLayout} disabled={busy} onChange={(event) => onLayoutChange(event.target.value)}>
-                    {GALLERY_LAYOUTS.map(option => <option key={option} value={option}>{option === 'featured' ? 'Featured + 4' : option === 'slideshow' ? 'Slideshow' : `${option.slice(5)} image${option === 'grid-1' ? '' : 's'}`}</option>)}
+                    {GALLERY_LAYOUTS.map(option => <option key={option} value={option}>{option === 'slideshow' ? 'Slideshow' : 'Multiple images'}</option>)}
                 </select>
             </label>
-            <p>Drag images to reorder, or use the arrows. The first image is the card cover. Up to 8 images.</p>
+            <p>Choose up to 6 images in See all images. Drag to reorder; the first image is the card cover. Up to 8 images total.</p>
         </div>}
         {validLayout === 'slideshow' ? <>
             <div className="lm-gallery-slideshow" aria-roledescription="carousel">
@@ -81,12 +83,12 @@ export default function LearnMoreGallery({ images, layout = 'featured', editing,
                     <span aria-live="polite">{activeSlide + 1} / {images.length}</span>
                 </div>}
             </div>
-            {editing && <button type="button" data-gallery-control className="lm-gallery-add" disabled={!canAdd} onClick={(event) => onAdd(event, null)}>{images.length >= MAX_CARD_IMAGES ? '8-image limit reached' : '+ Add image'}</button>}
+            {editing && <button type="button" data-gallery-control className="lm-gallery-add" disabled={!canAdd} onClick={(event) => onAdd(event, null)}>{totalImageCount >= MAX_CARD_IMAGES ? '8-image limit reached' : '+ Add image'}</button>}
         </> : <>
             <div className={`lm-gallery-grid lm-gallery-layout-${gridLayout}`}>
                 {slots.map(renderTile)}
             </div>
-            {editing && <button type="button" data-gallery-control className="lm-gallery-add" disabled={!canAdd} onClick={(event) => onAdd(event, null)}>{images.length >= MAX_CARD_IMAGES ? '8-image limit reached' : '+ Add image'}</button>}
+            {editing && <button type="button" data-gallery-control className="lm-gallery-add" disabled={!canAdd} onClick={(event) => onAdd(event, null)}>{totalImageCount >= MAX_CARD_IMAGES ? '8-image limit reached' : '+ Add image'}</button>}
         </>}
     </section>;
 }

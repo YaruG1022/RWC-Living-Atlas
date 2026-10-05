@@ -84,6 +84,7 @@ Other existing assets include the [frontend `main.test.js`](../LivingAtlas1-main
 |---|---|---|---|
 | Functional: signup/authentication/authorization | High | Input boundaries, duplicate/case-variant emails, privilege escalation, expired sessions, unauthorized access; verify status and DB invariants. | Unit + API integration + selected E2E. |
 | Functional: cards and maps | High | Create/edit/delete cards, combined filters, sort/page behavior, empty results, list/map agreement, concurrent updates. | API/DB integration + browser E2E. |
+| Functional: selected main-page gallery (GALLERY-SEL-01) | High | At most six selected images in both gallery modes; save/cancel, foreign-image rejection, empty selection, eight total images retained. | Component + contract + [local API/DB script](../LivingAtlas1-main/backend/scripts/check_gallery_selection.py); [evidence](GALLERY_SELECTION_TEST_REPORT.md). |
 | Functional: files and external integrations | High | Upload size/type limits, delete rollback, Azure faults, malformed ArcGIS responses, Mapbox timeouts; no orphaned file or row. | Contract + integration. |
 | Functional: user journeys | High | Signup → login → map → filter → card detail → upload/edit; verify frontend/backend configuration. | Browser automation such as Playwright; low-impact production smoke only. |
 | Non-functional: security | High | Derive controls from [OWASP ASVS](https://owasp.org/projects/asvs): auth, authorization, SQL injection, XSS, uploads, secrets, dependencies. | Static/dependency scans + API security tests + human review. |

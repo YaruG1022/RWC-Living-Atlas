@@ -331,7 +331,7 @@ async def get_card_images(cardID: int):
         List of images sorted by DisplayOrder
     """
     try:
-        cur.execute("SELECT COALESCE(GalleryLayout, 'featured') FROM Cards WHERE CardID = %s", (cardID,))
+        cur.execute("SELECT COALESCE(GalleryLayout, 'featured'), GalleryImageIDs FROM Cards WHERE CardID = %s", (cardID,))
         card = cur.fetchone()
         if not card:
             raise HTTPException(status_code=404, detail="Card not found")
@@ -358,6 +358,7 @@ async def get_card_images(cardID: int):
             "cardID": cardID,
             "totalImages": len(images),
             "galleryLayout": card[0],
+            "galleryImageIDs": card[1],
             "images": images
         }
     

@@ -6,7 +6,7 @@ const images = Array.from({ length: 8 }, (_, i) => ({ id: i + 1, imageID: i + 1,
 const props = () => ({ images, coverUrl: images[0].url, editing: true, onLayoutChange: jest.fn(), onReorder: jest.fn(), onOpen: jest.fn(), onAdd: jest.fn(), onDelete: jest.fn() });
 
 test.each([1, 2, 3, 4, 5, 6])('grid-%i shows the requested number of slots and marks the cover', count => {
-    render(<LearnMoreGallery {...props()} layout={`grid-${count}`} />);
+    render(<LearnMoreGallery {...props()} images={images.slice(0, count)} layout="multi" />);
     expect(screen.getAllByRole('button', { name: /^Open image/ })).toHaveLength(count);
     expect(screen.getByText('Card cover').parentElement.classList.contains('is-cover')).toBe(true);
 });
@@ -14,17 +14,17 @@ test.each([1, 2, 3, 4, 5, 6])('grid-%i shows the requested number of slots and m
 test.each(['grid-7', 'grid-8'])('legacy %s displays six images without removing the remaining images', layout => {
     render(<LearnMoreGallery {...props()} layout={layout} />);
     expect(screen.getAllByRole('button', { name: /^Open image/ })).toHaveLength(6);
-    expect(screen.getByLabelText('Image layout').value).toBe('grid-6');
+    expect(screen.getByLabelText('Image layout').value).toBe('multi');
     expect(screen.getByRole('button', { name: '8-image limit reached' }).disabled).toBe(true);
 });
 
-test('layout changes and empty-slot uploads are delegated to the editor', () => {
+test('layout changes and uploads are delegated to the editor', () => {
     const callbacks = props();
     render(<LearnMoreGallery {...callbacks} images={images.slice(0, 2)} layout="grid-6" />);
     fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'slideshow' } });
     expect(callbacks.onLayoutChange).toHaveBeenCalledWith('slideshow');
-    fireEvent.click(screen.getByRole('button', { name: 'Add image 3' }));
-    expect(callbacks.onAdd).toHaveBeenCalledWith(expect.anything(), 2);
+    fireEvent.click(screen.getByRole('button', { name: '+ Add image' }));
+    expect(callbacks.onAdd).toHaveBeenCalledWith(expect.anything(), null);
 });
 
 test('dragging and keyboard-accessible arrows reorder images without opening the preview', () => {
@@ -41,11 +41,11 @@ test('dragging and keyboard-accessible arrows reorder images without opening the
     expect(callbacks.onOpen).not.toHaveBeenCalled();
 });
 
-test('slideshow wraps in both directions and jumps to any image, including beyond six', () => {
+test('slideshow wraps and jumps within the six displayed images', () => {
     const callbacks = props();
     render(<LearnMoreGallery {...callbacks} editing={false} layout="slideshow" />);
     fireEvent.click(screen.getByRole('button', { name: 'Previous gallery image' }));
-    expect(screen.getByRole('img').getAttribute('src')).toBe(images[7].url);
+    expect(screen.getByRole('img').getAttribute('src')).toBe(images[5].url);
     fireEvent.click(screen.getByRole('button', { name: 'Next gallery image' }));
     expect(screen.getByRole('img').getAttribute('src')).toBe(images[0].url);
     fireEvent.click(screen.getByRole('button', { name: 'Show gallery image 6' }));
@@ -58,7 +58,7 @@ test('slideshow wraps in both directions and jumps to any image, including beyon
 test('deleting the active slide clamps the index and an empty slideshow stays usable', () => {
     const callbacks = props();
     const { rerender } = render(<LearnMoreGallery {...callbacks} layout="slideshow" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Show gallery image 8' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Show gallery image 6' }));
     rerender(<LearnMoreGallery {...callbacks} images={images.slice(0, 2)} layout="slideshow" />);
     expect(screen.getByRole('img').getAttribute('src')).toBe(images[1].url);
     rerender(<LearnMoreGallery {...callbacks} images={[]} layout="slideshow" />);
@@ -77,15 +77,13 @@ test('busy editor blocks mutations; cover marking follows its image rather than 
     expect(screen.getByText('Card cover').parentElement.querySelector('img').getAttribute('src')).toBe(images[1].url);
 });
 
-test('eight-image cards cannot upload more while all eight remain navigable', () => {
+test('eight-image cards cannot upload more while the selector offers only two modes', () => {
     const callbacks = props();
     render(<LearnMoreGallery {...callbacks} layout="slideshow" />);
     fireEvent.click(screen.getByRole('button', { name: '8-image limit reached' }));
     expect(callbacks.onAdd).not.toHaveBeenCalled();
-    expect(screen.getAllByRole('button', { name: /^Show gallery image/ })).toHaveLength(8);
-    expect(screen.getByLabelText('Image layout').querySelector('option[value="grid-6"]')).toBeTruthy();
-    expect(screen.getByLabelText('Image layout').querySelector('option[value="grid-7"]')).toBeNull();
-    expect(screen.getByLabelText('Image layout').querySelector('option[value="grid-8"]')).toBeNull();
+    expect(screen.getAllByRole('button', { name: /^Show gallery image/ })).toHaveLength(6);
+    expect(Array.from(screen.getByLabelText('Image layout').options).map(option => option.value)).toEqual(['multi', 'slideshow']);
 });
 
 test.each([false, true])('a single image fills the gallery without empty slots (editing=%s)', editing => {

@@ -29,7 +29,7 @@ beforeEach(() => {
     localStorage.setItem('email', 'fixture@example.invalid');
     savedCard = { cardID: 101, title: 'Gallery fixture', username: 'fixture', email: 'fixture@example.invalid', name: 'Fixture', category: 'River', latitude: 46, longitude: -117, images: originalImages, gallery_layout: 'grid-3' };
     api.get.mockImplementation(url => Promise.resolve({ data: url.startsWith('/cardImages/')
-        ? { images: savedCard.images, galleryLayout: savedCard.gallery_layout }
+        ? { images: savedCard.images, galleryLayout: savedCard.gallery_layout, galleryImageIDs: savedCard.gallery_image_ids }
         : url.startsWith('/allCards') ? { data: [savedCard] } : { data: [] } }));
     api.post.mockResolvedValue({ data: {} });
     api.put.mockResolvedValue({ data: {} });
@@ -41,7 +41,7 @@ async function editCard() {
     fireEvent.click(container.querySelector('.card'));
     await waitFor(() => expect(screen.getByRole('button', { name: 'Open image 1' })).toBeTruthy());
     fireEvent.click(screen.getByRole('button', { name: /Edit/i }));
-    await waitFor(() => expect(screen.getByLabelText('Image layout').value).toBe('grid-3'));
+    await waitFor(() => expect(screen.getByLabelText('Image layout').value).toBe('multi'));
     return screen.getByRole('region', { name: 'Card image gallery' });
 }
 
@@ -75,9 +75,46 @@ test('map popup editing preserves owner permissions', () => {
     expect(screen.queryByTestId('shape-editor')).toBeNull();
 });
 
+test('main-page selection caps at six and applies to both modes; cancel restores selection', async () => {
+    savedCard.images = Array.from({ length: 8 }, (_, index) => ({ imageID: index + 1, url: `/selection-${index + 1}.jpg` }));
+    const gallery = await editCard();
+    fireEvent.click(screen.getByRole('button', { name: 'See all 8 images' }));
+    expect(screen.getAllByRole('checkbox', { name: /on main page/ })).toHaveLength(8);
+    expect(screen.getByRole('checkbox', { name: 'Show image 7 on main page' }).disabled).toBe(true);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Show image 1 on main page' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Show image 7 on main page' }));
+    fireEvent.click(screen.getByRole('button', { name: '← Back to Learn More', exact: true }));
+    const mainGallery = screen.getByRole('region', { name: 'Card image gallery' });
+    expect(within(mainGallery).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual([2,3,4,5,6,7].map(id => `/selection-${id}.jpg`));
+    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'slideshow' } });
+    expect(within(mainGallery).getAllByRole('button', { name: /^Show gallery image/ })).toHaveLength(6);
+    fireEvent.click(within(mainGallery).getByRole('button', { name: 'Show gallery image 6' }));
+    expect(within(mainGallery).getByRole('img').getAttribute('src')).toBe('/selection-7.jpg');
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel', exact: true }));
+    await waitFor(() => expect(screen.queryByLabelText('Image layout')).toBeNull());
+    expect(within(screen.getByRole('region', { name: 'Card image gallery' })).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual([1,2,3,4,5,6].map(id => `/selection-${id}.jpg`));
+    expect(api.post).not.toHaveBeenCalled();
+    expect(api.delete).not.toHaveBeenCalled();
+});
+
+test('selection saves as JSON and remains visible after refreshing the saved card', async () => {
+    await editCard();
+    fireEvent.click(screen.getByRole('button', { name: 'See all 3 images' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Show image 1 on main page' }));
+    api.post.mockImplementation((url, fields) => {
+        savedCard = { ...savedCard, gallery_image_ids: JSON.parse(fields.get('gallery_image_ids')) };
+        return Promise.resolve({ data: {} });
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
+    await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Show image 1 on main page' }).disabled).toBe(true));
+    expect(api.post.mock.calls[0][1].get('gallery_image_ids')).toBe('[2,3]');
+    fireEvent.click(screen.getByRole('button', { name: '← Back to Learn More', exact: true }));
+    expect(within(screen.getByRole('region', { name: 'Card image gallery' })).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual(['/fixture-2.jpg','/fixture-3.jpg']);
+});
+
 test('cancel restores layout, image order and staged deletion without database writes', async () => {
     const gallery = await editCard();
-    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'grid-6' } });
+    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'multi' } });
     fireEvent.click(within(gallery).getByRole('button', { name: 'Move image 2 earlier' }));
     fireEvent.click(within(gallery).getByRole('button', { name: 'Delete image 3' }));
     expect(within(gallery).getAllByRole('img')).toHaveLength(2);
@@ -91,7 +128,7 @@ test('cancel restores layout, image order and staged deletion without database w
 
 test('save sends layout and reordered IDs and view mode retains the saved layout', async () => {
     const gallery = await editCard();
-    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'grid-6' } });
+    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'multi' } });
     fireEvent.click(within(gallery).getByRole('button', { name: 'Move image 2 earlier' }));
     api.post.mockImplementation((url, body) => {
         if (url === '/uploadForm') savedCard = { ...savedCard, gallery_layout: body.get('gallery_layout') };
@@ -103,15 +140,15 @@ test('save sends layout and reordered IDs and view mode retains the saved layout
     });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(screen.queryByLabelText('Image layout')).toBeNull());
-    expect(api.post.mock.calls[0][1].get('gallery_layout')).toBe('grid-6');
+    expect(api.post.mock.calls[0][1].get('gallery_layout')).toBe('multi');
     expect(api.put).toHaveBeenCalledWith('/reorderCardImages?cardID=101', [2, 1, 3]);
-    expect(gallery.querySelector('.lm-gallery-layout-grid-6')).toBeTruthy();
+    expect(gallery.querySelector('.lm-gallery-layout-grid-3')).toBeTruthy();
     expect(within(gallery).getAllByRole('img')[0].getAttribute('src')).toBe(originalImages[1].url);
 });
 
 test('upload preserves draft layout and order; cancel removes only the new upload', async () => {
     const gallery = await editCard();
-    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'grid-6' } });
+    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'multi' } });
     fireEvent.click(within(gallery).getByRole('button', { name: 'Move image 2 earlier' }));
     api.post.mockImplementation(() => {
         savedCard = { ...savedCard, images: [...originalImages, { imageID: 4, url: '/fixture-4.jpg' }] };
@@ -120,7 +157,7 @@ test('upload preserves draft layout and order; cancel removes only the new uploa
     const input = document.querySelector('input[type="file"][accept="image/*"]');
     fireEvent.change(input, { target: { files: [new File(['fixture'], 'fixture.png', { type: 'image/png' })] } });
     await waitFor(() => expect(within(gallery).getAllByRole('img')).toHaveLength(4));
-    expect(screen.getByLabelText('Image layout').value).toBe('grid-6');
+    expect(screen.getByLabelText('Image layout').value).toBe('multi');
     expect(within(gallery).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual(['/fixture-2.jpg', '/fixture-1.jpg', '/fixture-3.jpg', '/fixture-4.jpg']);
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     await waitFor(() => expect(api.delete).toHaveBeenCalledWith('/deleteCardImage/4'));
@@ -129,13 +166,13 @@ test('upload preserves draft layout and order; cancel removes only the new uploa
 
 test('failed order save keeps the draft open and allows retry', async () => {
     const gallery = await editCard();
-    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'grid-6' } });
+    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'multi' } });
     fireEvent.click(within(gallery).getByRole('button', { name: 'Move image 2 earlier' }));
     api.put.mockRejectedValueOnce(new Error('Fixture failure'));
     const errors = jest.spyOn(console, 'error').mockImplementation(() => {});
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(window.alert).toHaveBeenCalledWith('Image order could not be saved. Please try saving again.'));
-    expect(screen.getByLabelText('Image layout').value).toBe('grid-6');
+    expect(screen.getByLabelText('Image layout').value).toBe('multi');
     await waitFor(() => expect(screen.getByRole('button', { name: 'Save' }).disabled).toBe(false));
     errors.mockRestore();
 });

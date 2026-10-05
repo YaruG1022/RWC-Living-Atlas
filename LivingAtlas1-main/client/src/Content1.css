@@ -739,7 +739,7 @@
 }
 
 .mapboxgl-popup.card-pin-rich-popup .mapboxgl-popup-content {
-  width: 200px !important;
+  width: 275px !important;
   min-width: 0 !important;
   max-width: 92vw !important;
   height: 250px !important;

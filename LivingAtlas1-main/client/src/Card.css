@@ -539,7 +539,7 @@
   min-height: 60px;
 }
 
-.Modal button:not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn) {
+.Modal button:not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]) {
   margin-top: 5px;
   padding: 7px 14px;
   font-size: 0.9em;
@@ -549,22 +549,22 @@
   transition: background-color 0.2s;
 }
 
-.Modal button[type="submit"]:not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn) {
+.Modal button[type="submit"]:not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]) {
   background-color: #007bff;
   color: #fff;
 }
 
-.Modal button[type="submit"]:not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):hover {
+.Modal button[type="submit"]:not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]):hover {
   background-color: #0069d9;
 }
 
-.Modal button:not([type="submit"]):not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn) {
+.Modal button:not([type="submit"]):not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]) {
   background-color: #f2f2f2;
   color: #333;
   border: 1px solid #ccc;
 }
 
-.Modal button:not([type="submit"]):not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):hover {
+.Modal button:not([type="submit"]):not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]):hover {
   background-color: #e6e6e6;
 }
 

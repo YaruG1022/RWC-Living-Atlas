@@ -21,6 +21,17 @@ IMAGE_UPLOAD_DIR = "uploads/card_images"
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 IMAGE_FOLDER = "card_images"
+MAX_CARD_IMAGES = 8
+
+
+def reserve_image_slots(card_id: int, incoming_count: int):
+    """Lock the card until commit so concurrent uploads cannot exceed its limit."""
+    cur.execute("SELECT CardID FROM Cards WHERE CardID = %s FOR UPDATE", (card_id,))
+    if not cur.fetchone():
+        raise HTTPException(status_code=404, detail="Card not found")
+    cur.execute("SELECT COUNT(*) FROM CardImages WHERE CardID = %s", (card_id,))
+    if cur.fetchone()[0] + incoming_count > MAX_CARD_IMAGES:
+        raise HTTPException(status_code=422, detail="A card can have at most 8 images. Save pending deletions before adding more.")
 
 
 def ensure_upload_dir():
@@ -82,9 +93,7 @@ async def upload_card_image(
     """
     try:
         # Verify card exists
-        cur.execute("SELECT CardID FROM Cards WHERE CardID = %s", (cardID,))
-        if not cur.fetchone():
-            raise HTTPException(status_code=404, detail="Card not found")
+        reserve_image_slots(cardID, 1)
         
         image_url = save_uploaded_file(image)
         
@@ -121,6 +130,7 @@ async def upload_card_image(
         }
     
     except HTTPException:
+        conn.rollback()
         raise
     except Exception as e:
         conn.rollback()
@@ -147,9 +157,7 @@ async def upload_card_images(
         if not images:
             raise HTTPException(status_code=400, detail="No images provided")
 
-        cur.execute("SELECT CardID FROM Cards WHERE CardID = %s", (cardID,))
-        if not cur.fetchone():
-            raise HTTPException(status_code=404, detail="Card not found")
+        reserve_image_slots(cardID, len(images))
 
         alt_text_values = []
         if altTexts:
@@ -198,6 +206,7 @@ async def upload_card_images(
         }
 
     except HTTPException:
+        conn.rollback()
         raise
     except Exception as e:
         conn.rollback()
@@ -336,6 +345,10 @@ async def get_card_images(cardID: int):
         List of images sorted by DisplayOrder
     """
     try:
+        cur.execute("SELECT COALESCE(GalleryLayout, 'featured') FROM Cards WHERE CardID = %s", (cardID,))
+        card = cur.fetchone()
+        if not card:
+            raise HTTPException(status_code=404, detail="Card not found")
         cur.execute("""
             SELECT ImageID, ImageURL, DisplayOrder, AltText, DateAdded
             FROM CardImages
@@ -358,9 +371,12 @@ async def get_card_images(cardID: int):
         return {
             "cardID": cardID,
             "totalImages": len(images),
+            "galleryLayout": card[0],
             "images": images
         }
     
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Query failed: {str(e)}")
 

@@ -366,7 +366,8 @@ def allCards(viewer_email: Optional[str] = None,
                     ),
                     '[]'
                 ) AS polygon_vertices,
-                COALESCE(c.is_public, TRUE) AS is_public
+                COALESCE(c.is_public, TRUE) AS is_public,
+                COALESCE(c.GalleryLayout, 'featured') AS gallery_layout
             FROM Cards c
             INNER JOIN Categories cat ON c.CategoryID = cat.CategoryID
             LEFT JOIN Files f ON c.CardID = f.CardID
@@ -390,7 +391,7 @@ def allCards(viewer_email: Optional[str] = None,
             "username", "email", "name", "title", "cardID", "category", "date", "description",
             "org", "funding", "link", "link_text", "tags", "latitude", "longitude", "thumbnail_link",
             "location_type", "polygon_fill_color", "polygon_line_style", "images", "files", "polygon_vertices",
-            "is_public"
+            "is_public", "gallery_layout"
         ]
 
         data = [dict(zip(columns, row)) for row in rows]
@@ -428,6 +429,7 @@ async def upload_form(
     original_title: Optional[str] = Form(None),
     requester_email: Optional[str] = Form(None),
     is_public: Optional[str] = Form("true"),
+    gallery_layout: Optional[str] = Form(None),
     category: Optional[str] = Form("None"),
     latitude: Optional[str] = Form(None),
     longitude: Optional[str] = Form(None),
@@ -452,6 +454,12 @@ async def upload_form(
     Create or update a Card with metadata, thumbnail, and optional files.
     Ensures uploaded files are compressed, stored in Azure, and recorded in the database.
     """
+    if gallery_layout is not None and gallery_layout not in {
+        'featured', 'grid-1', 'grid-2', 'grid-3', 'grid-4', 'grid-5', 'grid-6', 'grid-7', 'grid-8', 'slideshow'
+    }:
+        raise HTTPException(status_code=422, detail="Invalid gallery layout")
+    if images and len(images) > 8:
+        raise HTTPException(status_code=422, detail="A card can have at most 8 images")
     enable_commits = False
     print(f"[UPLOAD] username={username}, email={email}, orig_username={original_username or ''}, orig_email={original_email or ''}")
     print(f"[UPLOAD] location_type={location_type}, polygon_fill_color={polygon_fill_color!r}, polygon_line_style={polygon_line_style!r}")
@@ -596,12 +604,12 @@ async def upload_form(
                     Description=%s, Organization=%s, Funding=%s, Link=%s, LinkText=%s,
                     Thumbnail_Link=COALESCE(%s, Thumbnail_Link), UserID=%s,
                     LocationType=%s, PolygonFillColor=%s, PolygonLineStyle=%s,
-                    is_public=%s
+                    is_public=%s, GalleryLayout=COALESCE(%s, GalleryLayout)
                 WHERE CardID=%s
             """, (name, title, latitude_val, longitude_val, categoryID, description, org,
                   funding, link, link_text, thumbnail_url, userID, location_type or "point",
                   polygon_fill_color or '#0077c0', polygon_line_style or 'solid',
-                  (is_public or 'true').lower() != 'false', nextcardid))
+                  (is_public or 'true').lower() != 'false', gallery_layout, nextcardid))
             cur.execute("DELETE FROM CardTags WHERE CardID=%s", (nextcardid,))
             # Delete old polygon vertices on update
             cur.execute("DELETE FROM CardPolygonVertices WHERE CardID=%s", (nextcardid,))
@@ -610,13 +618,13 @@ async def upload_form(
                 INSERT INTO Cards
                     (CardID, UserID, Name, Title, Latitude, Longitude, CategoryID,
                      Description, Organization, Funding, Link, LinkText, Thumbnail_Link, LocationType,
-                     PolygonFillColor, PolygonLineStyle, is_public)
+                     PolygonFillColor, PolygonLineStyle, is_public, GalleryLayout)
                 VALUES
-                    (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (nextcardid, userID, name, title, latitude_val, longitude_val,
                   categoryID, description, org, funding, link, link_text, thumbnail_url, location_type or "point",
                   polygon_fill_color or '#0077c0', polygon_line_style or 'solid',
-                  (is_public or 'true').lower() != 'false'))
+                  (is_public or 'true').lower() != 'false', gallery_layout or 'featured'))
 
         # --------------------------------------------------
         # Handle overlay vertices (polygon/image)

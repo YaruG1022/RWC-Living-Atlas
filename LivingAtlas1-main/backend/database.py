@@ -236,6 +236,11 @@ def _ensure_schema():
               ADD COLUMN IF NOT EXISTS LineStyle VARCHAR(20);
         """)
 
+        # Persist the learn-more image presentation; existing cards retain their layout.
+        cur.execute("""
+            ALTER TABLE Cards ADD COLUMN IF NOT EXISTS GalleryLayout VARCHAR(20) DEFAULT 'featured';
+        """)
+
         # Migration 014 — allocate new signup IDs with a sequence. Historical
         # duplicate IDs must not prevent the rest of the app from starting;
         # create the unique index once those rows have been reconciled.

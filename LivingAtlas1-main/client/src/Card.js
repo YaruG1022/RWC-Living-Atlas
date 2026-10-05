@@ -4,6 +4,7 @@ import Modal from 'react-modal';
 import api from './api.js';
 import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
+import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
@@ -147,6 +148,7 @@ function Card(props) {
                 return {
                     ...props.formData,
                     images: mergedImages,
+                    gallery_layout: props.formData?.gallery_layout ?? (isSameCard ? prev.gallery_layout : undefined),
                     files: props.formData?.files || [],
                     filesToUpload: [],
                     is_public: props.formData?.is_public !== false
@@ -936,7 +938,7 @@ function Card(props) {
     try {
         await api.post("/uploadForm", formDataToSend);
         alert("Card Information Saved.");
-        isEditingRef.current = false; // Unlock editing state
+        isEditingRef.current = !closeEditModal; // Keep learn-more drafts protected through image saves.
         if (closeEditModal) {
             setIsEditModalOpen(false);
         }
@@ -1462,43 +1464,52 @@ function Card(props) {
         } catch (error) {
             const errorMsg = error.response?.data?.detail || error.message || 'Unknown error';
             console.error('Failed to reorder images:', errorMsg);
-            alert(`Failed to save image order: ${errorMsg}`);
+            throw error;
         }
     };
 
     const handleLearnMoreEditSave = async (e) => {
         e.stopPropagation();
-        const serializedLink = serializeLinks(learnMoreLinks);
-        const success = await saveEdits({
-            skipReload: true,
-            closeEditModal: false,
-            linkOverride: { link: serializedLink, link_text: '' },
-        });
-        if (success) {
-            try {
-                await applyPendingImageDeletes();
-            } catch (error) {
-                console.error('Failed to apply pending image deletions:', error);
-                alert('Some selected images could not be deleted. Please try saving again.');
+        if (loading || isImageMutationLoading) return;
+        setIsImageMutationLoading(true);
+        try {
+            const serializedLink = serializeLinks(learnMoreLinks);
+            const success = await saveEdits({
+                skipReload: true,
+                closeEditModal: false,
+                linkOverride: { link: serializedLink, link_text: '' },
+            });
+            if (success) {
+                try {
+                    await applyPendingImageDeletes();
+                } catch (error) {
+                    console.error('Failed to apply pending image deletions:', error);
+                    alert('Some selected images could not be deleted. Please try saving again.');
+                    return;
+                }
+                try {
+                    await applyImageReordering();
+                } catch (error) {
+                    console.error('Failed to apply image reordering:', error);
+                    alert('Image order could not be saved. Please try saving again.');
+                    return;
+                }
+                isEditingRef.current = false;
+                await refreshCardRecord();
+                await refreshCardImages();
+                // This save path skips the page reload, so the map still shows the
+                // pre-edit markers and polygons. Ask Content1/Content2 to re-fetch, the
+                // same way creating a card from the map does.
+                setHideCardPointMarkers(false);
+                window.dispatchEvent(new CustomEvent('atlas:card-uploaded'));
+                setIsLearnMoreEditMode(false);
+                setLearnMoreBackup(null);
+                setSessionUploadedImageIDs([]);
+                setSelectedAllImageIDs([]);
+                setPendingDeletedImageIDs([]);
             }
-            try {
-                await applyImageReordering();
-            } catch (error) {
-                console.error('Failed to apply image reordering:', error);
-                alert('Warning: Image reordering may not have been saved.');
-            }
-            await refreshCardRecord();
-            await refreshCardImages();
-            // This save path skips the page reload, so the map still shows the
-            // pre-edit markers and polygons. Ask Content1/Content2 to re-fetch, the
-            // same way creating a card from the map does.
-            setHideCardPointMarkers(false);
-            window.dispatchEvent(new CustomEvent('atlas:card-uploaded'));
-            setIsLearnMoreEditMode(false);
-            setLearnMoreBackup(null);
-            setSessionUploadedImageIDs([]);
-            setSelectedAllImageIDs([]);
-            setPendingDeletedImageIDs([]);
+        } finally {
+            setIsImageMutationLoading(false);
         }
     };
 
@@ -1511,7 +1522,7 @@ function Card(props) {
             'title', 'description', 'tags', 'category', 'username', 'name',
             'latitude', 'longitude', 'location_type',
             'polygon_vertices', 'polygon_fill_color', 'polygon_line_style', 'polygon_fill_opacity',
-            'website_link', 'thumbnail_link', 'files',
+            'website_link', 'thumbnail_link', 'files', 'gallery_layout',
         ];
         for (const field of trackedFields) {
             if (JSON.stringify(formData[field]) !== JSON.stringify(learnMoreBackup[field])) return true;
@@ -1653,10 +1664,21 @@ function Card(props) {
         const response = await api.get(`/cardImages/${cardID}`);
         const freshImages = (response.data?.images || []).map((img, idx) => normalizeImageRecord(img, idx));
 
-        setFormData((prev) => ({
-            ...prev,
-            images: freshImages
-        }));
+        setFormData((prev) => {
+            let images = freshImages;
+            if (isEditingRef.current) {
+                const remaining = freshImages.filter(image => !pendingDeletedImageIDs.includes(image.imageID));
+                const byID = new Map(remaining.map(image => [image.imageID, image]));
+                const ordered = (prev.images || []).map(image => byID.get(image.imageID)).filter(Boolean);
+                const knownIDs = new Set(ordered.map(image => image.imageID));
+                images = [...ordered, ...remaining.filter(image => !knownIDs.has(image.imageID))];
+            }
+            return {
+                ...prev,
+                images,
+                gallery_layout: (isEditingRef.current && prev.gallery_layout) || response.data?.galleryLayout || 'featured'
+            };
+        });
 
         setCurrentImageIndex((prev) => {
             if (freshImages.length === 0) return 0;
@@ -1700,6 +1722,10 @@ function Card(props) {
         }
 
         if (!isLearnMoreEditMode || isImageMutationLoading) return;
+        if ((formData.images || []).length >= MAX_CARD_IMAGES) {
+            alert('A card can have at most 8 images.');
+            return;
+        }
 
         setPendingImageSlotIndex(slotIndex);
         if (learnMoreImageInputRef.current) {
@@ -1736,7 +1762,7 @@ function Card(props) {
             await refreshCardImages(pendingImageSlotIndex);
         } catch (error) {
             console.error('Failed to upload card images:', error);
-            alert('Failed to upload image.');
+            alert(error.response?.data?.detail || 'Failed to upload image.');
         } finally {
             setIsImageMutationLoading(false);
             setPendingImageSlotIndex(null);
@@ -1755,17 +1781,8 @@ function Card(props) {
 
         if (!window.confirm('Delete this image?')) return;
 
-        setIsImageMutationLoading(true);
-        try {
-            await api.delete(`/deleteCardImage/${image.imageID}`);
-            setSessionUploadedImageIDs((prev) => prev.filter((id) => id !== image.imageID));
-            await refreshCardImages();
-        } catch (error) {
-            console.error('Failed to delete card image:', error);
-            alert('Failed to delete image.');
-        } finally {
-            setIsImageMutationLoading(false);
-        }
+        setPendingDeletedImageIDs(prev => [...new Set([...prev, image.imageID])]);
+        setFormData(prev => ({ ...prev, images: (prev.images || []).filter(item => resolveImageServerID(item) !== image.imageID) }));
     };
 
     const displayCardData = isLearnMoreEditMode && learnMoreBackup ? learnMoreBackup : formData;
@@ -1929,20 +1946,29 @@ function Card(props) {
             .slice(0, 2)
     );
     const learnMoreGalleryImages = (Array.isArray(formData.images) && formData.images.length > 0)
-        ? formData.images.map((img, idx) => normalizeImageRecord(img, idx)).slice(0, 5)
-        : (!isImageCard && displayCardData.thumbnail_link && displayCardData.thumbnail_link.trim() !== ""
+        ? formData.images.map((img, idx) => normalizeImageRecord(img, idx))
+        : (!isImageCard && displayCardData.thumbnail_link && displayCardData.thumbnail_link.trim() !== ''
             ? [{ url: cardThumbnailSrc, id: 0, imageID: null }]
             : []);
-    const learnMoreGallerySlots = Array.from({ length: 5 }, (_, index) => learnMoreGalleryImages[index] || null);
+
+    const reorderGalleryImages = (from, to) => {
+        setFormData(prev => {
+            const images = [...(prev.images || [])];
+            if (from >= images.length || to >= images.length) return prev;
+            const [moved] = images.splice(from, 1);
+            images.splice(to, 0, moved);
+            return { ...prev, images };
+        });
+    };
 
     const goToPrevImage = (e) => {
         e.stopPropagation();
-        setCurrentImageIndex((prev) => (prev === 0 ? cardImageList.length - 1 : prev - 1));
+        setCurrentImageIndex((prev) => (prev === 0 ? (isImagePreviewOpen ? imageList.length : cardImageList.length) - 1 : prev - 1));
     };
 
     const goToNextImage = (e) => {
         e.stopPropagation();
-        setCurrentImageIndex((prev) => (prev === cardImageList.length - 1 ? 0 : prev + 1));
+        setCurrentImageIndex((prev) => (prev >= (isImagePreviewOpen ? imageList.length : cardImageList.length) - 1 ? 0 : prev + 1));
     };
 
     const goToImageByIndex = (e, index) => {
@@ -2242,7 +2268,7 @@ function Card(props) {
                                             setPendingImageSlotIndex(null);
                                             learnMoreImageInputRef.current?.click();
                                         }}
-                                        disabled={isImageMutationLoading}
+                                        disabled={isImageMutationLoading || (formData.images || []).length >= MAX_CARD_IMAGES}
                                     >
                                         {isImageMutationLoading ? 'Uploading...' : 'Add New Image'}
                                     </button>
@@ -2254,80 +2280,18 @@ function Card(props) {
 
                     <div data-onboarding-target="learn-more-image-area">
 
-                    <div className="learn-more-gallery">
-                        <button
-                            type="button"
-                            className={`learn-more-gallery-tile learn-more-gallery-tile--primary${!learnMoreGallerySlots[0] ? ` learn-more-gallery-tile--placeholder${isLearnMoreEditMode ? ' learn-more-gallery-tile--placeholder-editable' : ''}` : ''}`}
-                            onClick={(e) => handleLearnMoreGalleryTileClick(e, learnMoreGallerySlots[0], 0)}
-                            title={learnMoreGallerySlots[0] ? 'Open image preview' : (isLearnMoreEditMode ? 'Click to add image' : 'No image available')}
-                        >
-                            {learnMoreGallerySlots[0] ? (
-                                <img
-                                    className="learn-more-gallery-image"
-                                    src={learnMoreGallerySlots[0].url}
-                                    alt={learnMoreGallerySlots[0].alt || 'Card image 1'}
-                                />
-                            ) : (
-                                <span className="learn-more-gallery-placeholder">No Image</span>
-                            )}
-                            {isLearnMoreEditMode && learnMoreGallerySlots[0]?.imageID && (
-                                <span
-                                    className="learn-more-gallery-delete-btn"
-                                    onClick={(e) => handleLearnMoreImageDelete(e, learnMoreGallerySlots[0])}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            handleLearnMoreImageDelete(e, learnMoreGallerySlots[0]);
-                                        }
-                                    }}
-                                    title="Delete image"
-                                    aria-label="Delete image"
-                                    role="button"
-                                    tabIndex={0}
-                                >
-                                    ×
-                                </span>
-                            )}
-                        </button>
-
-                        <div className="learn-more-gallery-side-grid">
-                            {learnMoreGallerySlots.slice(1).map((image, index) => (
-                                <button
-                                    key={`learn-more-gallery-slot-${index + 1}`}
-                                    type="button"
-                                    className={`learn-more-gallery-tile ${image ? '' : `learn-more-gallery-tile--placeholder${isLearnMoreEditMode ? ' learn-more-gallery-tile--placeholder-editable' : ''}`}`}
-                                    onClick={(e) => handleLearnMoreGalleryTileClick(e, image, index + 1)}
-                                    title={image ? `Open image ${index + 2}` : (isLearnMoreEditMode ? `Click to add image ${index + 2}` : 'No image available')}
-                                >
-                                    {image ? (
-                                        <img
-                                            className="learn-more-gallery-image"
-                                            src={image.url}
-                                            alt={image.alt || `Card image ${index + 2}`}
-                                        />
-                                    ) : (
-                                        <span className="learn-more-gallery-placeholder">No Image</span>
-                                    )}
-                                    {isLearnMoreEditMode && image?.imageID && (
-                                        <span
-                                            className="learn-more-gallery-delete-btn"
-                                            onClick={(e) => handleLearnMoreImageDelete(e, image)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' || e.key === ' ') {
-                                                    handleLearnMoreImageDelete(e, image);
-                                                }
-                                            }}
-                                            title="Delete image"
-                                            aria-label="Delete image"
-                                            role="button"
-                                            tabIndex={0}
-                                        >
-                                            ×
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                    <LearnMoreGallery
+                        images={learnMoreGalleryImages}
+                        layout={formData.gallery_layout || 'featured'}
+                        editing={isLearnMoreEditMode}
+                        busy={loading || isImageMutationLoading}
+                        coverUrl={isImageCard ? cardThumbnailSrc : learnMoreGalleryImages[0]?.url}
+                        onLayoutChange={(gallery_layout) => setFormData(prev => ({ ...prev, gallery_layout }))}
+                        onReorder={reorderGalleryImages}
+                        onOpen={openImagePreviewAtIndex}
+                        onAdd={(event, index) => handleLearnMoreGalleryTileClick(event, null, index)}
+                        onDelete={handleLearnMoreImageDelete}
+                    />
 
                     <button
                         type="button"
@@ -2954,16 +2918,16 @@ function Card(props) {
                 >
                     ×
                 </button>
-                {hasMultipleImages && (
+                {imageList.length > 1 && (
                     <button className="image-preview-nav image-preview-nav-prev" onClick={goToPrevImage} aria-label="Previous image">&#8249;</button>
                 )}
                 <img src={currentImage.url} alt="Card enlarged preview" className="image-preview-content" onError={(e) => { e.target.onerror = null; e.target.src = '/CEREO-logo.png'; }} />
-                {hasMultipleImages && (
+                {imageList.length > 1 && (
                     <button className="image-preview-nav image-preview-nav-next" onClick={goToNextImage} aria-label="Next image">&#8250;</button>
                 )}
-                {hasMultipleImages && (
+                {imageList.length > 1 && (
                     <div className="image-preview-indicators">
-                        {cardImageList.map((img, idx) => (
+                        {imageList.map((img, idx) => (
                             <button
                                 key={img.id ?? idx}
                                 className={`image-preview-bar${idx === currentImageIndex ? ' active' : ''}`}

@@ -237,6 +237,16 @@ gallery-edit-only-tests.log and gallery-edit-only-icons-tests.log. Passing outpu
 is gallery-edit-only-icons-tests-run2.log, and browser evidence is gallery-fa-tools.png.
 No backend/database changes or production calls were needed.
 
+## Main-gallery corner consistency
+
+Removed the shared selected-state border-radius override. The main-gallery cover
+now inherits the same zero-pixel corner radius as its neighboring tiles, while
+all-images tiles retain their existing ten-pixel base radius. Selected border
+color and shadow remain shared. Read-only browser measurement confirmed all five
+main tiles have radius 0px. Evidence: gallery-matching-corners.png. This CSS-only
+refinement passed diff checks and development rendering; no new logic tests were
+needed.
+
 ## Four-column refinement (2026-10-04)
 
 The latest CSS-only request sets four equal columns in the all-images grid.

@@ -214,3 +214,12 @@ keyboard focus was moved to bring the header into view. Evidence:
 gallery-square-tests.log, gallery-square-tests-run2.log, gallery-square-controls.png.
 This change does not modify backend/database behavior. Development compilation
 and diff checks pass.
+
+## Four-column refinement (2026-10-04)
+
+The latest CSS-only request sets four equal columns in the all-images grid.
+Square aspect ratios and existing selection controls are preserved. Viewports
+below 800/600/380 pixels use three/two/one columns respectively. Read-only browser
+measurement confirmed four tiles on the first row, each approximately 225x225
+pixels (previously approximately 304x304). Development rendering and diff checks
+pass. Evidence: gallery-four-columns.png in the existing evidence directory.

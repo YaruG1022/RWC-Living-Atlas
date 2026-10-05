@@ -152,6 +152,8 @@
   right: 0;
   width: 400px;
   height: 500px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 230px);
   background: var(--chat-surface);
   border: 1px solid var(--chat-border);
   border-radius: 10px 0 0 10px;

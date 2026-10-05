@@ -166,9 +166,9 @@
 /* ── Header ───────────────────────────────────────────────── */
 .chatbot-widget__header {
   background: rgba(255, 255, 255, 0.32);
-  padding: 10px 4px 6px 4px;
+  padding: 2px 4px;
   border-bottom: 1px solid var(--chat-border);
-  margin-bottom: 6px;
+  margin-bottom: 2px;
   flex-shrink: 0;
   border-radius: 8px 8px 0 0;
 }

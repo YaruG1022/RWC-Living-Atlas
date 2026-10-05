@@ -25,14 +25,15 @@ const dedupeCards = (items) => {
 };
 
 function Content2(props) {
-    const { setCardPanelWidth, cardPanelSide, setCardPanelSide } = props;
+    const { setCardPanelWidth, cardPanelSide, setCardPanelSide, onCardListViewChange } = props;
     const isOnLeft = cardPanelSide === 'left';
     const bothOnLeft = isOnLeft && !props.isCollapsed && props.isUploadPanelOpen;
     const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
     const [pendingPolygonData, setPendingPolygonData] = useState(null);
     const [pendingImageOverlayData, setPendingImageOverlayData] = useState(null);
     const [pendingPointToolSignal, setPendingPointToolSignal] = useState(null);
-    const [isListView, setIsListView] = useState((props.initialCardViewMode || 'grid') === 'list');
+    const [prefersListView, setIsListView] = useState((props.initialCardViewMode || 'grid') === 'list');
+    const isListView = bothOnLeft || prefersListView;
     const containerWidth = isListView ? 310 : (props.cardPanelWidth ?? 300);
     const containerRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -206,34 +207,10 @@ function Content2(props) {
             return next;
         });
     };
-    const prevWidthBeforeList = useRef(null);
-    const prevListViewBeforeBothLeft = useRef(null);
-
-    // Keep the map layout in sync, including restored and forced list views.
+    // Report layout mode without modifying the saved grid width.
     useEffect(() => {
-        if (isListView) {
-            if (props.cardPanelWidth !== 310) {
-                if (prevWidthBeforeList.current == null) {
-                    prevWidthBeforeList.current = props.cardPanelWidth;
-                }
-                setCardPanelWidth?.(310);
-            }
-        } else if (prevWidthBeforeList.current != null) {
-            setCardPanelWidth?.(prevWidthBeforeList.current);
-            prevWidthBeforeList.current = null;
-        }
-    }, [isListView, props.cardPanelWidth, setCardPanelWidth]);
-
-    // Force list view when card panel + upload panel both on left
-    useEffect(() => {
-        if (bothOnLeft && !isListView) {
-            prevListViewBeforeBothLeft.current = false;
-            setIsListView(true);
-        } else if (!bothOnLeft && prevListViewBeforeBothLeft.current === false) {
-            prevListViewBeforeBothLeft.current = null;
-            setIsListView(false);
-        }
-    }, [bothOnLeft]); // eslint-disable-line react-hooks/exhaustive-deps
+        onCardListViewChange?.(isListView);
+    }, [isListView, onCardListViewChange]);
 
     useEffect(() => {
         if (!props.initialCardViewMode) return;

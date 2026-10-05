@@ -59,3 +59,30 @@ handle; switching back measured 310px and zero handles again. Reviewed
 `card-list-fixed-310.png` in the evidence directory. Development rendering and
 `git diff --check` passed. No data writes, new tests, full build, mobile viewport
 or split-panel browser checks were performed.
+
+## Preserve grid width and fix view-switch synchronization
+
+2026-10-05, baseline `2831d5a`: the preceding width synchronization mutated the
+shared grid width when entering list mode. Preference loading also reset this
+width to 25% of the viewport for list preferences. Removed both writes: Home
+retains a separate grid width, while actual list mode reports only the map space
+requirement (310px). Grid drag resizing remains unchanged.
+
+Found an additional conflicting-effect bug: automatic split-panel list mode
+and initial preference loading could overwrite each other. A component test
+reproduced a 560px grid panel where the forced list should be 310px. Replaced
+competing mode effects with a derived mode (`bothOnLeft || prefersListView`).
+
+Added `Content2.width.test.js` around the actual Content2 component with external
+data/child components mocked. Initial harness failures were an unmocked Axios
+ES module and CRA resetting API mocks; repaired the harness before evaluating
+product behavior. Product result before the mode fix: 2 tests passed, forced
+split-panel test failed (expected 310px, received 560px). After fix: 3/3 width
+tests passed, covering five grid/list round trips, initial list preferences, and
+forced split-panel entry/exit. The adjacent 18 gallery tests also passed.
+
+Command: `CI=true node node_modules/react-scripts/bin/react-scripts.js test
+--watch=false --runInBand --testPathPattern='(Content2.width|LearnMoreGallery)'`.
+Local browser: three complete round trips each measured list 310px, grid 569px
+(the original grid baseline). Reviewed `grid-width-preserved.png` in the
+evidence directory. `git diff --check` passed; no data writes or deployment.

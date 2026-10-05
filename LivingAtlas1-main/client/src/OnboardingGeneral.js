@@ -120,7 +120,7 @@ const STEP_DEFINITIONS = [
     {
         selector: '[data-onboarding-target="left-sidebar-chatbot"]',
         title: 'RWC Living Atlas Helper',
-        description: 'Ask the chatbot about data and app features. The speech-bubble button opens the sidebar chat. Switch between Sidebar and Floating in the chat header; in floating mode, use the floating helper handle instead of this disabled button.',
+        description: 'Ask the chatbot about data and app features. The speech-bubble button opens the sidebar chat. Use the circular two-arrow icon in the chat header to switch between sidebar and floating modes; in floating mode, use the floating helper handle instead of this disabled button.',
         placement: 'right',
     },
     {

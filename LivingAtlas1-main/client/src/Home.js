@@ -528,7 +528,7 @@ function Home(props) {
             id: 'card-toggle-markers',
             label: 'Toggle Markers',
             keywords: ['markers', 'toggle markers', 'hide markers', 'show markers', 'card markers'],
-            action: () => clickElementByTitle({ titles: ['Hide Markers', 'Show Markers'], rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
+            action: () => clickElementByTitle({ titles: ['Toggle markers & polygons visibility', 'Hide markers & polygons', 'Show markers & polygons'] }),
         },
         {
             id: 'card-favorites-filter',

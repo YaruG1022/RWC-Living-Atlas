@@ -122,3 +122,7 @@ For requirements-to-evidence traceability, assign stable IDs to new cases (for e
 ## 8. Method references
 
 The cycle follows planning, analysis/design, implementation/execution, monitoring/control, and completion concepts in [ISTQB CTFL v4.0.1](https://www.istqb.org/certifications/certified-tester-foundation-level-ctfl-v4-0/). [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) provides a product-quality model for coverage planning. Security and accessibility references are [OWASP ASVS](https://owasp.org/projects/asvs) and [W3C WCAG 2.2](https://www.w3.org/TR/WCAG22/). [Google SRE guidance on SLOs](https://sre.google/workbook/implementing-slos/) informs future production reliability targets. These references guide test design; they do not certify this application.
+
+## GUI guide navigation regression
+
+`UserManual.test.js` renders guide sections and exercises reused image-gallery callbacks. Local GUI-copy and layout verification is recorded in [GUI_GUIDE_UPDATE_TEST_REPORT.md](GUI_GUIDE_UPDATE_TEST_REPORT.md).

@@ -18,7 +18,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="card-toolbar"]',
         title: 'Toolbar',
-        description: 'Use this toolbar to add cards, sort, filter (including favorites), switch views, and move panel docking side.',
+        description: 'Use Add Card, Sort By, and Filter By. Favorites is inside Filter By: check Show only favorited cards, then Apply. Clear resets all filters. The remaining icons switch views and docking side.',
         placement: 'left',
     },
     {
@@ -30,13 +30,13 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="card-list-area"]',
         title: 'Card Results Area',
-        description: 'Current results are shown here. You can view cards in list or grid mode and use card actions to locate items on the map quickly.',
+        description: 'Grid view shows image cards and allows panel resizing. List view uses compact title rows in a fixed 310-pixel panel with no resize handle. When Cards and GIS share the left side, list view is used automatically.',
         placement: 'left',
     },
     {
         selector: '[data-onboarding-target="onboarding-single-card"]',
         title: 'Single Card',
-        description: 'Each card includes a preview image, title, and its tags to quickly understand what the card is about.',
+        description: 'Grid cards show a preview, title, and tags; list rows show the title and a menu for card actions. Select a card to view its details.',
         placement: 'left',
         requiresCard: true,
     },

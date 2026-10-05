@@ -5,9 +5,9 @@ import api from './api.js';
 import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
 import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
-import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages } from './gallerySelection';
+import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, toggleGallerySelection } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
 import { faHeart as regularHeart, faQuestionCircle, faCirclePlay } from '@fortawesome/free-regular-svg-icons';
 import { fetchUserPreferences } from './userPreferencesApi';
@@ -1695,7 +1695,9 @@ function Card(props) {
             let selection = isEditingRef.current && prev.gallery_image_ids !== undefined ? prev.gallery_image_ids : response.data?.galleryImageIDs;
             if (includeNewUploads && isEditingRef.current && Array.isArray(selection)) {
                 const previousIDs = new Set((prev.images || []).map(galleryImageID));
-                selection = [...new Set([...selection, ...images.map(galleryImageID).filter(id => !previousIDs.has(id))])].slice(0, MAX_GALLERY_IMAGES);
+                images.map(galleryImageID).filter(id => !previousIDs.has(id) && !selection.includes(id)).forEach(id => {
+                    selection = toggleGallerySelection(selection, id);
+                });
             }
             return {
                 ...prev,
@@ -1961,10 +1963,12 @@ function Card(props) {
     );
     const learnMoreGalleryImages = selectedGalleryImages(allImagesList, formData.gallery_image_ids);
     const visibleGalleryIDs = learnMoreGalleryImages.map(galleryImageID);
+    const gallerySelectionSlots = Array.isArray(formData.gallery_image_ids)
+        ? formData.gallery_image_ids.map(id => visibleGalleryIDs.includes(id) ? id : null)
+        : visibleGalleryIDs;
     const toggleGalleryImage = (image) => {
         const id = galleryImageID(image);
-        const next = visibleGalleryIDs.includes(id) ? visibleGalleryIDs.filter(value => value !== id) : [...visibleGalleryIDs, id];
-        if (next.length > MAX_GALLERY_IMAGES) return;
+        const next = toggleGallerySelection(gallerySelectionSlots, id);
         setFormData(prev => ({ ...prev, gallery_image_ids: next }));
     };
 
@@ -2208,7 +2212,7 @@ function Card(props) {
                                         setIsAllImagesView(false);
                                     }}
                                 >
-                                    ← Back to Learn More
+                                    <FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" /> Back to Learn More
                                 </button>
                                 <p className="learn-more-all-images-count">
                                     {`Showing ${allImagesList.length} image${allImagesList.length === 1 ? '' : 's'}`}
@@ -2225,9 +2229,9 @@ function Card(props) {
                                                     checked={visibleGalleryIDs.includes(galleryImageID(image))}
                                                     disabled={!isLearnMoreEditMode || isImageMutationLoading || !resolveImageServerID(image) || (!visibleGalleryIDs.includes(galleryImageID(image)) && visibleGalleryIDs.length >= MAX_GALLERY_IMAGES)}
                                                     onChange={() => toggleGalleryImage(image)} />
-                                                <span className="learn-more-gallery-order" aria-label={visibleGalleryIDs.includes(galleryImageID(image)) ? `Display order ${visibleGalleryIDs.indexOf(galleryImageID(image)) + 1}` : undefined}>{visibleGalleryIDs.includes(galleryImageID(image)) ? visibleGalleryIDs.indexOf(galleryImageID(image)) + 1 : ''}</span>
+                                                <span className="learn-more-gallery-order" aria-label={visibleGalleryIDs.includes(galleryImageID(image)) ? `Display order ${gallerySelectionSlots.indexOf(galleryImageID(image)) + 1}` : undefined}>{visibleGalleryIDs.includes(galleryImageID(image)) ? gallerySelectionSlots.indexOf(galleryImageID(image)) + 1 : ''}</span>
                                             </span>
-                                            <span>{visibleGalleryIDs[0] === galleryImageID(image) ? 'Card cover · Show on main page' : 'Show on main page'}</span>
+                                            <span>{gallerySelectionSlots[0] === galleryImageID(image) ? 'Card cover · Show on main page' : 'Show on main page'}</span>
                                         </label>
 
 

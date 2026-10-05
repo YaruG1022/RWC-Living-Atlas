@@ -873,12 +873,19 @@
 }
 
 .Modal--learn-more .learn-more-all-image-item .learn-more-gallery-selection {
-  position: static;
-  order: 1;
-  margin: 10px;
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  margin: 0;
   padding: 7px 8px;
   font-size: .8rem;
+  background: rgba(248,250,252,.65);
+  color: rgba(51,65,85,.72);
+  border-color: rgba(203,213,225,.65);
 }
+
+.Modal--learn-more .learn-more-all-images-back-link .svg-inline--fa { width: 1em; height: 1em; margin-right: 4px; vertical-align: -.125em; }
 
 .learn-more-all-image-btn {
   flex: 1;

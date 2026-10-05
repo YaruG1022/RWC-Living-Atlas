@@ -166,3 +166,26 @@ batch endpoint, and verifies thirty records. Both endpoints reject image 31 with
 thirty images; cleanup confirms no fixture records/files remain. Evidence:
 gallery-30-limit-frontend.log and gallery-30-limit-integration.log in the existing
 evidence directory. No production storage, deployment, or load test was used.
+
+## Selection overlay, vacant ranks, and back icon (2026-10-04)
+
+The Back button uses Font Awesome's arrow-left at one em, with its icon hidden
+from the accessibility name. Its user-manual demo uses the same icon.
+Numbered selection labels now overlay the thumbnail at its bottom, using a 65%
+opaque background and 72% opaque text. They no longer consume an extra footer row.
+
+Editing keeps vacant rank slots: clearing number five leaves number six intact,
+and the next newly selected image occupies five. Multiple vacancies fill from
+the lowest available number. Main-gallery dragging defines a new consecutive
+ordering. Save sends only selected image IDs, removing unfilled slots; saved
+rank numbers are consecutive. Cancel restores the saved selection. Uploads fill
+available slots without displacing selected images or exceeding six.
+
+34 frontend checks pass, including the exact five-to-new-image scenario, unchanged
+six, icon rendering, main-gallery order, ordered JSON save, cancel, and uploads.
+Read-only browser measurements confirm all seven labels fit inside 190-pixel
+image regions; the entire tile is approximately 192 pixels high including its
+border. The screenshot preserves the user's current draft and shows the changed
+icon and transparent overlays. Evidence: gallery-overlay-vacancy-tests.log and
+gallery-overlay-vacancy.png. Backend selection validation is unchanged; null
+vacancies exist only in the editing draft and are excluded from saved JSON.

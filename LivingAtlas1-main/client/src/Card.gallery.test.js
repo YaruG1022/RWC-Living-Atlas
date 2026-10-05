@@ -52,11 +52,11 @@ test('selected numbers and cover follow main-page dragging; all-images has no so
     expect(within(label(1)).getByLabelText('Display order 1')).toBeTruthy();
     expect(label(1).textContent).toContain('Card cover');
     fireEvent.click(screen.getByRole('checkbox', { name: 'Show image 1 on main page' }));
-    expect(within(label(2)).getByLabelText('Display order 1')).toBeTruthy();
-    expect(label(2).textContent).toContain('Card cover');
+    expect(within(label(2)).getByLabelText('Display order 2')).toBeTruthy();
+    expect(label(2).textContent).not.toContain('Card cover');
     expect(label(1).querySelector('.learn-more-gallery-order').textContent).toBe('');
-    expect(label(2).querySelector('input').nextElementSibling.getAttribute('aria-label')).toBe('Display order 1');
-    fireEvent.click(screen.getByRole('button', { name: '← Back to Learn More', exact: true }));
+    expect(label(2).querySelector('input').nextElementSibling.getAttribute('aria-label')).toBe('Display order 2');
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Learn More', exact: true }));
     const returnedGallery = screen.getByRole('region', { name: 'Card image gallery' });
     const dataTransfer = { setData: jest.fn() };
     fireEvent.dragStart(within(returnedGallery).getByRole('button', { name: 'Open image 2' }).parentElement, { dataTransfer });
@@ -116,6 +116,26 @@ test.each([8, 29, 30])('all-images upload availability at %i images respects the
     expect(screen.getAllByRole('checkbox', { name: /on main page/ }).filter(input => input.checked)).toHaveLength(6);
 });
 
+test('clearing number five preserves six and assigns five to the next selected image', async () => {
+    savedCard.images = Array.from({ length: 7 }, (_, index) => ({ imageID: index + 1, url: `/vacancy-${index + 1}.jpg` }));
+    await editCard();
+    fireEvent.click(screen.getByRole('button', { name: 'See all 7 images' }));
+    const back = screen.getByRole('button', { name: 'Back to Learn More', exact: true });
+    expect(back.querySelector('svg[data-icon="arrow-left"]')).toBeTruthy();
+    const label = index => screen.getByRole('checkbox', { name: `Show image ${index} on main page` }).closest('label');
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Show image 5 on main page' }));
+    expect(within(label(6)).getByLabelText('Display order 6')).toBeTruthy();
+    expect(label(5).querySelector('.learn-more-gallery-order').textContent).toBe('');
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Show image 7 on main page' }));
+    expect(within(label(7)).getByLabelText('Display order 5')).toBeTruthy();
+    expect(within(label(6)).getByLabelText('Display order 6')).toBeTruthy();
+    fireEvent.click(back);
+    expect(within(screen.getByRole('region', { name: 'Card image gallery' })).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual([1,2,3,4,7,6].map(id => `/vacancy-${id}.jpg`));
+    fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
+    await waitFor(() => expect(screen.queryByLabelText('Image layout')).toBeNull());
+    expect(api.post.mock.calls[0][1].get('gallery_image_ids')).toBe('[1,2,3,4,7,6]');
+});
+
 test('main-page selection caps at six and applies to both modes; cancel restores selection', async () => {
     savedCard.images = Array.from({ length: 8 }, (_, index) => ({ imageID: index + 1, url: `/selection-${index + 1}.jpg` }));
     const gallery = await editCard();
@@ -124,13 +144,13 @@ test('main-page selection caps at six and applies to both modes; cancel restores
     expect(screen.getByRole('checkbox', { name: 'Show image 7 on main page' }).disabled).toBe(true);
     fireEvent.click(screen.getByRole('checkbox', { name: 'Show image 1 on main page' }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Show image 7 on main page' }));
-    fireEvent.click(screen.getByRole('button', { name: '← Back to Learn More', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Learn More', exact: true }));
     const mainGallery = screen.getByRole('region', { name: 'Card image gallery' });
-    expect(within(mainGallery).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual([2,3,4,5,6,7].map(id => `/selection-${id}.jpg`));
+    expect(within(mainGallery).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual([7,2,3,4,5,6].map(id => `/selection-${id}.jpg`));
     fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'slideshow' } });
     expect(within(mainGallery).getAllByRole('button', { name: /^Show gallery image/ })).toHaveLength(6);
     fireEvent.click(within(mainGallery).getByRole('button', { name: 'Show gallery image 6' }));
-    expect(within(mainGallery).getByRole('img').getAttribute('src')).toBe('/selection-7.jpg');
+    expect(within(mainGallery).getByRole('img').getAttribute('src')).toBe('/selection-6.jpg');
     fireEvent.click(screen.getByRole('button', { name: 'Cancel', exact: true }));
     await waitFor(() => expect(screen.queryByLabelText('Image layout')).toBeNull());
     expect(within(screen.getByRole('region', { name: 'Card image gallery' })).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual([1,2,3,4,5,6].map(id => `/selection-${id}.jpg`));
@@ -149,7 +169,7 @@ test('selection saves as JSON and remains visible after refreshing the saved car
     fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
     await waitFor(() => expect(screen.getByRole('checkbox', { name: 'Show image 1 on main page' }).disabled).toBe(true));
     expect(api.post.mock.calls[0][1].get('gallery_image_ids')).toBe('[2,3]');
-    fireEvent.click(screen.getByRole('button', { name: '← Back to Learn More', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Learn More', exact: true }));
     expect(within(screen.getByRole('region', { name: 'Card image gallery' })).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual(['/fixture-2.jpg','/fixture-3.jpg']);
 });
 

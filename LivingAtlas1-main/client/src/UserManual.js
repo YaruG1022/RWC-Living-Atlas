@@ -20,6 +20,7 @@ import {
   faSync,
   faChevronUp,
   faChevronDown,
+  faArrowLeft,
   faFolderPlus,
   faMap,
   faCamera,
@@ -1828,7 +1829,7 @@ function UserManual() {
               <div className="um-isolated-demo um-all-images-demo">
                 <div className="learn-more-all-images-view">
                   <div className="learn-more-all-images-header">
-                    <button type="button" className="learn-more-all-images-back-link" style={{ pointerEvents: 'none' }}>← Back to Learn More</button>
+                    <button type="button" className="learn-more-all-images-back-link" style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" /> Back to Learn More</button>
                     <p className="learn-more-all-images-count">Showing 3 images</p>
                   </div>
                   <div className="learn-more-all-images-list">

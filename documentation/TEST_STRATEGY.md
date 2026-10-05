@@ -55,6 +55,11 @@ Use synthetic or de-identified data. Give each run a unique prefix and auditable
 
 ## 4. Completed tests and traceable evidence
 
+Gallery layout verification (2026-10-04): 1–8 image grids, slideshow navigation,
+drag/button ordering, draft save/cancel and upload limits are covered by offline
+component and backend contract tests. See [gallery verification report](GALLERY_LAYOUT_TEST_REPORT.md)
+for commands, browser checks, first failures, and database/deployment limitations.
+
 “Completed” below refers only to local runs on 2026-09-26. Exact commands, metrics, first failures, fixes, and limitations are in [TEST_REPORT.md](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.md). Execution instructions are in [load_tests/README.md](../LivingAtlas1-main/backend/load_tests/README.md).
 
 | ID | Type / level | Scenario and oracle | Status and evidence | Defect exposed / remaining work |

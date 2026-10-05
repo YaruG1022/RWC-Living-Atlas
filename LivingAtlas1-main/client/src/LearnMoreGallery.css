@@ -19,7 +19,7 @@
 .Modal--learn-more .lm-gallery-section .lm-gallery-image-button { display: block; width: 100%; height: 100%; cursor: pointer; }
 .lm-gallery-image-button img { width: 100%; height: 100%; display: block; object-fit: scale-down; object-position: center; }
 .lm-gallery-empty { display: flex; height: 100%; align-items: center; justify-content: center; color: #64748b; background: #f1f5f9; }
-.lm-gallery-cover { position: absolute; top: 8px; left: 8px; padding: 4px 8px; border-radius: 5px; background: #0077c0; color: white; font-size: .7rem; font-weight: 600; pointer-events: none; }
+.lm-gallery-cover { position: absolute; top: 8px; left: 8px; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 5px; background: #e2e8f0; color: #334155; font-size: .7rem; font-weight: 600; pointer-events: none; }
 .lm-gallery-tile-tools { display: flex; align-items: center; position: absolute; bottom: 8px; right: 8px; gap: 4px; padding: 3px; border-radius: 7px; background: rgba(255,255,255,.95); }
 .lm-gallery-tile-tools .svg-inline--fa { width: 12px; height: 12px; }
 .Modal--learn-more .lm-gallery-tile-tools button { width: 28px; height: 28px; border-radius: 4px; cursor: pointer; }

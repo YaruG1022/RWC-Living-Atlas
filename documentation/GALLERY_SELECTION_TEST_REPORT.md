@@ -273,3 +273,13 @@ below 800/600/380 pixels use three/two/one columns respectively. Read-only brows
 measurement confirmed four tiles on the first row, each approximately 225x225
 pixels (previously approximately 304x304). Development rendering and diff checks
 pass. Evidence: gallery-four-columns.png in the existing evidence directory.
+
+## Neutral card-cover badge (2026-10-05)
+
+Changed the Learn More card-cover badge from blue/white to the modal's slate
+palette: background #e2e8f0, text #334155, border #cbd5e1. The existing `editing`
+condition remains authoritative for badge visibility. All 18 LearnMoreGallery
+tests passed, including multi-image and slideshow cases that verify the cover
+mark is present only while editing. `git diff --check` passed. Browser inspection
+did not reach the modal during this follow-up, so visual verification of the new
+badge color is not claimed. No card data was saved.

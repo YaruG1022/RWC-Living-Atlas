@@ -16,3 +16,11 @@ Match current GUI controls and placement: Filter By favorites with staged Apply/
 First manual test command ran at repository root and failed Jest root-directory validation; reran at client cwd. Initial passing test emitted jsdom scrollTo-not-implemented diagnostics; mocked the browser-only scroll API and reran cleanly. Browser screenshot exposed Add Card text constrained by the old icon-only class; removed that class and verified the final layout. A browser tour click attempted while Cards was collapsed; opened Cards and verified the tour. No new dependencies.
 
 Limitations: local guide validation, not a deployed preview or production validation. Other unchanged tours were source-audited, not exhaustively replayed.
+
+## Categorized release notes follow-up
+
+Baseline a2b835c. Added a 10/5/2026 release to both ChangelogModal and ChangelogHistory, with shared content covering gallery management, Cards/filtering, headers/chat, popups/coordinates, and guides. Small style edits are grouped with their larger feature. Earlier dates and Future Works are retained.
+
+`CI=true node node_modules/react-scripts/bin/react-scripts.js test --watch=false --runInBand --testPathPattern='Changelog'` at client cwd: 1 test passed. Oracle: both views render every shared category/item; latest dialog release is open and previous release collapsed; old history remains. Initial test failed because its modal app element was document.body, hiding the dialog from role queries. The harness now uses a dedicated application root, matching real modal isolation; rerun passed. Product modal accessibility was unchanged.
+
+Browser localhost confirmed both updated views. Screenshots: changelog-oct5.png and update-history-oct5.png in the same evidence directory above. No test records created. Static diff checks passed; no backend, configuration, migration, deployment, or production changes.

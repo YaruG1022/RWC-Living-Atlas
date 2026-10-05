@@ -2,6 +2,7 @@ import React from 'react';
 import Modal from 'react-modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { latestGuiUpdateDate, latestGuiUpdates } from './latestGuiUpdates';
 
 function ChangelogModal({ isOpen, onClose }) {
     return (
@@ -22,6 +23,21 @@ function ChangelogModal({ isOpen, onClose }) {
 
             <div className="onboarding-modal-body changelog-modal-body">
                 <details className="onboarding-section changelog-release" open>
+                    <summary>
+                        <h3>Update Date: {latestGuiUpdateDate}</h3>
+                        <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />
+                    </summary>
+                    <div className="onboarding-section-content">
+                        {latestGuiUpdates.map(group => <React.Fragment key={group.title}>
+                            <h4>{group.title}</h4>
+                            <ul className="changelog-list">
+                                {group.items.map(item => <li key={item}>{item}</li>)}
+                            </ul>
+                        </React.Fragment>)}
+                    </div>
+                </details>
+
+                <details className="onboarding-section changelog-release">
                     <summary>
                         <h3>Update Date: 9/27/2026</h3>
                         <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />

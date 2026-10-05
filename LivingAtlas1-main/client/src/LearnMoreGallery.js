@@ -83,12 +83,10 @@ export default function LearnMoreGallery({ images: allImages, totalImageCount = 
                     <span aria-live="polite">{activeSlide + 1} / {images.length}</span>
                 </div>}
             </div>
-            {editing && <button type="button" data-gallery-control className="lm-gallery-add" disabled={!canAdd} onClick={(event) => onAdd(event, null)}>{totalImageCount >= MAX_CARD_IMAGES ? '8-image limit reached' : '+ Add image'}</button>}
         </> : <>
             <div className={`lm-gallery-grid lm-gallery-layout-${gridLayout}`}>
                 {slots.map(renderTile)}
             </div>
-            {editing && <button type="button" data-gallery-control className="lm-gallery-add" disabled={!canAdd} onClick={(event) => onAdd(event, null)}>{totalImageCount >= MAX_CARD_IMAGES ? '8-image limit reached' : '+ Add image'}</button>}
         </>}
     </section>;
 }

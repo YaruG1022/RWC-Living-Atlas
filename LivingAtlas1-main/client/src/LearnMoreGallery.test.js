@@ -15,16 +15,15 @@ test.each(['grid-7', 'grid-8'])('legacy %s displays six images without removing 
     render(<LearnMoreGallery {...props()} layout={layout} />);
     expect(screen.getAllByRole('button', { name: /^Open image/ })).toHaveLength(6);
     expect(screen.getByLabelText('Image layout').value).toBe('multi');
-    expect(screen.getByRole('button', { name: '8-image limit reached' }).disabled).toBe(true);
+    expect(screen.queryByRole('button', { name: '+ Add image' })).toBeNull();
 });
 
-test('layout changes and uploads are delegated to the editor', () => {
+test('layout changes are delegated and the main page has no add-image button', () => {
     const callbacks = props();
     render(<LearnMoreGallery {...callbacks} images={images.slice(0, 2)} layout="grid-6" />);
     fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'slideshow' } });
     expect(callbacks.onLayoutChange).toHaveBeenCalledWith('slideshow');
-    fireEvent.click(screen.getByRole('button', { name: '+ Add image' }));
-    expect(callbacks.onAdd).toHaveBeenCalledWith(expect.anything(), null);
+    expect(screen.queryByRole('button', { name: '+ Add image' })).toBeNull();
 });
 
 test('dragging and keyboard-accessible arrows reorder images without opening the preview', () => {
@@ -80,7 +79,7 @@ test('busy editor blocks mutations; cover marking follows its image rather than 
 test('eight-image cards cannot upload more while the selector offers only two modes', () => {
     const callbacks = props();
     render(<LearnMoreGallery {...callbacks} layout="slideshow" />);
-    fireEvent.click(screen.getByRole('button', { name: '8-image limit reached' }));
+    expect(screen.queryByRole('button', { name: '+ Add image' })).toBeNull();
     expect(callbacks.onAdd).not.toHaveBeenCalled();
     expect(screen.getAllByRole('button', { name: /^Show gallery image/ })).toHaveLength(6);
     expect(Array.from(screen.getByLabelText('Image layout').options).map(option => option.value)).toEqual(['multi', 'slideshow']);
@@ -93,8 +92,5 @@ test.each([false, true])('a single image fills the gallery without empty slots (
     expect(screen.queryByText('No image')).toBeNull();
     expect(container.querySelectorAll('.lm-gallery-cell')).toHaveLength(1);
     expect(container.querySelector('.lm-gallery-layout-grid-1')).toBeTruthy();
-    if (editing) {
-        fireEvent.click(screen.getByRole('button', { name: '+ Add image' }));
-        expect(callbacks.onAdd).toHaveBeenCalledWith(expect.anything(), null);
-    }
+    expect(screen.queryByRole('button', { name: '+ Add image' })).toBeNull();
 });

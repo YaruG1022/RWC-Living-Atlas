@@ -36,10 +36,11 @@
 .lm-gallery-slideshow img { object-fit: scale-down; }
 .Modal--learn-more .lm-gallery-section .lm-gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 44px; border: 1px solid #cbd5e1; border-radius: 8px; background: rgba(255,255,255,.95); font-size: 1.8rem; cursor: pointer; }
 .lm-gallery-nav.previous { left: 12px; } .lm-gallery-nav.next { right: 12px; }
-.lm-gallery-pagination { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 6px; padding: 12px 24px; }
-.Modal--learn-more .lm-gallery-section .lm-gallery-pagination button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid #cbd5e1; cursor: pointer; }
-.Modal--learn-more .lm-gallery-section .lm-gallery-pagination button[aria-pressed="true"] { background: #0077c0; border-color: #0077c0; color: white; }
-.lm-gallery-pagination span { color: #64748b; font-size: .8rem; margin-left: 8px; }
+.lm-gallery-pagination { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; max-width: calc(100% - 24px); overflow: hidden; border: 1px solid rgba(148,163,184,.45); border-radius: 8px; background: rgba(248,250,252,.82); backdrop-filter: blur(8px); box-shadow: 0 2px 8px rgba(15,23,42,.08); }
+.Modal--learn-more .lm-gallery-section .lm-gallery-pagination button { flex: 1 1 32px; min-width: 24px; width: 32px; height: 32px; border-radius: 0; border-right: 1px solid rgba(148,163,184,.3); cursor: pointer; }
+.Modal--learn-more .lm-gallery-section .lm-gallery-pagination button[aria-pressed="true"] { background: rgba(100,116,139,.25); color: #1e293b; font-weight: 700; }
+.lm-gallery-pagination span { color: #475569; font-size: .8rem; padding: 0 10px; white-space: nowrap; }
+.lm-gallery-slideshow .lm-gallery-tile-tools { bottom: 56px; }
 .Modal--learn-more .lm-gallery-section .lm-gallery-add { margin: 0 24px 12px; padding: 7px 12px; border: 1px solid #cbd5e1; border-radius: 7px; background: white; cursor: pointer; }
 @media (max-width: 600px) {
     .lm-gallery-section { margin: -16px -16px 14px; }

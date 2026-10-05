@@ -76,11 +76,11 @@ export default function LearnMoreGallery({ images, layout = 'featured', editing,
                     <button type="button" data-gallery-control className="lm-gallery-nav previous" aria-label="Previous gallery image" onClick={() => setSlide((activeSlide + images.length - 1) % images.length)}>‹</button>
                     <button type="button" data-gallery-control className="lm-gallery-nav next" aria-label="Next gallery image" onClick={() => setSlide((activeSlide + 1) % images.length)}>›</button>
                 </>}
+                {images.length > 0 && <div className="lm-gallery-pagination" aria-label="Choose gallery image">
+                    {images.map((image, index) => <button type="button" data-gallery-control key={image.id ?? index} aria-label={`Show gallery image ${index + 1}`} aria-pressed={activeSlide === index} onClick={() => setSlide(index)}>{index + 1}</button>)}
+                    <span aria-live="polite">{activeSlide + 1} / {images.length}</span>
+                </div>}
             </div>
-            {images.length > 0 && <div className="lm-gallery-pagination" aria-label="Choose gallery image">
-                {images.map((image, index) => <button type="button" data-gallery-control key={image.id ?? index} aria-label={`Show gallery image ${index + 1}`} aria-pressed={activeSlide === index} onClick={() => setSlide(index)}>{index + 1}</button>)}
-                <span aria-live="polite">{activeSlide + 1} / {images.length}</span>
-            </div>}
             {editing && <button type="button" data-gallery-control className="lm-gallery-add" disabled={!canAdd} onClick={(event) => onAdd(event, null)}>{images.length >= MAX_CARD_IMAGES ? '8-image limit reached' : '+ Add image'}</button>}
         </> : <>
             <div className={`lm-gallery-grid lm-gallery-layout-${gridLayout}`}>

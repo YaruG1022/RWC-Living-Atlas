@@ -45,6 +45,15 @@ From `LivingAtlas1-main/client`, run `npm start`, then open
 The chatbot uses a separate service and is outside this local database setup.
 External ArcGIS and Mapbox services may still be contacted by map features.
 
+## Local uploaded images and files
+
+With `LOCAL_TEST_MODE=1`, images, thumbnails and attachments are stored under
+`backend/uploads/local_test/` and served by the local backend at `/uploads/local_test/`.
+No Azure connection string is needed for local uploads. This directory is ignored
+by Git. Local deletion removes only files in this directory; referenced remote
+Azure files are left untouched. Hosted mode continues to use Azure Blob Storage.
+Restart the backend after changing storage code or environment settings.
+
 ## Stop and restart PostgreSQL
 
 ```powershell

@@ -102,3 +102,38 @@ The user's active editor was left intact and no card data was saved or changed.
 
 Raw evidence in the directory above: `gallery-single-before.log`,
 `gallery-single-after.log`, and `gallery-single-fixed.png`.
+
+## Local image upload correction (2026-10-04)
+
+The user reproduced `Azure upload failed: AZURE_STORAGE_CONNECTION_STRING is not
+set` using Add image. Storage helpers unconditionally selected Azure despite
+`LOCAL_TEST_MODE=1`. Offline tests reproduced the missing-credentials error and
+incorrect Azure calls before the fix (`local-storage-before.log`).
+
+Storage helpers now use `uploads/local_test/` exclusively in local test mode.
+Uploads return relative URLs served by the backend's existing static mount;
+thumbnails and attachments use the same routing. Local deletion cannot remove
+referenced remote Azure blobs, and resolved local paths must remain within their
+container. Hosted mode continues to call Azure. Uploaded local files are ignored
+by Git. Five offline storage tests and six gallery contract tests pass.
+
+The local backend was restarted and `scripts/check_local_upload.py` ran against
+the verified `127.0.0.1:5433/livingatlas_test` database and local port 8000.
+One uniquely prefixed fixture card received one single upload and a two-image
+batch. All three returned 200, matched the three persisted rows and display
+orders, served identical PNG bytes via both static and proxy routes, and were
+deleted successfully. Their former static URLs returned 404. Cleanup confirmed
+zero fixture card/image records and zero fixture files. Existing cards, uploads,
+and the user's frontend draft were preserved. Azure and other external storage
+were excluded. Raw output: `local-upload-integration.log` in the directory above.
+
+Repeat from the backend directory:
+
+```powershell
+./.venv-local/Scripts/python.exe -m unittest discover -s tests -p test_local_storage.py -v
+./.venv-local/Scripts/python.exe scripts/check_local_upload.py
+```
+
+This verifies local storage; no Azure credential or production storage integration
+was tested. Rollback to Azure-only helpers prevents future local uploads without
+credentials, but the existing static mount can still serve already uploaded files.

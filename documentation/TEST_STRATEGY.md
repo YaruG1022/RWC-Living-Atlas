@@ -59,6 +59,11 @@ Gallery layout verification (2026-10-04): 1–8 image grids, slideshow navigatio
 drag/button ordering, draft save/cancel and upload limits are covered by offline
 component and backend contract tests. See [gallery verification report](GALLERY_LAYOUT_TEST_REPORT.md)
 for commands, browser checks, first failures, and database/deployment limitations.
+Local upload verification (2026-10-04): isolated single/batch image uploads,
+database reconciliation, static/proxy serving, deletion and zero-residue cleanup
+are implemented in `backend/scripts/check_local_upload.py`; the same report
+records evidence. Offline `test_local_storage.py` covers local/hosted routing and
+local path containment without contacting Azure.
 
 “Completed” below refers only to local runs on 2026-09-26. Exact commands, metrics, first failures, fixes, and limitations are in [TEST_REPORT.md](../LivingAtlas1-main/backend/load_tests/TEST_REPORT.md). Execution instructions are in [load_tests/README.md](../LivingAtlas1-main/backend/load_tests/README.md).
 

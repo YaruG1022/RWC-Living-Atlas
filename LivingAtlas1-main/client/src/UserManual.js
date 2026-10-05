@@ -81,7 +81,7 @@ const SECTION_GROUPS = [
     id: 'getting-started',
     label: 'Getting Started',
     sections: [
-      { id: 'home', label: '🏠  Overview' },
+      { id: 'home', label: 'Overview' },
       { id: 'feature-search-panel', label: 'Feature Search Panel' },
       { id: 'chatbot', label: 'Atlas Helper' },
     ],

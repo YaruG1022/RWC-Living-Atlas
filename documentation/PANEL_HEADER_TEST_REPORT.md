@@ -86,3 +86,20 @@ Command: `CI=true node node_modules/react-scripts/bin/react-scripts.js test
 Local browser: three complete round trips each measured list 310px, grid 569px
 (the original grid baseline). Reviewed `grid-width-preserved.png` in the
 evidence directory. `git diff --check` passed; no data writes or deployment.
+
+## Favorites inside Filter By
+
+2026-10-05, baseline `83d093d`: removed the toolbar Favorites button and added
+Show only favorited cards to Filter By. Its pending value is applied with category
+and tags, reset by Clear, discarded on dismissal, and included in the active
+filter count. Signed-out visitors see a disabled checkbox and login hint. Existing
+bookmark filtering is reused. Homepage feature search now opens Filter By for
+favorites, and toolbar onboarding text reflects the moved functionality.
+
+Added three FilterDropdown tests for apply/count/clear, dismissed edits, and
+signed-out access. These and three width regression tests passed (6 total).
+Browser confirmed checkbox placement and toolbar removal. Apply showed zero
+cards for the current account's empty favorites with badge 1; Clear restored all
+three cards and removed the badge. Reviewed `favorites-in-filter.png` in the
+evidence directory. No bookmark or card data was changed. `git diff --check`
+passed; no backend changes or deployment.

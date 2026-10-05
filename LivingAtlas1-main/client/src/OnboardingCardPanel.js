@@ -18,7 +18,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="card-toolbar"]',
         title: 'Toolbar',
-        description: 'Use this toolbar to add cards, show or hide markers, sort, filter, manage favorites, switch views, and move panel docking side.',
+        description: 'Use this toolbar to add cards, sort, filter (including favorites), switch views, and move panel docking side.',
         placement: 'left',
     },
     {

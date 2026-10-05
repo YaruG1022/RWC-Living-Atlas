@@ -534,7 +534,7 @@ function Home(props) {
             id: 'card-favorites-filter',
             label: 'Favorites Filter',
             keywords: ['favorites', 'favorite cards', 'bookmark filter', 'show favorited cards'],
-            action: () => clickElementByTitle({ titles: ['Show only favorited cards', 'Log in to use favorites filter'], rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
+            action: () => clickElementByTitle({ titles: 'Filter cards', rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
         },
         {
             id: 'card-scope-toggle',

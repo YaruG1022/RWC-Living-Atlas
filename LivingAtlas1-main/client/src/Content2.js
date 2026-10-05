@@ -220,12 +220,12 @@ function Content2(props) {
         ? String(props.selectedCardIdFromMap)
         : null;
 
-    const handleFavoritesToggle = () => {
-        if (!props.isLoggedIn) {
+    const handleFavoritesChange = (enabled) => {
+        if (enabled && !props.isLoggedIn) {
             setShowLoginPrompt(true);
             return;
         }
-        setShowFavoritesOnly(prev => !prev);
+        setShowFavoritesOnly(enabled);
     };
 
     const toggleViewScope = () => {
@@ -960,6 +960,9 @@ function Content2(props) {
                             />
 
                             <FilterDropdown
+                                favoritesOnly={showFavoritesOnly}
+                                onFavoritesChange={handleFavoritesChange}
+                                canUseFavorites={props.isLoggedIn}
                                 categoryValue={cardTypeFilter}
                                 onCategoryChange={(newValue) => {
                                     setCardTypeFilter(newValue);
@@ -971,16 +974,6 @@ function Content2(props) {
                                     props.setFilterCondition?.(newTags.join(','));
                                 }}
                             />
-
-                            <button
-                                type="button"
-                                className={`card-toolbar-button ${showFavoritesOnly ? 'active' : ''}`}
-                                onClick={handleFavoritesToggle}
-                                title={props.isLoggedIn ? 'Show only favorited cards' : 'Log in to use favorites filter'}
-                            >
-                                <FontAwesomeIcon icon={faHeart} />
-                                <span>{showFavoritesOnly ? 'Favorites On' : 'Favorites'}</span>
-                            </button>
 
                             <button
                                 type="button"

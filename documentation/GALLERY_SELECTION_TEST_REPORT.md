@@ -75,3 +75,16 @@ Repeat from the backend directory:
 ```powershell
 ./.venv-local/Scripts/python.exe scripts/check_gallery_selection.py
 ```
+
+## Main-page Add image removal
+
+The subsequent user request removes the separate Add image button below the main
+gallery in both modes. Add New Image remains on the all-images page; the existing
+empty-gallery tile is unchanged. Obsolete button CSS was removed.
+
+The first 29-test run passed 28 cases but exceeded Jest's five-second timeout in
+the existing eight-image selection/cancel case (30.814 seconds total). An unchanged
+rerun passed all 29 in under ten seconds. Both outputs are retained as
+`gallery-remove-main-add.log` and `gallery-remove-main-add-run2.log`. The timeout's
+cause was not established; it is recorded as test-timing variability, not evidence
+of a product failure or performance compliance. No new API/database changes.

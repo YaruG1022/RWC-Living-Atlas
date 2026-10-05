@@ -29,3 +29,17 @@ Local browser verification: opened the floating panel through its visible handle
 First local browser measurement was 200×350px: the shared Mapbox popup rule used `height: 350px !important`, overriding the initial card-specific height. Added the matching card-specific priority and remeasured successfully at 200×250px. Information region measured 89px and footer 32.8px; title, category, tags, image preview, close and Edit controls remained visible. Screenshot `map-card-popup-200x250.png` in the evidence directory was visually reviewed. `git diff --check` passed. CSS-only scope; no API/database writes, new tests, full build, mobile viewport run, or deployment verification.
 
 Follow-up: requested width changed to 275px with height retained at 250px. `git diff --check` passed. Browser verification could not measure an open popup while the map view was changing; this follow-up size is verified in CSS only.
+
+## Toolbar labels and smaller header buttons
+
+2026-10-05, baseline `6132f04`: Add Card now has visible text alongside the plus
+icon and uses the standard toolbar button width. Removed the adjacent marker
+visibility toggle and its now-unused state/import. Header circles in Cards,
+ArcGIS Services, Custom Layers, Map Style, Watershed, and Chatbot are 24px rather
+than 28px; icon sizes and handlers remain unchanged.
+
+Local browser confirmed the Add Card label, absence of Hide/Show Markers, and
+24×24px dimensions for all six visible Cards/ArcGIS header buttons. Reviewed
+`panel-toolbar-compact-buttons.png` in the evidence directory; controls remain
+aligned in the narrow Cards panel. Development rendering and `git diff --check`
+passed. No card creation, data writes, new tests, or full build were needed.

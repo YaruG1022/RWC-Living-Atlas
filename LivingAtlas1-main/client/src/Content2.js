@@ -10,7 +10,6 @@ import CardPanelOnboarding from './OnboardingCardPanel';
 import axios from 'axios';
 import { showAll, filterCategory, filterTag, filterCategoryAndTag } from "./Filter.js";
 import { curLocationCoordinates, searchLocationCoordinates } from './Content1.js';
-import { allMarkers } from './Content1.js';
 import api from './api.js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAngleDoubleLeft, faAngleDoubleRight, faHeart, faSearch, faTimes, faPlus, faMapMarkerAlt, faList, faGrip, faRightLeft, faThumbtack, faEllipsisV, faQuestion, faPlay } from '@fortawesome/free-solid-svg-icons';
@@ -179,7 +178,6 @@ function Content2(props) {
     const resolvedUsername = props.username || location.state?.username || localStorage.getItem("username");
 
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-    const [markersVisible, setMarkersVisible] = useState(true);
     const [cardSearchKeyword, setCardSearchKeyword] = useState(props.searchCondition || '');
     const [cardTypeFilter, setCardTypeFilter] = useState(props.CategoryCondition || '');
     const [sortMode, setSortMode] = useState((props.sortCondition || '').split(',')[0] || '');
@@ -948,7 +946,7 @@ function Content2(props) {
                     <div className="card-panel-toolbar" data-onboarding-target="card-toolbar">
                             <button
                                 type="button"
-                                className="card-toolbar-button card-toolbar-button--icon"
+                                className="card-toolbar-button"
                                 title={props.isLoggedIn ? 'Add Card' : 'Log in to add a card'}
                                 onClick={() => {
                                     if (!props.isLoggedIn) {
@@ -959,22 +957,7 @@ function Content2(props) {
                                 }}
                             >
                                 <FontAwesomeIcon icon={faPlus} />
-                            </button>
-
-                            <button
-                                type="button"
-                                className={`card-toolbar-button card-toolbar-button--icon ${!markersVisible ? 'active' : ''}`}
-                                title={markersVisible ? 'Hide Markers' : 'Show Markers'}
-                                onClick={() => {
-                                    const newVisible = !markersVisible;
-                                    setMarkersVisible(newVisible);
-                                    allMarkers.forEach(m => {
-                                        const el = m.getElement();
-                                        if (el) el.style.display = newVisible ? '' : 'none';
-                                    });
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faMapMarkerAlt} />
+                                <span>Add Card</span>
                             </button>
 
                             <SortDropdown

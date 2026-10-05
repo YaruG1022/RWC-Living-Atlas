@@ -178,3 +178,17 @@ Repeat from the backend directory:
 Rollback may leave the additional default-cover rows intact; they contain existing
 thumbnail references and preserve image ordering. Older deletion behavior would
 restore a logo after final-image deletion, so rollback changes that user behavior.
+
+## Six-image display limit (2026-10-04)
+
+The layout selector now offers grids of one through six images, alongside featured
+and slideshow layouts. Previously saved grid-7/grid-8 settings display as grid-6.
+The total storage/upload limit remains eight; additional images remain available
+in slideshow and See all images, with no records removed. Backend acceptance of
+legacy layout values is retained for compatibility with existing drafts/clients.
+
+All 22 gallery/Card tests pass, including legacy layout fallback, eight-image
+slideshow access, and saving/canceling a six-image layout. The initial run failed
+three older Card tests because they selected the removed grid-8 option; those
+tests now select grid-6. Both runs are preserved in `gallery-six-display-tests.log`
+and `gallery-six-display-tests-run2.log` in the evidence directory above.

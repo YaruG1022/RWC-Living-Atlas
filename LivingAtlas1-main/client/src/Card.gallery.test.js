@@ -47,7 +47,7 @@ async function editCard() {
 
 test('cancel restores layout, image order and staged deletion without database writes', async () => {
     const gallery = await editCard();
-    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'grid-8' } });
+    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'grid-6' } });
     fireEvent.click(within(gallery).getByRole('button', { name: 'Move image 2 earlier' }));
     fireEvent.click(within(gallery).getByRole('button', { name: 'Delete image 3' }));
     expect(within(gallery).getAllByRole('img')).toHaveLength(2);
@@ -61,7 +61,7 @@ test('cancel restores layout, image order and staged deletion without database w
 
 test('save sends layout and reordered IDs and view mode retains the saved layout', async () => {
     const gallery = await editCard();
-    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'grid-8' } });
+    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'grid-6' } });
     fireEvent.click(within(gallery).getByRole('button', { name: 'Move image 2 earlier' }));
     api.post.mockImplementation((url, body) => {
         if (url === '/uploadForm') savedCard = { ...savedCard, gallery_layout: body.get('gallery_layout') };
@@ -73,15 +73,15 @@ test('save sends layout and reordered IDs and view mode retains the saved layout
     });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(screen.queryByLabelText('Image layout')).toBeNull());
-    expect(api.post.mock.calls[0][1].get('gallery_layout')).toBe('grid-8');
+    expect(api.post.mock.calls[0][1].get('gallery_layout')).toBe('grid-6');
     expect(api.put).toHaveBeenCalledWith('/reorderCardImages?cardID=101', [2, 1, 3]);
-    expect(gallery.querySelector('.lm-gallery-layout-grid-8')).toBeTruthy();
+    expect(gallery.querySelector('.lm-gallery-layout-grid-6')).toBeTruthy();
     expect(within(gallery).getAllByRole('img')[0].getAttribute('src')).toBe(originalImages[1].url);
 });
 
 test('upload preserves draft layout and order; cancel removes only the new upload', async () => {
     const gallery = await editCard();
-    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'grid-8' } });
+    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'grid-6' } });
     fireEvent.click(within(gallery).getByRole('button', { name: 'Move image 2 earlier' }));
     api.post.mockImplementation(() => {
         savedCard = { ...savedCard, images: [...originalImages, { imageID: 4, url: '/fixture-4.jpg' }] };
@@ -90,7 +90,7 @@ test('upload preserves draft layout and order; cancel removes only the new uploa
     const input = document.querySelector('input[type="file"][accept="image/*"]');
     fireEvent.change(input, { target: { files: [new File(['fixture'], 'fixture.png', { type: 'image/png' })] } });
     await waitFor(() => expect(within(gallery).getAllByRole('img')).toHaveLength(4));
-    expect(screen.getByLabelText('Image layout').value).toBe('grid-8');
+    expect(screen.getByLabelText('Image layout').value).toBe('grid-6');
     expect(within(gallery).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual(['/fixture-2.jpg', '/fixture-1.jpg', '/fixture-3.jpg', '/fixture-4.jpg']);
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     await waitFor(() => expect(api.delete).toHaveBeenCalledWith('/deleteCardImage/4'));
@@ -99,13 +99,13 @@ test('upload preserves draft layout and order; cancel removes only the new uploa
 
 test('failed order save keeps the draft open and allows retry', async () => {
     const gallery = await editCard();
-    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'grid-8' } });
+    fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'grid-6' } });
     fireEvent.click(within(gallery).getByRole('button', { name: 'Move image 2 earlier' }));
     api.put.mockRejectedValueOnce(new Error('Fixture failure'));
     const errors = jest.spyOn(console, 'error').mockImplementation(() => {});
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(window.alert).toHaveBeenCalledWith('Image order could not be saved. Please try saving again.'));
-    expect(screen.getByLabelText('Image layout').value).toBe('grid-8');
+    expect(screen.getByLabelText('Image layout').value).toBe('grid-6');
     await waitFor(() => expect(screen.getByRole('button', { name: 'Save' }).disabled).toBe(false));
     errors.mockRestore();
 });

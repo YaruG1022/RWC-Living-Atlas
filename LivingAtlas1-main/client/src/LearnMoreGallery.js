@@ -2,13 +2,13 @@ import React, { useRef, useState } from 'react';
 import './LearnMoreGallery.css';
 
 export const MAX_CARD_IMAGES = 8;
-export const GALLERY_LAYOUTS = ['featured', 'grid-1', 'grid-2', 'grid-3', 'grid-4', 'grid-5', 'grid-6', 'grid-7', 'grid-8', 'slideshow'];
+export const GALLERY_LAYOUTS = ['featured', 'grid-1', 'grid-2', 'grid-3', 'grid-4', 'grid-5', 'grid-6', 'slideshow'];
 
 export default function LearnMoreGallery({ images, layout = 'featured', editing, busy, coverUrl, onLayoutChange, onReorder, onOpen, onAdd, onDelete }) {
     const [slide, setSlide] = useState(0);
     const [dragOver, setDragOver] = useState(null);
     const draggedIndex = useRef(null);
-    const validLayout = GALLERY_LAYOUTS.includes(layout) ? layout : 'featured';
+    const validLayout = ['grid-7', 'grid-8'].includes(layout) ? 'grid-6' : GALLERY_LAYOUTS.includes(layout) ? layout : 'featured';
     // A lone image always uses the whole region, regardless of the saved grid.
     const gridLayout = images.length === 1 ? 'grid-1' : validLayout;
     const activeSlide = Math.min(slide, Math.max(0, images.length - 1));

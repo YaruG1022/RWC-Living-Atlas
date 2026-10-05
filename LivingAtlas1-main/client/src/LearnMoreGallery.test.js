@@ -5,10 +5,17 @@ import LearnMoreGallery from './LearnMoreGallery';
 const images = Array.from({ length: 8 }, (_, i) => ({ id: i + 1, imageID: i + 1, url: `/image-${i + 1}.jpg`, alt: `Photo ${i + 1}` }));
 const props = () => ({ images, coverUrl: images[0].url, editing: true, onLayoutChange: jest.fn(), onReorder: jest.fn(), onOpen: jest.fn(), onAdd: jest.fn(), onDelete: jest.fn() });
 
-test.each([1, 2, 3, 4, 5, 6, 7, 8])('grid-%i shows the requested number of slots and marks the cover', count => {
+test.each([1, 2, 3, 4, 5, 6])('grid-%i shows the requested number of slots and marks the cover', count => {
     render(<LearnMoreGallery {...props()} layout={`grid-${count}`} />);
     expect(screen.getAllByRole('button', { name: /^Open image/ })).toHaveLength(count);
     expect(screen.getByText('Card cover').parentElement.classList.contains('is-cover')).toBe(true);
+});
+
+test.each(['grid-7', 'grid-8'])('legacy %s displays six images without removing the remaining images', layout => {
+    render(<LearnMoreGallery {...props()} layout={layout} />);
+    expect(screen.getAllByRole('button', { name: /^Open image/ })).toHaveLength(6);
+    expect(screen.getByLabelText('Image layout').value).toBe('grid-6');
+    expect(screen.getByRole('button', { name: '8-image limit reached' }).disabled).toBe(true);
 });
 
 test('layout changes and empty-slot uploads are delegated to the editor', () => {
@@ -76,7 +83,9 @@ test('eight-image cards cannot upload more while all eight remain navigable', ()
     fireEvent.click(screen.getByRole('button', { name: '8-image limit reached' }));
     expect(callbacks.onAdd).not.toHaveBeenCalled();
     expect(screen.getAllByRole('button', { name: /^Show gallery image/ })).toHaveLength(8);
-    expect(screen.getByLabelText('Image layout').querySelector('option[value="grid-8"]')).toBeTruthy();
+    expect(screen.getByLabelText('Image layout').querySelector('option[value="grid-6"]')).toBeTruthy();
+    expect(screen.getByLabelText('Image layout').querySelector('option[value="grid-7"]')).toBeNull();
+    expect(screen.getByLabelText('Image layout').querySelector('option[value="grid-8"]')).toBeNull();
 });
 
 test.each([false, true])('a single image fills the gallery without empty slots (editing=%s)', editing => {

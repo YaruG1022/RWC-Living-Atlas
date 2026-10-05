@@ -11,9 +11,6 @@
 .lm-gallery-layout-grid-5 .lm-gallery-cell { grid-column: span 2; }
 .lm-gallery-layout-grid-5 .lm-gallery-cell:nth-child(-n+2) { grid-column: span 3; }
 .lm-gallery-layout-grid-6 .lm-gallery-cell { grid-column: span 2; }
-.lm-gallery-layout-grid-7, .lm-gallery-layout-grid-8 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
-.lm-gallery-layout-grid-7 .lm-gallery-cell, .lm-gallery-layout-grid-8 .lm-gallery-cell { grid-column: span 3; }
-.lm-gallery-layout-grid-7 .lm-gallery-cell:nth-child(-n+3) { grid-column: span 4; }
 .Modal--learn-more .lm-gallery-section .lm-gallery-layout-label { display: flex; flex-direction: row; justify-content: flex-start; gap: 12px; margin: 0; text-align: left; }
 .lm-gallery-layout-featured { grid-template-columns: 2fr 1fr 1fr; }
 .lm-gallery-layout-featured .lm-gallery-cell:first-child { grid-row: span 2; }

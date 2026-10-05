@@ -7,7 +7,15 @@ import { MAX_GALLERY_IMAGES } from './gallerySelection';
 export const MAX_CARD_IMAGES = 30;
 export const GALLERY_LAYOUTS = ['multi', 'slideshow'];
 
-export default function LearnMoreGallery({ images: allImages, totalImageCount = allImages.length, layout = 'multi', editing, busy, coverUrl, onLayoutChange, onReorder, onOpen, onAdd, onDelete }) {
+export function GalleryLayoutSelector({ layout, busy, onChange }) {
+    return <label className="lm-gallery-layout-label">Image layout
+        <select aria-label="Image layout" value={layout === 'slideshow' ? 'slideshow' : 'multi'} disabled={busy} onChange={event => onChange(event.target.value)}>
+            {GALLERY_LAYOUTS.map(option => <option key={option} value={option}>{option === 'slideshow' ? 'Slideshow' : 'Multiple images'}</option>)}
+        </select>
+    </label>;
+}
+
+export default function LearnMoreGallery({ images: allImages, totalImageCount = allImages.length, layout = 'multi', editing, busy, coverUrl, onReorder, onOpen, onAdd, onDelete }) {
     const images = allImages.slice(0, MAX_GALLERY_IMAGES);
     const [slide, setSlide] = useState(0);
     const [dragOver, setDragOver] = useState(null);
@@ -65,14 +73,6 @@ export default function LearnMoreGallery({ images: allImages, totalImageCount = 
     };
 
     return <section className="lm-gallery-section" aria-label="Card image gallery">
-        {editing && <div className="lm-gallery-editor">
-            <label className="lm-gallery-layout-label">Image layout
-                <select aria-label="Image layout" value={validLayout} disabled={busy} onChange={(event) => onLayoutChange(event.target.value)}>
-                    {GALLERY_LAYOUTS.map(option => <option key={option} value={option}>{option === 'slideshow' ? 'Slideshow' : 'Multiple images'}</option>)}
-                </select>
-            </label>
-            <p>Choose up to 6 images in See all images. Drag to reorder; the first image is the card cover. Up to {MAX_CARD_IMAGES} images total.</p>
-        </div>}
         {validLayout === 'slideshow' ? <>
             <div className="lm-gallery-slideshow" aria-roledescription="carousel">
                 {renderTile(images[activeSlide] || null, activeSlide)}

@@ -4,7 +4,7 @@ import Modal from 'react-modal';
 import api from './api.js';
 import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
-import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
+import LearnMoreGallery, { MAX_CARD_IMAGES, GalleryLayoutSelector } from './LearnMoreGallery';
 import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, toggleGallerySelection } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon, faArrowLeft, faCheck } from '@fortawesome/free-solid-svg-icons';
@@ -2243,7 +2243,7 @@ function Card(props) {
                                 </p>
                             </div>
 
-                            <p className="learn-more-gallery-selection-hint">{`${learnMoreGalleryImages.length} / 6 images selected. Numbers set the order in Multiple images and Slideshow; 1 is the card cover. Drag images on the main page to change their order.`}</p>
+                            <p className="learn-more-gallery-selection-hint">{`${learnMoreGalleryImages.length} / 6 images selected. Choose up to 6 images here for Multiple images and Slideshow; number 1 is the card cover. Drag images on the main page to change their order. Up to ${MAX_CARD_IMAGES} images total.`}</p>
                             <div className="learn-more-all-images-list">
                                 {allImagesList.map((image, index) => (
                                     <div className={`learn-more-all-image-item ${isLearnMoreEditMode && visibleGalleryIDs.includes(galleryImageID(image)) ? 'is-main-selected' : ''}`} key={`all-image-${image.imageID || image.id || index}`}>
@@ -2303,13 +2303,13 @@ function Card(props) {
                         editing={isLearnMoreEditMode}
                         busy={loading || isImageMutationLoading}
                         coverUrl={isImageCard ? cardThumbnailSrc : learnMoreGalleryImages[0]?.url}
-                        onLayoutChange={(gallery_layout) => setFormData(prev => ({ ...prev, gallery_layout }))}
                         onReorder={reorderGalleryImages}
                         onOpen={(event, index) => openImagePreviewAtIndex(event, allImagesList.findIndex(image => galleryImageID(image) === galleryImageID(learnMoreGalleryImages[index])))}
                         onAdd={(event, index) => handleLearnMoreGalleryTileClick(event, null, index)}
                         onDelete={handleLearnMoreImageDelete}
                     />
 
+                    <div className="learn-more-gallery-actions-row">
                     <button
                         type="button"
                         className="learn-more-see-all-images-btn"
@@ -2320,6 +2320,8 @@ function Card(props) {
                     >
                         {`See all ${allImagesList.length} image${allImagesList.length === 1 ? '' : 's'}`}
                     </button>
+                    {isLearnMoreEditMode && <GalleryLayoutSelector layout={formData.gallery_layout} busy={loading || isImageMutationLoading} onChange={gallery_layout => setFormData(prev => ({ ...prev, gallery_layout }))} />}
+                    </div>
                     </div>
 
                     <div data-onboarding-target="learn-more-text-area">

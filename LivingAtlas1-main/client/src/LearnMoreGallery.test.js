@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import LearnMoreGallery from './LearnMoreGallery';
+import LearnMoreGallery, { GalleryLayoutSelector } from './LearnMoreGallery';
 
 const images = Array.from({ length: 8 }, (_, i) => ({ id: i + 1, imageID: i + 1, url: `/image-${i + 1}.jpg`, alt: `Photo ${i + 1}` }));
 const props = () => ({ images, coverUrl: images[0].url, editing: true, onLayoutChange: jest.fn(), onReorder: jest.fn(), onOpen: jest.fn(), onAdd: jest.fn(), onDelete: jest.fn() });
@@ -24,15 +24,16 @@ test.each([1, 2, 3, 4, 5, 6])('grid-%i shows the requested number of slots and m
 test.each(['grid-7', 'grid-8'])('legacy %s displays six images without removing the remaining images', layout => {
     render(<LearnMoreGallery {...props()} layout={layout} />);
     expect(screen.getAllByRole('button', { name: /^Open image/ })).toHaveLength(6);
-    expect(screen.getByLabelText('Image layout').value).toBe('multi');
+    expect(screen.queryByLabelText('Image layout')).toBeNull();
     expect(screen.queryByRole('button', { name: '+ Add image' })).toBeNull();
 });
 
 test('layout changes are delegated and the main page has no add-image button', () => {
     const callbacks = props();
-    render(<LearnMoreGallery {...callbacks} images={images.slice(0, 2)} layout="grid-6" />);
+    render(<><LearnMoreGallery {...callbacks} images={images.slice(0, 2)} layout="grid-6" /><GalleryLayoutSelector layout="grid-6" onChange={callbacks.onLayoutChange} /></>);
     fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'slideshow' } });
     expect(callbacks.onLayoutChange).toHaveBeenCalledWith('slideshow');
+    expect(Array.from(screen.getByLabelText('Image layout').options).map(option => option.value)).toEqual(['multi', 'slideshow']);
     expect(screen.queryByRole('button', { name: '+ Add image' })).toBeNull();
 });
 
@@ -96,7 +97,7 @@ test('eight-image cards display six slides while the selector offers only two mo
     expect(screen.queryByRole('button', { name: '+ Add image' })).toBeNull();
     expect(callbacks.onAdd).not.toHaveBeenCalled();
     expect(screen.getAllByRole('button', { name: /^Show gallery image/ })).toHaveLength(6);
-    expect(Array.from(screen.getByLabelText('Image layout').options).map(option => option.value)).toEqual(['multi', 'slideshow']);
+    expect(screen.queryByLabelText('Image layout')).toBeNull();
 });
 
 test.each([false, true])('a single image fills the gallery without empty slots (editing=%s)', editing => {

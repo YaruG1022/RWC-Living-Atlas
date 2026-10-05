@@ -247,6 +247,24 @@ main tiles have radius 0px. Evidence: gallery-matching-corners.png. This CSS-onl
 refinement passed diff checks and development rendering; no new logic tests were
 needed.
 
+## Layout controls below the gallery (2026-10-05)
+
+Removed the gallery's upper editor panel. A small GalleryLayoutSelector component
+now appears in the row with See all N images, only in edit mode. It preserves the
+legacy-layout normalization, two available modes, busy state, and saved callback.
+The six-image selection, cover, drag, and thirty-image-total instructions now
+appear in the all-images page's existing hint rather than above the main gallery.
+The responsive gallery/slideshow height increases from a 240–340px range to
+280–380px, giving each two-row tile approximately twenty extra pixels on desktop.
+
+36 frontend checks pass, including mode switching, saved layout, cancel, legacy
+mode handling, and standalone selector options. Browser verification confirmed
+the old editor is absent, gallery height is 380px, and See all/selector centers
+align. It also confirmed the instructions in all-images. The existing card was
+not saved; browser verification returned to its original viewing state.
+Evidence: gallery-bottom-layout-tests.log and gallery-bottom-layout.png.
+Development rendering and diff checks pass; backend behavior is unchanged.
+
 ## Four-column refinement (2026-10-04)
 
 The latest CSS-only request sets four equal columns in the all-images grid.

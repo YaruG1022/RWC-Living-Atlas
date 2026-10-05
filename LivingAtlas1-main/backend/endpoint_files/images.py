@@ -21,7 +21,7 @@ IMAGE_UPLOAD_DIR = "uploads/card_images"
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 IMAGE_FOLDER = "card_images"
-MAX_CARD_IMAGES = 8
+MAX_CARD_IMAGES = 30
 
 
 def reserve_image_slots(card_id: int, incoming_count: int):
@@ -31,7 +31,7 @@ def reserve_image_slots(card_id: int, incoming_count: int):
         raise HTTPException(status_code=404, detail="Card not found")
     cur.execute("SELECT COUNT(*) FROM CardImages WHERE CardID = %s", (card_id,))
     if cur.fetchone()[0] + incoming_count > MAX_CARD_IMAGES:
-        raise HTTPException(status_code=422, detail="A card can have at most 8 images. Save pending deletions before adding more.")
+        raise HTTPException(status_code=422, detail=f"A card can have at most {MAX_CARD_IMAGES} images. Save pending deletions before adding more.")
 
 
 def ensure_upload_dir():

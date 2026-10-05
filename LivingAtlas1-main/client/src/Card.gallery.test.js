@@ -107,6 +107,15 @@ test('map popup editing preserves owner permissions', () => {
     expect(screen.queryByTestId('shape-editor')).toBeNull();
 });
 
+test.each([8, 29, 30])('all-images upload availability at %i images respects the 30-image cap', async count => {
+    savedCard.images = Array.from({ length: count }, (_, index) => ({ imageID: index + 1, url: `/limit-${index + 1}.jpg` }));
+    await editCard();
+    fireEvent.click(screen.getByRole('button', { name: `See all ${count} images` }));
+    expect(screen.getByRole('button', { name: 'Add New Image' }).disabled).toBe(count === 30);
+    expect(screen.getAllByRole('checkbox', { name: /on main page/ })).toHaveLength(count);
+    expect(screen.getAllByRole('checkbox', { name: /on main page/ }).filter(input => input.checked)).toHaveLength(6);
+});
+
 test('main-page selection caps at six and applies to both modes; cancel restores selection', async () => {
     savedCard.images = Array.from({ length: 8 }, (_, index) => ({ imageID: index + 1, url: `/selection-${index + 1}.jpg` }));
     const gallery = await editCard();

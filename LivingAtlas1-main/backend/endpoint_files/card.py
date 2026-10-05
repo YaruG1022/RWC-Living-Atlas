@@ -470,8 +470,9 @@ async def upload_form(
                 or any(type(image_id) is not int or image_id <= 0 for image_id in selected_image_ids)
                 or len(set(selected_image_ids)) != len(selected_image_ids)):
             raise HTTPException(status_code=422, detail="Select at most 6 distinct card images")
-    if images and len(images) > 8:
-        raise HTTPException(status_code=422, detail="A card can have at most 8 images")
+    from endpoint_files.images import MAX_CARD_IMAGES
+    if images and len(images) > MAX_CARD_IMAGES:
+        raise HTTPException(status_code=422, detail=f"A card can have at most {MAX_CARD_IMAGES} images")
     enable_commits = False
     print(f"[UPLOAD] username={username}, email={email}, orig_username={original_username or ''}, orig_email={original_email or ''}")
     print(f"[UPLOAD] location_type={location_type}, polygon_fill_color={polygon_fill_color!r}, polygon_line_style={polygon_line_style!r}")

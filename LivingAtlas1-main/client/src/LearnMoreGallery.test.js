@@ -76,7 +76,7 @@ test('busy editor blocks mutations; cover marking follows its image rather than 
     expect(screen.getByText('Card cover').parentElement.querySelector('img').getAttribute('src')).toBe(images[1].url);
 });
 
-test('eight-image cards cannot upload more while the selector offers only two modes', () => {
+test('eight-image cards display six slides while the selector offers only two modes', () => {
     const callbacks = props();
     render(<LearnMoreGallery {...callbacks} layout="slideshow" />);
     expect(screen.queryByRole('button', { name: '+ Add image' })).toBeNull();

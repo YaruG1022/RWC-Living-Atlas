@@ -144,3 +144,25 @@ three columns, approximately 304 pixels each, and five 190-pixel image regions.
 gallery-compact-grid.png shows the user's existing editing page without changing
 its draft. This is a frontend-only change; no database/storage mutation or new
 backend test run was necessary. Development compilation and diff checks pass.
+
+## Total image cap raised to 30 (2026-10-04)
+
+The latest request increases the per-card total from eight to thirty, while
+preserving the six-image main-page selection cap. Frontend upload availability
+and help text use MAX_CARD_IMAGES=30. Backend creation validation uses the same
+backend constant as single/batch upload reservation, including the row lock and
+updated overflow message. No schema migration is needed. The local backend was
+restarted so the running app enforces the updated limit immediately.
+
+33 frontend checks and 11 backend contract checks pass. Frontend cases confirm
+upload availability at eight and twenty-nine, disabled at thirty, and six selected
+images regardless of total count. Backend cases cover the thirtieth image, a batch
+reaching thirty, and single/batch rejection before storage at thirty-one.
+
+The guarded local integration script creates a dedicated fixture with eight
+images, uploads one more through the single endpoint and twenty-one through the
+batch endpoint, and verifies thirty records. Both endpoints reject image 31 with
+422 and the updated message. Existing selection/order/cover checks pass with all
+thirty images; cleanup confirms no fixture records/files remain. Evidence:
+gallery-30-limit-frontend.log and gallery-30-limit-integration.log in the existing
+evidence directory. No production storage, deployment, or load test was used.

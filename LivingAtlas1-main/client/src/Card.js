@@ -1748,7 +1748,7 @@ function Card(props) {
 
         if (!isLearnMoreEditMode || isImageMutationLoading) return;
         if ((formData.images || []).length >= MAX_CARD_IMAGES) {
-            alert('A card can have at most 8 images.');
+            alert(`A card can have at most ${MAX_CARD_IMAGES} images.`);
             return;
         }
 

@@ -123,19 +123,20 @@ class GalleryContractTests(unittest.TestCase):
                     self.assertTrue(result['success'])
                     delete.assert_not_called()
 
-    def test_invalid_layout_and_nine_images_fail_before_database_access(self):
-        for values in ({'gallery_layout': 'grid-9'}, {'images': [object()] * 9}):
+    def test_invalid_layout_and_thirty_one_images_fail_before_database_access(self):
+        for values in ({'gallery_layout': 'grid-9'}, {'images': [object()] * 31}):
             with self.subTest(values=list(values)):
                 with self.assertRaises(self.cards.HTTPException) as error:
                     self.form(**values)
                 self.assertEqual(error.exception.status_code, 422)
                 self.cur.execute.assert_not_called()
 
-    def test_eighth_image_allowed_and_ninth_rejected_under_card_lock(self):
-        self.cur.fetchone.side_effect = [(101,), (7,)]
-        self.images.reserve_image_slots(101, 1)
-        self.assertIn('FOR UPDATE', self.cur.execute.call_args_list[0].args[0])
-        self.cur.fetchone.side_effect = [(101,), (8,)]
+    def test_thirtieth_image_allowed_and_thirty_first_rejected_under_card_lock(self):
+        for existing, incoming in ((8, 1), (29, 1), (8, 22)):
+            self.cur.fetchone.side_effect = [(101,), (existing,)]
+            self.images.reserve_image_slots(101, incoming)
+            self.assertIn('FOR UPDATE', self.cur.execute.call_args_list[-2].args[0])
+        self.cur.fetchone.side_effect = [(101,), (30,)]
         with self.assertRaises(self.images.HTTPException) as error:
             self.images.reserve_image_slots(101, 1)
         self.assertEqual(error.exception.status_code, 422)
@@ -143,7 +144,7 @@ class GalleryContractTests(unittest.TestCase):
     def test_single_and_batch_upload_reject_overflow_before_storage_and_release_lock(self):
         for batch in (False, True):
             self.conn.reset_mock()
-            self.cur.fetchone.side_effect = [(101,), (8,)]
+            self.cur.fetchone.side_effect = [(101,), (30,)]
             with patch.object(self.images, 'save_uploaded_file') as upload:
                 with self.assertRaises(self.images.HTTPException) as error:
                     asyncio.run(self.images.upload_card_images(cardID=101, images=[object()], altTexts=None) if batch

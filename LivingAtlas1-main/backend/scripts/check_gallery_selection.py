@@ -37,6 +37,18 @@ def main():
         files = [image['url'] for image in gallery['images']]
         ids = [image['imageID'] for image in gallery['images']]
         assert len(ids) == 8 and gallery['galleryImageIDs'] is None
+        for endpoint, count in (('/uploadCardImage', 1), ('/uploadCardImages', 21)):
+            field = 'image' if count == 1 else 'images'
+            added = requests.post(base + endpoint, data={'cardID': card_id}, files=[(field, (f'extra-{i}.png', png, 'image/png')) for i in range(count)], timeout=30)
+            assert added.status_code == 200, f'{endpoint} HTTP {added.status_code}'
+        gallery = requests.get(f'{base}/cardImages/{card_id}', timeout=15).json()
+        files = [image['url'] for image in gallery['images']]
+        ids = [image['imageID'] for image in gallery['images']]
+        assert len(ids) == 30
+        for endpoint, field in (('/uploadCardImage', 'image'), ('/uploadCardImages', 'images')):
+            rejected = requests.post(base + endpoint, data={'cardID': card_id}, files=[(field, ('overflow.png', png, 'image/png'))], timeout=15)
+            assert rejected.status_code == 422 and 'at most 30 images' in rejected.json()['detail']
+        print('PASS: uploads beyond eight reach 30; single and batch uploads reject image 31')
         chosen = [ids[7], ids[2], ids[6], ids[3], ids[5], ids[4]]
         cover_url = next(image['url'] for image in gallery['images'] if image['imageID'] == chosen[0])
         update_fields = {**fields, 'update': 'true', 'original_username': username, 'original_email': email, 'original_title': title, 'requester_email': email}
@@ -64,7 +76,7 @@ def main():
             assert requests.get(f'{base}/cardImages/{card_id}', timeout=15).json()['galleryImageIDs'] == chosen
         assert requests.post(base + '/uploadForm', data={**update_fields, 'gallery_image_ids': '[]'}, timeout=15).status_code == 200
         gallery = requests.get(f'{base}/cardImages/{card_id}', timeout=15).json()
-        assert gallery['galleryImageIDs'] == [] and len(gallery['images']) == 8
+        assert gallery['galleryImageIDs'] == [] and len(gallery['images']) == 30
         print('PASS: six-image selection persists for both modes, survives metadata saves, rejects invalid IDs/counts, and supports empty selection without deleting images')
     finally:
         with conn, conn.cursor() as cur:

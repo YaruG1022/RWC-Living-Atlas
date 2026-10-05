@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import './LearnMoreGallery.css';
 import { MAX_GALLERY_IMAGES } from './gallerySelection';
 
-export const MAX_CARD_IMAGES = 8;
+export const MAX_CARD_IMAGES = 30;
 export const GALLERY_LAYOUTS = ['multi', 'slideshow'];
 
 export default function LearnMoreGallery({ images: allImages, totalImageCount = allImages.length, layout = 'multi', editing, busy, coverUrl, onLayoutChange, onReorder, onOpen, onAdd, onDelete }) {
@@ -69,7 +69,7 @@ export default function LearnMoreGallery({ images: allImages, totalImageCount = 
                     {GALLERY_LAYOUTS.map(option => <option key={option} value={option}>{option === 'slideshow' ? 'Slideshow' : 'Multiple images'}</option>)}
                 </select>
             </label>
-            <p>Choose up to 6 images in See all images. Drag to reorder; the first image is the card cover. Up to 8 images total.</p>
+            <p>Choose up to 6 images in See all images. Drag to reorder; the first image is the card cover. Up to {MAX_CARD_IMAGES} images total.</p>
         </div>}
         {validLayout === 'slideshow' ? <>
             <div className="lm-gallery-slideshow" aria-roledescription="carousel">

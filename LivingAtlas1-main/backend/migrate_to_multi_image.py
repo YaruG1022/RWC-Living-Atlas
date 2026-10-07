@@ -4,20 +4,14 @@ This script safely migrates existing thumbnail data to the new CardImages table.
 Preserves all existing data and adds backward compatibility.
 """
 
+import os
 import psycopg2
 from psycopg2 import OperationalError, sql
 
 # Database connection (same as in database.py)
 def get_connection():
     try:
-        conn = psycopg2.connect(
-            dbname="postgres",
-            user="CereoAtlas",
-            password="LivingAtlas25$",
-            host="cereo-livingatlas-db.postgres.database.azure.com",
-            port="5432",
-            sslmode="require"
-        )
+        conn = psycopg2.connect(os.environ["DATABASE_URL"])
         print("✓ Database Connection Success!")
         return conn
     except OperationalError as e:

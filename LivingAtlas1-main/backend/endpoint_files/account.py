@@ -17,16 +17,11 @@ from database import conn, cur
 import urllib.parse
 import requests
 
-# Email configuration for Gmail
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-SENDER_EMAIL = "cereo.atlas@gmail.com"
-SENDER_PASSWORD = "yqbr duhc ytcv ydjq"
-
-# SMTP_SERVER = "smtp.gmail.com"
-# SMTP_PORT = 465
-# SENDER_EMAIL = "cereofullstack@gmail.com"
-# SENDER_PASSWORD = "ljun kiiz ngod ypjv"
+# Email credentials must be configured in the environment.
+SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "")
+SENDER_PASSWORD = os.environ.get("SENDER_PASSWORD", "")
 
 account_router = APIRouter()
 
@@ -144,7 +139,10 @@ def get_short_url(long_url):
     # Using Bitly's API
     print(f"DEBUG: Starting URL shortening for: {long_url}")
     BITLY_API_URL = "https://api-ssl.bitly.com/v4/shorten"
-    headers = {"Authorization": "Bearer 9b023a4be0d1aa1f667eae09b3b7e959af52acf2", "Content-Type": "application/json"}
+    bitly_api_token = os.environ.get("BITLY_API_TOKEN", "").strip()
+    if not bitly_api_token:
+        return long_url
+    headers = {"Authorization": f"Bearer {bitly_api_token}", "Content-Type": "application/json"}
     data = {"long_url": long_url}
     
     print(f"DEBUG: Making request to Bitly API: {BITLY_API_URL}")

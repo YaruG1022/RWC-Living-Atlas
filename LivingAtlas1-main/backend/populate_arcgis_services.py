@@ -11,14 +11,7 @@ from psycopg2.extras import execute_values
 def get_db_connection():
     """Get database connection using the same settings as the main app"""
     try:
-        conn = psycopg2.connect(
-            dbname="postgres", 
-            user="CereoAtlas",
-            password="LivingAtlas25$",
-            host="cereo-livingatlas-db.postgres.database.azure.com",
-            port="5432",
-            sslmode="require"
-        )
+        conn = psycopg2.connect(os.environ["DATABASE_URL"])
         return conn
     except Exception as e:
         print(f"Database connection failed: {e}")

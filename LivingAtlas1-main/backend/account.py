@@ -22,46 +22,12 @@ import requests
 import os
 import hashlib
 
-# Email configuration - Use SendGrid for cloud deployment
+# Email provider credentials must be configured in the environment.
 import os
-
-
-# SendGrid Email: wsu.cereoatlas26@gmail.com
-# SendGrid Password: LivingAtlas25$
-# SendGrid Recovery Code: 8W6JXAUWQZWSNVJXA4VH2CXV
-# SendGrid API Key: 
-
-# SendGrid configuration
 SENDGRID_API_KEY = os.environ.get("CEREO_API_KEY", "")
-SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "wsu.cereoatlas26@gmail.com")
-
-# Resend configuration
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "")
 RESEND_API_KEY = (os.environ.get("RESEND_API_KEY") or os.environ.get("CEREO_API_KEY") or "").strip()
 RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "noreply@cereo-livingatlas.com")
-
-# SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
-# SMTP_PORT = int(os.environ.get("SMTP_PORT", "465"))
-# SMTP_EMAIL = os.environ.get("SMTP_EMAIL", "wsu.cereoatlas26@gmail.com")
-# SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
-
-# SMTP_SERVER = "smtp.gmail.com"
-# SMTP_PORT = 465
-# SENDER_EMAIL = "wsu.cereoatlas26@gmail.com"
-# SENDER_PASSWORD = "vuzc jnhd uxmg nniu"
-
-# SMTP_EMAIL: wsu.cereoatlas26@gmail.com
-
-# GMAIL ACCOUNT BACKUP_CODE for wsu.cereoatlas26@gmail.com: 
-# 1575 4464
-# 6862 8813
-# 4897 2931
-# 4080 8589
-# 1988 2224
-# 4569 6993
-# 2572 6247
-# 0363 5759
-# 3330 7800
-# 9848 9106
 
 account_router = APIRouter()
 
@@ -111,7 +77,10 @@ def get_short_url(long_url):
     try:
         # Using Bitly's API with timeout
         BITLY_API_URL = "https://api-ssl.bitly.com/v4/shorten"
-        headers = {"Authorization": "Bearer 9b023a4be0d1aa1f667eae09b3b7e959af52acf2", "Content-Type": "application/json"}
+        bitly_api_token = os.environ.get("BITLY_API_TOKEN", "").strip()
+        if not bitly_api_token:
+            return long_url
+        headers = {"Authorization": f"Bearer {bitly_api_token}", "Content-Type": "application/json"}
         data = {"long_url": long_url}
         response = requests.post(BITLY_API_URL, json=data, headers=headers, timeout=10)
         if response.status_code == 200 or response.status_code == 201:

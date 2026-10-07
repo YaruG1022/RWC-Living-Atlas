@@ -38,3 +38,40 @@ LivingAtlas1-main/backend/.env.local
 LivingAtlas1-main/backend/.local-postgres/
 LivingAtlas1-main/backend/.venv-local/
 LivingAtlas1-main/backend/uploads/local_test/
+
+# Private cloud credentials and developer handover material (local copies only)
+.private-security/
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+**/credentials.json
+**/*service-account*.json
+**/*service_account*.json
+**/secrets.json
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+/documentation/CEREO_Atlas_Handover_Report.pdf
+/documentation/CEREO Living Atlas - Editing Local ArcGIS data.pdf
+/documentation/Team Inventory.pdf
+/LivingAtlas1-main/database/db_dump/
+/LivingAtlas1-main/database/db test code/elephant.py
+/LivingAtlas1-main/database/db test code/manualPasswordHash.py
+/LivingAtlas1-main/database/database_schema/livingAtlas_Defualt_Insert_Data.sql
+documentation/agent_architecture_references.md
+
+# Reports containing personal account, profile and administrator-list screenshots
+/documentation/CEREO_ATLAS_Project_Prototype_Report (1).pdf
+/documentation/CEREO_ATLAS_Solution_Approach.pdf
+/documentation/CEREO_Atlas_Final_Report.pdf
+/documentation/CEREO_Atlas_Final_Report_Draft_1.pdf
+/documentation/CEREO_Atlas_Final_Report_Draft_2.pdf
+/documentation/CEREO_Atlas_Final_Report_Draft_3.pdf
+/documentation/CptS423_Final Report_Draft2.pdf
+documentation/CREDENTIALS_PROTECTION.md
+documentation/CREDENTIALS_PROTECTION.md
+
+# Private security audit record
+/documentation/CREDENTIALS_PROTECTION.md

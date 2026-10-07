@@ -45,10 +45,10 @@ app.add_middleware(
 )
 
 try:
-        #Old DB
-        #conn = psycopg2.connect('postgres://lvssvjaq:Xc8L5cPmMIIheJuDgfZF52JKpNKt8p9q@mahmud.db.elephantsql.com/lvssvjaq')
-        #New DB
-        conn = psycopg2.connect('postgres://tgpxaiud:5MBj7NqaMmQuFAS6iVHk8dmThMl3oc1M@bubble.db.elephantsql.com/tgpxaiud')
+
+
+
+        conn = psycopg2.connect(os.environ["DATABASE_URL"])
 
         print('Connection Success!')
         connectionsucceeded = True

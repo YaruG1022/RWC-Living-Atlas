@@ -135,15 +135,7 @@ function getPool() {
 
   if (fromEnv) return new Pool(fromEnv);
 
-  // Fallback to database.py values
-  return new Pool({
-    host: 'cereo-livingatlas-db.postgres.database.azure.com',
-    user: 'CereoAtlas',
-    password: 'LivingAtlas25$',
-    database: 'postgres',
-    port: 5432,
-    ssl: { rejectUnauthorized: false }
-  });
+  throw new Error("Set DATABASE_URL or PGHOST, PGUSER, PGPASSWORD, and PGDATABASE before running this tool.");
 }
 
 async function assertTableExists(client) {

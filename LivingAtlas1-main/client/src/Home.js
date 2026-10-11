@@ -11,6 +11,7 @@ import { faAngleDoubleLeft, faAngleDoubleRight } from '@fortawesome/free-solid-s
 import { faClone } from '@fortawesome/free-solid-svg-icons';
 import './Home.css';
 import './Sidebars.css';
+import './PanelControls.css';
 import ArcgisUploadPanel from './ArcgisUploadPanel';
 import CustomLayersPanel from './CustomLayersPanel';
 import { applyAreaVisibility } from './AreaFilter';

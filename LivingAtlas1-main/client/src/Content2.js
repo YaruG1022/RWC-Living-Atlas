@@ -979,6 +979,7 @@ function Content2(props) {
                             <button
                                 type="button"
                                 className="card-toolbar-button"
+                                aria-label="Add Card"
                                 title={props.isLoggedIn ? 'Add Card' : 'Log in to add a card'}
                                 onClick={() => {
                                     if (!props.isLoggedIn) {
@@ -989,7 +990,7 @@ function Content2(props) {
                                 }}
                             >
                                 <FontAwesomeIcon icon={faPlus} />
-                                <span>Add Card</span>
+                                <span>Add</span>
                             </button>
 
                             <SortDropdown
@@ -1018,8 +1019,9 @@ function Content2(props) {
                                 className={`card-toolbar-button card-toolbar-button--scope ${isViewportFilteringActive ? 'in-view' : 'all-cards'}`}
                                 onClick={toggleViewScope}
                                 title={scopeButtonTitle}
+                                aria-label={scopeButtonLabel}
                             >
-                                {scopeButtonLabel}
+                                {isViewportFilteringActive ? 'In View' : 'All'}
                             </button>
 
                             <button

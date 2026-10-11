@@ -146,7 +146,7 @@ function LayerPanel({
             </div>
             {/* <button onClick={addCustomFilter} className='custom-filter'>Add Custom filters</button> */}
             {/* New Custom Filter popup */}
-            <button onClick={openFilterPopup} className="add-custom-filters-button">Add Custom Filters</button>
+            <button onClick={openFilterPopup} className="add-custom-filters-button" title="Add custom filters" aria-label="Add custom filters">Add filter</button>
             
             {/* Modal for Add Customer Filter */}
             <Modal

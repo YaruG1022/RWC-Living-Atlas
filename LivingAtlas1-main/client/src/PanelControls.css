@@ -1,0 +1,45 @@
+/* Compact action and search controls across map panels. */
+.home-container :is(.card-toolbar-button, .sort-dropdown-trigger, .filter-dropdown-trigger,
+    .clear-all-layers-btn, .upload-panel-update-btn, .watershed-panel-arm-btn,
+    .watershed-panel-clear-btn, .watershed-panel-cancel-btn,
+    .removed-services-clear-all-btn, .removed-services-retry-btn,
+    .removed-service-restore-btn, .removed-service-delete-btn,
+    .layer-panel .add-custom-filters-button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px !important;
+    min-height: 28px;
+    padding: 0 6px !important;
+    gap: 4px;
+    font-size: 12px !important;
+    line-height: 1.2;
+    border-radius: 6px !important;
+    white-space: nowrap;
+}
+.home-container :is(.card-toolbar-button--icon, .upload-panel-update-btn,
+    .card-panel-searchbar-btn, .upload-panel-searchbar-btn,
+    .removed-services-search-btn, .removed-services-clear-btn) {
+    width: 28px !important;
+    min-width: 28px;
+    height: 28px !important;
+    padding: 0 !important;
+    border-radius: 6px;
+    font-size: 12px;
+}
+.home-container :is(.card-panel-toolbar, .upload-panel-controls-actions,
+    .removed-services-actions, .watershed-panel-result-actions) {
+    gap: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.home-container :is(.card-panel-searchbar, .upload-panel-searchbar) { gap: 4px; }
+.home-container :is(.card-panel-searchbar input[type="text"], .upload-panel-searchbar input[type="text"]) {
+    height: 28px;
+    font-size: 12px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+.home-container .watershed-panel-result-actions > [role] { flex-basis: 100%; }
+

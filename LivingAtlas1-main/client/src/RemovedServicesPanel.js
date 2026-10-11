@@ -392,10 +392,12 @@ function RemovedServicesPanel({ isOpen, onClose, isAdmin = false }) {
                 {isAdmin && (
                     <button 
                         className="removed-services-clear-all-btn"
+                        title="Clear all removed services"
+                        aria-label="Clear all removed services"
                         onClick={clearAllRemoved}
                         disabled={removedServices.length === 0 || loading}
                     >
-                        Clear All ({removedServices.length})
+                        Clear ({removedServices.length})
                     </button>
                 )}
             </div>

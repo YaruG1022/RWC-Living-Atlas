@@ -2660,6 +2660,7 @@ function ArcgisUploadPanel({
                                     onClick={handleUpdateServices}
                                     disabled={isUpdating}
                                     title="Update services data from ArcGIS REST servers"
+                                    aria-label="Update services data from ArcGIS REST servers"
                                 >
                                     <FontAwesomeIcon icon={faSync} spin={isUpdating} />
                                 </button>
@@ -2696,12 +2697,14 @@ function ArcgisUploadPanel({
                                             });
                                         }}
                                         aria-pressed={showAddedOnly}
+                                        aria-label="Show only services added to the map"
                                         title={showAddedOnly ? 'Show all services' : 'Show only services added to the map'}
                                     >
                                         <FontAwesomeIcon icon={faEye} />
-                                        <span>{showAddedOnly ? 'Showing Added Only' : 'Show Added Only'}</span>
+                                        <span>Added</span>
                                     </button>
                                     <ClearAllLayersButton
+                                        label="Clear"
                                         onClick={handleClearAllLayers}
                                         disabled={!Object.values(checkedLayerIds).some(ids => Array.isArray(ids) && ids.length > 0)}
                                     />

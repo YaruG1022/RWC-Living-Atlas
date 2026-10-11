@@ -408,11 +408,13 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
                 <button
                     className={`watershed-panel-arm-btn${isArmed ? ' watershed-panel-arm-btn--armed' : ''}`}
                     data-onboarding-target="watershed-select"
+                    title={isArmed ? 'Cancel point selection' : 'Select point on map'}
+                    aria-label={isArmed ? 'Cancel point selection' : 'Select point on map'}
                     onClick={handleArmToggle}
                     disabled={isLoading || isSaving || !!polygonVertices}
                 >
                     <FontAwesomeIcon icon={faLocationCrosshairs} />
-                    {isArmed ? ' Cancel point selection' : ' Select point on map'}
+                    {isArmed ? ' Cancel' : ' Select point'}
                 </button>
 
                 {isArmed && (
@@ -452,17 +454,19 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
                         <span>Basin name</span>
                         <input value={basinName} onChange={e => setBasinName(e.target.value)} disabled={isSaving} />
                     </label>
-                    <button className="watershed-panel-arm-btn" data-onboarding-target="watershed-save-layer" onClick={handleSaveCustomLayer} disabled={isSaving || !basinData}>
-                        {isSaving ? 'Saving…' : 'Save as custom layer'}
+                    <div className="watershed-panel-result-actions">
+                    <button className="watershed-panel-arm-btn" title="Save as custom layer" aria-label="Save as custom layer" data-onboarding-target="watershed-save-layer" onClick={handleSaveCustomLayer} disabled={isSaving || !basinData}>
+                        {isSaving ? 'Saving…' : 'Save layer'}
                     </button>
-                    <button className="watershed-panel-arm-btn" data-onboarding-target="watershed-save-polygon" onClick={handleSavePolygon} disabled={isSaving || !basinData}>
-                        Save as polygon
+                    <button className="watershed-panel-arm-btn" title="Save as polygon" aria-label="Save as polygon" data-onboarding-target="watershed-save-polygon" onClick={handleSavePolygon} disabled={isSaving || !basinData}>
+                        Save polygon
                     </button>
                     {saveMessage && <div role="status" className="watershed-panel-result">{saveMessage}</div>}
                     {saveError && <div role="alert" className="watershed-panel-error">{saveError}</div>}
-                    <button className="watershed-panel-clear-btn" data-onboarding-target="watershed-clear" onClick={handleClear} disabled={isSaving}>
-                        <FontAwesomeIcon icon={faTrash} /> Clear result from map
+                    <button className="watershed-panel-clear-btn" title="Clear result from map" aria-label="Clear result from map" data-onboarding-target="watershed-clear" onClick={handleClear} disabled={isSaving}>
+                        <FontAwesomeIcon icon={faTrash} /> Clear
                     </button>
+                    </div>
                     </>
                 )}
             </div>

@@ -1,5 +1,6 @@
 """Offline attachment response tests: no database or Azure requests."""
 import importlib
+import ast
 import asyncio
 import httpx
 import os
@@ -10,7 +11,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 from urllib.parse import quote
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 # Load only the storage/response modules, bypassing endpoint_files' DB-owning init.
 package = types.ModuleType('attachment_test_package')
@@ -90,6 +91,29 @@ class AttachmentDownloadTests(unittest.TestCase):
             cloud.get_blob_client.return_value.download_blob.side_effect = error
             with patch.dict(os.environ, {'LOCAL_TEST_MODE': '0'}), patch.object(storage, '_container_client', return_value=cloud):
                 self.assertEqual(self.client.get('/download').status_code, status)
+
+
+class DownloadEndpointPoolTests(unittest.TestCase):
+    def test_unavailable_connection_returns_503_without_releasing_unowned_slot(self):
+        # Execute the actual route in isolation: importing card.py initializes
+        # database-owning modules, which offline tests must never load.
+        source_path = Path(__file__).resolve().parents[1] / 'endpoint_files' / 'card.py'
+        source = ast.parse(source_path.read_text(encoding='utf-8'))
+        route = next(node for node in source.body
+                     if isinstance(node, ast.FunctionDef) and node.name == 'downloadFile')
+        route.decorator_list = []
+        acquire = MagicMock(return_value=None)
+        release = MagicMock()
+        namespace = {'HTTPException': HTTPException,
+                     'get_request_connection': acquire,
+                     'release_request_connection': release}
+        exec(compile(ast.Module(body=[route], type_ignores=[]), str(source_path), 'exec'), namespace)
+        app = FastAPI()
+        app.get('/downloadFile')(namespace['downloadFile'])
+        response = LocalAppClient(app).get('/downloadFile?fileID=42')
+        self.assertEqual(response.status_code, 503)
+        acquire.assert_called_once_with()
+        release.assert_not_called()
 
 
 if __name__ == '__main__':

@@ -240,6 +240,8 @@ def get_bookmarked_cards(username: str):
 def downloadFile(fileID: int):
     """Return attachment bytes; headers on redirects do not force downloads."""
     connection = get_request_connection()
+    if connection is None:
+        raise HTTPException(status_code=503, detail="Database temporarily unavailable")
     try:
         with connection.cursor() as cursor:
             cursor.execute("SELECT filename, file_link, fileextension FROM files WHERE fileid = %s", (fileID,))

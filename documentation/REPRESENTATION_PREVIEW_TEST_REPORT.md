@@ -38,3 +38,11 @@ Follow-up baseline: `879f854`. Used the installed `ui-ux-pro-max` skill's web te
 Changes: enlarged the actual preview to a fluid 320px maximum, softened the coordinate grid and frame, added a clear type title and a bordered count badge, and used wrapping layout/content-driven height to retain narrow-width text. Existing modal colors and 8px corner radius remain consistent. Local screenshot: `C:/Users/yarug/.codex/visualizations/2026/10/11/01a128ce-0ac2-78e3-b432-6a4cbabbee86/representation-polished-preview.png`. Browser measurement: preview 320px; region 936.8px wide with scrollWidth 935px, no horizontal overflow. No card changes were saved.
 
 Validation: `RepresentationPreview.test.js` and `Card.gallery.test.js`, same test options as above, 2 suites / 29 tests passed in 63.318 seconds. Production build exit 0 with the same existing warning categories. `git diff --check` passed. Narrow viewport and production verification were not executed; wrapping is implemented without claiming a mobile browser pass.
+
+## Compact clickable map location
+
+Baseline: `0d6b546`. Removed blue-tinted panel/scene backgrounds and the redundant `Map representation` label; renamed the heading `Map location`. Preview maximum width is now 240px. It uses a native button with an accessible name, keyboard activation, visible focus and reduced-motion styling. Activation follows the existing details-close path, then the existing card locate callback. Declining the existing unsaved-draft discard confirmation prevents both closing and locating.
+
+Added component regressions for close-and-locate and canceled draft discard. First run: 30 passed, 1 failed in 25.468 seconds because the test expected a nonexistent Title placeholder. Corrected only the test selector to the actual title input. Rerun: 2 suites / 31 tests passed in 21.268 seconds. Production build exit 0 with existing warning categories. `git diff --check` passed.
+
+Browser: clicked the preview of existing local `test 3`; details closed and map view moved to its polygon. Reopened the normal details view and saved `C:/Users/yarug/.codex/visualizations/2026/10/11/01a128ce-0ac2-78e3-b432-6a4cbabbee86/map-location-clickable-preview.png`. No edits were saved or database records created. Production and narrow-viewport verification remain excluded.

@@ -113,10 +113,17 @@
   flex-direction: column;
   justify-content: flex-start;
   gap: 0;
-  /* Reserve only the space used by the hover offset. */
-  padding: 0 3px 0 0;
-  margin: 4px 0 0;
+  padding: 0;
+  margin: 0;
+  scrollbar-gutter: auto;
+  background: #eef2f7;
+  border: 0;
   border-radius: 0;
+  --list-hover-offset: -3px;
+}
+
+#content-2.content-2--left .card-container--list {
+  --list-hover-offset: 3px;
 }
 
 .card-list-item {
@@ -126,14 +133,17 @@
   gap: 10px;
   padding: 6px 10px;
   background-color: #fff;
-  border: 0;
-  border-bottom: 1px solid #cfd8e3;
-  border-radius: 0;
+  border: 1px solid #d8e1ea;
+  border-radius: 6px;
   box-shadow: none;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
   position: relative;
   z-index: 1;
+}
+
+.card-list-item + .card-list-item {
+  margin-top: -1px;
 }
 
 .card-list-item.menu-open {
@@ -141,10 +151,18 @@
 }
 
 .card-list-item:hover {
-  transform: translateX(3px);
+  transform: translateX(var(--list-hover-offset));
   z-index: 2;
-  box-shadow: 0 10px 24px rgba(20, 49, 81, 0.22);
-  border-color: #90a9c2;
+  box-shadow: 0 4px 12px rgba(20, 49, 81, 0.14);
+  border-color: #8eabc8;
+  background-color: #f2f7fc;
+}
+
+.card-list-item .card-list-more-btn {
+  border: 1px solid #bfd0e2;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #244564;
 }
 
 @media (prefers-reduced-motion: reduce) {

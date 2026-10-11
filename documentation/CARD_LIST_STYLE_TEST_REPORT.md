@@ -19,3 +19,16 @@ Validation:
 - `git diff --check`: passed. Temporary fixture server was stopped and fixture files removed; no database cleanup was needed.
 
 Acceptance: frontend build and related component regressions pass; fixture measurements confirm compact spacing, width usage, and icon alignment. Production appearance remains unverified until deployment.
+
+## Follow-up: list surfaces and panel-aware hover
+
+Date: 2026-10-10. Baseline: `3cc1c3a`. This refinement supersedes the original list styles above: the list has a pale blue-gray background, white rounded rows with subtle full borders, and menu buttons using the toolbar's blue border/text palette. Adjacent borders overlap by 1px to keep rows touching. Padding and always-reserved scrollbar space are removed; a scrollbar occupies width only when needed. Hover moves toward the map: -3px in the right panel and +3px in the left panel. The reduced-motion override remains in place.
+
+Verification used the actual running application at `localhost:3000`, local backend at `127.0.0.1:8000`, and the existing `livingatlas_test` database at `127.0.0.1:5433` with `LOCAL_TEST_MODE=1`. Three existing cards were read; no cards were created, modified, or deleted. Mapbox was live; no external data writes or load tests were performed. Panel placement was restored to the right after verification.
+
+- Actual list width: client width 308px; rendered row width 308.4px (fractional browser rounding), with zero container padding and zero reserved gutter. No horizontal overflow at desktop or 480px viewport width.
+- List background `rgb(238, 242, 247)` differs from white rows. Full row borders use `rgb(216, 225, 234)`. Adjacent rows overlap their borders by 1px without an open gap.
+- Real pointer hover was observed through menu-button clicks: computed transforms were `matrix(1, 0, 0, 1, -3, 0)` on the right and `matrix(1, 0, 0, 1, 3, 0)` on the left. The more-options menu opened correctly in both placements.
+- Existing `Content2.width.test.js`: 3 tests passed using the command recorded above with that test path only.
+- Development server compiled successfully; `git diff --check` passed. The production build result is recorded below.
+- Production build: exit 0, with the same pre-existing warnings described in the original verification. This follow-up changes only `Content2.css` and this report; hosted endpoint configuration and database migrations are unchanged. No deployment was performed.

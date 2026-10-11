@@ -11,6 +11,7 @@ import { faAngleDoubleLeft, faAngleDoubleRight } from '@fortawesome/free-solid-s
 import { faClone } from '@fortawesome/free-solid-svg-icons';
 import './Home.css';
 import './Sidebars.css';
+import './PanelControls.css';
 import ArcgisUploadPanel from './ArcgisUploadPanel';
 import CustomLayersPanel from './CustomLayersPanel';
 import { applyAreaVisibility } from './AreaFilter';
@@ -75,7 +76,7 @@ function Home(props) {
     const [itemExpanded, setItemExpanded] = useState(false);
     const [isChangelogOpen, setIsChangelogOpen] = useState(false);
     const [hasUnseenChangelog, setHasUnseenChangelog] = useState(() => {
-        return !localStorage.getItem('changelog_seen_v22');
+        return !localStorage.getItem('changelog_seen_v23');
     });
     const [isGeneralOnboardingOpen, setIsGeneralOnboardingOpen] = useState(false);
     const [isGeneralOnboardingTourOpen, setIsGeneralOnboardingTourOpen] = useState(false);
@@ -84,7 +85,7 @@ function Home(props) {
     const [isMapFullscreen, setIsMapFullscreen] = useState(false);
 
     const closeChangelog = () => {
-        localStorage.setItem('changelog_seen_v22', 'true');
+        localStorage.setItem('changelog_seen_v23', 'true');
         setHasUnseenChangelog(false);
         setIsChangelogOpen(false);
     };

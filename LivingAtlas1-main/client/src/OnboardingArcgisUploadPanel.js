@@ -54,7 +54,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="arcgis-panel-actions"]',
         title: 'Panel Actions',
-        description: 'Use the action row to refresh ArcGIS services from upstream servers, toggle Show Added Only, and clear all active layers from the map.',
+        description: 'Use the action row to refresh ArcGIS services from upstream servers, toggle Added to show active layers only, and use Clear to remove active layers from the map. Hover over compact buttons for their full labels.',
         placement: 'left',
     },
     {

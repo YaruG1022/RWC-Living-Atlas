@@ -1,3 +1,4 @@
+import { appendDescriptionFileTokens } from './descriptionAttachments';
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import Modal from 'react-modal';
@@ -366,6 +367,7 @@ const FormModal = (props) => {
             ));
         }
 
+        appendDescriptionFileTokens(formData2, selectedFiles);
         // append multiple files
         if (selectedFiles.length > 0) {
             selectedFiles.forEach((file) => {
@@ -625,6 +627,7 @@ const FormModal = (props) => {
 
                     <label>Description (optional):</label>
                     <RichTextEditor
+                        onInsertFiles={files => setSelectedFiles(prev => [...prev, ...files])}
                         value={formData.description || ''}
                         onChange={(html) => setFormData(prev => ({ ...prev, description: html }))}
                         placeholder="Enter description..."

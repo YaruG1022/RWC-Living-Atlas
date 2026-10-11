@@ -4,9 +4,9 @@ import { faTimes, faQuestion, faPlay, faSearch } from '@fortawesome/free-solid-s
 import './BasemapSwitcher.css';
 import BasemapPanelOnboarding from './OnboardingBasemapPanel';
 
-const SF_TILE_SAMPLE = { z: 12, y: 1583, x: 6542 };
+const SEATTLE_TILE_SAMPLE = { z: 10, y: 357, x: 163 };
 
-function createRasterStyle(id, tileUrl, attribution = '') {
+function createRasterStyle(id, tileUrl, attribution, maxzoom) {
     return {
         version: 8,
         name: id,
@@ -15,6 +15,7 @@ function createRasterStyle(id, tileUrl, attribution = '') {
                 type: 'raster',
                 tiles: [tileUrl],
                 tileSize: 256,
+                maxzoom,
                 attribution,
             },
         },
@@ -24,7 +25,6 @@ function createRasterStyle(id, tileUrl, attribution = '') {
                 type: 'raster',
                 source: id,
                 minzoom: 0,
-                maxzoom: 22,
             },
         ],
     };
@@ -97,6 +97,60 @@ const BASEMAPS = [
     },
 ];
 
+// Public tile services: use normal browser caching and request only visible tiles.
+const PUBLIC_BASEMAPS = [
+    {
+        id: 'openstreetmap',
+        label: 'OpenStreetMap',
+        description: 'Community street map worldwide. Free public tiles; availability is best effort.',
+        tiles: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+        maxzoom: 19,
+    },
+    {
+        id: 'usgs-topo',
+        label: 'USGS Topographic',
+        description: 'U.S. topographic map with contours, waterways, roads and terrain. Free, no API key.',
+        service: 'USGSTopo',
+    },
+    {
+        id: 'usgs-imagery',
+        label: 'USGS Aerial Imagery',
+        description: 'U.S. aerial imagery without labels. Detailed coverage varies by location. Free, no API key.',
+        service: 'USGSImageryOnly',
+    },
+    {
+        id: 'usgs-relief',
+        label: 'USGS Shaded Relief',
+        description: 'U.S. terrain shading for landforms and elevation context. Free, no API key.',
+        service: 'USGSShadedReliefOnly',
+        maxzoom: 7,
+    },
+];
+
+PUBLIC_BASEMAPS.forEach(({ id, label, description, tiles, service, attribution, maxzoom }) => {
+    const tileUrl = tiles || `https://basemap.nationalmap.gov/arcgis/rest/services/${service}/MapServer/tile/{z}/{y}/{x}`;
+    const credit = attribution || `${id === 'usgs-imagery' ? 'USDA, ' : ''}<a href="https://www.usgs.gov/programs/national-geospatial-program/national-map">USGS The National Map</a>`;
+    const sampleZoom = Math.min(SEATTLE_TILE_SAMPLE.z, maxzoom || 16);
+    const sampleScale = 2 ** (SEATTLE_TILE_SAMPLE.z - sampleZoom);
+    const sample = { z: sampleZoom, x: Math.floor(SEATTLE_TILE_SAMPLE.x / sampleScale), y: Math.floor(SEATTLE_TILE_SAMPLE.y / sampleScale) };
+    BASEMAPS.push({
+        id,
+        label,
+        description,
+        style: createRasterStyle(id, tileUrl, credit, maxzoom || 16),
+        thumbnail: tileUrl.replace(/\{([zxy])\}/g, (_, axis) => sample[axis]),
+        sourceLabel: id === 'openstreetmap' ? '© OpenStreetMap contributors' : 'USGS The National Map',
+        sourceUrl: id === 'openstreetmap' ? 'https://www.openstreetmap.org/copyright' : 'https://www.usgs.gov/programs/national-geospatial-program/national-map',
+    });
+});
+
+const rasterBasemapSources = new Set(PUBLIC_BASEMAPS.map(({ id }) => id));
+
+function isOverlaySource(id) {
+    return id && !id.startsWith('mapbox') && !id.startsWith('composite') && !rasterBasemapSources.has(id);
+}
+
 function getAccessToken() {
     // Read token from mapboxgl global (set in Content1.js)
     if (window.mapboxgl && window.mapboxgl.accessToken) return window.mapboxgl.accessToken;
@@ -141,14 +195,14 @@ export default function BasemapSwitcher({ isOpen, onClose, splitBottom = false, 
         if (style) {
             // Save custom (non-mapbox) sources
             Object.keys(style.sources || {}).forEach(id => {
-                if (!id.startsWith('mapbox') && !id.startsWith('composite')) {
+                if (isOverlaySource(id)) {
                     customSources[id] = style.sources[id];
                 }
             });
             // Save custom layers
             (style.layers || []).forEach(layer => {
                 const src = layer.source || '';
-                if (src && !src.startsWith('mapbox') && !src.startsWith('composite')) {
+                if (isOverlaySource(src)) {
                     customLayers.push(layer);
                 }
             });
@@ -313,6 +367,11 @@ export default function BasemapSwitcher({ isOpen, onClose, splitBottom = false, 
                         <div className="basemap-switcher-text">
                             <span className="basemap-switcher-label">{basemap.label}</span>
                             <span className="basemap-switcher-desc">{basemap.description}</span>
+                            {basemap.sourceUrl && (
+                                <a className="basemap-switcher-credit" href={basemap.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()}>
+                                    {basemap.sourceLabel}
+                                </a>
+                            )}
                         </div>
                     </div>
                 ))}

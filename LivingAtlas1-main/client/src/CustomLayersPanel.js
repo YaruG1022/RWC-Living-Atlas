@@ -1607,17 +1607,19 @@ function CustomLayersPanel({
                             data-onboarding-target="custom-layers-new-folder-button"
                             onClick={handleCreateFolder}
                             title="New Folder"
+                            aria-label="New Folder"
                         >
                             <FontAwesomeIcon icon={faFolderPlus} />
-                            <span>New Folder</span>
+                            <span>Folder</span>
                         </button>
                         <button
                             className="clear-all-layers-btn custom-layers-panel-upload-btn"
                             onClick={() => uploadInputRef.current?.click()}
                             title="Upload GeoJSON, KML, or Shapefile (.zip)"
+                            aria-label="Upload GeoJSON, KML, or Shapefile (.zip)"
                         >
                             <FontAwesomeIcon icon={faUpload} />
-                            <span>Upload File</span>
+                            <span>Upload</span>
                         </button>
                         <input
                             ref={uploadInputRef}
@@ -1658,12 +1660,14 @@ function CustomLayersPanel({
                                 });
                             }}
                             aria-pressed={showAddedOnly}
+                            aria-label="Show only services added to the map"
                             title={showAddedOnly ? 'Show all services' : 'Show only services added to the map'}
                         >
                             <FontAwesomeIcon icon={faEye} />
-                            <span>{showAddedOnly ? 'Showing Added Only' : 'Show Added Only'}</span>
+                            <span>Added</span>
                         </button>
                         <ClearAllLayersButton
+                            label="Clear"
                             onClick={handleClearAllLayers}
                             disabled={!Object.values(checkedLayerIds).some(ids => Array.isArray(ids) && ids.length > 0)}
                         />

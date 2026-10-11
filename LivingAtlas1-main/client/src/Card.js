@@ -1,17 +1,19 @@
+import { appendDescriptionFileTokens } from './descriptionAttachments';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import Modal from 'react-modal';
 import api from './api.js';
 import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
-import LearnMoreGallery, { MAX_CARD_IMAGES, GalleryLayoutSelector } from './LearnMoreGallery';
+import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
 import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, toggleGallerySelection } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon, faArrowLeft, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faArrowLeft, faCheck, faUpload, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
 import { faHeart as regularHeart, faQuestionCircle, faCirclePlay } from '@fortawesome/free-regular-svg-icons';
 import { fetchUserPreferences } from './userPreferencesApi';
 import RichTextEditor from './RichTextEditor';
+import RepresentationPreview from './RepresentationPreview';
 import { descriptionToHtml, htmlToPlainText } from './richTextUtils';
 import PolygonDrawingModal from './PolygonDrawingModal';
 import CoordinatesPanel from './CoordinatesPanel';
@@ -929,6 +931,7 @@ function Card(props) {
         formDataToSend.append("thumbnail", thumbnail);
     }
 
+    appendDescriptionFileTokens(formDataToSend, formData.filesToUpload);
     // Append multiple files safely
     if (formData.filesToUpload && formData.filesToUpload.length > 0) {
         formData.filesToUpload.forEach((file) => {
@@ -1579,7 +1582,7 @@ function Card(props) {
 
         if (isLearnMoreEditMode && hasUnsavedChanges) {
             const confirmed = window.confirm('You have unsaved changes. Discard them and close?');
-            if (!confirmed) return;
+            if (!confirmed) return false;
         }
 
         if (isLearnMoreEditMode) {
@@ -1588,6 +1591,7 @@ function Card(props) {
 
         setIsAllImagesView(false);
         setIsModalOpen(false);
+        return true;
     };
 
 
@@ -1830,28 +1834,20 @@ function Card(props) {
             ? resolveImageUrl(displayCardData.thumbnail_link)
             : "/CEREO-logo.png";
 
-    // Shared representation preview (icon/thumbnail + type + detail) shown in both
+    // Shared geographic appearance preview and details shown in both
     // edit and view modes. The edit/change buttons are only rendered in edit mode.
     const renderRepresentationPreview = () => (
         <>
-            <p><strong>Representation:</strong></p>
+            <p><strong>Map location:</strong></p>
             <div className="learn-more-representation-preview">
-                {isImageCard ? (
-                    <img
-                        className="learn-more-representation-thumb"
-                        src={cardThumbnailSrc}
-                        alt="Card representation preview"
-                    />
-                ) : (
-                    <div className="learn-more-representation-icon">
-                        <FontAwesomeIcon icon={isOverlayCard ? faDrawPolygon : faLocationDot} />
-                    </div>
-                )}
+                <RepresentationPreview data={formData} imageSrc={isImageCard && (formData.thumbnail_link || preview) ? getRepresentativeImageUrl() : undefined} onLocate={async e => {
+                    if (await handleLearnMoreClose(e)) handleZoom(e);
+                }} />
                 <div className="learn-more-representation-info">
                     <span className="learn-more-representation-type">
                         {isImageCard ? 'Image' : isPolygonCard ? 'Polygon' : (formData.location_type === 'multipoint' ? 'Multi-point' : 'Point')}
                     </span>
-                    <span className="learn-more-representation-detail">
+                    {(isOverlayCard || formData.location_type === 'multipoint') && <span className="learn-more-representation-detail">
                         {isImageCard
                             ? 'Image overlay'
                             : isPolygonCard
@@ -1859,7 +1855,7 @@ function Card(props) {
                             : formData.location_type === 'multipoint'
                             ? `${(formData.polygon_vertices || []).length} points`
                             : ''}
-                    </span>
+                    </span>}
                     {!isOverlayCard && (
                         <span className="learn-more-representation-coordinates">
                             <strong>Latitude:</strong> {formData.latitude ?? 'N/A'}
@@ -2308,27 +2304,15 @@ function Card(props) {
                         totalImageCount={allImagesList.length}
                         layout={formData.gallery_layout || 'featured'}
                         editing={isLearnMoreEditMode}
+                        onLayoutChange={gallery_layout => setFormData(prev => ({ ...prev, gallery_layout }))}
                         busy={loading || isImageMutationLoading}
                         coverUrl={isImageCard ? cardThumbnailSrc : learnMoreGalleryImages[0]?.url}
                         onReorder={reorderGalleryImages}
                         onOpen={(event, index) => openImagePreviewAtIndex(event, allImagesList.findIndex(image => galleryImageID(image) === galleryImageID(learnMoreGalleryImages[index])))}
                         onAdd={(event, index) => handleLearnMoreGalleryTileClick(event, null, index)}
                         onDelete={handleLearnMoreImageDelete}
+                        onSeeAll={() => setIsAllImagesView(true)}
                     />
-
-                    <div className="learn-more-gallery-actions-row">
-                    <button
-                        type="button"
-                        className="learn-more-see-all-images-btn"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setIsAllImagesView(true);
-                        }}
-                    >
-                        {`See all ${allImagesList.length} image${allImagesList.length === 1 ? '' : 's'}`}
-                    </button>
-                    {isLearnMoreEditMode && <GalleryLayoutSelector layout={formData.gallery_layout} busy={loading || isImageMutationLoading} onChange={gallery_layout => setFormData(prev => ({ ...prev, gallery_layout }))} />}
-                    </div>
                     </div>
 
                     <div data-onboarding-target="learn-more-text-area">
@@ -2427,6 +2411,8 @@ function Card(props) {
 
                             <p><strong>Description:</strong></p>
                             <RichTextEditor
+                                attachments={formData.files || []}
+                                onInsertFiles={files => setFormData(prev => ({ ...prev, filesToUpload: [...(prev.filesToUpload || []), ...files] }))}
                                 value={formData.description || ''}
                                 onChange={(html) => setFormData(prev => ({ ...prev, description: html }))}
                                 placeholder="Enter description..."
@@ -2561,7 +2547,7 @@ function Card(props) {
 
                     {/* Files Section */}
                     {isLearnMoreEditMode ? (
-                        <div className="learn-more-files-edit-section">
+                        <div className="learn-more-files-edit-section" data-onboarding-target="learn-more-files-section">
                             <p><strong>Attached Files:</strong></p>
                             {formData.files && formData.files.length > 0 ? (
                                 <ul className="learn-more-files-edit-list">
@@ -2595,20 +2581,41 @@ function Card(props) {
                                 <p className="learn-more-no-files">No files attached.</p>
                             )}
                             <label className="learn-more-add-files-label">
-                                Add Files:
+                                <FontAwesomeIcon icon={faUpload} aria-hidden="true" />
+                                <span><strong>Choose files</strong><span className="learn-more-add-files-hint">Select one or more files. Uploads start when you save.</span></span>
                                 <input
                                     type="file"
+                                    aria-label="Add files"
                                     multiple
+                                    disabled={loading || isImageMutationLoading}
                                     onChange={(e) => {
-                                        const selectedFiles = Array.from(e.target.files);
-                                        setFormData((prev) => ({ ...prev, filesToUpload: selectedFiles }));
+                                        const selectedFiles = Array.from(e.target.files || []);
+                                        setFormData((prev) => {
+                                            const filesToUpload = [...(prev.filesToUpload || [])];
+                                            selectedFiles.forEach(file => {
+                                                if (!filesToUpload.some(existing => existing.name === file.name && existing.size === file.size && existing.lastModified === file.lastModified)) {
+                                                    filesToUpload.push(file);
+                                                }
+                                            });
+                                            return { ...prev, filesToUpload };
+                                        });
+                                        e.target.value = '';
                                     }}
                                 />
                             </label>
                             {formData.filesToUpload && formData.filesToUpload.length > 0 && (
-                                <p className="learn-more-staged-files">
-                                    {formData.filesToUpload.length} file(s) staged for upload
-                                </p>
+                                <div className="learn-more-staged-files">
+                                    <p role="status">{formData.filesToUpload.length} file{formData.filesToUpload.length === 1 ? '' : 's'} ready to upload</p>
+                                    <ul className="learn-more-staged-files-list">
+                                        {formData.filesToUpload.map((file, index) => <li key={`${file.name}-${file.size}-${file.lastModified}`}>
+                                            <span className="learn-more-staged-file-name">{file.name}</span>
+                                            <span className="learn-more-staged-file-size">{file.size < 1024 * 1024 ? `${Math.max(1, Math.ceil(file.size / 1024))} KB` : `${(file.size / (1024 * 1024)).toFixed(1)} MB`}</span>
+                                            <button type="button" aria-label={`Remove ${file.name} from upload`} disabled={loading || isImageMutationLoading} onClick={() => setFormData(prev => ({ ...prev, filesToUpload: prev.filesToUpload.filter((_, fileIndex) => fileIndex !== index) }))}>
+                                                <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
+                                            </button>
+                                        </li>)}
+                                    </ul>
+                                </div>
                             )}
                         </div>
                     ) : (
@@ -2619,8 +2626,8 @@ function Card(props) {
                                     {formData.files.map((file, idx) => (
                                         <li key={file.fileid || idx}>
                                             <a
-                                                href={file.file_link}
-                                                target="_blank"
+                                                href={`${api.defaults.baseURL}/downloadFile?fileID=${file.fileid}`}
+                                                download
                                                 rel="noopener noreferrer"
                                             >
                                                 {file.filename || `Download ${file.fileextension}`}
@@ -3176,8 +3183,8 @@ function Card(props) {
                                 {formData.files.map((file, idx) => (
                                     <li key={file.fileid || idx}>
                                         <a
-                                            href={file.file_link}
-                                            target="_blank"
+                                            href={`${api.defaults.baseURL}/downloadFile?fileID=${file.fileid}`}
+                                            download
                                             rel="noopener noreferrer"
                                         >
                                             {file.filename}

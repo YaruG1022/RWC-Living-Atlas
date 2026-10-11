@@ -9,6 +9,15 @@
   overflow: visible; /* must stay visible so the heading dropdown isn't clipped */
 }
 
+.rich-text-editor-toolbar-divider { border-left: 1px solid #cbd5e1; margin: 3px 6px; }
+.rich-text-editor-insert-panel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px; background: #f1f5f9; border-bottom: 1px solid #cbd5e1; }
+.rich-text-editor-insert-panel label { display: flex; flex-direction: column; flex: 1 1 240px; gap: 4px; color: #334155; font-size: 0.85rem; }
+.rich-text-editor-insert-panel input { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 5px; padding: 8px; background: white; }
+.rich-text-editor-insert-panel button { margin: 0; padding: 7px 10px; background: #fff; color: #334155; border: 1px solid #cbd5e1; border-radius: 5px; cursor: pointer; }
+.rich-text-editor-insert-panel button:hover { background: #e0f2fe; border-color: #93c5fd; }
+.rich-text-editor-insert-panel strong, .rich-text-editor-insert-panel small, .rich-text-editor-insert-panel p { flex-basis: 100%; margin: 0; }
+.rich-text-editor-insert-panel p[role="alert"] { color: #b91c1c; }
+
 /* Toolbar */
 .rich-text-editor-toolbar {
   display: flex;

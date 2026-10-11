@@ -72,15 +72,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    background: #fafafa;
-    color: #333;
+    width: 28px;
+    height: 28px;
+    border: 1px solid #d5dfeb;
+    border-radius: 5px;
+    background: #fff;
+    color: #475569;
     cursor: pointer;
     padding: 0;
-    font-size: 11px;
+    font-size: 15px;
 }
 
 .coordinates-panel-icon-btn:hover {
@@ -89,8 +89,8 @@
 }
 
 .coordinates-panel-icon-btn.active {
-    border-color: #d9381e;
-    background: #fdecea;
+    border-color: #8ba6c3;
+    background: #edf3f8;
 }
 
 /* Floating icon picker menu — a standalone popup (portal to body), styled like the
@@ -98,37 +98,41 @@
 .coordinates-panel-icon-menu {
     position: fixed;
     z-index: 10000;
-    width: 192px;
+    width: 244px;
+    box-sizing: border-box;
+    border: 1px solid #d5dfeb;
     background: #fff;
-    border-radius: 4px;
-    box-shadow: 0 0 0 2px rgba(0, 0, 0, .1), 0 4px 12px rgba(0, 0, 0, .15);
-    padding: 2px;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(30, 58, 85, .16);
+    padding: 8px;
 }
 
 .coordinates-panel-icon-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 3px;
-    padding: 5px 6px 7px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
+    padding: 2px;
     background: #fff;
     border-radius: 4px;
-    max-height: 180px;
+    max-height: 200px;
     overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
 }
 
 .coordinates-panel-icon-option {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
-    border: 1px solid transparent;
-    border-radius: 3px;
-    background: #f5f5f5;
-    color: #333;
+    width: 100%;
+    height: 30px;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    background: #f8fafc;
+    color: #475569;
     cursor: pointer;
     padding: 0;
-    font-size: 12px;
+    font-size: 16px;
 }
 
 .coordinates-panel-icon-option:hover {
@@ -139,9 +143,11 @@
    selection only as a border on the option in the icon menu. */
 .coordinates-panel-icon-option.active {
     border-color: #2563eb;
+    background: #edf3f8;
 }
 
 /* Glyph image used for image-based markers inside the picker button and grid. */
+.coordinates-panel-icon-option:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 .marker-icon-glyph-img {
     height: 16px;
     width: auto;

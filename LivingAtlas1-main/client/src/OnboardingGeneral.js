@@ -89,7 +89,7 @@ const STEP_DEFINITIONS = [
     },
     {
         selector: '[data-onboarding-target="left-sidebar-cards"]',
-        title: 'Cards Panel Button',
+        title: 'Project Cards Panel Button',
         description: 'Show or hide data cards. Search, sort, and filter resources, then select a card to explore its details and location. The circular play button in the panel header starts its guided tour.',
         placement: 'right',
     },
@@ -156,7 +156,7 @@ const STEP_DEFINITIONS = [
     {
         selector: '[data-onboarding-target="map-control-add-cards"]',
         title: 'Add Cards From Map',
-        description: 'Open the map creation menu for single point, polygon, and image overlay placement. These creation shortcuts require login.',
+        description: 'The pencil opens Coordinate, Polygon and Image options. The menu and Add Points, Draw Polygon and Place Image editors sit immediately left of this toolbar. Coordinate supports multiple points with neutral outlined markers by default. Login is required.',
         placement: 'left',
     },
     {
@@ -168,7 +168,7 @@ const STEP_DEFINITIONS = [
     {
         selector: '[data-onboarding-target="map-control-reset-view"]',
         title: 'Reset Map View',
-        description: 'Fly the map back to the default Pacific Northwest overview when you want to quickly reset position and zoom.',
+        description: 'The inward-arrow icon returns to the default Pacific Northwest overview, restoring center and zoom. It differs from the compass, which only resets bearing to north.',
         placement: 'left',
     },
     {

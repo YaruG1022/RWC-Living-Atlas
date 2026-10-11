@@ -55,6 +55,42 @@ Use synthetic or de-identified data. Give each run a unique prefix and auditable
 
 ## 4. Completed tests and traceable evidence
 
+Compact custom-layer actions (2026-10-11): browser inspection confirmed four
+shortened buttons in one 28px row, including both Added filter states. Build
+passed; see the [custom-layer actions report](CUSTOM_LAYER_ACTIONS_TEST_REPORT.md).
+The shared-panel follow-up in that report records 28 passing regressions and
+measured compact card/GIS actions, basemap search and watershed selection controls.
+
+Pin chronology and map coordinates (2026-10-11): ten panel regressions passed;
+local browser inspection verified three-card pin order and a measured coordinate
+panel height reduction from 56px to approximately 34.8px. Build passed. See the
+[pin order and coordinates report](PIN_ORDER_COORDINATES_TEST_REPORT.md).
+
+Description insertion (2026-10-11): four real-editor component tests and nine
+backend tests passed, with 40 adjacent gallery/card regressions. A two-file local
+upload/DB/download cycle verified saved description references and zero fixture
+residue; browser inspection confirmed the Link/File controls. Build passed.
+Failures, fixes and exclusions are recorded in the [description editor report](../DESCRIPTION_EDITOR_TEST_REPORT.md).
+
+Attachment downloads (2026-10-11): actual local URLs, legacy-link recovery,
+Unicode download headers and bytes were verified with 10 offline storage/response
+tests, a two-file local upload/DB/download/cleanup cycle and an actual browser
+download. Forty frontend regressions and the build passed. First failures and
+hosted limitations are in the [attachment report](ATTACHMENT_DOWNLOAD_TEST_REPORT.md).
+
+Public basemap verification (2026-10-10): four OpenStreetMap/USGS options,
+attribution, native zoom limits, search and overlay/camera preservation were
+checked with five focused tests and live local-browser smoke checks. Eight card
+regressions and the frontend build also passed. Service conditions and the first
+Shaded Relief tile failure are in the [basemap report](BASEMAP_OPTIONS_TEST_REPORT.md).
+
+Card list style verification (2026-10-10): compact spacing and gallery toolbar
+alignment were checked in an offline browser fixture at desktop and narrow widths;
+21 related component tests and the frontend build passed. See
+[style verification report](CARD_LIST_STYLE_TEST_REPORT.md) for evidence and limits.
+The delayed list hover preview also has five focused timer/lifecycle tests and
+actual local-browser checks on both panel sides in the same report.
+
 Gallery layout verification (2026-10-04): 1–8 image grids, slideshow navigation,
 drag/button ordering, draft save/cancel and upload limits are covered by offline
 component and backend contract tests. See [gallery verification report](GALLERY_LAYOUT_TEST_REPORT.md)
@@ -126,3 +162,9 @@ The cycle follows planning, analysis/design, implementation/execution, monitorin
 ## GUI guide navigation regression
 
 `UserManual.test.js` renders guide sections and exercises reused image-gallery callbacks. Local GUI-copy and layout verification is recorded in [GUI_GUIDE_UPDATE_TEST_REPORT.md](GUI_GUIDE_UPDATE_TEST_REPORT.md).
+
+## Card geographic representation preview regression
+
+`RepresentationPreview.test.js` checks north-up coordinate projection, date-line handling, image corner transforms, polygon and marker styles, and invalid geometry/image fallbacks. Existing card/gallery cases provide adjacent regressions. Local browser/build evidence and exclusions are recorded in [REPRESENTATION_PREVIEW_TEST_REPORT.md](REPRESENTATION_PREVIEW_TEST_REPORT.md).
+
+`markerIcons.test.js` checks picker/map default-style parity and preservation of custom colors and image assets. Coordinate-editor browser evidence is recorded in [COORDINATE_PANEL_STYLE_TEST_REPORT.md](COORDINATE_PANEL_STYLE_TEST_REPORT.md).

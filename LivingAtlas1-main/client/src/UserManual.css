@@ -827,3 +827,14 @@ nav.um-nav-sidebar {
 .um-all-images-demo .learn-more-all-image-btn { width: 100%; height: 100%; }
 .um-all-images-demo .is-main-selected { border-color: #7c9bbf; box-shadow: 0 0 0 2px rgba(100,116,139,.18); }
 .um-all-images-demo .learn-more-gallery-selection { position: absolute; bottom: 10px; left: 10px; z-index: 1; }
+
+/* Manual examples follow the current compact map controls. */
+.um-mapctrl-group { width: 32px; box-sizing: border-box; border: 1px solid #d5dfeb; border-radius: 6px; box-shadow: 0 3px 12px rgba(30,58,85,.14); }
+.um-mapctrl-btn { width: 100%; height: 32px; box-sizing: border-box; margin: 0; border-radius: 0; color: #52657b; }
+.um-mapctrl-btn + .um-mapctrl-btn { border-top: 1px solid #d5dfeb; }
+.um-mapctrl-geocoder-mock { box-sizing: border-box; height: 34px; border: 1px solid #d5dfeb; border-radius: 6px; box-shadow: 0 3px 12px rgba(30,58,85,.14); color: #62748c; }
+.um-mapctrl-zaxis { flex-direction: column; width: 32px; height: 126px; box-sizing: border-box; padding: 5px; gap: 3px; border: 1px solid #d5dfeb; border-radius: 6px; box-shadow: 0 3px 12px rgba(30,58,85,.14); }
+.um-mapctrl-zaxis__scale { flex: 1; }
+.um-mapctrl-zaxis__value { min-width: 0; font-size: 10px; font-variant-numeric: tabular-nums; }
+.um-polydraw-demo-wrapper { max-width: 312px; border-radius: 8px; box-shadow: none; }
+.um-polydraw-demo-wrapper .polygon-draw-modal { max-width: none; box-sizing: border-box; border-radius: 8px; }

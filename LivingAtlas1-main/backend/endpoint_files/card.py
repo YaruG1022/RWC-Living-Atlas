@@ -6,7 +6,7 @@ card
 
 """
 
-from fastapi import APIRouter, File, Form, UploadFile, HTTPException, Response, Query
+from fastapi import APIRouter, File, Form, UploadFile, HTTPException, Query
 from database import conn, cur
 from typing import Optional
 import psycopg2
@@ -14,6 +14,7 @@ import os
 import uuid
 import json
 import tempfile
+from endpoint_files.description_attachments import parse_attachment_tokens, resolve_attachment_token
 from database import get_connection, get_request_connection, release_request_connection
 from .file_utils import compress_file #importing my function that handles compressing files for use in /uploadForm
 
@@ -38,9 +39,9 @@ def upload_to_bucket(destination_path, local_path, file_type, bucket_name):
     try:
         with open(local_path, "rb") as f:
             data = f.read()
-        azure_storage.upload_bytes(destination_path, data, file_type)
+        url = azure_storage.upload_bytes(destination_path, data, file_type, bucket_name)
         print(f"[UPLOAD SUCCESS] {destination_path}")
-        return True
+        return url
     except Exception as e:
         print(f"[UPLOAD ERROR] {e}")
         return False
@@ -236,29 +237,21 @@ def get_bookmarked_cards(username: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @card_router.get("/downloadFile")
-async def downloadFile(fileID: int):
-    """
-    Return the stored file link by fileID,
-    and include Content-Disposition headers so the browser downloads it cleanly.
-    """
-    cur.execute("SELECT filename, file_link FROM files WHERE fileid = %s", (fileID,))
-    result = cur.fetchone()
+def downloadFile(fileID: int):
+    """Return attachment bytes; headers on redirects do not force downloads."""
+    connection = get_request_connection()
+    if connection is None:
+        raise HTTPException(status_code=503, detail="Database temporarily unavailable")
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT filename, file_link, fileextension FROM files WHERE fileid = %s", (fileID,))
+            result = cursor.fetchone()
+    finally:
+        release_request_connection(connection)
     if result is None:
-        raise HTTPException(status_code=422, detail="File not found in the database")
-
-    filename, file_link = result
-
-    # Option A: redirect to the public link
-    # (preferred for large files; storage handles it directly)
-    return Response(
-        content=f"Redirecting to {file_link}",
-        media_type="text/plain",
-        headers={
-            "Content-Disposition": f'attachment; filename="{filename}.zip"',
-            "Location": file_link,
-        },
-        status_code=302,  # Redirect
-    )
+        raise HTTPException(status_code=404, detail="File not found in the database")
+    from .attachment_download import attachment_response
+    return attachment_response(*result)
 
 @card_router.get("/card/{card_id}")
 def get_card_by_id(card_id: int):
@@ -442,6 +435,7 @@ async def upload_form(
     polygon_line_style: Optional[str] = Form(None),
     multipoint_coordinates: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
+    description_file_tokens: Optional[str] = Form(None),
     funding: Optional[str] = Form(None),
     org: Optional[str] = Form(None),
     link: Optional[str] = Form(None),
@@ -474,6 +468,10 @@ async def upload_form(
     if images and len(images) > MAX_CARD_IMAGES:
         raise HTTPException(status_code=422, detail=f"A card can have at most {MAX_CARD_IMAGES} images")
     enable_commits = False
+    try:
+        attachment_tokens = parse_attachment_tokens(description_file_tokens, len(files or []), description)
+    except (ValueError, TypeError) as error:
+        raise HTTPException(status_code=422, detail=str(error))
     print(f"[UPLOAD] username={username}, email={email}, orig_username={original_username or ''}, orig_email={original_email or ''}")
     print(f"[UPLOAD] location_type={location_type}, polygon_fill_color={polygon_fill_color!r}, polygon_line_style={polygon_line_style!r}")
     print(f"[UPLOAD] polygon_coordinates (first 200 chars): {str(polygon_coordinates)[:200] if polygon_coordinates else 'None'}")
@@ -806,7 +804,7 @@ async def upload_form(
         # --------------------------------------------------
         if files:
             print("[FILES] Beginning upload process...")
-            for file in files:
+            for file_index, file in enumerate(files):
                 try:
                     with tempfile.NamedTemporaryFile(delete=False) as tmp:
                         file.file.seek(0)
@@ -825,11 +823,10 @@ async def upload_form(
                     destination_path = f"files/{username}/{safe_filename}.zip"
 
                     print(f"[UPLOAD] Uploading compressed file {zip_filename} → {destination_path}")
-                    upload_ok = upload_to_bucket(destination_path, zip_path, "application/zip", azure_storage.AZURE_CONTAINER)
-                    if not upload_ok:
+                    public_url = upload_to_bucket(destination_path, zip_path, "application/zip", azure_storage.AZURE_CONTAINER)
+                    if not public_url:
                         raise Exception("Upload to Azure failed")
 
-                    public_url = azure_storage.build_url(destination_path)
 
                     cur.execute(
                         'INSERT INTO Files (fileid, CardID, filename, file_link, filesize, fileextension) '
@@ -838,6 +835,7 @@ async def upload_form(
                     )
 
                     print(f"[DB] File record added: {safe_filename}")
+                    description = resolve_attachment_token(description, attachment_tokens[file_index], nextfileid)
                     enable_commits = True
 
                 except Exception as e:
@@ -849,6 +847,7 @@ async def upload_form(
                         if os.path.exists(path):
                             os.remove(path)
             print("[FILES] Upload process complete.")
+            cur.execute('UPDATE cards SET description = %s WHERE cardid = %s', (description, nextcardid))
 
         # --------------------------------------------------
         # Final commit

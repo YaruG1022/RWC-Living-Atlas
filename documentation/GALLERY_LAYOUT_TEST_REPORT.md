@@ -192,3 +192,103 @@ slideshow access, and saving/canceling a six-image layout. The initial run faile
 three older Card tests because they selected the removed grid-8 option; those
 tests now select grid-6. Both runs are preserved in `gallery-six-display-tests.log`
 and `gallery-six-display-tests-run2.log` in the evidence directory above.
+
+## Follow-up: edit-only layout selector inside the gallery
+
+Date: 2026-10-10 (America/Los_Angeles). Baseline `aa53c91`.
+Moved the existing layout selector from the actions row into LearnMoreGallery,
+inside its top right corner. It renders only in edit mode with a layout change
+handler. The overlay uses opacity 0.72 and a translucent background; hover and
+focus-within use opacity 1 and solid white. Busy state still disables selection.
+The Card passes its existing draft setter, preserving save/cancel behavior.
+Updated the tutorial text and manual's gallery demonstration to the new location.
+
+Scope: visual placement, opacity, edit/view mode and existing layout/save/cancel
+regressions. No new database data, API changes, external services or migrations.
+Actual browser inspection preserved the user's open unsaved edit without saving,
+canceling, changing the selected layout or reloading the page.
+
+Commands from `LivingAtlas1-main/client`:
+
+```powershell
+$env:CI='true'
+node node_modules/react-scripts/bin/react-scripts.js test --watchAll=false --runInBand --transformIgnorePatterns 'node_modules/(?!axios)/' --runTestsByPath src/LearnMoreGallery.test.js src/Card.gallery.test.js
+node node_modules/react-scripts/bin/react-scripts.js test --watchAll=false --runInBand --transformIgnorePatterns 'node_modules/(?!axios)/' --runTestsByPath src/LearnMoreGallery.test.js
+node node_modules/react-scripts/bin/react-scripts.js build
+```
+
+First combined run: Card's 20 tests passed, but four gallery tests failed because
+they assumed the selector was still external or mounted a duplicate external
+selector. Updated those existing expectations and fixtures for the requested
+internal edit control, with explicit view-mode hiding assertions. Gallery rerun:
+18/18 tests passed. Thus both suites passed across the recorded runs, totaling 38
+tests; the combined command was not rerun after these expectation-only edits.
+Card tests emit existing React act warnings. Build exited 0 with the existing
+ESLint, Browserslist, bundle size and Card.css container-unit minimizer warnings.
+`git diff --check` passed.
+
+Actual localhost browser at 1242x764: control rectangle entirely inside the gallery,
+top inset 10px and right inset 12px; computed resting opacity 0.72. After hovering,
+computed opacity was 1 and background rgb(255,255,255). The See all images button
+remains below the gallery. Screenshot saved as this chat's local visualization
+artifact `gallery-layout-overlay.png`. No mobile browser or deployed preview was
+tested in this follow-up. Rollback requires reverting only the frontend change.
+
+## Follow-up: See all images inside the bottom left corner
+
+Date: 2026-10-10 (America/Los_Angeles). Baseline `1f23373`.
+Moved the existing See all images action into LearnMoreGallery, visible in both
+viewing and editing modes. Removed the now-empty external actions row. The button
+uses 12px left/bottom insets, opacity 0.72 at rest and opacity 1 with a solid white
+background on hover or keyboard focus. Slideshow pagination moves above the bottom
+controls to avoid overlap at narrow widths. Manual examples/text use the same
+component. No API, schema or dependency changes.
+
+Verification: the preceding combined Jest command for LearnMoreGallery.test.js and
+Card.gallery.test.js passed 2 suites / 38 tests on its first run. Existing act
+warnings remain. Frontend build exited 0 with the previously recorded warnings;
+`git diff --check` passed.
+
+Actual localhost browser at 1242x764: button bounds were entirely inside the
+gallery, with left and bottom inset 12px and resting computed opacity 0.72. The
+normal-mode hover matched `:hover` and computed opacity 1. Clicking opened the
+existing all-images screen and Back to Learn More returned correctly. Entering
+edit mode retained the button alongside the top-right layout control; no fields
+were modified or saved. Cancel restored normal viewing. No database records were
+created or changed. Screenshot: local chat artifact `gallery-see-all-overlay.png`.
+No deployed preview, mobile browser or third-party performance checks were run.
+
+## Follow-up: styled multiple attachment selection
+
+Date: 2026-10-10 through 2026-10-11 (America/Los_Angeles). Baseline `0fcdee6`.
+The existing learn-more attachment input already had `multiple`, but each selection
+replaced the earlier batch. Restyled it as a labelled, keyboard-accessible picker
+with an upload icon and explicit save timing. Selections now accumulate; identical
+name/size/lastModified entries are skipped. Resetting the native input allows
+reselecting a removed file. Each queued file has its name, displayed size and a
+draft-only remove button. Choosing/removing files is disabled during saving.
+The existing multipart save appends every queued file under the `files` field;
+no backend endpoint or upload protocol changed.
+
+Scope: frontend selection, queue mutation, multipart payload, failure retention
+and cancel semantics. No live upload to the user's card, database writes, migrations,
+cloud storage calls, load tests or production deployment were performed.
+
+Using the preceding combined Jest command, the first run passed 39/40 tests. The
+new failed-save/cancel test tried reopening edit mode before asynchronous cancel
+had completed, matching unrelated Edit controls. It now waits for save controls to
+be enabled and for the exact learn-more Edit button after cancel. The next run
+passed 2 suites / 40 tests. New cases verify two-file selection, a subsequent batch,
+duplicate suppression, removal and the remaining multipart filenames, plus a
+simulated server error retaining the batch and cancel clearing it. Existing React
+act warnings remain. Frontend build exited 0 with the previously recorded warnings;
+`git diff --check` passed.
+
+Actual local browser: native file chooser confirmed multiple selection and accepted
+two synthetic local fixtures in one operation. Both filenames, sizes and the
+two-file count appeared in the draft. Screenshot artifact:
+`multiple-attachments-control.png`. Both synthetic entries were removed afterward
+using their draft remove buttons; no Save or Cancel was pressed and other current
+user edits were preserved. The browser selection operation took an unusually long
+time to return; this is not an application upload latency measurement. Live
+attachment persistence/download and mobile appearance were not exercised here.

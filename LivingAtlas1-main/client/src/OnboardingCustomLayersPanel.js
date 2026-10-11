@@ -12,7 +12,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="custom-layers-new-folder-button"]',
         title: 'New Folder',
-        description: 'Use this action-row button to create a new folder for your saved custom layers.',
+        description: 'The compact Folder button creates a new folder for your saved custom layers. Hover buttons to read their full action labels.',
         placement: 'left',
     },
     {
@@ -54,7 +54,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="custom-layers-panel-actions"]',
         title: 'Panel Actions',
-        description: 'This action row groups New Folder, Upload File, Show Added Only, and Clear All. Upload File imports a GeoJSON, KML, or Shapefile (.zip) as a new layer; Show Added Only focuses on items already loaded on the map.',
+        description: 'The compact row groups Folder, Upload, Added and Clear. Upload imports GeoJSON, KML or a zipped Shapefile; Added shows only loaded items; Clear removes active layers from the map. Hover for full labels.',
         placement: 'left',
     },
     {

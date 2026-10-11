@@ -91,9 +91,10 @@ function FilterDropdown({
         className={`filter-dropdown-trigger${activeCount > 0 ? ' active' : ''}`}
         onClick={() => setIsOpen(v => !v)}
         title="Filter cards"
+        aria-label="Filter cards"
       >
         <FontAwesomeIcon icon={faFilter} />
-        <span>Filter By</span>
+        <span>Filter</span>
         {activeCount > 0 && <span className="filter-dropdown-badge">{activeCount}</span>}
       </button>
 

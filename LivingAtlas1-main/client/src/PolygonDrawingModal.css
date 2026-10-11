@@ -1,7 +1,7 @@
 .polygon-draw-modal {
     position: absolute;
     top: 10px;
-    right: 39px;
+    right: calc(var(--map-control-width, 32px) + var(--map-control-right-inset, 6px));
     z-index: 10;
     background: #fff;
     border-radius: 4px;
@@ -770,4 +770,37 @@
     background: #e8f2fb;
     border-color: #4aa9e6;
 }
+
+
+/* Keep editor controls aligned with the map panels' quiet slate palette. */
+.polygon-draw-modal { width: 312px; max-width: calc(100% - 55px); border: 1px solid #d5dfeb; border-radius: 8px; box-shadow: 0 4px 16px rgba(30, 58, 85, .14); color: #243b53; }
+.polygon-draw-modal .polygon-draw-modal-header { padding: 10px 12px; background: #f8fafc; border-radius: 8px 8px 0 0; border-color: #e2e8f0; }
+.polygon-draw-modal .polygon-draw-modal-header h3 { color: #243b53; }
+.polygon-draw-modal .polygon-draw-modal-hint { color: #52657b; line-height: 1.5; }
+.polygon-draw-modal .polygon-draw-style-toolbar { gap: 4px; padding: 8px; border-color: #e2e8f0; }
+.polygon-draw-modal .polygon-draw-style-btn { border: 1px solid #d5dfeb; background: #fff; color: #52657b; }
+.polygon-draw-modal .polygon-draw-style-btn:disabled { opacity: .45; }
+.polygon-draw-modal .polygon-draw-modal-vertices { padding: 8px; }
+.polygon-draw-modal .polygon-draw-modal-vertex-row { gap: 6px; padding: 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 6px; }
+.polygon-draw-modal .polygon-draw-modal-vertex-row:last-child { border-bottom: 1px solid #e2e8f0; margin-bottom: 0; }
+.polygon-draw-modal .polygon-draw-modal-vertex-num { width: 20px; height: 20px; background: #e8eef5; border: 1px solid #d5dfeb; color: #475569; font-size: 11px; }
+.polygon-draw-modal .polygon-draw-modal-vertex-inputs { min-width: 0; gap: 4px; }
+.polygon-draw-modal .polygon-draw-vertex-input { width: 100%; min-width: 0; height: 28px; box-sizing: border-box; padding: 4px 5px; background: #fff; border-color: #d5dfeb; color: #334155; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.5; letter-spacing: 0; }
+.polygon-draw-modal .polygon-draw-modal-vertex-remove { width: 26px; height: 28px; flex-shrink: 0; border: 1px solid #d5dfeb; border-radius: 5px; background: #fff; color: #64748b; font-size: 18px; }
+.polygon-draw-modal .polygon-draw-modal-vertex-remove:hover { color: #b42318; border-color: #f0c9c5; background: #fff7f6; }
+.polygon-draw-modal .polygon-draw-modal-actions { padding: 8px; border-color: #e2e8f0; gap: 8px; }
+.polygon-draw-modal .polygon-draw-modal-btn-save { background: #365875; border-color: #365875; }
+.polygon-draw-modal button:focus-visible, .polygon-draw-modal input:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.polygon-draw-modal .polygon-draw-style-btn:hover:not(:disabled),
+.polygon-draw-modal .polygon-draw-modal-btn-cancel:hover,
+.polygon-draw-modal .polygon-draw-modal-btn-resume:hover:not(:disabled) { background: #edf3f8; border-color: #8ba6c3; }
+.polygon-draw-modal .polygon-draw-modal-btn-save:hover:not(:disabled),
+.polygon-draw-modal .polygon-draw-modal-btn-finish { background: #365875; border-color: #365875; }
+.polygon-draw-modal .polygon-draw-modal-btn-finish:hover:not(:disabled) { background: #294861; }
+.polygon-draw-modal .polygon-draw-modal-btn-cancel,
+.polygon-draw-modal .polygon-draw-modal-btn-resume { color: #52657b; border-color: #d5dfeb; background: #fff; }
+.polygon-draw-modal .polygon-draw-modal-images { padding: 8px; gap: 6px; }
+.polygon-draw-modal .polygon-draw-image-slot { border-color: #e2e8f0; background: #f8fafc; border-radius: 6px; padding: 6px; }
+.polygon-draw-modal .polygon-draw-image-slot--active { border-color: #8ba6c3; background: #edf3f8; }
+.polygon-draw-modal .polygon-draw-modal-empty { color: #64748b; }
 

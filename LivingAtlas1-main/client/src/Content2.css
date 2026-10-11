@@ -108,27 +108,63 @@
 }
 
 /* List view mode */
-.card-container--list {
+.card-list-hover-preview {
+  position: fixed;
+  z-index: 1100;
+  pointer-events: none;
+  container-type: inline-size;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(20, 49, 81, 0.24);
+}
+
+.card-list-hover-preview .card {
+  width: 100%;
+  margin: 0;
+  transform: none;
+}
+
+.card-container.card-container--list {
   display: flex !important;
   flex-direction: column;
   justify-content: flex-start;
-  gap: 10px;
-  padding: 12px;
+  gap: 0;
+  box-sizing: border-box;
+  width: 100%;
+  /* Keep hover movement inside the panel, with space only on the map side. */
+  padding: 3px 0 3px 4px;
+  margin: 0;
+  scrollbar-gutter: auto;
+  background: #eef2f7;
+  border: 1px solid #bfd0e2;
+  border-radius: 0;
+  --list-hover-offset: -3px;
+}
+
+#content-2.content-2--left .card-container--list {
+  padding: 3px 4px 3px 0;
+  --list-hover-offset: 3px;
 }
 
 .card-list-item {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 10px;
-  padding: 6px 14px;
+  padding: 6px 10px;
   background-color: #fff;
-  border: 1px solid #cfd8e3;
-  border-radius: 8px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  border: 1px solid #d8e1ea;
+  border-radius: 6px;
+  box-shadow: none;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
   position: relative;
   z-index: 1;
+}
+
+.card-list-item + .card-list-item {
+  margin-top: -1px;
 }
 
 .card-list-item.menu-open {
@@ -136,9 +172,28 @@
 }
 
 .card-list-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(20, 49, 81, 0.22);
-  border-color: #90a9c2;
+  transform: translateX(var(--list-hover-offset));
+  z-index: 2;
+  box-shadow: 0 4px 12px rgba(20, 49, 81, 0.14);
+  border-color: #8eabc8;
+  background-color: #f2f7fc;
+}
+
+.card-list-item .card-list-more-btn {
+  border: 1px solid #bfd0e2;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #244564;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-list-item {
+    transition: none;
+  }
+
+  .card-list-item:hover {
+    transform: none;
+  }
 }
 
 .card-list-item-title {

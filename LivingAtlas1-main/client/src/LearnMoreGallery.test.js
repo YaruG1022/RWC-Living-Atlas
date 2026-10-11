@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import LearnMoreGallery, { GalleryLayoutSelector } from './LearnMoreGallery';
+import LearnMoreGallery from './LearnMoreGallery';
 
 const images = Array.from({ length: 8 }, (_, i) => ({ id: i + 1, imageID: i + 1, url: `/image-${i + 1}.jpg`, alt: `Photo ${i + 1}` }));
 const props = () => ({ images, coverUrl: images[0].url, editing: true, onLayoutChange: jest.fn(), onReorder: jest.fn(), onOpen: jest.fn(), onAdd: jest.fn(), onDelete: jest.fn() });
@@ -10,9 +10,11 @@ test.each(['multi', 'slideshow'])('%s marks the cover only while editing', layou
     const { container, rerender } = render(<LearnMoreGallery {...callbacks} layout={layout} editing={false} />);
     expect(container.querySelector('.is-cover')).toBeNull();
     expect(screen.queryByText('Card cover')).toBeNull();
+    expect(screen.queryByLabelText('Image layout')).toBeNull();
     rerender(<LearnMoreGallery {...callbacks} layout={layout} editing />);
     expect(container.querySelector('.is-cover')).toBeTruthy();
     expect(screen.getByText('Card cover')).toBeTruthy();
+    expect(screen.getByLabelText('Image layout').closest('.lm-gallery-section')).toBeTruthy();
 });
 
 test.each([1, 2, 3, 4, 5, 6])('grid-%i shows the requested number of slots and marks the cover', count => {
@@ -24,13 +26,13 @@ test.each([1, 2, 3, 4, 5, 6])('grid-%i shows the requested number of slots and m
 test.each(['grid-7', 'grid-8'])('legacy %s displays six images without removing the remaining images', layout => {
     render(<LearnMoreGallery {...props()} layout={layout} />);
     expect(screen.getAllByRole('button', { name: /^Open image/ })).toHaveLength(6);
-    expect(screen.queryByLabelText('Image layout')).toBeNull();
+    expect(screen.getByLabelText('Image layout').value).toBe('multi');
     expect(screen.queryByRole('button', { name: '+ Add image' })).toBeNull();
 });
 
 test('layout changes are delegated and the main page has no add-image button', () => {
     const callbacks = props();
-    render(<><LearnMoreGallery {...callbacks} images={images.slice(0, 2)} layout="grid-6" /><GalleryLayoutSelector layout="grid-6" onChange={callbacks.onLayoutChange} /></>);
+    render(<LearnMoreGallery {...callbacks} images={images.slice(0, 2)} layout="grid-6" />);
     fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'slideshow' } });
     expect(callbacks.onLayoutChange).toHaveBeenCalledWith('slideshow');
     expect(Array.from(screen.getByLabelText('Image layout').options).map(option => option.value)).toEqual(['multi', 'slideshow']);
@@ -97,7 +99,7 @@ test('eight-image cards display six slides while the selector offers only two mo
     expect(screen.queryByRole('button', { name: '+ Add image' })).toBeNull();
     expect(callbacks.onAdd).not.toHaveBeenCalled();
     expect(screen.getAllByRole('button', { name: /^Show gallery image/ })).toHaveLength(6);
-    expect(screen.queryByLabelText('Image layout')).toBeNull();
+    expect(screen.getByLabelText('Image layout').value).toBe('slideshow');
 });
 
 test.each([false, true])('a single image fills the gallery without empty slots (editing=%s)', editing => {

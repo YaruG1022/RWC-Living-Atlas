@@ -34,8 +34,11 @@
   color: #222;
   border-radius: 0 6px 0 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  padding: 8px 14px;
-  font-size: 13px;
+  padding: 3px 10px;
+  font-size: 12px;
+  line-height: 14px;
+  font-variant-numeric: tabular-nums;
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
   z-index: 10;
   min-width: 200px;
   max-width: min(430px, calc(100% - 12px));
@@ -97,17 +100,98 @@
   margin: 0 !important;
 }
 
+/* A shared visual language for all map controls, scoped to the atlas. */
+.AtlasMap__container {
+  --map-control-ink: #52657b;
+  --map-control-border: #d5dfeb;
+  --map-control-surface: #f8fafc;
+  --map-control-hover: #edf3f8;
+  --map-control-shadow: 0 3px 12px rgba(30, 58, 85, .14);
+  --map-control-width: 32px;
+  --map-control-right-inset: 6px;
+}
+.AtlasMap__container .mapboxgl-ctrl-top-left > .mapboxgl-ctrl { margin: 6px 0 0 6px !important; }
+.AtlasMap__container .mapboxgl-ctrl-top-right > .mapboxgl-ctrl { margin: 6px 6px 0 0 !important; }
+.AtlasMap__container .mapboxgl-ctrl-group {
+  padding: 0;
+  width: var(--map-control-width);
+  box-sizing: border-box;
+  border: 1px solid var(--map-control-border);
+  border-radius: 6px;
+  background: var(--map-control-surface);
+  box-shadow: var(--map-control-shadow) !important;
+}
+.AtlasMap__container .mapboxgl-ctrl-group > button {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 0;
+  background-color: #fff;
+  color: var(--map-control-ink);
+}
+.AtlasMap__container .mapboxgl-ctrl-group > button + button { margin-top: 0 !important; border-top: 1px solid var(--map-control-border); }
+.AtlasMap__container .mapboxgl-ctrl-group > button:first-child { border-radius: 5px 5px 0 0; }
+.AtlasMap__container .mapboxgl-ctrl-group > button:last-child { border-radius: 0 0 5px 5px; }
+.AtlasMap__container .mapboxgl-ctrl-group > button:only-child { border-radius: 5px; }
+.AtlasMap__container .mapboxgl-ctrl-group > button:hover { background-color: var(--map-control-hover); border-color: #8ba6c3; }
+.AtlasMap__container .mapboxgl-ctrl-group > button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.AtlasMap__container .mapboxgl-ctrl-group > button:disabled { opacity: .45; }
+.AtlasMap__container .mapboxgl-ctrl-icon {
+  filter: invert(36%) sepia(13%) saturate(860%) hue-rotate(173deg) brightness(96%) contrast(87%);
+}
+.AtlasMap__container .mapboxgl-ctrl-geocoder {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  width: 232px;
+  min-width: 0;
+  max-width: calc(100vw - 90px);
+  border: 1px solid var(--map-control-border);
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: var(--map-control-shadow);
+  color: #334155;
+}
+.AtlasMap__container .mapboxgl-ctrl-geocoder--input {
+  height: 34px;
+  padding: 0 34px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #334155;
+  border-radius: 6px;
+}
+.AtlasMap__container .mapboxgl-ctrl-geocoder--input::placeholder { color: #64748b; opacity: 1; }
+.AtlasMap__container .mapboxgl-ctrl-geocoder:focus-within { border-color: #8ba6c3; box-shadow: 0 0 0 2px rgba(37, 99, 235, .16); }
+.AtlasMap__container .mapboxgl-ctrl-geocoder--input:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
+.AtlasMap__container .mapboxgl-ctrl-geocoder--icon-search { left: 10px; top: 8px; width: 18px; height: 18px; fill: var(--map-control-ink); }
+.AtlasMap__container .mapboxgl-ctrl-geocoder--icon-close,
+.AtlasMap__container .mapboxgl-ctrl-geocoder--icon-loading { fill: var(--map-control-ink); }
+.AtlasMap__container .mapboxgl-ctrl-geocoder--button { top: 8px; right: 8px; border-radius: 4px; }
+.AtlasMap__container .mapboxgl-ctrl-geocoder--button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.AtlasMap__container .mapboxgl-ctrl-geocoder .suggestions {
+  border: 1px solid var(--map-control-border);
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: var(--map-control-shadow);
+  color: #334155;
+  font-size: 13px;
+}
+.AtlasMap__container .mapboxgl-ctrl-geocoder .suggestions > li > a { color: #334155; padding: 8px 12px; }
+.AtlasMap__container .mapboxgl-ctrl-geocoder .suggestions > .active > a,
+.AtlasMap__container .mapboxgl-ctrl-geocoder .suggestions > li > a:hover { background: var(--map-control-hover); }
+
 .atlas-z-axis-control {
-  --axis-height: 140px;
+  --axis-height: 126px;
   --spine-x: 50%;
-  margin: 10px 0 0 10px !important;
+  margin: 6px 0 0 6px !important;
   padding: 5px !important;
-  width: 29px !important;
+  width: var(--map-control-width) !important;
   height: auto !important;
-  background: #fff !important;
-  border: none !important;
-  border-radius: 4px !important;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1) !important;
+  background: var(--map-control-surface) !important;
+  border: 1px solid var(--map-control-border) !important;
+  border-radius: 6px !important;
+  box-shadow: var(--map-control-shadow) !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
@@ -130,7 +214,7 @@
   bottom: 8px;
   width: 2px;
   transform: translateX(-50%);
-  background: #ccc;
+  background: #cbd5e1;
   overflow: visible;
 }
 
@@ -142,8 +226,10 @@
   transform: translateX(-50%);
   width: 8px;
   height: 8px;
+  box-sizing: border-box;
+  border: 2px solid var(--map-control-ink);
   border-radius: 50%;
-  background: #333;
+  background: #fff;
 }
 
 .atlas-z-axis__spine::before {
@@ -162,7 +248,7 @@
   height: 0;
   border-top: 5px solid transparent;
   border-bottom: 5px solid transparent;
-  border-right: 8px solid #333;
+  border-right: 8px solid var(--map-control-ink);
   background: none;
   border-radius: 0;
   box-shadow: none;
@@ -184,8 +270,9 @@
   width: 100%;
   padding: 0;
   background: transparent;
-  color: #333;
-  font: 600 9px/1.3 "Segoe UI", Arial, sans-serif;
+  color: var(--map-control-ink);
+  font: 600 10px/1.3 "Segoe UI", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
   text-align: center;
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -204,7 +291,43 @@
 .map-add-tools-group {
   position: relative !important;
   overflow: visible !important;
+  padding: 0;
+  border: 1px solid #d5dfeb;
+  border-radius: 6px;
+  background: #f8fafc;
+  box-shadow: 0 3px 12px rgba(30, 58, 85, .14);
 }
+
+.map-add-tools-group > button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+  color: #52657b !important;
+  cursor: pointer;
+}
+/* The menu sits between buttons in the DOM, so separators cannot use adjacency. */
+.map-add-tools-group > .marker-visibility-toggle,
+.map-add-tools-group > .reset-view-btn,
+.map-add-tools-group > .screenshot-btn { border-top: 1px solid #d5dfeb !important; }
+.map-add-tools-group > .map-add-tools-btn { border-radius: 5px 5px 0 0 !important; }
+.map-add-tools-group > .screenshot-btn { border-radius: 0 0 5px 5px !important; }
+.map-add-tools-group > .mapbox-gl-draw_polygon,
+.map-add-tools-group > .mapbox-gl-draw_trash { display: none !important; }
+.map-add-tools-group > button:hover,
+.map-add-tools-group > .map-add-tools-btn.active { background: #edf3f8 !important; border-color: #8ba6c3 !important; }
+.map-add-tools-group > button:focus-visible,
+.map-add-tools-menu .map-add-tools-menu-item:focus-visible { outline: 2px solid #2563eb !important; outline-offset: 2px; }
+.map-add-tools-group > button svg { width: 15px !important; height: 15px !important; color: inherit !important; }
+.map-add-tools-group > button svg[data-icon],
+.map-add-tools-group > button svg[data-icon] path { fill: currentColor !important; }
 
 .map-add-tools-btn {
   display: flex !important;
@@ -243,15 +366,16 @@
 .map-add-tools-menu {
   position: absolute;
   top: 0;
-  right: 100%;
+  right: calc(100% + 1px);
   display: none;
   flex-direction: column;
   min-width: 168px;
   background: #fff;
-  border: 1px solid #d7dde4;
+  border: 1px solid #d5dfeb;
   border-radius: 8px;
-  box-shadow: 0 8px 20px rgb(0 0 0 / 16%);
-  padding: 4px;
+  box-shadow: 0 6px 20px rgba(30, 58, 85, .16);
+  padding: 6px;
+  margin-right: 0;
   z-index: 20;
 }
 
@@ -270,7 +394,7 @@
   border: none !important;
   border-radius: 6px;
   background: transparent !important;
-  color: #223244 !important;
+  color: #52657b !important;
   font: 600 12px/1 "Segoe UI", Arial, sans-serif !important;
   text-align: left !important;
   text-indent: 0 !important;
@@ -288,7 +412,7 @@
   width: 14px !important;
   height: 14px !important;
   flex-shrink: 0;
-  fill: #2f5d86 !important;
+  fill: currentColor !important;
   pointer-events: none !important;
 }
 

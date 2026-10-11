@@ -1,3 +1,5 @@
+import api from './api';
+import { resolveDescriptionAttachments } from './descriptionAttachments';
 import DOMPurify from 'dompurify';
 
 // Card descriptions are now rich-text HTML (produced by TipTap in the editor).
@@ -21,7 +23,7 @@ export function descriptionToHtml(value) {
     if (!/<[a-z][\s\S]*>/i.test(str)) {
         return sanitizeHtml(str).replace(/\r\n?|\n/g, '<br>');
     }
-    return sanitizeHtml(str);
+    return resolveDescriptionAttachments(sanitizeHtml(str), api.defaults.baseURL || '');
 }
 
 // Convert rich-text HTML to plain text. Used for the PDF export (jsPDF cannot

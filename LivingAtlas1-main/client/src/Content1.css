@@ -108,6 +108,7 @@
   --map-control-hover: #edf3f8;
   --map-control-shadow: 0 3px 12px rgba(30, 58, 85, .14);
   --map-control-width: 35px;
+  --map-control-right-inset: 10px;
 }
 .AtlasMap__container .mapboxgl-ctrl-group {
   padding: 0;
@@ -116,7 +117,7 @@
   border: 1px solid var(--map-control-border);
   border-radius: 6px;
   background: var(--map-control-surface);
-  box-shadow: var(--map-control-shadow);
+  box-shadow: var(--map-control-shadow) !important;
 }
 .AtlasMap__container .mapboxgl-ctrl-group > button {
   width: 100%;
@@ -322,7 +323,6 @@
 .map-add-tools-group > button svg { width: 15px !important; height: 15px !important; color: inherit !important; }
 .map-add-tools-group > button svg[data-icon],
 .map-add-tools-group > button svg[data-icon] path { fill: currentColor !important; }
-.map-add-tools-group > .reset-view-btn svg { stroke: currentColor !important; }
 
 .map-add-tools-btn {
   display: flex !important;
@@ -361,7 +361,7 @@
 .map-add-tools-menu {
   position: absolute;
   top: 0;
-  right: 100%;
+  right: calc(100% + 1px);
   display: none;
   flex-direction: column;
   min-width: 168px;
@@ -370,7 +370,7 @@
   border-radius: 8px;
   box-shadow: 0 6px 20px rgba(30, 58, 85, .16);
   padding: 6px;
-  margin-right: 6px;
+  margin-right: 0;
   z-index: 20;
 }
 

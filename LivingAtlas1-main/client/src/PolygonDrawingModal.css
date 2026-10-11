@@ -1,7 +1,7 @@
 .polygon-draw-modal {
     position: absolute;
     top: 10px;
-    right: 39px;
+    right: calc(var(--map-control-width, 35px) + var(--map-control-right-inset, 10px));
     z-index: 10;
     background: #fff;
     border-radius: 4px;

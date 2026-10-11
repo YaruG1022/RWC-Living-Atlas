@@ -147,7 +147,7 @@
 }
 
 /* Keep editor controls aligned with the map panels' quiet slate palette. */
-.coordinates-panel { width: 312px; right: 55px; max-width: calc(100% - 66px); border: 1px solid #d5dfeb; border-radius: 8px; box-shadow: 0 4px 16px rgba(30, 58, 85, .14); color: #243b53; }
+.coordinates-panel { width: 312px; max-width: calc(100% - 55px); border: 1px solid #d5dfeb; border-radius: 8px; box-shadow: 0 4px 16px rgba(30, 58, 85, .14); color: #243b53; }
 .coordinates-panel .polygon-draw-modal-header { padding: 10px 12px; background: #f8fafc; border-radius: 8px 8px 0 0; border-color: #e2e8f0; }
 .coordinates-panel .polygon-draw-modal-header h3 { color: #243b53; }
 .coordinates-panel .polygon-draw-modal-hint { color: #52657b; line-height: 1.5; }

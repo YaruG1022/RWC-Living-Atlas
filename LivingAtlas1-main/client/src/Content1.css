@@ -107,9 +107,11 @@
   --map-control-surface: #f8fafc;
   --map-control-hover: #edf3f8;
   --map-control-shadow: 0 3px 12px rgba(30, 58, 85, .14);
-  --map-control-width: 35px;
-  --map-control-right-inset: 10px;
+  --map-control-width: 32px;
+  --map-control-right-inset: 6px;
 }
+.AtlasMap__container .mapboxgl-ctrl-top-left > .mapboxgl-ctrl { margin: 6px 0 0 6px !important; }
+.AtlasMap__container .mapboxgl-ctrl-top-right > .mapboxgl-ctrl { margin: 6px 6px 0 0 !important; }
 .AtlasMap__container .mapboxgl-ctrl-group {
   padding: 0;
   width: var(--map-control-width);
@@ -141,7 +143,7 @@
 }
 .AtlasMap__container .mapboxgl-ctrl-geocoder {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  width: 248px;
+  width: 232px;
   min-width: 0;
   max-width: calc(100vw - 90px);
   border: 1px solid var(--map-control-border);
@@ -151,7 +153,7 @@
   color: #334155;
 }
 .AtlasMap__container .mapboxgl-ctrl-geocoder--input {
-  height: 36px;
+  height: 34px;
   padding: 0 34px;
   font-family: inherit;
   font-size: 13px;
@@ -162,7 +164,7 @@
 .AtlasMap__container .mapboxgl-ctrl-geocoder--input::placeholder { color: #64748b; opacity: 1; }
 .AtlasMap__container .mapboxgl-ctrl-geocoder:focus-within { border-color: #8ba6c3; box-shadow: 0 0 0 2px rgba(37, 99, 235, .16); }
 .AtlasMap__container .mapboxgl-ctrl-geocoder--input:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
-.AtlasMap__container .mapboxgl-ctrl-geocoder--icon-search { left: 10px; top: 9px; width: 18px; height: 18px; fill: var(--map-control-ink); }
+.AtlasMap__container .mapboxgl-ctrl-geocoder--icon-search { left: 10px; top: 8px; width: 18px; height: 18px; fill: var(--map-control-ink); }
 .AtlasMap__container .mapboxgl-ctrl-geocoder--icon-close,
 .AtlasMap__container .mapboxgl-ctrl-geocoder--icon-loading { fill: var(--map-control-ink); }
 .AtlasMap__container .mapboxgl-ctrl-geocoder--button { top: 8px; right: 8px; border-radius: 4px; }
@@ -180,9 +182,9 @@
 .AtlasMap__container .mapboxgl-ctrl-geocoder .suggestions > li > a:hover { background: var(--map-control-hover); }
 
 .atlas-z-axis-control {
-  --axis-height: 140px;
+  --axis-height: 126px;
   --spine-x: 50%;
-  margin: 10px 0 0 10px !important;
+  margin: 6px 0 0 6px !important;
   padding: 5px !important;
   width: var(--map-control-width) !important;
   height: auto !important;

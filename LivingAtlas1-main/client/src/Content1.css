@@ -34,8 +34,11 @@
   color: #222;
   border-radius: 0 6px 0 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  padding: 8px 14px;
-  font-size: 13px;
+  padding: 3px 10px;
+  font-size: 12px;
+  line-height: 14px;
+  font-variant-numeric: tabular-nums;
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
   z-index: 10;
   min-width: 200px;
   max-width: min(430px, calc(100% - 12px));

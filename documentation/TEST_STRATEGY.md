@@ -55,6 +55,11 @@ Use synthetic or de-identified data. Give each run a unique prefix and auditable
 
 ## 4. Completed tests and traceable evidence
 
+Pin chronology and map coordinates (2026-10-11): ten panel regressions passed;
+local browser inspection verified three-card pin order and a measured coordinate
+panel height reduction from 56px to approximately 34.8px. Build passed. See the
+[pin order and coordinates report](PIN_ORDER_COORDINATES_TEST_REPORT.md).
+
 Description insertion (2026-10-11): four real-editor component tests and nine
 backend tests passed, with 40 adjacent gallery/card regressions. A two-file local
 upload/DB/download cycle verified saved description references and zero fixture

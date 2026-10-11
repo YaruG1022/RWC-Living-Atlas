@@ -946,7 +946,7 @@ function Content2(props) {
                 <div className="card-panel-top">
                     <div className="card-panel-titlebar" data-onboarding-target="card-titlebar">
                         <div className="card-panel-titlebar-text-group">
-                            <span className="card-panel-titlebar-text">Cards</span>
+                            <span className="card-panel-titlebar-text">Project Cards</span>
                             <span className="card-panel-titlebar-subtitle">{cardsInViewByType.length} {scopeSubtitle}</span>
                         </div>
                         <div className="card-panel-titlebar-actions">

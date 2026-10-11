@@ -8,11 +8,12 @@ import './Card.css';
 import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
 import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, toggleGallerySelection } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon, faArrowLeft, faCheck, faUpload, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faArrowLeft, faCheck, faUpload, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
 import { faHeart as regularHeart, faQuestionCircle, faCirclePlay } from '@fortawesome/free-regular-svg-icons';
 import { fetchUserPreferences } from './userPreferencesApi';
 import RichTextEditor from './RichTextEditor';
+import RepresentationPreview from './RepresentationPreview';
 import { descriptionToHtml, htmlToPlainText } from './richTextUtils';
 import PolygonDrawingModal from './PolygonDrawingModal';
 import CoordinatesPanel from './CoordinatesPanel';
@@ -1832,23 +1833,13 @@ function Card(props) {
             ? resolveImageUrl(displayCardData.thumbnail_link)
             : "/CEREO-logo.png";
 
-    // Shared representation preview (icon/thumbnail + type + detail) shown in both
+    // Shared geographic appearance preview and details shown in both
     // edit and view modes. The edit/change buttons are only rendered in edit mode.
     const renderRepresentationPreview = () => (
         <>
             <p><strong>Representation:</strong></p>
             <div className="learn-more-representation-preview">
-                {isImageCard ? (
-                    <img
-                        className="learn-more-representation-thumb"
-                        src={cardThumbnailSrc}
-                        alt="Card representation preview"
-                    />
-                ) : (
-                    <div className="learn-more-representation-icon">
-                        <FontAwesomeIcon icon={isOverlayCard ? faDrawPolygon : faLocationDot} />
-                    </div>
-                )}
+                <RepresentationPreview data={formData} imageSrc={isImageCard && (formData.thumbnail_link || preview) ? getRepresentativeImageUrl() : undefined} />
                 <div className="learn-more-representation-info">
                     <span className="learn-more-representation-type">
                         {isImageCard ? 'Image' : isPolygonCard ? 'Polygon' : (formData.location_type === 'multipoint' ? 'Multi-point' : 'Point')}

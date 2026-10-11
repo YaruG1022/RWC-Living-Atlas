@@ -1714,7 +1714,14 @@
 }
 
 .learn-more-add-files-label {
-  display: block;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px dashed #9ab2cb;
+  border-radius: 8px;
+  background: #f4f8fc;
   font-size: 0.875rem;
   font-weight: 500;
   color: #374151;
@@ -1722,18 +1729,34 @@
   cursor: pointer;
 }
 
+.Modal--learn-more .learn-more-add-files-label { flex-direction: row; text-align: left; }
+.learn-more-add-files-label:hover, .learn-more-add-files-label:focus-within { border-color: #557fa6; background: #eaf3fc; }
+.learn-more-add-files-label:focus-within { outline: 2px solid #6d9bc6; outline-offset: 2px; }
+.learn-more-add-files-label > svg { flex-shrink: 0; color: #386488; font-size: 22px; }
+.learn-more-add-files-hint { display: block; margin-top: 4px; color: #60758a; font-size: 12px; font-weight: 400; line-height: 1.5; }
+
 .learn-more-add-files-label input[type="file"] {
-  display: block;
-  margin-top: 4px;
-  font-size: 0.8rem;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .learn-more-staged-files {
   font-size: 0.8rem;
   color: #6b7280;
   margin: 4px 0 0;
-  font-style: italic;
 }
+
+.learn-more-staged-files-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.learn-more-staged-files-list li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; margin-bottom: 4px; border: 1px solid #d8e1ea; border-radius: 6px; background: #f8fafc; }
+.learn-more-staged-file-name { min-width: 0; flex: 1; overflow-wrap: anywhere; color: #334155; }
+.learn-more-staged-file-size { flex-shrink: 0; color: #64748b; font-size: 12px; }
+.Modal--learn-more .learn-more-staged-files-list button { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; height: 28px; margin: 0; padding: 0; border: 1px solid #cbd5e1; border-radius: 5px; background: #fff; color: #475569; }
+.Modal--learn-more .learn-more-staged-files-list button:hover { background: #fee2e2; color: #b91c1c; }
 
 .learn-more-modal-footer-close {
   padding: 12px 24px 24px;

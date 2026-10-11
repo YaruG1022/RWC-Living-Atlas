@@ -45,6 +45,37 @@ async function editCard() {
     return screen.getByRole('region', { name: 'Card image gallery' });
 }
 
+test('attachment batches accumulate without duplicates and save every remaining file', async () => {
+    await editCard();
+    const input = screen.getByLabelText('Add files');
+    expect(input.multiple).toBe(true);
+    const first = new File(['one'], 'report.txt', { lastModified: 1 });
+    const second = new File(['two'], 'data.csv', { lastModified: 2 });
+    const third = new File(['three'], 'notes.txt', { lastModified: 3 });
+    fireEvent.change(input, { target: { files: [first, second] } });
+    expect(screen.getByRole('status').textContent).toContain('2 files ready');
+    fireEvent.change(input, { target: { files: [second, third] } });
+    expect(screen.getByRole('status').textContent).toContain('3 files ready');
+    fireEvent.click(screen.getByRole('button', { name: 'Remove data.csv from upload' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith('/uploadForm', expect.any(FormData)));
+    expect(api.post.mock.calls.find(([url]) => url === '/uploadForm')[1].getAll('files').map(file => file.name)).toEqual(['report.txt', 'notes.txt']);
+});
+
+test('a failed attachment save preserves the batch for retry and cancel clears the draft', async () => {
+    await editCard();
+    fireEvent.change(screen.getByLabelText('Add files'), { target: { files: [new File(['one'], 'report.txt'), new File(['two'], 'data.csv')] } });
+    api.post.mockRejectedValueOnce({ response: { data: { detail: 'File upload failed' }, status: 500 } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
+    await waitFor(() => expect(window.alert).toHaveBeenCalledWith('Error: File upload failed'));
+    expect(screen.getByRole('status').textContent).toContain('2 files ready');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Cancel', exact: true }).disabled).toBe(false));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel', exact: true }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit card in Learn More modal', exact: true }));
+    await waitFor(() => expect(screen.getByLabelText('Add files')).toBeTruthy());
+    expect(screen.queryByRole('status')).toBeNull();
+});
+
 test.each(['point', 'multipoint'])('%s shows coordinates only in Representation without inline coordinate inputs', async locationType => {
     savedCard = { ...savedCard, location_type: locationType, latitude: 0, longitude: -117,
         polygon_vertices: locationType === 'multipoint' ? [{ lat: 0, lng: -117 }] : [] };

@@ -7,7 +7,7 @@ import './Card.css';
 import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
 import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, toggleGallerySelection } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon, faArrowLeft, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon, faArrowLeft, faCheck, faUpload, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
 import { faHeart as regularHeart, faQuestionCircle, faCirclePlay } from '@fortawesome/free-regular-svg-icons';
 import { fetchUserPreferences } from './userPreferencesApi';
@@ -2583,20 +2583,41 @@ function Card(props) {
                                 <p className="learn-more-no-files">No files attached.</p>
                             )}
                             <label className="learn-more-add-files-label">
-                                Add Files:
+                                <FontAwesomeIcon icon={faUpload} aria-hidden="true" />
+                                <span><strong>Choose files</strong><span className="learn-more-add-files-hint">Select one or more files. Uploads start when you save.</span></span>
                                 <input
                                     type="file"
+                                    aria-label="Add files"
                                     multiple
+                                    disabled={loading || isImageMutationLoading}
                                     onChange={(e) => {
-                                        const selectedFiles = Array.from(e.target.files);
-                                        setFormData((prev) => ({ ...prev, filesToUpload: selectedFiles }));
+                                        const selectedFiles = Array.from(e.target.files || []);
+                                        setFormData((prev) => {
+                                            const filesToUpload = [...(prev.filesToUpload || [])];
+                                            selectedFiles.forEach(file => {
+                                                if (!filesToUpload.some(existing => existing.name === file.name && existing.size === file.size && existing.lastModified === file.lastModified)) {
+                                                    filesToUpload.push(file);
+                                                }
+                                            });
+                                            return { ...prev, filesToUpload };
+                                        });
+                                        e.target.value = '';
                                     }}
                                 />
                             </label>
                             {formData.filesToUpload && formData.filesToUpload.length > 0 && (
-                                <p className="learn-more-staged-files">
-                                    {formData.filesToUpload.length} file(s) staged for upload
-                                </p>
+                                <div className="learn-more-staged-files">
+                                    <p role="status">{formData.filesToUpload.length} file{formData.filesToUpload.length === 1 ? '' : 's'} ready to upload</p>
+                                    <ul className="learn-more-staged-files-list">
+                                        {formData.filesToUpload.map((file, index) => <li key={`${file.name}-${file.size}-${file.lastModified}`}>
+                                            <span className="learn-more-staged-file-name">{file.name}</span>
+                                            <span className="learn-more-staged-file-size">{file.size < 1024 * 1024 ? `${Math.max(1, Math.ceil(file.size / 1024))} KB` : `${(file.size / (1024 * 1024)).toFixed(1)} MB`}</span>
+                                            <button type="button" aria-label={`Remove ${file.name} from upload`} disabled={loading || isImageMutationLoading} onClick={() => setFormData(prev => ({ ...prev, filesToUpload: prev.filesToUpload.filter((_, fileIndex) => fileIndex !== index) }))}>
+                                                <FontAwesomeIcon icon={faXmark} aria-hidden="true" />
+                                            </button>
+                                        </li>)}
+                                    </ul>
+                                </div>
                             )}
                         </div>
                     ) : (

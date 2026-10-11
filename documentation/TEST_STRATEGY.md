@@ -162,3 +162,7 @@ The cycle follows planning, analysis/design, implementation/execution, monitorin
 ## GUI guide navigation regression
 
 `UserManual.test.js` renders guide sections and exercises reused image-gallery callbacks. Local GUI-copy and layout verification is recorded in [GUI_GUIDE_UPDATE_TEST_REPORT.md](GUI_GUIDE_UPDATE_TEST_REPORT.md).
+
+## Card geographic representation preview regression
+
+`RepresentationPreview.test.js` checks north-up coordinate projection, date-line handling, image corner transforms, polygon and marker styles, and invalid geometry/image fallbacks. Existing card/gallery cases provide adjacent regressions. Local browser/build evidence and exclusions are recorded in [REPRESENTATION_PREVIEW_TEST_REPORT.md](REPRESENTATION_PREVIEW_TEST_REPORT.md).

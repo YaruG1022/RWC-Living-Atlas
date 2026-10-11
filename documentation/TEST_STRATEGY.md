@@ -55,6 +55,12 @@ Use synthetic or de-identified data. Give each run a unique prefix and auditable
 
 ## 4. Completed tests and traceable evidence
 
+Attachment downloads (2026-10-11): actual local URLs, legacy-link recovery,
+Unicode download headers and bytes were verified with 10 offline storage/response
+tests, a two-file local upload/DB/download/cleanup cycle and an actual browser
+download. Forty frontend regressions and the build passed. First failures and
+hosted limitations are in the [attachment report](ATTACHMENT_DOWNLOAD_TEST_REPORT.md).
+
 Public basemap verification (2026-10-10): four OpenStreetMap/USGS options,
 attribution, native zoom limits, search and overlay/camera preservation were
 checked with five focused tests and live local-browser smoke checks. Eight card

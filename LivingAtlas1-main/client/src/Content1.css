@@ -313,7 +313,10 @@
   color: #52657b !important;
   cursor: pointer;
 }
-.map-add-tools-group > button + button { margin-top: 0 !important; border-top: 1px solid #d5dfeb !important; }
+/* The menu sits between buttons in the DOM, so separators cannot use adjacency. */
+.map-add-tools-group > .marker-visibility-toggle,
+.map-add-tools-group > .reset-view-btn,
+.map-add-tools-group > .screenshot-btn { border-top: 1px solid #d5dfeb !important; }
 .map-add-tools-group > .map-add-tools-btn { border-radius: 5px 5px 0 0 !important; }
 .map-add-tools-group > .screenshot-btn { border-radius: 0 0 5px 5px !important; }
 .map-add-tools-group > .mapbox-gl-draw_polygon,

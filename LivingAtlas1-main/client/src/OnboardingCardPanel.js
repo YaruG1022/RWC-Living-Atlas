@@ -5,8 +5,8 @@ import './OnboardingCardPanel.css';
 const ONBOARDING_STEPS = [
     {
         selector: '#content-2',
-        title: 'Card Container Panel',
-        description: 'This is the main card container panel for browsing cards, filtering, searching, and switching views.',
+        title: 'Project Cards Panel',
+        description: 'Project Cards is the workspace for browsing, filtering, searching, and switching between grid cards and compact list rows.',
         placement: 'left',
     },
     {
@@ -18,7 +18,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="card-toolbar"]',
         title: 'Toolbar',
-        description: 'Use Add Card, Sort By, and Filter By. Favorites is inside Filter By: check Show only favorited cards, then Apply. Clear resets all filters. The remaining icons switch views and docking side.',
+        description: 'Use the compact Add, Sort, and Filter buttons. Favorites is inside Filter: check Show only favorited cards, then Apply. Clear resets filters. The remaining icons switch views and docking side.',
         placement: 'left',
     },
     {
@@ -30,20 +30,20 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="card-list-area"]',
         title: 'Card Results Area',
-        description: 'Grid view shows image cards and allows panel resizing. List view uses compact title rows in a fixed 310-pixel panel with no resize handle. When Cards and GIS share the left side, list view is used automatically.',
+        description: 'Grid view allows resizing; list view uses a fixed 310-pixel panel. Its bordered results area joins the toolbar and keeps rows inside the panel. When Project Cards and GIS share the left side, list view is automatic.',
         placement: 'left',
     },
     {
         selector: '[data-onboarding-target="onboarding-single-card"]',
         title: 'Single Card',
-        description: 'Grid cards show a preview, title, and tags; list rows show the title and a menu for card actions. Select a card to view its details.',
+        description: 'Hover a list row briefly to see its grid-card appearance beside the panel, toward the map. Move off the row to dismiss it. Click the title for details or the three-dot menu for actions.',
         placement: 'left',
         requiresCard: true,
     },
     {
         selector: '[data-onboarding-target="onboarding-single-card-actions"]',
         title: 'Card Buttons and Actions',
-        description: 'Card-level actions include quick controls such as favorite and locate-on-map buttons (and pin controls in the container view).',
+        description: 'Use favorite, locate-on-map, and pin controls. Pinned cards appear first in the order they were pinned: later pins follow earlier pins. Unpinning and pinning again moves a card to the end of the pinned group.',
         placement: 'left',
         requiresCard: true,
     },

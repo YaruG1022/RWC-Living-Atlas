@@ -9,14 +9,14 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-text-area"]',
         title: 'Text and Data Area',
-        description: 'Browse card metadata, description, tags, and linked layers here. Coordinates and location editing are in the Representation section.',
+        description: 'Browse metadata, description, tags, files, and linked layers. Map location shows the actual markers, polygon or image footprint. Click its preview to close details and locate the card on the map; unsaved edits may require confirmation.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-text-area"]',
     },
     {
         selector: '[data-onboarding-target="learn-more-image-area"]',
         title: 'Image Area',
-        description: 'View up to six selected images in Multiple images or Slideshow mode. Click an image to preview it, or See all N images below the gallery to browse every image.',
+        description: 'View up to six selected images in Multiple images or Slideshow mode. Click an image to preview it. See all N images is inside the bottom-left gallery corner in both view and edit modes; it becomes opaque on hover or focus.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-image-area"]',
     },
@@ -37,7 +37,7 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-image-area"]',
         title: 'Edit Mode - Image Layout and Order',
-        description: 'Choose Image layout at the top right inside the gallery. Drag gallery images or use the arrow icons to reorder them. The first selected image is the card cover; its badge and border appear only in edit mode.',
+        description: 'Image layout appears only in edit mode, inside the top-right gallery corner; hover or focus makes it opaque. Drag images or use arrows to reorder. The first selected image is the card cover.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-image-area"]',
     },
@@ -51,16 +51,23 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-text-area"]',
         title: 'Edit Mode - Fields Editing',
-        description: 'Edit fields and metadata such as title, author, category, and links directly in this area. Description uses a rich text toolbar, tags are added as removable chips, and Visibility sets the card to Public or Private.',
+        description: 'Edit metadata and links here. In Description, Link inserts or edits a URL and display text; File inserts an existing attachment or multiple new files at the cursor. New files upload on Save. Tags are removable chips; Visibility sets Public or Private.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-text-area"]',
     },
     {
         selector: '[data-onboarding-target="learn-more-coordinates-polygon"]',
-        title: 'Edit Mode - Representation',
-        description: 'Representation shows point coordinates, multi-point count, or polygon/image details. Use Edit Coordinate for points, Edit Polygon / Edit Image for areas, or Change location type. Point coordinates are edited here rather than in metadata fields.',
+        title: 'Edit Mode - Map Location',
+        description: 'Map location previews actual markers, polygons and image overlays. Use Edit Coordinate, Edit Polygon, Edit Image or Change location type to update it. These map editors share a compact layout beside the map toolbar.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-coordinates-polygon"]',
+    },
+    {
+        selector: '[data-onboarding-target="learn-more-files-section"]',
+        title: 'Edit Mode - Attachments',
+        description: 'Choose files accepts multiple files at once, up to 5 MB each. Repeat to add another batch without replacing earlier choices. Review or remove queued files, then Save to upload. Saved links download the file, including text files.',
+        placement: 'left',
+        scrollTo: '[data-onboarding-target="learn-more-files-section"]',
     },
     {
         selector: '[data-onboarding-target="learn-more-arcgis-section"]',

@@ -30,7 +30,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="basemap-list"]',
         title: 'Basemap List',
-        description: 'All available map styles are listed here, including satellite, navigation, outdoors, streets, light, and dark styles.',
+        description: 'Choose from eight Mapbox styles plus OpenStreetMap, USGS Topographic, USGS Aerial Imagery and USGS Shaded Relief. Public sources need no extra key; U.S. coverage and detail vary, and public tile availability is best effort.',
         placement: 'right',
     },
     {

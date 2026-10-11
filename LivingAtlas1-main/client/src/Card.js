@@ -2547,7 +2547,7 @@ function Card(props) {
 
                     {/* Files Section */}
                     {isLearnMoreEditMode ? (
-                        <div className="learn-more-files-edit-section">
+                        <div className="learn-more-files-edit-section" data-onboarding-target="learn-more-files-section">
                             <p><strong>Attached Files:</strong></p>
                             {formData.files && formData.files.length > 0 ? (
                                 <ul className="learn-more-files-edit-list">

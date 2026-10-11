@@ -47,9 +47,11 @@ import {
   faCirclePlay,
   faFloppyDisk,
   faUpload,
+  faArrowsToCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as regularHeart, faFolder } from '@fortawesome/free-regular-svg-icons';
 import LearnMoreGallery from './LearnMoreGallery';
+import RepresentationPreview from './RepresentationPreview';
 import './Card.css';
 import './Content2.css';
 import './SortDropdown.css';
@@ -65,7 +67,7 @@ import './Content1.css';
 import './PolygonDrawingModal.css';
 
 const ADD_CARDS_FROM_MAP_SECTIONS = [
-  { id: 'add-single-point', label: 'Add Single Point' },
+  { id: 'add-single-point', label: 'Add Points / Coordinates' },
   { id: 'polygon-tools',    label: 'Polygon Tools' },
   { id: 'add-png',          label: 'Add PNG' },
 ];
@@ -257,10 +259,10 @@ function UserManual() {
                 'arcgis-panel':   'Browse and toggle ArcGIS REST map layers organized by state, folder, and service.',
                 'service-layer-info': 'Detailed guide for Service/Layer Info modal features: metadata, opacity, historical filters, links, and layer fields.',
                 'custom-layers':  'Manage your personal saved layers with custom folders, drag-and-drop ordering, and pinned auto-load items.',
-                'basemap-panel':   'Switch between six Mapbox map styles while preserving your ArcGIS layers, camera position, and zoom level.',
+                'basemap-panel':   'Choose Mapbox, OpenStreetMap or USGS basemaps while preserving layers and map view.',
                 'watershed-panel': 'Show StreamStats rivers, delineate an upstream basin, and save it as a custom layer or a polygon card.',
                 'map-controls':    'All interactive buttons on the map canvas — search, fullscreen, zoom, compass, geolocate, draw, and more.',
-                'add-single-point': 'Open Add Card and immediately start point selection on the map.',
+                'add-single-point': 'Collect and edit one or more coordinates before creating a card.',
                 'polygon-tools':   'Draw and edit polygon-based card locations with style and transform controls.',
                 'add-png':         'Place a PNG overlay on map and create an image-overlay card from it.',
               }[s.id]}
@@ -306,7 +308,7 @@ function UserManual() {
                       Add Card
                     </button>
                     <button type="button" className="search-mini-result-item" style={{ pointerEvents: 'none' }}>
-                      Add Single Point
+                      Add Points / Coordinates
                     </button>
                   </div>
                 </div>
@@ -593,7 +595,9 @@ function UserManual() {
                 The thumbtack icon in the upper-left corner of each card lets you pin that
                 card to the top of the card list. An unpinned button has a white background;
                 a pinned button turns gold. Pinned cards always appear first, regardless of
-                the current sort order. Click to toggle.
+                the current sort order, in the order they were pinned. A later pin follows
+                earlier pins; unpinning and pinning again moves it to the end of that group.
+                Click to toggle.
               </p>
               <span className="um-feature-note">
                 You must be logged in to use this feature. A login prompt will appear if you are not.
@@ -766,7 +770,7 @@ function UserManual() {
         <div className="um-toolbar-demo-wrapper">
           <div className="card-panel-top" style={{ borderRadius: '8px', border: '1px solid #d8e1ea' }}>
             <div className="card-panel-titlebar">
-              <span className="card-panel-title">Cards</span>
+              <span className="card-panel-title">Project Cards</span>
               <span className="card-panel-subtitle">24 all cards</span>
             </div>
             <div className="card-panel-toolbar">
@@ -932,7 +936,9 @@ function UserManual() {
                 Switches the card panel between <strong>grid view</strong> (card thumbnails
                 laid out in a grid) and <strong>list view</strong> (compact rows showing just
                 the title and action buttons). The icon shows the mode you will switch
-                <em>to</em> when clicked. The button is highlighted when list view is active. List view is fixed at 310 pixels wide and cannot be resized. Grid view restores its adjustable width. When Cards and GIS both dock on the left, list view is used automatically.
+                <em>to</em> when clicked. The button is highlighted when list view is active. List view is fixed at 310 pixels wide and cannot be resized. Grid view restores its adjustable width. When Project Cards and GIS both dock on the left, list view is used automatically.
+                The bordered, square-cornered list area joins the toolbar and keeps rows inside the panel, including during hover movement.
+                Hover a row for about half a second to see its grid-card preview toward the map: to the left of a right-docked panel, or to the right of a left-docked panel. Moving off the row dismisses it; very narrow spaces may hide the preview.
               </p>
             </div>
           </div>
@@ -988,7 +994,7 @@ function UserManual() {
             <div className="um-feature-demo">
               <div className="um-isolated-demo">
                 <div className="card-panel-info-bar">
-                  <span className="card-panel-title">Cards</span>
+                  <span className="card-panel-title">Project Cards</span>
                   <span className="card-panel-subtitle">12 in view</span>
                 </div>
               </div>
@@ -1016,7 +1022,7 @@ function UserManual() {
           <strong>Add Card</strong> button in the card panel toolbar to open it. You must be logged
           in — a login prompt appears otherwise. You can also start location-first creation
           from the map toolbar using <strong>Add Cards from Map</strong>, then choose
-          <strong> Add Single Point</strong>, <strong>Polygon Tools</strong>, or
+          <strong> Add Points / Coordinates</strong>, <strong>Polygon Tools</strong>, or
           <strong> Add PNG</strong>. Once submitted, the new card appears in the
           card container and is pinned to the map.
         </p>
@@ -1607,11 +1613,9 @@ function UserManual() {
                 <p><strong>Organization:</strong> CEREO</p>
               </div>
               <div className="learn-more-location-section">
-                <p><strong>Representation:</strong></p>
+                <p><strong>Map location:</strong></p>
                 <div className="learn-more-representation-preview">
-                  <div className="learn-more-representation-icon">
-                    <FontAwesomeIcon icon={faLocationDot} />
-                  </div>
+                  <RepresentationPreview data={{ location_type: 'point', latitude: 46.6, longitude: -120.5 }} />
                   <div className="learn-more-representation-info">
                     <span className="learn-more-representation-type">Point</span>
                     <span className="learn-more-representation-detail">46.6, -120.5</span>
@@ -1755,8 +1759,8 @@ function UserManual() {
               <p className="um-feature-title">Image Gallery</p>
               <p className="um-feature-desc">
                 The Detail View displays up to six selected images. Multiple images adapts the grid to the selected count; Slideshow shows one selected image at a time with navigation inside the image area.
-                Click any tile to open the image in a full-screen lightbox. Below the
-                gallery, <strong>See all N images</strong> sits inside the gallery's bottom left corner in both viewing and editing modes and opens a grid of every uploaded image. In edit mode the Image layout dropdown sits inside the gallery's top right corner. Both controls become fully opaque on hover or focus. Drag images or use the arrow icons to reorder; the first image becomes the card cover. Its neutral badge and selection border appear only in edit mode.
+                Click any tile to open the image in a full-screen lightbox.
+                <strong>See all N images</strong> sits inside the gallery's bottom left corner in both viewing and editing modes and opens a grid of every uploaded image. In edit mode the Image layout dropdown sits inside the gallery's top right corner. Both controls are semi-transparent until hover or focus. Drag images or use the arrow icons to reorder; the first image becomes the card cover. Its neutral badge and selection border appear only in edit mode.
               </p>
             </div>
           </div>
@@ -1839,7 +1843,7 @@ function UserManual() {
               <p className="um-feature-title">Information Fields</p>
               <p className="um-feature-desc">
                 Dataset metadata is laid out in a two-column grid: Author, Card Creator,
-                Email, Funding, and Organization. Point coordinates appear in Representation. In edit mode metadata fields become editable inputs; Card
+                Email, Funding, and Organization. Point coordinates appear in Map location. In edit mode metadata fields become editable inputs; Card
                 Creator is read-only and cannot be changed.
               </p>
             </div>
@@ -1941,7 +1945,10 @@ function UserManual() {
                 Files attached to a card appear as a list of download links. Click any link
                 to download that file directly. In edit mode you can delete existing files
                 with the × button next to each filename, and attach new files using the
-                file picker; new files are uploaded when you press Save.
+                <strong>Choose files</strong> picker. Select multiple files at once (up to 5 MB each),
+                or choose another batch without replacing earlier selections. Review and remove
+                queued files before saving; new files upload when you press Save. Saved links
+                download attachments, including text files, rather than opening a storage page.
               </p>
             </div>
           </div>
@@ -2001,7 +2008,7 @@ function UserManual() {
                 <p style={{ margin: '0 0 6px' }}><strong>Description:</strong></p>
                 <div style={{ border: '1px solid #d8e1ea', borderRadius: '6px', padding: '6px 8px' }}>
                   <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', borderBottom: '1px solid #e5e7eb', paddingBottom: '6px', marginBottom: '6px' }}>
-                    {['B', 'I', 'U', 'S', '• 1.', '• •', '↶', '↷', '¶'].map((t, i) => (
+                    {['B', 'I', 'U', 'S', '• 1.', '• •', '↶', '↷', '¶', 'Link', 'File'].map((t, i) => (
                       <span key={i} style={{ fontSize: '11px', fontWeight: 600, color: '#374957', padding: '2px 5px', borderRadius: '3px', border: '1px solid #d8e1ea', background: '#f4f6f9' }}>{t}</span>
                     ))}
                   </div>
@@ -2015,6 +2022,10 @@ function UserManual() {
                 In edit mode the Description field is a Word-style rich text editor with a
                 toolbar for bold, italic, underline, strikethrough, bulleted and numbered
                 lists, undo/redo, and a heading dropdown (Paragraph, Heading 1–6).
+                <strong>Link</strong> inserts or edits a URL with display text at the cursor or
+                selected text; use Remove link to unlink it. <strong>File</strong> inserts an
+                existing attachment or lets you choose multiple new files (5 MB each).
+                New attachments upload with Save; their inline links then download the file.
                 Descriptions are stored as formatted HTML, displayed with their formatting
                 in the Detail View, and converted to plain text for PDF export.
               </p>
@@ -2060,14 +2071,12 @@ function UserManual() {
             <div className="um-feature-demo">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '10px' }}>
                 <div className="learn-more-location-section" style={{ margin: 0 }}>
-                  <p style={{ margin: '0 0 6px' }}><strong>Representation:</strong></p>
+                  <p style={{ margin: '0 0 6px' }}><strong>Map location:</strong></p>
                   <div className="learn-more-representation-preview">
-                    <div className="learn-more-representation-icon">
-                      <FontAwesomeIcon icon={faDrawPolygon} />
-                    </div>
+                    <RepresentationPreview data={{ location_type: 'polygon', polygon_vertices: [{lat: 47, lng: -120}, {lat: 46, lng: -121}, {lat: 46, lng: -119}] }} />
                     <div className="learn-more-representation-info">
                       <span className="learn-more-representation-type">Polygon</span>
-                      <span className="learn-more-representation-detail">14 vertices</span>
+                      <span className="learn-more-representation-detail">3 vertices</span>
                     </div>
                   </div>
                 </div>
@@ -2078,9 +2087,13 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Representation &amp; Location Editing</p>
+              <p className="um-feature-title">Map Location &amp; Location Editing</p>
               <p className="um-feature-desc">
-                A <strong>Representation</strong> section previews how the card is shown on
+                The <strong>Map location</strong> section previews the actual marker icons,
+                polygon shape or image footprint, with the card's saved colors and opacity.
+                Click the preview in the live card to close details and locate it on the map;
+                unsaved edits may require confirmation. The compact preview has a neutral background.
+                Cards are shown on
                 the map — as a <strong>Point</strong>, <strong>Multi-point</strong>,{' '}
                 <strong>Polygon</strong>, or <strong>Image</strong> overlay. In edit mode it
                 also shows <strong>Edit Coordinate</strong>, <strong>Edit Polygon / Edit
@@ -2320,7 +2333,7 @@ function UserManual() {
             <div className="um-feature-info">
               <p className="um-feature-title">Show Added Only</p>
               <p className="um-feature-desc">
-                <strong>Show Added Only</strong> is a toggle button in the action row. When active,
+                <strong>Added</strong> (Show Added Only) is a toggle button in the action row. When active,
                 the panel expands only folders and services that currently have checked layers on
                 the map, making it easier to review or remove what is already loaded.
               </p>
@@ -2365,7 +2378,7 @@ function UserManual() {
                   <FontAwesomeIcon icon={faSync} />
                 </button>
                 <button type="button" className="clear-all-layers-btn" title="Clear All Layers" style={{ pointerEvents: 'none' }}>
-                  <span>Clear All</span>
+                  <span>Clear</span>
                 </button>
               </div>
             </div>
@@ -3041,7 +3054,7 @@ function UserManual() {
                 to the map.
               </p>
               <span className="um-feature-note">
-                The <strong>New Folder</strong> and <strong>Upload File</strong> buttons live in the action row below the opacity slider, alongside Show Added Only and Clear All.
+                The compact <strong>Folder</strong> and <strong>Upload</strong> buttons sit below the opacity slider, beside <strong>Added</strong> and <strong>Clear</strong>. Hover for full action labels.
               </span>
             </div>
           </div>
@@ -3106,26 +3119,26 @@ function UserManual() {
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
                 <button type="button" className="clear-all-layers-btn custom-layers-panel-new-folder-btn" style={{ pointerEvents: 'none' }}>
                   <FontAwesomeIcon icon={faFolderPlus} />
-                  <span>New Folder</span>
+                  <span>Folder</span>
                 </button>
                 <button type="button" className="clear-all-layers-btn custom-layers-panel-upload-btn" style={{ pointerEvents: 'none' }}>
                   <FontAwesomeIcon icon={faUpload} />
-                  <span>Upload File</span>
+                  <span>Upload</span>
                 </button>
                 <button type="button" className="clear-all-layers-btn clear-all-layers-btn--toggle is-active" style={{ pointerEvents: 'none' }}>
                   <FontAwesomeIcon icon={faEye} />
                   <span>Showing Added Only</span>
                 </button>
                 <button type="button" className="clear-all-layers-btn" style={{ pointerEvents: 'none' }}>
-                  <span>Clear All</span>
+                  <span>Clear</span>
                 </button>
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">New Folder, Upload File, Show Added Only &amp; Clear All</p>
+              <p className="um-feature-title">Folder, Upload, Added &amp; Clear</p>
               <p className="um-feature-desc">
-                The action row groups <strong>New Folder</strong>, <strong>Upload File</strong>,{' '}
-                <strong>Show Added Only</strong>, and <strong>Clear All</strong> in one place.
+                The compact action row groups <strong>Folder</strong>, <strong>Upload</strong>,{' '}
+                <strong>Added</strong>, and <strong>Clear</strong> in one place. Hover buttons for their full labels.
                 Upload File imports a GeoJSON, KML, or Shapefile (.zip) file as a new layer.
                 Show Added Only collapses the list to services with at least one active layer,
                 while Clear All removes all checked layers from the map in one click.
@@ -3356,7 +3369,7 @@ function UserManual() {
       <section className="um-section">
         <h2>Basemap Panel</h2>
         <p className="um-section-desc">
-          The Basemap Panel lets you switch between multiple Mapbox map styles directly from the
+          The Basemap Panel lets you switch between Mapbox styles and free public basemaps directly from the
           map view. Click the map icon on the left sidebar to open or close it. Switching
           styles preserves all custom ArcGIS layers, the current camera position, zoom,
           bearing, and pitch. You can also search styles by label or description.
@@ -3370,14 +3383,18 @@ function UserManual() {
           </div>
           <div className="basemap-switcher-list" style={{ maxHeight: '260px', overflowY: 'auto' }}>
             {[
-              { id: 'streets-v12',         label: 'streets-v12',         bg: '#c8d8e8', active: true },
-              { id: 'outdoors-v12',        label: 'outdoors-v12',        bg: '#c3d9be' },
-              { id: 'satellite-v9',        label: 'satellite-v9',        bg: '#3a4a3a' },
-              { id: 'satellite-streets-v12', label: 'satellite-streets-v12', bg: '#4a5a4a' },
-              { id: 'navigation-day-v1',   label: 'navigation-day-v1',   bg: '#dce8f2' },
-              { id: 'navigation-night-v1', label: 'navigation-night-v1', bg: '#1e2433' },
-              { id: 'light-v11',           label: 'light-v11',           bg: '#eef2f6' },
-              { id: 'dark-v11',            label: 'dark-v11',            bg: '#141a24' },
+              { id: 'streets-v12',         label: 'Streets',         bg: '#c8d8e8', active: true },
+              { id: 'outdoors-v12',        label: 'Outdoors',        bg: '#c3d9be' },
+              { id: 'satellite-v9',        label: 'Satellite (Imagery)',        bg: '#3a4a3a' },
+              { id: 'satellite-streets-v12', label: 'Satellite + Streets', bg: '#4a5a4a' },
+              { id: 'navigation-day-v1',   label: 'Navigation Day',   bg: '#dce8f2' },
+              { id: 'navigation-night-v1', label: 'Navigation Night', bg: '#1e2433' },
+              { id: 'light-v11',           label: 'Light',           bg: '#eef2f6' },
+              { id: 'dark-v11',            label: 'Dark',            bg: '#141a24' },
+              { id: 'openstreetmap', label: 'OpenStreetMap', bg: '#e3ebde' },
+              { id: 'usgs-topo', label: 'USGS Topographic', bg: '#eadfc7' },
+              { id: 'usgs-imagery', label: 'USGS Aerial Imagery', bg: '#5b6850' },
+              { id: 'usgs-relief', label: 'USGS Shaded Relief', bg: '#d9d6cc' },
             ].map(bm => (
               <div
                 key={bm.id}
@@ -3430,9 +3447,9 @@ function UserManual() {
             <div className="um-feature-demo">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 0, padding: 0, minWidth: '240px' }}>
                 {[
-                  { label: 'streets-v12',  bg: '#c8d8e8' },
-                  { label: 'outdoors-v12', bg: '#c3d9be' },
-                  { label: 'satellite-v9', bg: '#3a4a3a' },
+                  { label: 'Streets',  bg: '#c8d8e8' },
+                  { label: 'Outdoors', bg: '#c3d9be' },
+                  { label: 'Satellite (Imagery)', bg: '#3a4a3a' },
                 ].map(bm => (
                   <div key={bm.label} className="basemap-switcher-item" style={{ pointerEvents: 'none' }}>
                     <div style={{ width: '72px', height: '48px', borderRadius: '4px', border: '1px solid #ddd', background: bm.bg, flexShrink: 0 }} />
@@ -3444,10 +3461,15 @@ function UserManual() {
             <div className="um-feature-info">
               <p className="um-feature-title">Available Built-in Styles</p>
               <p className="um-feature-desc">
-                The panel currently lists eight styles:{' '}
+                The panel lists eight Mapbox styles:{' '}
                 <em>Satellite (Imagery)</em>, <em>Satellite + Streets</em>, <em>Navigation Day</em>,{' '}
                 <em>Navigation Night</em>, <em>Outdoors</em>, <em>Streets</em>, <em>Light</em>, and <em>Dark</em>.
-                Each entry shows a preview thumbnail, style name, and short description.
+                It also offers <em>OpenStreetMap</em>, <em>USGS Topographic</em>,
+                <em> USGS Aerial Imagery</em> and <em>USGS Shaded Relief</em>, without an extra API key.
+                OpenStreetMap covers worldwide streets; USGS maps focus on the U.S., with
+                imagery detail varying by location. Shaded Relief is a broad overview and
+                does not gain detail past zoom 7. Public tile availability is best effort.
+                Each entry shows a preview, style name, and short description.
               </p>
             </div>
           </div>
@@ -3542,17 +3564,16 @@ function UserManual() {
           <strong> top-left</strong> and a vertical stack in the <strong>top-right</strong>.
           Together they provide search, fullscreen, zoom, compass, location, drawing, card
           creation shortcuts, a draggable z-axis zoom control, and utility tools. View/navigation controls are available to
-          everyone; card-creation shortcuts require login.
+          everyone; card-creation shortcuts require login. Compact square buttons sit in
+          continuous 32px-wide toolbars, 6px from the map edge. The search bar and zoom axis
+          use the same slate colors and soft shadow. Bottom-left center, zoom and mouse
+          coordinates use a compact two-line readout.
         </p>
 
         {/* ---- overview layout ---- */}
         <div className="um-mapctrl-overview">
           <div className="um-mapctrl-corner um-mapctrl-tl">
             <div className="um-mapctrl-label">Top-left</div>
-            <div className="um-mapctrl-geocoder-mock">
-              <FontAwesomeIcon icon={faSearch} style={{ color: '#aaa', marginRight: 6 }} />
-              <span style={{ color: '#aaa', fontSize: '12px' }}>Address or LAT, LONG</span>
-            </div>
             <div className="um-mapctrl-group">
               <button className="um-mapctrl-btn" title="Enter Fullscreen"><FontAwesomeIcon icon={faExpand} /></button>
             </div>
@@ -3577,13 +3598,15 @@ function UserManual() {
 
           <div className="um-mapctrl-corner um-mapctrl-tr">
             <div className="um-mapctrl-label">Top-right</div>
+            <div className="um-mapctrl-geocoder-mock">
+              <FontAwesomeIcon icon={faSearch} style={{ color: '#aaa', marginRight: 6 }} />
+              <span style={{ color: '#aaa', fontSize: '12px' }}>Address or LAT, LONG</span>
+            </div>
             <div className="um-mapctrl-group">
-              <button className="um-mapctrl-btn" title="Add cards from map"><FontAwesomeIcon icon={faPlus} /></button>
+              <button className="um-mapctrl-btn" title="Add cards from map"><FontAwesomeIcon icon={faPenToSquare} /></button>
               <button className="um-mapctrl-btn um-mapctrl-btn--sep" title="Toggle Markers"><FontAwesomeIcon icon={faEye} /></button>
               <button className="um-mapctrl-btn um-mapctrl-btn--sep" title="Reset View">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="8" cy="8" r="6.5"/><line x1="8" y1="1.5" x2="8" y2="4"/><line x1="8" y1="12" x2="8" y2="14.5"/><line x1="1.5" y1="8" x2="4" y2="8"/><line x1="12" y1="8" x2="14.5" y2="8"/><circle cx="8" cy="8" r="2"/>
-                </svg>
+                <FontAwesomeIcon icon={faArrowsToCircle} />
               </button>
               <button className="um-mapctrl-btn um-mapctrl-btn--sep" title="Screenshot"><FontAwesomeIcon icon={faCamera} /></button>
             </div>
@@ -3689,7 +3712,7 @@ function UserManual() {
               <div className="um-isolated-demo">
                 <div className="um-mapctrl-group" style={{ pointerEvents: 'none' }}>
                   <button className="um-mapctrl-btn" title="Add cards from map">
-                    <FontAwesomeIcon icon={faPlus} />
+                    <FontAwesomeIcon icon={faPenToSquare} />
                   </button>
                 </div>
               </div>
@@ -3697,14 +3720,15 @@ function UserManual() {
             <div className="um-feature-info">
               <p className="um-feature-title">Add Cards from Map (Collapsible Menu)</p>
               <p className="um-feature-desc">
-                A single <strong>+</strong> button opens a small menu with three creation flows:
-                <strong> Add Single Point</strong>, <strong>Polygon Tools</strong>, and
-                <strong> Add PNG</strong>.
+                The <strong>pencil</strong> button opens <strong>Coordinate</strong>,
+                <strong> Polygon</strong> and <strong>Image</strong>. The menu and their
+                Add Points, Draw Polygon and Place Image editors sit immediately left of
+                the toolbar. All three editors share the same header, tool and action styling.
               </p>
               <p className="um-feature-desc" style={{ marginTop: '8px' }}>
                 See each dedicated tab for details:{' '}
                 <button type="button" className="um-inline-link" onClick={() => navTo('add-single-point')}>
-                  Add Single Point
+                  Add Points / Coordinates
                 </button>
                 ,{' '}
                 <button type="button" className="um-inline-link" onClick={() => navTo('polygon-tools')}>
@@ -3775,9 +3799,7 @@ function UserManual() {
               <div className="um-isolated-demo">
                 <div className="um-mapctrl-group" style={{ pointerEvents: 'none' }}>
                   <button className="um-mapctrl-btn" title="Reset Map View">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="8" cy="8" r="6.5"/><line x1="8" y1="1.5" x2="8" y2="4"/><line x1="8" y1="12" x2="8" y2="14.5"/><line x1="1.5" y1="8" x2="4" y2="8"/><line x1="12" y1="8" x2="14.5" y2="8"/><circle cx="8" cy="8" r="2"/>
-                    </svg>
+                    <FontAwesomeIcon icon={faArrowsToCircle} />
                   </button>
                 </div>
               </div>
@@ -3785,7 +3807,7 @@ function UserManual() {
             <div className="um-feature-info">
               <p className="um-feature-title">Reset Map View</p>
               <p className="um-feature-desc">
-                Flies the map back to the default Pacific Northwest overview (centered near
+                The inward-arrow icon flies the map back to the default Pacific Northwest overview (centered near
                 Washington State, zoom&nbsp;5.5). Useful after panning or zooming far away.
               </p>
             </div>
@@ -3817,11 +3839,11 @@ function UserManual() {
 
       {activeSection === 'add-single-point' && (
       <section className="um-section">
-        <h2>Add Single Point</h2>
+        <h2>Add Points / Coordinates</h2>
         <p className="um-section-desc">
           Use <strong>Add Cards from Map</strong> in the top-right toolbar, then select
-          <strong> Add Single Point</strong>. The Card Creation form opens and immediately enters
-          location-picking mode for a single point.
+          <strong> Coordinate</strong>. The Add Points editor opens beside the map toolbar.
+          Add one or several points, edit each row's latitude and longitude, and choose its marker icon.
         </p>
 
         <div className="um-feature-list">
@@ -3829,7 +3851,7 @@ function UserManual() {
             <div className="um-feature-demo">
               <div className="um-isolated-demo">
                 <div className="um-mapctrl-group" style={{ pointerEvents: 'none' }}>
-                  <button className="um-mapctrl-btn" title="Add cards from map"><FontAwesomeIcon icon={faPlus} /></button>
+                  <button className="um-mapctrl-btn" title="Add cards from map"><FontAwesomeIcon icon={faPenToSquare} /></button>
                 </div>
                 <span style={{ fontSize: '11px', color: '#888' }}>→</span>
                 <div className="um-mapctrl-group" style={{ pointerEvents: 'none' }}>
@@ -3840,49 +3862,26 @@ function UserManual() {
             <div className="um-feature-info">
               <p className="um-feature-title">Step 1: Start the Shortcut</p>
               <p className="um-feature-desc">
-                Click <strong>+</strong> in map controls, then choose{' '}
-                <strong>Add Single Point</strong>. The Card Creation form opens and immediately
-                starts map point selection mode.
+                Click the pencil-shaped <strong>Add Card from Map</strong> button, then choose{' '}
+                <strong>Coordinate</strong>. Add Points opens directly to the left of the toolbar.
               </p>
             </div>
           </div>
 
           <div className="um-feature-row">
             <div className="um-feature-demo">
-              <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '260px', gap: '8px', pointerEvents: 'none' }}>
-                <div className="location-select-hint" style={{ position: 'static', top: 'auto', left: 'auto', transform: 'none', zIndex: 1, padding: '8px 12px', fontSize: '12px', gap: '10px', width: '100%', boxSizing: 'border-box' }}>
-                  <span>Click on the map to select a location</span>
-                  <button type="button">Cancel</button>
-                </div>
-
-                <div className="location-select-mapbox-popup mapboxgl-popup" style={{ position: 'static', maxWidth: 'none' }}>
-                  <div className="mapboxgl-popup-content">
-                    <div className="location-select-popup">
-                      <div style={{ fontSize: '12px', marginBottom: '6px', color: '#333' }}>
-                        45.609618, -117.344663
-                      </div>
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <button className="location-select-confirm">OK</button>
-                        <button className="location-select-cancel">Cancel</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input type="text" readOnly value="47.6123" className="um-form-input-mock" style={{ margin: 0 }} />
-                  <input type="text" readOnly value="-122.3355" className="um-form-input-mock" style={{ margin: 0 }} />
-                </div>
+              <div className="um-isolated-demo" style={{ gap: '8px' }}>
+                <input className="polygon-draw-vertex-input" aria-label="Example latitude" readOnly value="47.612300" />
+                <input className="polygon-draw-vertex-input" aria-label="Example longitude" readOnly value="-122.335500" />
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Step 2: Pick and Confirm</p>
+              <p className="um-feature-title">Step 2: Add and Refine Points</p>
               <p className="um-feature-desc">
-                While picking, the top hint shows <strong>"Click on the map to select a location"</strong>
-                with a <strong>Cancel</strong> action. After a map click, a marker popup shows
-                coordinates in 6-decimal format with <strong>OK</strong> and <strong>Cancel</strong>.
-                Click <strong>OK</strong> to fill latitude/longitude fields; click popup
-                <strong> Cancel</strong> to discard that point and click elsewhere.
+                Use the plus tool and click the map to add points. Edit coordinates in the numbered rows,
+                change icons, or remove individual points. New markers have a dark outline and translucent gray fill;
+                saved custom colors are preserved. The toolbar provides color, opacity, move, rotate, scale,
+                undo, redo, and clear controls. Unavailable actions are disabled.
               </p>
             </div>
           </div>
@@ -3890,16 +3889,16 @@ function UserManual() {
           <div className="um-feature-row">
             <div className="um-feature-demo">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>
-                <span style={{ fontSize: '12px', color: '#3f536a' }}>Result after confirm:</span>
-                <span style={{ fontSize: '12px', color: '#1f7a45', fontWeight: 600 }}>Point location is attached to the new card</span>
+                <span style={{ fontSize: '12px', color: '#3f536a' }}>Result after Save:</span>
+                <span style={{ fontSize: '12px', color: '#1f7a45', fontWeight: 600 }}>Point locations are transferred to the creation form</span>
               </div>
             </div>
             <div className="um-feature-info">
               <p className="um-feature-title">Step 3: Complete Card Data</p>
               <p className="um-feature-desc">
-                After the point is confirmed, continue filling title, category, description,
+                Click Save to transfer points into the Card Creation form, then fill title, category, description,
                 links, images, files, and optional ArcGIS links. Submit to create a point-based
-                card marker on the map.
+                card marker on the map. Saving points alone does not create a card. Cancel leaves the map editor without applying changes.
               </p>
             </div>
           </div>
@@ -3920,7 +3919,7 @@ function UserManual() {
             <div className="um-feature-demo">
               <div className="um-isolated-demo">
                 <div className="um-mapctrl-group" style={{ pointerEvents: 'none' }}>
-                  <button className="um-mapctrl-btn" title="Add cards from map"><FontAwesomeIcon icon={faPlus} /></button>
+                  <button className="um-mapctrl-btn" title="Add cards from map"><FontAwesomeIcon icon={faPenToSquare} /></button>
                 </div>
                 <span style={{ fontSize: '11px', color: '#888' }}>→</span>
                 <div className="um-mapctrl-group" style={{ pointerEvents: 'none' }}>
@@ -3931,7 +3930,7 @@ function UserManual() {
             <div className="um-feature-info">
               <p className="um-feature-title">Step 1: Select Image File</p>
               <p className="um-feature-desc">
-                Click <strong>+</strong> in map controls, then choose <strong>image</strong>.
+                Click the pencil-shaped <strong>Add Card from Map</strong> button, then choose <strong>Image</strong>.
                 Select an image file (PNG, JPG/JPEG, GIF, or WebP) from your device to enter overlay placement mode.
               </p>
             </div>

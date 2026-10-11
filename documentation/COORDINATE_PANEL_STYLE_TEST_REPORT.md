@@ -60,4 +60,3 @@ Browser measurements: all nine visible control buttons approximately 30.4 x 30.4
 ## Separator below Add card from map
 
 2026-10-11; baseline `139ec39`. First browser inspection found no border between Add card from map and Hide markers & polygons: the menu element interrupts the `button + button` sibling selector. Replaced adjacency with explicit selectors for the three later visible action buttons. Before and after, all nine visible map control buttons measured approximately 30.4px high; no height change was needed. Final Hide markers & polygons top border is `0.8px solid rgb(213,223,235)` at this browser scale, matching the other separators. Build passed with existing warnings and `git diff --check` passed. No data or handler changes. Screenshot: `C:/Users/yarug/.codex/visualizations/2026/10/11/01a128ce-0ac2-78e3-b432-6a4cbabbee86/map-toolbar-separator-fixed.png`. Production and small viewport checks excluded; revert the feature commit to roll back.
-

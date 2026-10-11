@@ -55,6 +55,11 @@ Use synthetic or de-identified data. Give each run a unique prefix and auditable
 
 ## 4. Completed tests and traceable evidence
 
+Card list style verification (2026-10-10): compact spacing and gallery toolbar
+alignment were checked in an offline browser fixture at desktop and narrow widths;
+21 related component tests and the frontend build passed. See
+[style verification report](CARD_LIST_STYLE_TEST_REPORT.md) for evidence and limits.
+
 Gallery layout verification (2026-10-04): 1–8 image grids, slideshow navigation,
 drag/button ordering, draft save/cancel and upload limits are covered by offline
 component and backend contract tests. See [gallery verification report](GALLERY_LAYOUT_TEST_REPORT.md)

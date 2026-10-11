@@ -88,6 +88,19 @@
     font-size: 12px;
 }
 
+.custom-layers-panel .upload-panel-controls-actions {
+    width: 100%;
+    margin-left: 0;
+    gap: 4px;
+    justify-content: flex-start;
+}
+
+.custom-layers-panel .upload-panel-controls-actions .clear-all-layers-btn {
+    padding: 0 6px;
+    gap: 4px;
+    border-radius: 6px;
+}
+
 .custom-layers-panel-new-folder-btn:hover {
     border-color: #1976d2;
     background: #e3f2fd;

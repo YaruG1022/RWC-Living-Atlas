@@ -147,7 +147,7 @@
 }
 
 /* Keep editor controls aligned with the map panels' quiet slate palette. */
-.coordinates-panel { width: 312px; max-width: calc(100% - 50px); border: 1px solid #d5dfeb; border-radius: 8px; box-shadow: 0 4px 16px rgba(30, 58, 85, .14); color: #243b53; }
+.coordinates-panel { width: 312px; right: 55px; max-width: calc(100% - 66px); border: 1px solid #d5dfeb; border-radius: 8px; box-shadow: 0 4px 16px rgba(30, 58, 85, .14); color: #243b53; }
 .coordinates-panel .polygon-draw-modal-header { padding: 10px 12px; background: #f8fafc; border-radius: 8px 8px 0 0; border-color: #e2e8f0; }
 .coordinates-panel .polygon-draw-modal-header h3 { color: #243b53; }
 .coordinates-panel .polygon-draw-modal-hint { color: #52657b; line-height: 1.5; }
@@ -159,7 +159,7 @@
 .coordinates-panel .polygon-draw-modal-vertex-row:last-child { border-bottom: 1px solid #e2e8f0; margin-bottom: 0; }
 .coordinates-panel .polygon-draw-modal-vertex-num { width: 20px; height: 20px; background: #e8eef5; border: 1px solid #d5dfeb; color: #475569; font-size: 11px; }
 .coordinates-panel .polygon-draw-modal-vertex-inputs { min-width: 0; gap: 4px; }
-.coordinates-panel .polygon-draw-vertex-input { width: 100%; min-width: 0; height: 28px; box-sizing: border-box; padding: 4px; background: #fff; border-color: #d5dfeb; color: #334155; font-size: 11px; }
+.coordinates-panel .polygon-draw-vertex-input { width: 100%; min-width: 0; height: 28px; box-sizing: border-box; padding: 4px 5px; background: #fff; border-color: #d5dfeb; color: #334155; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.5; letter-spacing: 0; }
 .coordinates-panel .polygon-draw-modal-vertex-remove { width: 26px; height: 28px; flex-shrink: 0; border: 1px solid #d5dfeb; border-radius: 5px; background: #fff; color: #64748b; font-size: 18px; }
 .coordinates-panel .polygon-draw-modal-vertex-remove:hover { color: #b42318; border-color: #f0c9c5; background: #fff7f6; }
 .coordinates-panel .polygon-draw-modal-actions { padding: 8px; border-color: #e2e8f0; gap: 8px; }

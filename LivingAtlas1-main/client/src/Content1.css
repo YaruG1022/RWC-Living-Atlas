@@ -207,7 +207,38 @@
 .map-add-tools-group {
   position: relative !important;
   overflow: visible !important;
+  padding: 3px;
+  border: 1px solid #d5dfeb;
+  border-radius: 6px;
+  background: #f8fafc;
+  box-shadow: 0 3px 12px rgba(30, 58, 85, .14);
 }
+
+.map-add-tools-group > button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 29px !important;
+  height: 29px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 1px solid #d5dfeb !important;
+  border-radius: 5px !important;
+  background: #fff !important;
+  color: #52657b !important;
+  cursor: pointer;
+}
+.map-add-tools-group > button + button { margin-top: 3px !important; }
+.map-add-tools-group > .mapbox-gl-draw_polygon,
+.map-add-tools-group > .mapbox-gl-draw_trash { display: none !important; }
+.map-add-tools-group > button:hover,
+.map-add-tools-group > .map-add-tools-btn.active { background: #edf3f8 !important; border-color: #8ba6c3 !important; }
+.map-add-tools-group > button:focus-visible,
+.map-add-tools-menu .map-add-tools-menu-item:focus-visible { outline: 2px solid #2563eb !important; outline-offset: 2px; }
+.map-add-tools-group > button svg { width: 15px !important; height: 15px !important; color: inherit !important; }
+.map-add-tools-group > button svg[data-icon],
+.map-add-tools-group > button svg[data-icon] path { fill: currentColor !important; }
+.map-add-tools-group > .reset-view-btn svg { stroke: currentColor !important; }
 
 .map-add-tools-btn {
   display: flex !important;
@@ -251,10 +282,11 @@
   flex-direction: column;
   min-width: 168px;
   background: #fff;
-  border: 1px solid #d7dde4;
+  border: 1px solid #d5dfeb;
   border-radius: 8px;
-  box-shadow: 0 8px 20px rgb(0 0 0 / 16%);
-  padding: 4px;
+  box-shadow: 0 6px 20px rgba(30, 58, 85, .16);
+  padding: 6px;
+  margin-right: 6px;
   z-index: 20;
 }
 
@@ -273,7 +305,7 @@
   border: none !important;
   border-radius: 6px;
   background: transparent !important;
-  color: #223244 !important;
+  color: #52657b !important;
   font: 600 12px/1 "Segoe UI", Arial, sans-serif !important;
   text-align: left !important;
   text-indent: 0 !important;
@@ -291,7 +323,7 @@
   width: 14px !important;
   height: 14px !important;
   flex-shrink: 0;
-  fill: #2f5d86 !important;
+  fill: currentColor !important;
   pointer-events: none !important;
 }
 

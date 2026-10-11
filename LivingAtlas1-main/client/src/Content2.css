@@ -108,6 +108,23 @@
 }
 
 /* List view mode */
+.card-list-hover-preview {
+  position: fixed;
+  z-index: 1100;
+  pointer-events: none;
+  container-type: inline-size;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(20, 49, 81, 0.24);
+}
+
+.card-list-hover-preview .card {
+  width: 100%;
+  margin: 0;
+  transform: none;
+}
+
 .card-container.card-container--list {
   display: flex !important;
   flex-direction: column;

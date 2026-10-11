@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import './Content2.css';
 import './Sidebars.css';
@@ -43,6 +43,37 @@ function Content2(props) {
     const lastHandledSidebarSearchRequestRef = useRef(0);
     const [openMenuCardID, setOpenMenuCardID] = useState(null);
     const menuRef = useRef(null);
+    const previewTimerRef = useRef(null);
+    const [listPreview, setListPreview] = useState(null);
+    const dismissListPreview = useCallback(() => {
+        clearTimeout(previewTimerRef.current);
+        previewTimerRef.current = null;
+        setListPreview(null);
+    }, []);
+    const scheduleListPreview = (event, cardID) => {
+        dismissListPreview();
+        if (openMenuCardID !== null) return;
+        const row = event.currentTarget;
+        previewTimerRef.current = setTimeout(() => {
+            if (!row.isConnected) return;
+            const panel = containerRef.current.getBoundingClientRect();
+            const availableWidth = isOnLeft ? window.innerWidth - panel.right - 16 : panel.left - 16;
+            const width = Math.min(240, availableWidth);
+            if (width < 140) return;
+            const top = Math.max(60, Math.min(row.getBoundingClientRect().top, window.innerHeight - 320));
+            setListPreview({ cardID, width, top, left: isOnLeft ? panel.right + 8 : panel.left - width - 8 });
+        }, 500);
+    };
+    useEffect(() => {
+        dismissListPreview();
+        window.addEventListener('resize', dismissListPreview);
+        window.addEventListener('blur', dismissListPreview);
+        return () => {
+            clearTimeout(previewTimerRef.current);
+            window.removeEventListener('resize', dismissListPreview);
+            window.removeEventListener('blur', dismissListPreview);
+        };
+    }, [isListView, isOnLeft, props.isCollapsed, openMenuCardID, dismissListPreview]);
 
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
@@ -797,6 +828,10 @@ function Content2(props) {
 
         return [...pinned, ...orderedUnpinned];
     })();
+    const previewCardsKey = prioritizedDisplayedCards.map(card => card.cardID).join(',');
+    useEffect(() => {
+        dismissListPreview();
+    }, [previewCardsKey, dismissListPreview]);
 
     const firstVisibleCardID = prioritizedDisplayedCards.length > 0
         ? String(prioritizedDisplayedCards[0].cardID)
@@ -1045,6 +1080,7 @@ function Content2(props) {
                         className={`card-container ${isListView ? 'card-container--list' : ''}`}
                         data-onboarding-target="card-list-area"
                         ref={cardContainerRef}
+                        onScroll={dismissListPreview}
                         style={{ display: props.isCollapsed ? 'none' : (isListView ? 'flex' : 'grid') }}
                     >
                         {(() => {
@@ -1062,6 +1098,9 @@ function Content2(props) {
                                             key={cardKey}
                                             className={`card-list-item${openMenuCardID === card.cardID ? ' menu-open' : ''}${pinnedCardIDs.has(card.cardID) ? ' pinned' : ''}`}
                                             data-onboarding-target={index === 0 ? 'onboarding-single-card' : undefined}
+                                            onMouseEnter={(event) => scheduleListPreview(event, card.cardID)}
+                                            onMouseLeave={dismissListPreview}
+                                            onClickCapture={dismissListPreview}
                                         >
                                             <span
                                                 className="card-list-item-title"
@@ -1131,8 +1170,18 @@ function Content2(props) {
                                                     </div>
                                                 )}
                                             </div>
-                                            {/* Hidden Card for learn-more modal */}
-                                            <div style={{ display: 'none' }}>
+                                            {/* Reuse the grid Card for preview and the existing learn-more modal. */}
+                                            {ReactDOM.createPortal(<div
+                                                className="card-list-hover-preview"
+                                                aria-hidden="true"
+                                                inert=""
+                                                style={listPreview?.cardID === card.cardID ? {
+                                                    width: listPreview.width,
+                                                    top: listPreview.top,
+                                                    left: listPreview.left,
+                                                    maxHeight: `calc(100vh - ${listPreview.top + 12}px)`
+                                                } : { display: 'none' }}
+                                            >
                                                 <Card
                                                     formData={{
                                                         ...card,
@@ -1150,7 +1199,10 @@ function Content2(props) {
                                                     onZoom={() => handleCardClick(card)}
                                                     onboardingTargetPrefix={index === 0 ? 'onboarding-single-card' : undefined}
                                                 />
-                                            </div>
+                                                <span className={`card-grid-pin-btn ${pinnedCardIDs.has(card.cardID) ? 'active' : ''}`}>
+                                                    <FontAwesomeIcon icon={faThumbtack} />
+                                                </span>
+                                            </div>, document.body)}
                                         </div>
                                     );
                                 }

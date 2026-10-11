@@ -14,6 +14,7 @@ import os
 import uuid
 import json
 import tempfile
+from endpoint_files.description_attachments import parse_attachment_tokens, resolve_attachment_token
 from database import get_connection, get_request_connection, release_request_connection
 from .file_utils import compress_file #importing my function that handles compressing files for use in /uploadForm
 
@@ -432,6 +433,7 @@ async def upload_form(
     polygon_line_style: Optional[str] = Form(None),
     multipoint_coordinates: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
+    description_file_tokens: Optional[str] = Form(None),
     funding: Optional[str] = Form(None),
     org: Optional[str] = Form(None),
     link: Optional[str] = Form(None),
@@ -464,6 +466,10 @@ async def upload_form(
     if images and len(images) > MAX_CARD_IMAGES:
         raise HTTPException(status_code=422, detail=f"A card can have at most {MAX_CARD_IMAGES} images")
     enable_commits = False
+    try:
+        attachment_tokens = parse_attachment_tokens(description_file_tokens, len(files or []), description)
+    except (ValueError, TypeError) as error:
+        raise HTTPException(status_code=422, detail=str(error))
     print(f"[UPLOAD] username={username}, email={email}, orig_username={original_username or ''}, orig_email={original_email or ''}")
     print(f"[UPLOAD] location_type={location_type}, polygon_fill_color={polygon_fill_color!r}, polygon_line_style={polygon_line_style!r}")
     print(f"[UPLOAD] polygon_coordinates (first 200 chars): {str(polygon_coordinates)[:200] if polygon_coordinates else 'None'}")
@@ -796,7 +802,7 @@ async def upload_form(
         # --------------------------------------------------
         if files:
             print("[FILES] Beginning upload process...")
-            for file in files:
+            for file_index, file in enumerate(files):
                 try:
                     with tempfile.NamedTemporaryFile(delete=False) as tmp:
                         file.file.seek(0)
@@ -827,6 +833,7 @@ async def upload_form(
                     )
 
                     print(f"[DB] File record added: {safe_filename}")
+                    description = resolve_attachment_token(description, attachment_tokens[file_index], nextfileid)
                     enable_commits = True
 
                 except Exception as e:
@@ -838,6 +845,7 @@ async def upload_form(
                         if os.path.exists(path):
                             os.remove(path)
             print("[FILES] Upload process complete.")
+            cur.execute('UPDATE cards SET description = %s WHERE cardid = %s', (description, nextcardid))
 
         # --------------------------------------------------
         # Final commit

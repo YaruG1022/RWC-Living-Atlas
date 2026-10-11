@@ -3,6 +3,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import { Fragment, Slice } from '@tiptap/pm/model';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import { attachmentHref, pendingAttachmentHref } from './descriptionAttachments';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faBold,
@@ -17,6 +18,8 @@ import {
     faUndo,
     faRedo,
     faRemoveFormat,
+    faLink,
+    faPaperclip,
 } from '@fortawesome/free-solid-svg-icons';
 import './RichTextEditor.css';
 
@@ -34,12 +37,13 @@ const HEADING_OPTIONS = [
 // A small Word-like rich text editor (TipTap) used for card descriptions.
 // Controlled component: `value` is an HTML string, `onChange` fires with the
 // new HTML whenever the user edits.
-function RichTextEditor({ value, onChange, placeholder, id, className, minHeight }) {
+function RichTextEditor({ value, onChange, placeholder, id, className, minHeight, attachments = [], onInsertFiles }) {
     const lastEmittedRef = useRef(value);
     const editor = useEditor({
         extensions: [
             StarterKit.configure({
                 heading: { levels: [1, 2, 3, 4, 5, 6] },
+                link: { openOnClick: false },
             }),
             // StarterKit v3 already bundles Underline + UndoRedo, so we must NOT
             // add Underline again here (would cause a duplicate-extension warning).
@@ -91,6 +95,12 @@ function RichTextEditor({ value, onChange, placeholder, id, className, minHeight
 
     const [isHeadingMenuOpen, setIsHeadingMenuOpen] = useState(false);
     const headingMenuRef = useRef(null);
+    const [insertPanel, setInsertPanel] = useState(null);
+    const [linkUrl, setLinkUrl] = useState('');
+    const [linkText, setLinkText] = useState('');
+    const [insertError, setInsertError] = useState('');
+    const selectionRef = useRef(null);
+    const fileInputRef = useRef(null);
 
     // Close the heading dropdown when clicking outside or pressing Escape.
     useEffect(() => {
@@ -112,6 +122,41 @@ function RichTextEditor({ value, onChange, placeholder, id, className, minHeight
     }, [isHeadingMenuOpen]);
 
     if (!editor) return null;
+
+    const openInsertPanel = kind => {
+        if (kind === 'link' && editor.isActive('link')) editor.commands.extendMarkRange('link');
+        const { from, to } = editor.state.selection;
+        selectionRef.current = { from, to };
+        setLinkText(editor.state.doc.textBetween(from, to, ' '));
+        setLinkUrl(editor.getAttributes('link').href || '');
+        setInsertError('');
+        setIsHeadingMenuOpen(false);
+        setInsertPanel(kind);
+    };
+    const insertAnchor = (href, text) => {
+        const chain = editor.chain().focus();
+        if (selectionRef.current) chain.setTextSelection(selectionRef.current);
+        chain.insertContent({ type: 'text', text, marks: [{ type: 'link', attrs: { href, target: '_blank', rel: 'noopener noreferrer' } }] }).command(({ tr }) => { tr.setStoredMarks([]); return true; }).run();
+        selectionRef.current = { from: editor.state.selection.from, to: editor.state.selection.to };
+        setInsertPanel(null);
+    };
+    const applyLink = () => {
+        let href = linkUrl.trim();
+        if (/^\/downloadFile\?fileID=\d+$/.test(href) && linkText.trim()) {
+            insertAnchor(href, linkText.trim());
+            return;
+        }
+        if (!/^[a-z][a-z\d+.-]*:/i.test(href)) href = `https://${href}`;
+        try {
+            const url = new URL(href);
+            if (!['http:', 'https:', 'mailto:', 'tel:'].includes(url.protocol)) throw new Error();
+            if (!linkUrl.trim() || !linkText.trim()) throw new Error();
+        } catch {
+            setInsertError('Enter a valid web, email or telephone link and display text.');
+            return;
+        }
+        insertAnchor(href, linkText.trim());
+    };
 
     const buttons = [
         { label: 'Bold', icon: faBold, active: editor.isActive('bold'), action: () => editor.chain().focus().toggleBold().run() },
@@ -192,7 +237,42 @@ function RichTextEditor({ value, onChange, placeholder, id, className, minHeight
                         <FontAwesomeIcon icon={b.icon} />
                     </button>
                 ))}
+                <span className="rich-text-editor-toolbar-divider" />
+                <button type="button" className={`rich-text-editor-btn${editor.isActive('link') ? ' active' : ''}`} aria-label="Insert link" title="Insert or edit link" onMouseDown={e => e.preventDefault()} onClick={() => openInsertPanel('link')}><FontAwesomeIcon icon={faLink} /> Link</button>
+                <button type="button" className="rich-text-editor-btn" aria-label="Insert file" title="Insert attachment" onMouseDown={e => e.preventDefault()} onClick={() => openInsertPanel('file')}><FontAwesomeIcon icon={faPaperclip} /> File</button>
             </div>
+            {insertPanel && <div className="rich-text-editor-insert-panel" role="dialog" aria-label={insertPanel === 'link' ? 'Insert link' : 'Insert file'} onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); setInsertPanel(null); editor.commands.focus(); } }}>
+                {insertPanel === 'link' ? <>
+                    <label>Display text<input autoFocus value={linkText} onChange={e => setLinkText(e.target.value)} /></label>
+                    <label>Link address<input type="url" placeholder="https://example.com" value={linkUrl} onChange={e => setLinkUrl(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyLink(); } }} /></label>
+                    {insertError && <p role="alert">{insertError}</p>}
+                    <button type="button" onClick={applyLink}>Insert link</button>
+                    {editor.isActive('link') && <button type="button" onClick={() => { editor.chain().focus().setTextSelection(selectionRef.current).extendMarkRange('link').unsetLink().run(); setInsertPanel(null); }}>Remove link</button>}
+                </> : <>
+                    <strong>Insert an attachment</strong>
+                    {attachments.map(file => <button type="button" key={file.fileid} onClick={() => insertAnchor(attachmentHref(file.fileid), file.filename || 'Download file')}><FontAwesomeIcon icon={faPaperclip} /> {file.filename}</button>)}
+                    {onInsertFiles && <>
+                        <button type="button" onClick={() => fileInputRef.current.click()}>Choose files…</button>
+                        <input ref={fileInputRef} type="file" multiple hidden aria-label="Insert files into description" onChange={e => {
+                            const files = Array.from(e.target.files || []);
+                            e.target.value = '';
+                            if (!files.length) return;
+                            if (files.some(file => file.size > 5 * 1024 * 1024)) { setInsertError('Each file must be 5 MB or smaller.'); return; }
+                            files.forEach(file => { file.descriptionToken = crypto.randomUUID(); });
+                            onInsertFiles(files);
+                            files.forEach((file, index) => {
+                                if (index) editor.chain().focus().insertContent(' ').run();
+                                selectionRef.current = index ? { from: editor.state.selection.from, to: editor.state.selection.to } : selectionRef.current;
+                                insertAnchor(pendingAttachmentHref(file.descriptionToken), file.name);
+                            });
+                        }} />
+                        <small>Multiple files supported, up to 5 MB each. Files upload when you save the card.</small>
+                    </>}
+                    {!attachments.length && !onInsertFiles && <p>No attached files available.</p>}
+                    {insertError && <p role="alert">{insertError}</p>}
+                </>}
+                <button type="button" onClick={() => { setInsertPanel(null); editor.commands.focus(); }}>Close</button>
+            </div>}
             <EditorContent editor={editor} />
         </div>
     );

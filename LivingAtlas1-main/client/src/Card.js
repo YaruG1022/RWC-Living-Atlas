@@ -1,3 +1,4 @@
+import { appendDescriptionFileTokens } from './descriptionAttachments';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import Modal from 'react-modal';
@@ -929,6 +930,7 @@ function Card(props) {
         formDataToSend.append("thumbnail", thumbnail);
     }
 
+    appendDescriptionFileTokens(formDataToSend, formData.filesToUpload);
     // Append multiple files safely
     if (formData.filesToUpload && formData.filesToUpload.length > 0) {
         formData.filesToUpload.forEach((file) => {
@@ -2415,6 +2417,8 @@ function Card(props) {
 
                             <p><strong>Description:</strong></p>
                             <RichTextEditor
+                                attachments={formData.files || []}
+                                onInsertFiles={files => setFormData(prev => ({ ...prev, filesToUpload: [...(prev.filesToUpload || []), ...files] }))}
                                 value={formData.description || ''}
                                 onChange={(html) => setFormData(prev => ({ ...prev, description: html }))}
                                 placeholder="Enter description..."

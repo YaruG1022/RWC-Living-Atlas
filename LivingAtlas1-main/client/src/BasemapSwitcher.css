@@ -167,6 +167,13 @@
     font-size: 12px;
 }
 
+.basemap-switcher-credit {
+    font-size: 10px;
+    line-height: 1.35;
+    color: #486986;
+    text-decoration: underline;
+}
+
 .basemap-switcher-panel.onboarding-locked * {
     pointer-events: none;
 }

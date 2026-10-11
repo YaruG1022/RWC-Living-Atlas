@@ -740,8 +740,12 @@ const Content1 = (props) => {
       style: 'mapbox://styles/mapbox/streets-v12',
       center: [lng, lat],
       zoom: zoom,
+      attributionControl: false,
       preserveDrawingBuffer: true
     });
+
+    // Public basemap credits must stay visible, including when side panels narrow the map.
+    map.addControl(new mapboxgl.AttributionControl({ compact: false }));
 
     window.atlasMapInstance = map;
     mapRef.current = map;

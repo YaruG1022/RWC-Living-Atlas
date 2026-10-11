@@ -100,6 +100,76 @@
   margin: 0 !important;
 }
 
+/* A shared visual language for all map controls, scoped to the atlas. */
+.AtlasMap__container {
+  --map-control-ink: #52657b;
+  --map-control-border: #d5dfeb;
+  --map-control-surface: #f8fafc;
+  --map-control-hover: #edf3f8;
+  --map-control-shadow: 0 3px 12px rgba(30, 58, 85, .14);
+}
+.AtlasMap__container .mapboxgl-ctrl-group {
+  padding: 3px;
+  border: 1px solid var(--map-control-border);
+  border-radius: 6px;
+  background: var(--map-control-surface);
+  box-shadow: var(--map-control-shadow);
+}
+.AtlasMap__container .mapboxgl-ctrl-group > button {
+  width: 29px;
+  height: 29px;
+  border: 1px solid var(--map-control-border);
+  border-radius: 5px;
+  background-color: #fff;
+  color: var(--map-control-ink);
+}
+.AtlasMap__container .mapboxgl-ctrl-group > button + button { margin-top: 3px !important; }
+.AtlasMap__container .mapboxgl-ctrl-group > button:hover { background-color: var(--map-control-hover); border-color: #8ba6c3; }
+.AtlasMap__container .mapboxgl-ctrl-group > button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.AtlasMap__container .mapboxgl-ctrl-group > button:disabled { opacity: .45; }
+.AtlasMap__container .mapboxgl-ctrl-icon {
+  filter: invert(36%) sepia(13%) saturate(860%) hue-rotate(173deg) brightness(96%) contrast(87%);
+}
+.AtlasMap__container .mapboxgl-ctrl-geocoder {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  width: 248px;
+  min-width: 0;
+  max-width: calc(100vw - 90px);
+  border: 1px solid var(--map-control-border);
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: var(--map-control-shadow);
+  color: #334155;
+}
+.AtlasMap__container .mapboxgl-ctrl-geocoder--input {
+  height: 36px;
+  padding: 0 34px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #334155;
+  border-radius: 6px;
+}
+.AtlasMap__container .mapboxgl-ctrl-geocoder--input::placeholder { color: #64748b; opacity: 1; }
+.AtlasMap__container .mapboxgl-ctrl-geocoder:focus-within { border-color: #8ba6c3; box-shadow: 0 0 0 2px rgba(37, 99, 235, .16); }
+.AtlasMap__container .mapboxgl-ctrl-geocoder--input:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
+.AtlasMap__container .mapboxgl-ctrl-geocoder--icon-search { left: 10px; top: 9px; width: 18px; height: 18px; fill: var(--map-control-ink); }
+.AtlasMap__container .mapboxgl-ctrl-geocoder--icon-close,
+.AtlasMap__container .mapboxgl-ctrl-geocoder--icon-loading { fill: var(--map-control-ink); }
+.AtlasMap__container .mapboxgl-ctrl-geocoder--button { top: 8px; right: 8px; border-radius: 4px; }
+.AtlasMap__container .mapboxgl-ctrl-geocoder--button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.AtlasMap__container .mapboxgl-ctrl-geocoder .suggestions {
+  border: 1px solid var(--map-control-border);
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: var(--map-control-shadow);
+  color: #334155;
+  font-size: 13px;
+}
+.AtlasMap__container .mapboxgl-ctrl-geocoder .suggestions > li > a { color: #334155; padding: 8px 12px; }
+.AtlasMap__container .mapboxgl-ctrl-geocoder .suggestions > .active > a,
+.AtlasMap__container .mapboxgl-ctrl-geocoder .suggestions > li > a:hover { background: var(--map-control-hover); }
+
 .atlas-z-axis-control {
   --axis-height: 140px;
   --spine-x: 50%;
@@ -107,10 +177,10 @@
   padding: 5px !important;
   width: 29px !important;
   height: auto !important;
-  background: #fff !important;
-  border: none !important;
-  border-radius: 4px !important;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1) !important;
+  background: var(--map-control-surface) !important;
+  border: 1px solid var(--map-control-border) !important;
+  border-radius: 6px !important;
+  box-shadow: var(--map-control-shadow) !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
@@ -133,7 +203,7 @@
   bottom: 8px;
   width: 2px;
   transform: translateX(-50%);
-  background: #ccc;
+  background: #cbd5e1;
   overflow: visible;
 }
 
@@ -146,7 +216,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #333;
+  background: var(--map-control-ink);
 }
 
 .atlas-z-axis__spine::before {
@@ -165,7 +235,7 @@
   height: 0;
   border-top: 5px solid transparent;
   border-bottom: 5px solid transparent;
-  border-right: 8px solid #333;
+  border-right: 8px solid var(--map-control-ink);
   background: none;
   border-radius: 0;
   box-shadow: none;
@@ -187,8 +257,9 @@
   width: 100%;
   padding: 0;
   background: transparent;
-  color: #333;
-  font: 600 9px/1.3 "Segoe UI", Arial, sans-serif;
+  color: var(--map-control-ink);
+  font: 600 10px/1.3 "Segoe UI", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
   text-align: center;
   letter-spacing: 0.01em;
   white-space: nowrap;

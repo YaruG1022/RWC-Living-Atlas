@@ -1,7 +1,7 @@
 // Shared release notes keep the update dialog and history page in sync.
-export const latestGuiUpdateDate = '10/5/2026';
+export const previousGuiUpdateDate = '10/5/2026';
 
-export const latestGuiUpdates = [
+export const previousGuiUpdates = [
     {
         title: 'Card Images and Gallery Management',
         items: [
@@ -38,6 +38,39 @@ export const latestGuiUpdates = [
         items: [
             'Updated guided tours, instructions, and gallery examples to match the current image, filter, panel, coordinate, and chatbot controls. Added an Atlas Helper guide and simplified the Overview label.',
             'Corrected the feature-search marker shortcut to use the current map visibility control, and added guide-navigation regression checks.',
+        ],
+    },
+];
+
+export const latestGuiUpdateDate = '10/11/2026';
+
+export const latestGuiUpdates = [
+    {
+        title: 'Project Cards and Panel Controls',
+        items: [
+            'Renamed the panel to Project Cards and simplified action buttons across panels. List results now sit flush with the toolbar, with square corners and a temporary card preview on hover.',
+            'Pinned cards now stay in the order they were pinned, with newer pins following earlier ones.',
+        ],
+    },
+    {
+        title: 'Card Details, Images and Attachments',
+        items: [
+            'Moved gallery controls inside the image area: See all images sits at the bottom left, and Image layout appears at the top right while editing. Both become clearer on hover.',
+            'Added multiple-file selection and review before saving, fixed attachment downloads including text files, and added Link and File tools to the description editor.',
+            'Map location now previews the actual markers, polygon or image. Click the preview to close details and locate the card on the map.',
+        ],
+    },
+    {
+        title: 'Map Tools and Basemaps',
+        items: [
+            'Refined map search, toolbars, zoom controls and the Z axis with compact sizing and consistent styling. Map editors sit beside the toolbar, share the same layout, and use neutral outlined marker defaults. Reduced coordinate-display height and clarified the reset-view icon.',
+            'Added OpenStreetMap and USGS topographic, aerial imagery and shaded-relief basemaps without an additional API key.',
+        ],
+    },
+    {
+        title: 'User Manual and Onboarding',
+        items: [
+            'Updated instructions, examples and guided tours for the new card, gallery, attachment and map workflows, including multi-point creation and file insertion.',
         ],
     },
 ];

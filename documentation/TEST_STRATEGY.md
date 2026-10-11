@@ -55,6 +55,12 @@ Use synthetic or de-identified data. Give each run a unique prefix and auditable
 
 ## 4. Completed tests and traceable evidence
 
+Description insertion (2026-10-11): four real-editor component tests and nine
+backend tests passed, with 40 adjacent gallery/card regressions. A two-file local
+upload/DB/download cycle verified saved description references and zero fixture
+residue; browser inspection confirmed the Link/File controls. Build passed.
+Failures, fixes and exclusions are recorded in the [description editor report](../DESCRIPTION_EDITOR_TEST_REPORT.md).
+
 Attachment downloads (2026-10-11): actual local URLs, legacy-link recovery,
 Unicode download headers and bytes were verified with 10 offline storage/response
 tests, a two-file local upload/DB/download/cleanup cycle and an actual browser

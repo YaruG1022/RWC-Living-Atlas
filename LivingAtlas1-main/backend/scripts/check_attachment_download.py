@@ -1,5 +1,6 @@
 """Small local-only attachment upload/download regression with complete cleanup."""
 import io
+import json
 import os
 import uuid
 import zipfile
@@ -25,7 +26,9 @@ def main():
             cursor.execute('SELECT username,email FROM Users ORDER BY UserID LIMIT 1')
             username, email = cursor.fetchone()
         filenames = [prefix + '-重要.txt', prefix + '-notes.txt']
-        response = requests.post(base + '/uploadForm', data={'title': prefix, 'username': username, 'email': email, 'name': 'Local attachment check', 'category': 'Other', 'latitude': '46', 'longitude': '-120'}, files=[('files', (name, b'attachment-regression', 'text/plain')) for name in filenames], timeout=30)
+        tokens = [str(uuid.uuid4()), str(uuid.uuid4())]
+        description = '<p>' + ' '.join(f'<a href="#pending-file-{token}">{filename}</a>' for token, filename in zip(tokens, filenames)) + '</p>'
+        response = requests.post(base + '/uploadForm', data={'title': prefix, 'username': username, 'email': email, 'name': 'Local attachment check', 'category': 'Other', 'latitude': '46', 'longitude': '-120', 'description': description, 'description_file_tokens': json.dumps(tokens)}, files=[('files', (name, b'attachment-regression', 'text/plain')) for name in filenames], timeout=30)
         assert response.status_code == 200, f'Upload HTTP {response.status_code}: {response.json().get("detail", "no detail")}'
         with connection.cursor() as cursor:
             cursor.execute('SELECT CardID FROM Cards WHERE Title=%s', (prefix,))
@@ -33,6 +36,11 @@ def main():
             cursor.execute('SELECT fileid,file_link FROM Files WHERE CardID=%s ORDER BY fileid', (card_id,))
             rows = cursor.fetchall()
         assert len(rows) == 2
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT description FROM Cards WHERE cardid=%s', (card_id,))
+            saved_description = cursor.fetchone()[0]
+        assert '#pending-file-' not in saved_description
+        assert all(f'/downloadFile?fileID={file_id}' in saved_description for file_id, _ in rows)
         urls = [url for _, url in rows]
         assert all(url.startswith(azure_storage.LOCAL_URL_PREFIX) for url in urls)
         for (file_id, _), filename in zip(rows, filenames):
@@ -49,7 +57,7 @@ def main():
         legacy = requests.get(base + '/downloadFile', params={'fileID': rows[0][0]}, timeout=15)
         assert legacy.status_code == 200 and legacy.headers['Content-Disposition'].startswith('attachment;')
         assert requests.get(base + '/downloadFile', params={'fileID': -1}, timeout=15).status_code == 404
-        print('PASS: two TXT uploads, local persisted URLs, ZIP bytes/content, Unicode download name, legacy-link recovery, missing-ID 404')
+        print('PASS: two TXT uploads, saved description download links, local persisted URLs, ZIP bytes/content, Unicode download name, legacy-link recovery, missing-ID 404')
     finally:
         with connection, connection.cursor() as cursor:
             cursor.execute('SELECT CardID FROM Cards WHERE Title=%s', (prefix,))

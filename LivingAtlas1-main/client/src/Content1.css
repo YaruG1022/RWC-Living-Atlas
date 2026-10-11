@@ -107,23 +107,31 @@
   --map-control-surface: #f8fafc;
   --map-control-hover: #edf3f8;
   --map-control-shadow: 0 3px 12px rgba(30, 58, 85, .14);
+  --map-control-width: 35px;
 }
 .AtlasMap__container .mapboxgl-ctrl-group {
-  padding: 3px;
+  padding: 0;
+  width: var(--map-control-width);
+  box-sizing: border-box;
   border: 1px solid var(--map-control-border);
   border-radius: 6px;
   background: var(--map-control-surface);
   box-shadow: var(--map-control-shadow);
 }
 .AtlasMap__container .mapboxgl-ctrl-group > button {
-  width: 29px;
-  height: 29px;
-  border: 1px solid var(--map-control-border);
-  border-radius: 5px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 0;
   background-color: #fff;
   color: var(--map-control-ink);
 }
-.AtlasMap__container .mapboxgl-ctrl-group > button + button { margin-top: 3px !important; }
+.AtlasMap__container .mapboxgl-ctrl-group > button + button { margin-top: 0 !important; border-top: 1px solid var(--map-control-border); }
+.AtlasMap__container .mapboxgl-ctrl-group > button:first-child { border-radius: 5px 5px 0 0; }
+.AtlasMap__container .mapboxgl-ctrl-group > button:last-child { border-radius: 0 0 5px 5px; }
+.AtlasMap__container .mapboxgl-ctrl-group > button:only-child { border-radius: 5px; }
 .AtlasMap__container .mapboxgl-ctrl-group > button:hover { background-color: var(--map-control-hover); border-color: #8ba6c3; }
 .AtlasMap__container .mapboxgl-ctrl-group > button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 .AtlasMap__container .mapboxgl-ctrl-group > button:disabled { opacity: .45; }
@@ -175,7 +183,7 @@
   --spine-x: 50%;
   margin: 10px 0 0 10px !important;
   padding: 5px !important;
-  width: 29px !important;
+  width: var(--map-control-width) !important;
   height: auto !important;
   background: var(--map-control-surface) !important;
   border: 1px solid var(--map-control-border) !important;
@@ -215,8 +223,10 @@
   transform: translateX(-50%);
   width: 8px;
   height: 8px;
+  box-sizing: border-box;
+  border: 2px solid var(--map-control-ink);
   border-radius: 50%;
-  background: var(--map-control-ink);
+  background: #fff;
 }
 
 .atlas-z-axis__spine::before {
@@ -278,7 +288,7 @@
 .map-add-tools-group {
   position: relative !important;
   overflow: visible !important;
-  padding: 3px;
+  padding: 0;
   border: 1px solid #d5dfeb;
   border-radius: 6px;
   background: #f8fafc;
@@ -289,17 +299,20 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 29px !important;
-  height: 29px !important;
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1;
   padding: 0 !important;
   margin: 0 !important;
-  border: 1px solid #d5dfeb !important;
-  border-radius: 5px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
   background: #fff !important;
   color: #52657b !important;
   cursor: pointer;
 }
-.map-add-tools-group > button + button { margin-top: 3px !important; }
+.map-add-tools-group > button + button { margin-top: 0 !important; border-top: 1px solid #d5dfeb !important; }
+.map-add-tools-group > .map-add-tools-btn { border-radius: 5px 5px 0 0 !important; }
+.map-add-tools-group > .screenshot-btn { border-radius: 0 0 5px 5px !important; }
 .map-add-tools-group > .mapbox-gl-draw_polygon,
 .map-add-tools-group > .mapbox-gl-draw_trash { display: none !important; }
 .map-add-tools-group > button:hover,

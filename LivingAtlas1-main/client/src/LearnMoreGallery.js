@@ -15,7 +15,7 @@ export function GalleryLayoutSelector({ layout, busy, onChange }) {
     </label>;
 }
 
-export default function LearnMoreGallery({ images: allImages, totalImageCount = allImages.length, layout = 'multi', editing, busy, coverUrl, onReorder, onOpen, onAdd, onDelete }) {
+export default function LearnMoreGallery({ images: allImages, totalImageCount = allImages.length, layout = 'multi', editing, busy, coverUrl, onReorder, onOpen, onAdd, onDelete, onLayoutChange }) {
     const images = allImages.slice(0, MAX_GALLERY_IMAGES);
     const [slide, setSlide] = useState(0);
     const [dragOver, setDragOver] = useState(null);
@@ -73,6 +73,9 @@ export default function LearnMoreGallery({ images: allImages, totalImageCount = 
     };
 
     return <section className="lm-gallery-section" aria-label="Card image gallery">
+        {editing && onLayoutChange && <div className="lm-gallery-layout-overlay">
+            <GalleryLayoutSelector layout={layout} busy={busy} onChange={onLayoutChange} />
+        </div>}
         {validLayout === 'slideshow' ? <>
             <div className="lm-gallery-slideshow" aria-roledescription="carousel">
                 {renderTile(images[activeSlide] || null, activeSlide)}

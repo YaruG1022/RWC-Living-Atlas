@@ -4,7 +4,7 @@ import Modal from 'react-modal';
 import api from './api.js';
 import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
-import LearnMoreGallery, { MAX_CARD_IMAGES, GalleryLayoutSelector } from './LearnMoreGallery';
+import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
 import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, toggleGallerySelection } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faLocationDot, faDrawPolygon, faArrowLeft, faCheck } from '@fortawesome/free-solid-svg-icons';
@@ -2308,6 +2308,7 @@ function Card(props) {
                         totalImageCount={allImagesList.length}
                         layout={formData.gallery_layout || 'featured'}
                         editing={isLearnMoreEditMode}
+                        onLayoutChange={gallery_layout => setFormData(prev => ({ ...prev, gallery_layout }))}
                         busy={loading || isImageMutationLoading}
                         coverUrl={isImageCard ? cardThumbnailSrc : learnMoreGalleryImages[0]?.url}
                         onReorder={reorderGalleryImages}
@@ -2327,7 +2328,6 @@ function Card(props) {
                     >
                         {`See all ${allImagesList.length} image${allImagesList.length === 1 ? '' : 's'}`}
                     </button>
-                    {isLearnMoreEditMode && <GalleryLayoutSelector layout={formData.gallery_layout} busy={loading || isImageMutationLoading} onChange={gallery_layout => setFormData(prev => ({ ...prev, gallery_layout }))} />}
                     </div>
                     </div>
 

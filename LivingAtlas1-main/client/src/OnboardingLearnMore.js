@@ -37,7 +37,7 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-image-area"]',
         title: 'Edit Mode - Image Layout and Order',
-        description: 'Choose Image layout beside See all N images. Drag gallery images or use the arrow icons to reorder them. The first selected image is the card cover; its badge and border appear only in edit mode.',
+        description: 'Choose Image layout at the top right inside the gallery. Drag gallery images or use the arrow icons to reorder them. The first selected image is the card cover; its badge and border appear only in edit mode.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-image-area"]',
     },

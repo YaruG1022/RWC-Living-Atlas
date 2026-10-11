@@ -1,4 +1,4 @@
-.lm-gallery-section { margin: -20px -24px 16px; }
+.lm-gallery-section { position: relative; margin: -20px -24px 16px; }
 .lm-gallery-layout-label { display: flex; align-items: center; gap: 12px; color: #334155; font-weight: 600; }
 .lm-gallery-grid { display: grid; gap: 8px; height: clamp(280px, 42vw, 380px); grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); }
 .lm-gallery-layout-grid-1 .lm-gallery-cell { grid-area: 1 / 1 / 3 / 7; }
@@ -8,7 +8,10 @@
 .lm-gallery-layout-grid-5 .lm-gallery-cell { grid-column: span 2; }
 .lm-gallery-layout-grid-5 .lm-gallery-cell:nth-child(-n+2) { grid-column: span 3; }
 .lm-gallery-layout-grid-6 .lm-gallery-cell { grid-column: span 2; }
-.Modal--learn-more .learn-more-gallery-actions-row .lm-gallery-layout-label { display: flex; flex-direction: row; justify-content: flex-start; gap: 12px; margin: 0; text-align: left; }
+.lm-gallery-layout-overlay { position: absolute; top: 10px; right: 12px; z-index: 5; max-width: calc(100% - 108px); padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 7px; background: rgba(255,255,255,.78); opacity: .72; transition: opacity .18s ease, background-color .18s ease; }
+.lm-gallery-layout-overlay:hover, .lm-gallery-layout-overlay:focus-within { opacity: 1; background: #fff; }
+.Modal--learn-more .lm-gallery-layout-overlay .lm-gallery-layout-label, .lm-gallery-layout-overlay .lm-gallery-layout-label { display: flex; flex-direction: row; align-items: center; gap: 8px; margin: 0; text-align: left; font-size: 12px; }
+.Modal--learn-more .lm-gallery-layout-overlay select, .lm-gallery-layout-overlay select { width: auto; min-width: 0; max-width: 100%; margin: 0; padding: 5px 6px; border: 1px solid #bfd0e2; border-radius: 5px; background: #fff; color: #334155; font-size: 12px; }
 .lm-gallery-layout-featured { grid-template-columns: 2fr 1fr 1fr; }
 .lm-gallery-layout-featured .lm-gallery-cell:first-child { grid-row: span 2; }
 .lm-gallery-cell { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: #eef2f7; }

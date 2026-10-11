@@ -192,3 +192,44 @@ slideshow access, and saving/canceling a six-image layout. The initial run faile
 three older Card tests because they selected the removed grid-8 option; those
 tests now select grid-6. Both runs are preserved in `gallery-six-display-tests.log`
 and `gallery-six-display-tests-run2.log` in the evidence directory above.
+
+## Follow-up: edit-only layout selector inside the gallery
+
+Date: 2026-10-10 (America/Los_Angeles). Baseline `aa53c91`.
+Moved the existing layout selector from the actions row into LearnMoreGallery,
+inside its top right corner. It renders only in edit mode with a layout change
+handler. The overlay uses opacity 0.72 and a translucent background; hover and
+focus-within use opacity 1 and solid white. Busy state still disables selection.
+The Card passes its existing draft setter, preserving save/cancel behavior.
+Updated the tutorial text and manual's gallery demonstration to the new location.
+
+Scope: visual placement, opacity, edit/view mode and existing layout/save/cancel
+regressions. No new database data, API changes, external services or migrations.
+Actual browser inspection preserved the user's open unsaved edit without saving,
+canceling, changing the selected layout or reloading the page.
+
+Commands from `LivingAtlas1-main/client`:
+
+```powershell
+$env:CI='true'
+node node_modules/react-scripts/bin/react-scripts.js test --watchAll=false --runInBand --transformIgnorePatterns 'node_modules/(?!axios)/' --runTestsByPath src/LearnMoreGallery.test.js src/Card.gallery.test.js
+node node_modules/react-scripts/bin/react-scripts.js test --watchAll=false --runInBand --transformIgnorePatterns 'node_modules/(?!axios)/' --runTestsByPath src/LearnMoreGallery.test.js
+node node_modules/react-scripts/bin/react-scripts.js build
+```
+
+First combined run: Card's 20 tests passed, but four gallery tests failed because
+they assumed the selector was still external or mounted a duplicate external
+selector. Updated those existing expectations and fixtures for the requested
+internal edit control, with explicit view-mode hiding assertions. Gallery rerun:
+18/18 tests passed. Thus both suites passed across the recorded runs, totaling 38
+tests; the combined command was not rerun after these expectation-only edits.
+Card tests emit existing React act warnings. Build exited 0 with the existing
+ESLint, Browserslist, bundle size and Card.css container-unit minimizer warnings.
+`git diff --check` passed.
+
+Actual localhost browser at 1242x764: control rectangle entirely inside the gallery,
+top inset 10px and right inset 12px; computed resting opacity 0.72. After hovering,
+computed opacity was 1 and background rgb(255,255,255). The See all images button
+remains below the gallery. Screenshot saved as this chat's local visualization
+artifact `gallery-layout-overlay.png`. No mobile browser or deployed preview was
+tested in this follow-up. Rollback requires reverting only the frontend change.

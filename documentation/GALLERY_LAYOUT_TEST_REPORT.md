@@ -233,3 +233,27 @@ computed opacity was 1 and background rgb(255,255,255). The See all images butto
 remains below the gallery. Screenshot saved as this chat's local visualization
 artifact `gallery-layout-overlay.png`. No mobile browser or deployed preview was
 tested in this follow-up. Rollback requires reverting only the frontend change.
+
+## Follow-up: See all images inside the bottom left corner
+
+Date: 2026-10-10 (America/Los_Angeles). Baseline `1f23373`.
+Moved the existing See all images action into LearnMoreGallery, visible in both
+viewing and editing modes. Removed the now-empty external actions row. The button
+uses 12px left/bottom insets, opacity 0.72 at rest and opacity 1 with a solid white
+background on hover or keyboard focus. Slideshow pagination moves above the bottom
+controls to avoid overlap at narrow widths. Manual examples/text use the same
+component. No API, schema or dependency changes.
+
+Verification: the preceding combined Jest command for LearnMoreGallery.test.js and
+Card.gallery.test.js passed 2 suites / 38 tests on its first run. Existing act
+warnings remain. Frontend build exited 0 with the previously recorded warnings;
+`git diff --check` passed.
+
+Actual localhost browser at 1242x764: button bounds were entirely inside the
+gallery, with left and bottom inset 12px and resting computed opacity 0.72. The
+normal-mode hover matched `:hover` and computed opacity 1. Clicking opened the
+existing all-images screen and Back to Learn More returned correctly. Entering
+edit mode retained the button alongside the top-right layout control; no fields
+were modified or saved. Cancel restored normal viewing. No database records were
+created or changed. Screenshot: local chat artifact `gallery-see-all-overlay.png`.
+No deployed preview, mobile browser or third-party performance checks were run.

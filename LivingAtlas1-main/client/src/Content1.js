@@ -13,7 +13,7 @@ import api from './api.js';
 import PolygonDrawingModal from './PolygonDrawingModal';
 import html2canvas from 'html2canvas';
 import { icon } from '@fortawesome/fontawesome-svg-core';
-import { faEye, faEyeSlash, faCamera, faImage, faLocationDot, faPencil, faDrawPolygon } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faEyeSlash, faCamera, faImage, faLocationDot, faPencil, faDrawPolygon, faArrowsToCircle } from '@fortawesome/free-solid-svg-icons';
 import { buildMarkerIconElement } from './markerIcons';
 
 // Mapbox Token
@@ -965,7 +965,7 @@ const Content1 = (props) => {
         resetViewBtn.setAttribute('data-onboarding-target', 'map-control-reset-view');
         resetViewBtn.title = 'Reset Map View';
         resetViewBtn.type = 'button';
-        resetViewBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.5"/><line x1="8" y1="1.5" x2="8" y2="4"/><line x1="8" y1="12" x2="8" y2="14.5"/><line x1="1.5" y1="8" x2="4" y2="8"/><line x1="12" y1="8" x2="14.5" y2="8"/><circle cx="8" cy="8" r="2"/></svg>';
+        resetViewBtn.innerHTML = icon(faArrowsToCircle).html[0];
         resetViewBtn.addEventListener('click', () => {
           map.flyTo({ center: [-120, 46], zoom: 5.5 });
         });

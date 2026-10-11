@@ -257,3 +257,38 @@ edit mode retained the button alongside the top-right layout control; no fields
 were modified or saved. Cancel restored normal viewing. No database records were
 created or changed. Screenshot: local chat artifact `gallery-see-all-overlay.png`.
 No deployed preview, mobile browser or third-party performance checks were run.
+
+## Follow-up: styled multiple attachment selection
+
+Date: 2026-10-10 through 2026-10-11 (America/Los_Angeles). Baseline `0fcdee6`.
+The existing learn-more attachment input already had `multiple`, but each selection
+replaced the earlier batch. Restyled it as a labelled, keyboard-accessible picker
+with an upload icon and explicit save timing. Selections now accumulate; identical
+name/size/lastModified entries are skipped. Resetting the native input allows
+reselecting a removed file. Each queued file has its name, displayed size and a
+draft-only remove button. Choosing/removing files is disabled during saving.
+The existing multipart save appends every queued file under the `files` field;
+no backend endpoint or upload protocol changed.
+
+Scope: frontend selection, queue mutation, multipart payload, failure retention
+and cancel semantics. No live upload to the user's card, database writes, migrations,
+cloud storage calls, load tests or production deployment were performed.
+
+Using the preceding combined Jest command, the first run passed 39/40 tests. The
+new failed-save/cancel test tried reopening edit mode before asynchronous cancel
+had completed, matching unrelated Edit controls. It now waits for save controls to
+be enabled and for the exact learn-more Edit button after cancel. The next run
+passed 2 suites / 40 tests. New cases verify two-file selection, a subsequent batch,
+duplicate suppression, removal and the remaining multipart filenames, plus a
+simulated server error retaining the batch and cancel clearing it. Existing React
+act warnings remain. Frontend build exited 0 with the previously recorded warnings;
+`git diff --check` passed.
+
+Actual local browser: native file chooser confirmed multiple selection and accepted
+two synthetic local fixtures in one operation. Both filenames, sizes and the
+two-file count appeared in the draft. Screenshot artifact:
+`multiple-attachments-control.png`. Both synthetic entries were removed afterward
+using their draft remove buttons; no Save or Cancel was pressed and other current
+user edits were preserved. The browser selection operation took an unusually long
+time to return; this is not an application upload latency measurement. Live
+attachment persistence/download and mobile appearance were not exercised here.

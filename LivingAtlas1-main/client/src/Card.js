@@ -2628,8 +2628,8 @@ function Card(props) {
                                     {formData.files.map((file, idx) => (
                                         <li key={file.fileid || idx}>
                                             <a
-                                                href={file.file_link}
-                                                target="_blank"
+                                                href={`${api.defaults.baseURL}/downloadFile?fileID=${file.fileid}`}
+                                                download
                                                 rel="noopener noreferrer"
                                             >
                                                 {file.filename || `Download ${file.fileextension}`}
@@ -3185,8 +3185,8 @@ function Card(props) {
                                 {formData.files.map((file, idx) => (
                                     <li key={file.fileid || idx}>
                                         <a
-                                            href={file.file_link}
-                                            target="_blank"
+                                            href={`${api.defaults.baseURL}/downloadFile?fileID=${file.fileid}`}
+                                            download
                                             rel="noopener noreferrer"
                                         >
                                             {file.filename}

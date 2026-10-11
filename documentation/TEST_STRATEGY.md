@@ -58,6 +58,8 @@ Use synthetic or de-identified data. Give each run a unique prefix and auditable
 Compact custom-layer actions (2026-10-11): browser inspection confirmed four
 shortened buttons in one 28px row, including both Added filter states. Build
 passed; see the [custom-layer actions report](CUSTOM_LAYER_ACTIONS_TEST_REPORT.md).
+The shared-panel follow-up in that report records 28 passing regressions and
+measured compact card/GIS actions, basemap search and watershed selection controls.
 
 Pin chronology and map coordinates (2026-10-11): ten panel regressions passed;
 local browser inspection verified three-card pin order and a measured coordinate

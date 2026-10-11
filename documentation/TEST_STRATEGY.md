@@ -55,6 +55,12 @@ Use synthetic or de-identified data. Give each run a unique prefix and auditable
 
 ## 4. Completed tests and traceable evidence
 
+Public basemap verification (2026-10-10): four OpenStreetMap/USGS options,
+attribution, native zoom limits, search and overlay/camera preservation were
+checked with five focused tests and live local-browser smoke checks. Eight card
+regressions and the frontend build also passed. Service conditions and the first
+Shaded Relief tile failure are in the [basemap report](BASEMAP_OPTIONS_TEST_REPORT.md).
+
 Card list style verification (2026-10-10): compact spacing and gallery toolbar
 alignment were checked in an offline browser fixture at desktop and narrow widths;
 21 related component tests and the frontend build passed. See

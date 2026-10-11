@@ -1841,10 +1841,11 @@ function Card(props) {
             <div className="learn-more-representation-preview">
                 <RepresentationPreview data={formData} imageSrc={isImageCard && (formData.thumbnail_link || preview) ? getRepresentativeImageUrl() : undefined} />
                 <div className="learn-more-representation-info">
+                    <span className="learn-more-representation-label">Map representation</span>
                     <span className="learn-more-representation-type">
                         {isImageCard ? 'Image' : isPolygonCard ? 'Polygon' : (formData.location_type === 'multipoint' ? 'Multi-point' : 'Point')}
                     </span>
-                    <span className="learn-more-representation-detail">
+                    {(isOverlayCard || formData.location_type === 'multipoint') && <span className="learn-more-representation-detail">
                         {isImageCard
                             ? 'Image overlay'
                             : isPolygonCard
@@ -1852,7 +1853,7 @@ function Card(props) {
                             : formData.location_type === 'multipoint'
                             ? `${(formData.polygon_vertices || []).length} points`
                             : ''}
-                    </span>
+                    </span>}
                     {!isOverlayCard && (
                         <span className="learn-more-representation-coordinates">
                             <strong>Latitude:</strong> {formData.latitude ?? 'N/A'}

@@ -57,11 +57,6 @@
   max-width: 310px;
 }
 
-/* The list scroll viewport extends slightly toward the map for hovered rows. */
-#content-2.content-2--list:not(.collapsed) {
-  overflow: visible;
-}
-
 .collapse-toggle {
   position: absolute;
   top: 50%;
@@ -119,9 +114,10 @@
   justify-content: flex-start;
   gap: 0;
   box-sizing: border-box;
-  width: calc(100% + 4px);
+  width: 100%;
+  /* Keep hover movement inside the panel, with space only on the map side. */
   padding: 3px 0 3px 4px;
-  margin: 4px 0 0 -4px;
+  margin: 4px 0 0;
   scrollbar-gutter: auto;
   background: #eef2f7;
   border: 1px solid #bfd0e2;
@@ -131,7 +127,6 @@
 
 #content-2.content-2--left .card-container--list {
   padding: 3px 4px 3px 0;
-  margin: 4px -4px 0 0;
   --list-hover-offset: 3px;
 }
 

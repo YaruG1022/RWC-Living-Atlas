@@ -59,6 +59,8 @@ Card list style verification (2026-10-10): compact spacing and gallery toolbar
 alignment were checked in an offline browser fixture at desktop and narrow widths;
 21 related component tests and the frontend build passed. See
 [style verification report](CARD_LIST_STYLE_TEST_REPORT.md) for evidence and limits.
+The delayed list hover preview also has five focused timer/lifecycle tests and
+actual local-browser checks on both panel sides in the same report.
 
 Gallery layout verification (2026-10-04): 1–8 image grids, slideshow navigation,
 drag/button ordering, draft save/cancel and upload limits are covered by offline

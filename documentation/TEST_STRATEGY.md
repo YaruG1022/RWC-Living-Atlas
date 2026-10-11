@@ -166,3 +166,5 @@ The cycle follows planning, analysis/design, implementation/execution, monitorin
 ## Card geographic representation preview regression
 
 `RepresentationPreview.test.js` checks north-up coordinate projection, date-line handling, image corner transforms, polygon and marker styles, and invalid geometry/image fallbacks. Existing card/gallery cases provide adjacent regressions. Local browser/build evidence and exclusions are recorded in [REPRESENTATION_PREVIEW_TEST_REPORT.md](REPRESENTATION_PREVIEW_TEST_REPORT.md).
+
+`markerIcons.test.js` checks picker/map default-style parity and preservation of custom colors and image assets. Coordinate-editor browser evidence is recorded in [COORDINATE_PANEL_STYLE_TEST_REPORT.md](COORDINATE_PANEL_STYLE_TEST_REPORT.md).

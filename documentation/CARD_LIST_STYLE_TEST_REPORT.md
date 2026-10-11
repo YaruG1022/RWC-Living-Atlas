@@ -32,3 +32,11 @@ Verification used the actual running application at `localhost:3000`, local back
 - Existing `Content2.width.test.js`: 3 tests passed using the command recorded above with that test path only.
 - Development server compiled successfully; `git diff --check` passed. The production build result is recorded below.
 - Production build: exit 0, with the same pre-existing warnings described in the original verification. This follow-up changes only `Content2.css` and this report; hosted endpoint configuration and database migrations are unchanged. No deployment was performed.
+
+## Follow-up: visible hover edges and list-region boundary
+
+Date: 2026-10-10. Baseline: `c1812ba`. The first implementation clipped the hovered edge in both the scroll container and the outer panel. The list scroll viewport now extends 4px toward the map, with matching internal space on that side. Only an open list panel permits outer overflow; a collapsed panel and grid mode keep their original clipping behavior. The list region has a subtle `#bfd0e2` border, rounded upper corners and a 4px top separation from the toolbar. Rows remain compact and fill the available width.
+
+Actual local-browser checks used the same three existing cards and environment as the preceding follow-up. No data writes occurred. Right-side hover: row left 930.2px, panel left 931.6px, scroll viewport left 928.4px. Left-side hover: row right 367.26px, panel right 365.86px, viewport right 369.06px. Both hovered rows extended visibly past the panel boundary while remaining entirely within the scroll viewport. No horizontal overflow was detected. The menu opened correctly; closing the panel restored `overflow: hidden`. Panel placement and open state were restored to the user's right-side list afterward.
+
+Existing `Content2.width.test.js`: 3 tests passed. Development compilation and `git diff --check` passed. No new production build or deployment was run for this CSS-only refinement; long-list scrolling and production appearance were not separately exercised.

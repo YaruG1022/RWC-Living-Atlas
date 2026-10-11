@@ -17,6 +17,7 @@ import './CoordinatesPanel.css';
 const round6 = (n) => parseFloat(Number(n).toFixed(6));
 
 const PALETTE_COLORS = [
+    MARKER_ICON_COLOR,
     '#0077c0', '#e74c3c', '#27ae60', '#f39c12',
     '#8e44ad', '#1abc9c', '#2c3e50', '#000000',
 ];
@@ -56,8 +57,8 @@ function CoordinatesPanel({ initialPoints = [], onSave, onCancel, enableServiceP
             return;
         }
         const rect = e.currentTarget.getBoundingClientRect();
-        const MENU_WIDTH = 192;
-        const MENU_MAX_HEIGHT = 200;
+        const MENU_WIDTH = 244;
+        const MENU_MAX_HEIGHT = 222;
         let left = rect.right + 8;
         if (left + MENU_WIDTH > window.innerWidth - 8) {
             left = Math.max(8, rect.left - MENU_WIDTH - 8);
@@ -777,6 +778,7 @@ function CoordinatesPanel({ initialPoints = [], onSave, onCancel, enableServiceP
                                     onFocus={() => saveToHistoryRef.current?.()}
                                     onChange={(e) => handleLatChange(index, e.target.value)}
                                     title="Latitude"
+                                    aria-label={`Point ${index + 1} latitude`}
                                 />
                                 <span className="polygon-draw-vertex-comma">,</span>
                                 <input
@@ -787,6 +789,7 @@ function CoordinatesPanel({ initialPoints = [], onSave, onCancel, enableServiceP
                                     onFocus={() => saveToHistoryRef.current?.()}
                                     onChange={(e) => handleLngChange(index, e.target.value)}
                                     title="Longitude"
+                                    aria-label={`Point ${index + 1} longitude`}
                                 />
                             </div>
 
@@ -795,6 +798,8 @@ function CoordinatesPanel({ initialPoints = [], onSave, onCancel, enableServiceP
                                     type="button"
                                     className={`coordinates-panel-icon-btn${openIconPicker === index ? ' active' : ''}`}
                                     title="Choose icon"
+                                    aria-label={`Choose icon for point ${index + 1}`}
+                                    aria-expanded={openIconPicker === index}
                                     onClick={(e) => toggleIconPicker(index, e)}
                                 >
                                     <MarkerIconGlyph optionKey={p.icon} />
@@ -805,6 +810,7 @@ function CoordinatesPanel({ initialPoints = [], onSave, onCancel, enableServiceP
                                 type="button"
                                 className="polygon-draw-modal-vertex-remove"
                                 title="Remove"
+                                aria-label={`Remove point ${index + 1}`}
                                 onClick={() => removePoint(index)}
                             >
                                 &times;
@@ -828,6 +834,8 @@ function CoordinatesPanel({ initialPoints = [], onSave, onCancel, enableServiceP
                                 key={opt.key}
                                 className={`coordinates-panel-icon-option${opt.key === points[openIconPicker].icon ? ' active' : ''}`}
                                 title={opt.label}
+                                aria-label={opt.label}
+                                aria-pressed={opt.key === points[openIconPicker].icon}
                                 onClick={() => {
                                     saveToHistoryRef.current?.();
                                     updatePoint(openIconPicker, { icon: opt.key });

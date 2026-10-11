@@ -42,7 +42,7 @@ export default function RepresentationPreview({ data, imageSrc, onLocate }) {
                 <div className="representation-category-marker">{categoryImage ? <img src={categoryImage} alt="" /> : <span className={isUncategorized ? 'representation-category-none' : 'representation-category-other'} />}</div>
             </foreignObject>)}
             {type === 'multipoint' && points.map((point, index) => <foreignObject key={index} x={point.x - 14} y={point.y - 28} width="28" height="32">
-                <div className="representation-marker" style={{ color: point.markerColor || point.color || MARKER_ICON_COLOR, opacity: opacity(point.markerOpacity ?? point.opacity, 1) }}><MarkerIconGlyph optionKey={point.icon || 'location-dot'} /></div>
+                <div className="representation-marker" style={{ color: point.markerColor || point.color || MARKER_ICON_COLOR, opacity: opacity(point.markerOpacity ?? point.opacity, 1) }}><MarkerIconGlyph optionKey={point.icon || 'location-dot'} color={point.markerColor || point.color || MARKER_ICON_COLOR} /></div>
             </foreignObject>)}
             <text x="306" y="17" textAnchor="middle" className="representation-north">↑ N</text>
         </svg>

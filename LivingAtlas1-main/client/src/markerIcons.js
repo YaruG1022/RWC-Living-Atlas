@@ -131,17 +131,21 @@ export function getMarkerIconDef(key) {
 
 // Renders the glyph for a marker option in pickers — an <img> for image-based
 // markers, or a FontAwesome icon otherwise.
-export function MarkerIconGlyph({ optionKey }) {
+export function MarkerIconGlyph({ optionKey, color = MARKER_ICON_COLOR }) {
     const opt = getMarkerIconOption(optionKey);
     if (opt.image) {
         return <img src={opt.image} alt="" className="marker-icon-glyph-img" />;
     }
-    return <FontAwesomeIcon icon={opt.icon} />;
+    return <FontAwesomeIcon icon={opt.icon} style={markerGlyphStyle(color)} />;
 }
 
 // Default fill color for multi-point markers. Matches the icon-menu glyph color
 // so a marker looks the same in the picker and on the map.
-export const MARKER_ICON_COLOR = '#333';
+export const MARKER_ICON_COLOR = '#a8b2bf';
+
+export function markerGlyphStyle(color = MARKER_ICON_COLOR) {
+    return { color, fillOpacity: color === MARKER_ICON_COLOR ? 0.4 : 1, stroke: color === MARKER_ICON_COLOR ? '#475569' : color, strokeWidth: color === MARKER_ICON_COLOR ? 24 : 0, strokeLinejoin: 'round', paintOrder: 'stroke fill' };
+}
 
 // Builds a DOM element rendering the given icon, for use as a mapboxgl.Marker element.
 export function buildMarkerIconElement(key, color = MARKER_ICON_COLOR) {
@@ -161,5 +165,7 @@ export function buildMarkerIconElement(key, color = MARKER_ICON_COLOR) {
         el.innerHTML = rendered.html[0];
     }
     el.style.color = color;
+    const svg = el.querySelector('svg');
+    if (svg) Object.assign(svg.style, markerGlyphStyle(color));
     return el;
 }

@@ -1582,7 +1582,7 @@ function Card(props) {
 
         if (isLearnMoreEditMode && hasUnsavedChanges) {
             const confirmed = window.confirm('You have unsaved changes. Discard them and close?');
-            if (!confirmed) return;
+            if (!confirmed) return false;
         }
 
         if (isLearnMoreEditMode) {
@@ -1591,6 +1591,7 @@ function Card(props) {
 
         setIsAllImagesView(false);
         setIsModalOpen(false);
+        return true;
     };
 
 
@@ -1837,11 +1838,12 @@ function Card(props) {
     // edit and view modes. The edit/change buttons are only rendered in edit mode.
     const renderRepresentationPreview = () => (
         <>
-            <p><strong>Representation:</strong></p>
+            <p><strong>Map location:</strong></p>
             <div className="learn-more-representation-preview">
-                <RepresentationPreview data={formData} imageSrc={isImageCard && (formData.thumbnail_link || preview) ? getRepresentativeImageUrl() : undefined} />
+                <RepresentationPreview data={formData} imageSrc={isImageCard && (formData.thumbnail_link || preview) ? getRepresentativeImageUrl() : undefined} onLocate={async e => {
+                    if (await handleLearnMoreClose(e)) handleZoom(e);
+                }} />
                 <div className="learn-more-representation-info">
-                    <span className="learn-more-representation-label">Map representation</span>
                     <span className="learn-more-representation-type">
                         {isImageCard ? 'Image' : isPolygonCard ? 'Polygon' : (formData.location_type === 'multipoint' ? 'Multi-point' : 'Point')}
                     </span>

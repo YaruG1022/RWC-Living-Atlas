@@ -5,7 +5,7 @@ import './RepresentationPreview.css';
 
 const opacity = (value, fallback) => value == null || !Number.isFinite(Number(value)) ? fallback : Math.max(0, Math.min(1, Number(value)));
 
-export default function RepresentationPreview({ data, imageSrc }) {
+export default function RepresentationPreview({ data, imageSrc, onLocate }) {
     const [imageFailed, setImageFailed] = useState(false);
     useEffect(() => setImageFailed(false), [imageSrc]);
     const type = data.location_type || 'point';
@@ -24,7 +24,8 @@ export default function RepresentationPreview({ data, imageSrc }) {
     });
     const imageMatrix = isImage && coordinates.length === 4 && coordinates.every(validCoordinate) ? imageCornerTransform(points) : null;
     const hasShape = isPolygon ? [...groups.values()].some(ring => ring.length >= 3) : isImage ? !!imageMatrix : !!points.length;
-    return <div className="representation-scene" role="img" aria-label={`${isImage ? 'Image overlay' : isPolygon ? 'Polygon' : 'Coordinate markers'} appearance preview`}>
+    const Scene = onLocate ? 'button' : 'div';
+    return <Scene className="representation-scene" type={onLocate ? 'button' : undefined} onClick={onLocate} title={onLocate ? 'Locate on map' : undefined} role={onLocate ? undefined : 'img'} aria-label={onLocate ? 'Locate this location on map' : `${isImage ? 'Image overlay' : isPolygon ? 'Polygon' : 'Coordinate markers'} appearance preview`}>
         <svg viewBox="0 0 320 180" aria-hidden="true">
             <path className="representation-grid" d="M0 45H320M0 90H320M0 135H320M80 0V180M160 0V180M240 0V180" />
             {isPolygon && [...groups.entries()].map(([ring, ringPoints]) => {
@@ -47,5 +48,5 @@ export default function RepresentationPreview({ data, imageSrc }) {
         </svg>
         {!hasShape && <span className="representation-unavailable">No valid geometry</span>}
         {hasShape && isImage && (!imageSrc || imageFailed) && <span className="representation-unavailable">Image unavailable</span>}
-    </div>;
+    </Scene>;
 }

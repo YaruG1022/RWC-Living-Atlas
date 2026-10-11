@@ -45,6 +45,27 @@ async function editCard() {
     return screen.getByRole('region', { name: 'Card image gallery' });
 }
 
+test('location preview closes details and uses the existing locate callback', async () => {
+    const onZoom = jest.fn();
+    const { container } = render(<Card formData={savedCard} isLoggedIn onZoom={onZoom} onCardUpdate={() => {}} />);
+    fireEvent.click(container.querySelector('.card'));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Locate this location on map' })).toBeTruthy());
+    expect(screen.getByText('Map location:')).toBeTruthy();
+    expect(screen.queryByText('Map representation')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Locate this location on map' }));
+    await waitFor(() => expect(onZoom).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole('dialog')).toBeNull();
+});
+
+test('canceling draft discard keeps details open when locating from the preview', async () => {
+    await editCard();
+    fireEvent.change(screen.getByRole('dialog').querySelector('input[name="title"]'), { target: { value: 'Unsaved title' } });
+    window.confirm.mockReturnValue(false);
+    fireEvent.click(screen.getByRole('button', { name: 'Locate this location on map' }));
+    await waitFor(() => expect(window.confirm).toHaveBeenCalled());
+    expect(screen.getByRole('dialog')).toBeTruthy();
+});
+
 test('attachment batches accumulate without duplicates and save every remaining file', async () => {
     await editCard();
     const input = screen.getByLabelText('Add files');

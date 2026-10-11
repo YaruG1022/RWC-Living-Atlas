@@ -1298,7 +1298,7 @@
   padding: 16px;
   border: 1px solid #d8e2ee;
   border-radius: 8px;
-  background: #f8fafc;
+  background: #fff;
   box-shadow: 0 1px 3px rgba(30, 58, 85, 0.04);
   margin: 0 0 8px;
 }
@@ -1334,12 +1334,6 @@
   min-width: 0;
   padding: 4px 0;
   line-height: 1.5;
-}
-
-.learn-more-representation-label {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #52657b;
 }
 
 .learn-more-representation-type {

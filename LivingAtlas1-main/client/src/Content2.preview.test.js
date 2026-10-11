@@ -23,12 +23,34 @@ const preview = () => document.querySelector('.card-list-hover-preview');
 const advance = ms => act(() => jest.advanceTimersByTime(ms));
 
 beforeEach(() => {
+    localStorage.clear();
     api.get.mockResolvedValue({data: {data: [{cardID: 1, title: 'River'}, {cardID: 2, title: 'Basin'}]}});
     jest.useFakeTimers();
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({left: 600, right: 910, top: 180, bottom: 700, width: 310, height: 520});
 });
 afterEach(() => { jest.useRealTimers(); jest.restoreAllMocks(); });
+
+test('pins in selection order, and re-pinning moves a card behind earlier pins', async () => {
+    const {container} = await setup({initialCardViewMode: 'grid', isLoggedIn: true});
+    const wrappers = () => [...container.querySelectorAll('.card-grid-wrapper')];
+    const pin = title => fireEvent.click(wrappers().find(row => row.textContent.includes(title)).querySelector('.card-grid-pin-btn'));
+    pin('Basin');
+    pin('River');
+    expect(wrappers().map(row => row.textContent)).toEqual(['Basin preview', 'River preview']);
+    expect(JSON.parse(localStorage.getItem('pinned_card_ids'))).toEqual([2, 1]);
+    pin('Basin');
+    pin('Basin');
+    expect(wrappers().map(row => row.textContent)).toEqual(['River preview', 'Basin preview']);
+    expect(JSON.parse(localStorage.getItem('pinned_card_ids'))).toEqual([1, 2]);
+});
+
+test('restores pin chronology in list view when the dataset order differs', async () => {
+    localStorage.setItem('pinned_card_ids', JSON.stringify([2, 99, 1]));
+    const {container} = await setup();
+    expect([...container.querySelectorAll('.card-list-item')].map(row => row.querySelector('.card-list-item-title').textContent)).toEqual(['Basin', 'River']);
+    expect(JSON.parse(localStorage.getItem('pinned_card_ids'))).toEqual([2, 99, 1]);
+});
 
 async function setup(overrides) {
     const result = render(view(overrides));

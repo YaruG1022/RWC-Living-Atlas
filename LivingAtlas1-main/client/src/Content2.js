@@ -815,7 +815,10 @@ function Content2(props) {
     );
 
     const prioritizedDisplayedCards = (() => {
-        const pinned = displayedCards.filter(card => pinnedCardIDs.has(card.cardID));
+        // Set iteration follows pin time, including the order restored from storage.
+        // Dataset sorting/filtering must not reorder the pinned group.
+        const displayedByID = new Map(displayedCards.map(card => [card.cardID, card]));
+        const pinned = [...pinnedCardIDs].map(id => displayedByID.get(id)).filter(Boolean);
         const unpinned = displayedCards.filter(card => !pinnedCardIDs.has(card.cardID));
 
         let orderedUnpinned = unpinned;

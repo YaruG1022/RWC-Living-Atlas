@@ -1594,8 +1594,7 @@ function UserManual() {
               </div>
             </div>
             <div className="learn-more-modal-body um-modal-body-preview">
-              <LearnMoreGallery images={[1, 2, 3, 4, 5].map(id => ({ id, url: '/CEREO-logo.png' }))} editing={false} onOpen={() => {}} />
-              <button type="button" className="learn-more-see-all-images-btn" style={{ pointerEvents: 'none' }}>See all 5 images</button>
+              <LearnMoreGallery images={[1, 2, 3, 4, 5].map(id => ({ id, url: '/CEREO-logo.png' }))} editing={false} onOpen={() => {}} onSeeAll={() => {}} />
               <div className="learn-more-modal-title-section">
                 <h2>Yakima River Basin Watershed Study</h2>
                 <p className="learn-more-modal-subtitle">Watershed</p>
@@ -1749,10 +1748,7 @@ function UserManual() {
           <div className="um-feature-row">
             <div className="um-feature-demo">
               <div className="um-isolated-demo um-gallery-demo">
-                <LearnMoreGallery images={[1, 2, 3, 4, 5].map(id => ({ id, url: '/CEREO-logo.png' }))} editing coverUrl="/CEREO-logo.png" onOpen={() => {}} onReorder={() => {}} onDelete={() => {}} onLayoutChange={() => {}} />
-                <div className="um-gallery-controls">
-                  <button type="button" className="learn-more-see-all-images-btn">See all 5 images</button>
-                </div>
+                <LearnMoreGallery images={[1, 2, 3, 4, 5].map(id => ({ id, url: '/CEREO-logo.png' }))} editing coverUrl="/CEREO-logo.png" onOpen={() => {}} onReorder={() => {}} onDelete={() => {}} onLayoutChange={() => {}} onSeeAll={() => {}} />
               </div>
             </div>
             <div className="um-feature-info">
@@ -1760,7 +1756,7 @@ function UserManual() {
               <p className="um-feature-desc">
                 The Detail View displays up to six selected images. Multiple images adapts the grid to the selected count; Slideshow shows one selected image at a time with navigation inside the image area.
                 Click any tile to open the image in a full-screen lightbox. Below the
-                gallery, <strong>See all N images</strong> opens a grid of every uploaded image. In edit mode the Image layout dropdown sits inside the gallery's top right corner, becoming fully opaque on hover or focus. Drag images or use the arrow icons to reorder; the first image becomes the card cover. Its neutral badge and selection border appear only in edit mode.
+                gallery, <strong>See all N images</strong> sits inside the gallery's bottom left corner in both viewing and editing modes and opens a grid of every uploaded image. In edit mode the Image layout dropdown sits inside the gallery's top right corner. Both controls become fully opaque on hover or focus. Drag images or use the arrow icons to reorder; the first image becomes the card cover. Its neutral badge and selection border appear only in edit mode.
               </p>
             </div>
           </div>

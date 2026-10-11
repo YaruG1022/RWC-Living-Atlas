@@ -2315,20 +2315,8 @@ function Card(props) {
                         onOpen={(event, index) => openImagePreviewAtIndex(event, allImagesList.findIndex(image => galleryImageID(image) === galleryImageID(learnMoreGalleryImages[index])))}
                         onAdd={(event, index) => handleLearnMoreGalleryTileClick(event, null, index)}
                         onDelete={handleLearnMoreImageDelete}
+                        onSeeAll={() => setIsAllImagesView(true)}
                     />
-
-                    <div className="learn-more-gallery-actions-row">
-                    <button
-                        type="button"
-                        className="learn-more-see-all-images-btn"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setIsAllImagesView(true);
-                        }}
-                    >
-                        {`See all ${allImagesList.length} image${allImagesList.length === 1 ? '' : 's'}`}
-                    </button>
-                    </div>
                     </div>
 
                     <div data-onboarding-target="learn-more-text-area">

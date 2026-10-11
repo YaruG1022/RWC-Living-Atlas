@@ -49,6 +49,7 @@
     .lm-gallery-cover { top: 4px; left: 4px; padding: 3px 5px; font-size: .65rem; }
 }
 
-.learn-more-gallery-actions-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
-.Modal--learn-more .learn-more-gallery-actions-row .learn-more-see-all-images-btn { margin: 0; }
+.Modal--learn-more .lm-gallery-section .learn-more-see-all-images-btn, .lm-gallery-section .learn-more-see-all-images-btn { position: absolute; bottom: 12px; left: 12px; z-index: 5; width: auto; margin: 0; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 7px; background: rgba(255,255,255,.78); color: #334155; font-size: 12px; font-weight: 600; line-height: 1.2; cursor: pointer; opacity: .72; transition: opacity .18s ease, background-color .18s ease; }
+.Modal--learn-more .lm-gallery-section .learn-more-see-all-images-btn:hover, .Modal--learn-more .lm-gallery-section .learn-more-see-all-images-btn:focus-visible, .lm-gallery-section .learn-more-see-all-images-btn:hover, .lm-gallery-section .learn-more-see-all-images-btn:focus-visible { opacity: 1; background: #fff; }
+.lm-gallery-section--has-see-all .lm-gallery-pagination { bottom: 56px; }
 .lm-gallery-layout-label select { width: auto; margin: 0; padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: #334155; }

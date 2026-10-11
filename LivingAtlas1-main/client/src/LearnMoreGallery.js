@@ -15,7 +15,7 @@ export function GalleryLayoutSelector({ layout, busy, onChange }) {
     </label>;
 }
 
-export default function LearnMoreGallery({ images: allImages, totalImageCount = allImages.length, layout = 'multi', editing, busy, coverUrl, onReorder, onOpen, onAdd, onDelete, onLayoutChange }) {
+export default function LearnMoreGallery({ images: allImages, totalImageCount = allImages.length, layout = 'multi', editing, busy, coverUrl, onReorder, onOpen, onAdd, onDelete, onLayoutChange, onSeeAll }) {
     const images = allImages.slice(0, MAX_GALLERY_IMAGES);
     const [slide, setSlide] = useState(0);
     const [dragOver, setDragOver] = useState(null);
@@ -72,7 +72,7 @@ export default function LearnMoreGallery({ images: allImages, totalImageCount = 
         );
     };
 
-    return <section className="lm-gallery-section" aria-label="Card image gallery">
+    return <section className={`lm-gallery-section${onSeeAll ? ' lm-gallery-section--has-see-all' : ''}`} aria-label="Card image gallery">
         {editing && onLayoutChange && <div className="lm-gallery-layout-overlay">
             <GalleryLayoutSelector layout={layout} busy={busy} onChange={onLayoutChange} />
         </div>}
@@ -93,5 +93,11 @@ export default function LearnMoreGallery({ images: allImages, totalImageCount = 
                 {slots.map(renderTile)}
             </div>
         </>}
+        {onSeeAll && <button type="button" data-gallery-control className="learn-more-see-all-images-btn" onClick={event => {
+            event.stopPropagation();
+            onSeeAll();
+        }}>
+            {`See all ${totalImageCount} image${totalImageCount === 1 ? '' : 's'}`}
+        </button>}
     </section>;
 }

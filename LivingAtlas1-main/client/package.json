@@ -44,7 +44,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test --transformIgnorePatterns \"node_modules/(?!axios)/\"",
     "test2": "mocha",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "prebuild": "node scripts/export-manual.cjs",
+    "manual:export": "node scripts/export-manual.cjs"
   },
   "eslintConfig": {
     "extends": [

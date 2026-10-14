@@ -758,5 +758,10 @@
       "kind": "react-demo",
       "caption": "Interactive example 11"
     }
+  ],
+  "contextBlockIds": [
+    "add-card-004",
+    "add-card-006",
+    "add-card-012"
   ]
 }

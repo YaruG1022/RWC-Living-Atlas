@@ -20,6 +20,8 @@ test('chapter catalog rejects missing content, duplicate IDs, and invalid refere
   expect(() => validateManual(index, link)).toThrow(/unknown chapter/);
   const unsafe = copy(); unsafe[0].blocks[0].content = [{ type: 'link', href: 'javascript:alert(1)', content: [{ type: 'text', text: 'Open' }] }];
   expect(() => validateManual(index, unsafe)).toThrow(/unsafe link/);
+  const context = copy(); context[0].contextBlockIds = ['missing-context'];
+  expect(() => validateManual(index, context)).toThrow(/context references/);
 });
 
 test('editing one prose block changes rendering and exported text together', () => {

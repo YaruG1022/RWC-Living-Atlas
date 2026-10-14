@@ -98,7 +98,7 @@ export const latestGuiUpdates = [
             'Helper answers can show clickable User Manual references, so you can open the matching chapter and check the instructions.',
             'When image understanding is available, the helper can consult current manual examples to explain icons, button positions and layouts; documented text remains available when images cannot be checked.',
             'The manual gallery example now lets you preview Multiple images and Slideshow and try its navigation controls.',
-            'Clarified that image order changes in the main gallery; the all-images grid selects gallery slots and images for deletion.',
+            'Clarified that image order changes in the main gallery; the all-images grid selects gallery slots and images for deletion. Gallery edit arrows, drag handles and image-delete controls are explained separately from slideshow navigation and the window close button.',
         ],
     },
 ];

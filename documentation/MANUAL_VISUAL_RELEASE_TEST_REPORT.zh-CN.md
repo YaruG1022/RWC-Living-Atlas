@@ -68,3 +68,13 @@ python scripts/evaluate_manual.py --base-url https://rwc-living-atlas-chatbot.on
 人工复核发现 T03 错说全部图片网格可以拖动排序，且没有完整保留编辑权限。按当前 gallery 实现澄清手册：排序在主图库，全部图片网格选择图库槽位/删除选择；章节用 contextBlockIds 引用原有权限、Save/Cancel，以及卡片创建的登录/必填/位置前提，索引操作块保留这些条件。新抽取格式写独立 v2 namespace，避免已 active 的同 app 版本跳过新处理。原人工评估 T01 checklist 错写 Description 必填，按 FormModal/手册修正为 Author Name、Email、Title、有效地图位置；Description 可选。
 
 失败证据：Actions 38547543836 的 manual-answer-evaluation artifact；下载的原始 JSON 已人工复核。后续修正的 PR/完整 11 场景结果继续以 Actions 发布记录为准，不覆盖这次首次失败。
+
+## 图文启用与证据相关性复核
+
+第二轮完整 11 场景中，7 个非视觉场景通过，4 个视觉场景正确调用工具并回退，但 metrics 返回 vision-not-configured。用户已添加 key；补设此前建议的 VISION_MODEL=gpt-4.1-mini 与 VISION_BASE_URL=https://api.openai.com/v1（仅合并这两个非敏感变量），Render 自动重部署，无密钥覆盖/打印。
+
+Actions 38549915016 重试后 11/11 结构检查通过，4 个场景实际使用 VLM，所有图/文为 `df9c3dc10ab251e0c65830955ed9d21e3ade2d73-ee5fbc66127e`。但人工检查 artifact 11885864666 发现：V02 图库问题取了 card-container 封面截图；V04 混入 card-container overview，并把图库编辑握柄/删除 × 误说成 grid/close 控件。这证明“调用了图片”不等于证据相关或解释正确，未把结构通过当作完整验收。
+
+修正：图片 relevance 优先相关操作的 feature caption 与 query，合并 first-pass/精化检索来源，筛选已关联的图片，只取目标章节的相关 crop，不用跨章节 overview 补数。V01–V04 自动检查必须包含相应 toolbar/gallery/helper/slideshow ID，且不含错误章节图片。手册根据实际 LearnMoreGallery 代码补充小箭头=排序、点状握柄=拖动、图库 ×=删除该图，与大 slideshow 箭头/页码/窗口 × 分开；模型要求保留这些具体含义与相对位置。
+
+此前样本客户端 p50/p95/p99 为 7.374/29.298/29.298 秒；VLM 时间三次约 2.7–3.3 秒，一次 24.87 秒。usage 已记录，缺少实际报价，USD 为 null。都是 11 次顺序低量请求，无容量/SLO 判定。后续严格截图检查及人工复核结果保存在最终 Actions/PR 发布记录。

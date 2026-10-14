@@ -1,7 +1,7 @@
 // Shared release notes keep the update dialog and history page in sync.
-export const previousGuiUpdateDate = '10/5/2026';
+export const earlierGuiUpdateDate = '10/5/2026';
 
-export const previousGuiUpdates = [
+export const earlierGuiUpdates = [
     {
         title: 'Card Images and Gallery Management',
         items: [
@@ -42,9 +42,9 @@ export const previousGuiUpdates = [
     },
 ];
 
-export const latestGuiUpdateDate = '10/11/2026';
+export const previousGuiUpdateDate = '10/11/2026';
 
-export const latestGuiUpdates = [
+export const previousGuiUpdates = [
     {
         title: 'Project Cards and Panel Controls',
         items: [
@@ -71,6 +71,19 @@ export const latestGuiUpdates = [
         title: 'User Manual and Onboarding',
         items: [
             'Updated instructions, examples and guided tours for the new card, gallery, attachment and map workflows, including multi-point creation and file insertion.',
+        ],
+    },
+];
+
+export const latestGuiUpdateDate = '10/13/2026';
+
+export const latestGuiUpdates = [
+    {
+        title: 'Contact and RWC Branding',
+        items: [
+            'Updated Contact to Paccar Room 360 and j.boll@wsu.edu; removed the phone number and renamed the section Email.',
+            'Replaced CEREO display text with Rivers, Watersheds, Communities (RWC) across the app, onboarding and user manual.',
+            'Temporarily hid the top navigation logo link and default card logos. Cards without uploaded images show "No image"; logo assets remain available for future replacement.',
         ],
     },
 ];

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './ChangelogHistory.css';
-import { latestGuiUpdateDate, latestGuiUpdates, previousGuiUpdateDate, previousGuiUpdates } from './latestGuiUpdates';
+import { latestGuiUpdateDate, latestGuiUpdates, previousGuiUpdateDate, previousGuiUpdates, earlierGuiUpdateDate, earlierGuiUpdates } from './latestGuiUpdates';
 
 function ChangelogHistory() {
     const [activeTab, setActiveTab] = useState('latest');
@@ -37,6 +37,14 @@ function ChangelogHistory() {
                         <hr />
                         <h3>Update Date: {previousGuiUpdateDate}</h3>
                         {previousGuiUpdates.map(group => <React.Fragment key={group.title}>
+                            <h4>{group.title}</h4>
+                            <ul className="changelog-list">
+                                {group.items.map(item => <li key={item}>{item}</li>)}
+                            </ul>
+                        </React.Fragment>)}
+                        <hr />
+                        <h3>Update Date: {earlierGuiUpdateDate}</h3>
+                        {earlierGuiUpdates.map(group => <React.Fragment key={group.title}>
                             <h4>{group.title}</h4>
                             <ul className="changelog-list">
                                 {group.items.map(item => <li key={item}>{item}</li>)}

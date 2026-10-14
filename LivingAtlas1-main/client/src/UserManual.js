@@ -455,7 +455,7 @@ function UserManual() {
               <p className="um-feature-title">Card Image / Thumbnail</p>
               <p className="um-feature-desc">
                 A representative image sits at the top of every card. If no image has been
-                uploaded for a card, the CEREO logo is shown as a placeholder. Hover over
+                uploaded for a card, the Rivers, Watersheds, Communities (RWC) logo is shown as a placeholder. Hover over
                 the thumbnail area to see a subtle brightness/saturation effect.
               </p>
             </div>
@@ -1610,7 +1610,7 @@ function UserManual() {
                 <p><strong>Card Creator:</strong> jsmith</p>
                 <p><strong>Email:</strong> j.smith@cereo.edu</p>
                 <p><strong>Funding:</strong> NSF Grant #12345</p>
-                <p><strong>Organization:</strong> CEREO</p>
+                <p><strong>Organization:</strong> Rivers, Watersheds, Communities (RWC)</p>
               </div>
               <div className="learn-more-location-section">
                 <p><strong>Map location:</strong></p>
@@ -1625,7 +1625,7 @@ function UserManual() {
               <div className="learn-more-links-view">
                 <strong>Links:</strong>
                 <ul className="learn-more-links-list">
-                  <li><a href="#um" onClick={e => e.preventDefault()}>CEREO Homepage</a></li>
+                  <li><a href="#um" onClick={e => e.preventDefault()}>Rivers, Watersheds, Communities (RWC) Homepage</a></li>
                 </ul>
               </div>
               <p className="learn-more-modal-description"><strong>Description:</strong> A comprehensive study of the Yakima River Basin watershed covering hydrology, ecology, and land-use patterns over a 10-year period.</p>
@@ -1835,7 +1835,7 @@ function UserManual() {
                   <p><strong>Card Creator:</strong> jsmith</p>
                   <p><strong>Email:</strong> j.smith@cereo.edu</p>
                   <p><strong>Funding:</strong> NSF Grant #12345</p>
-                  <p><strong>Organization:</strong> CEREO</p>
+                  <p><strong>Organization:</strong> Rivers, Watersheds, Communities (RWC)</p>
                 </div>
               </div>
             </div>
@@ -1886,7 +1886,7 @@ function UserManual() {
                 <div className="learn-more-links-view">
                   <strong>Links:</strong>
                   <ul className="learn-more-links-list">
-                    <li><a href="#um" onClick={e => e.preventDefault()}>CEREO Homepage</a></li>
+                    <li><a href="#um" onClick={e => e.preventDefault()}>Rivers, Watersheds, Communities (RWC) Homepage</a></li>
                     <li><a href="#um" onClick={e => e.preventDefault()}>https://doi.org/10.xxxx/sample</a></li>
                   </ul>
                 </div>
@@ -1909,7 +1909,7 @@ function UserManual() {
               <div className="um-isolated-demo" style={{ minWidth: '280px' }}>
                 <div className="learn-more-link-row">
                   <input className="learn-more-inline-input" type="text" placeholder="URL" defaultValue="https://cereo.wsu.edu" readOnly style={{ marginBottom: 0 }} />
-                  <input className="learn-more-inline-input learn-more-link-text-input" type="text" placeholder="Display text (optional)" defaultValue="CEREO" readOnly style={{ marginBottom: 0 }} />
+                  <input className="learn-more-inline-input learn-more-link-text-input" type="text" placeholder="Display text (optional)" defaultValue="Rivers, Watersheds, Communities (RWC)" readOnly style={{ marginBottom: 0 }} />
                   <button type="button" className="learn-more-link-remove-btn" style={{ pointerEvents: 'none' }}>×</button>
                 </div>
                 <button type="button" className="learn-more-modal-toolbar-btn cancel learn-more-add-link-btn" style={{ pointerEvents: 'none' }}>+ Add More Links</button>

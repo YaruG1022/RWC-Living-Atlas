@@ -60,7 +60,7 @@ function GeneralOnboardingModal({ isOpen, onClose, onPlay }) {
             </div>
             <div className="onboarding-modal-body">
                 <GuideSection title="What is the Living Atlas?" initiallyOpen>
-                    <p>The CEREO Living Atlas is a web-based, map-focused platform for gathering, viewing, and sharing environmental research and stories about the Pacific Northwest, with a focus on water quality in the Columbia River Basin. Built with the <strong>Center for Environmental Research, Education, and Outreach (CEREO)</strong> at Washington State University, it brings fragmented environmental datasets together into one interactive, public-facing map.</p>
+                    <p>The Rivers, Watersheds, Communities (RWC) Living Atlas is a web-based, map-focused platform for gathering, viewing, and sharing environmental research and stories about the Pacific Northwest, with a focus on water quality in the Columbia River Basin. Built with <strong>Rivers, Watersheds, Communities (RWC)</strong> at Washington State University, it brings fragmented environmental datasets together into one interactive, public-facing map.</p>
                 </GuideSection>
 
                 <GuideSection title="What Can You Do Here?">
@@ -81,7 +81,7 @@ function GeneralOnboardingModal({ isOpen, onClose, onPlay }) {
                 <GuideSection title="Navigate with the Top Bar">
                     <ul>
                         <li><strong>RWC Living Atlas / Home</strong>: return to the map workspace.</li>
-                        <li><strong>CEREO logo</strong>: visit the CEREO website.</li>
+                        <li><strong>Rivers, Watersheds, Communities (RWC) logo</strong>: visit the Rivers, Watersheds, Communities (RWC) website.</li>
                         <li><strong>About</strong>: learn about the project and its background.</li>
                         <li><strong>Contact</strong>: find project contact information.</li>
                         <li><strong>Updates</strong>: browse the full update history.</li>

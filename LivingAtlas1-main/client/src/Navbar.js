@@ -83,7 +83,7 @@ function Navbar({ isLoggedIn, isAdmin, username, email, onLogout }) {
         <h1>RWC Living Atlas</h1>
       </Link>
       <a href="https://cereo.wsu.edu/" data-onboarding-target="navbar-cereo-link">
-        <img src="/CEREO-logo.png" alt="CEREO Logo" className="navbar-logo"></img>
+        <img src="/CEREO-logo.png" alt="Rivers, Watersheds, Communities (RWC) Logo" className="navbar-logo"></img>
       </a>
       <ul>
         <li>

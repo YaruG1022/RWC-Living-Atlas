@@ -17,8 +17,8 @@ const STEP_DEFINITIONS = [
     },
     {
         selector: '[data-onboarding-target="navbar-cereo-link"]',
-        title: 'CEREO Website Link',
-        description: 'Select the CEREO logo to visit the Center for Environmental Research, Education, and Outreach website.',
+        title: 'Rivers, Watersheds, Communities (RWC) Website Link',
+        description: 'Select the Rivers, Watersheds, Communities (RWC) logo to visit the Rivers, Watersheds, Communities (RWC) website.',
         placement: 'bottom',
     },
     {

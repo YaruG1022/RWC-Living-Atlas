@@ -33,7 +33,7 @@ function Contact(props) {
             <div className="contact">
                 <h1>Contact Us</h1>
                 <h2>Address</h2>
-                <p>CEREO</p>
+                <p>Rivers, Watersheds, Communities (RWC)</p>
                 <p>Paccar Room 360</p>
                 <p>Washington State</p>
                 <p>University</p>

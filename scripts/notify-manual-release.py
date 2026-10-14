@@ -32,7 +32,11 @@ def wait_published(base, expected, attempts=60, delay=10, fetch=get_json, sleep=
     for attempt in range(attempts):
         try:
             marker = fetch(base.rstrip('/') + '/manual/current.json')
-            if marker == expected:
+            # Pixels depend on browser/font environment. The exact app commit and
+            # reproducible text bundle are the publish gate; the importer verifies
+            # the deployed content-addressed visual catalog, not a second render.
+            identity = lambda value: {key: item for key, item in value.items() if key != 'visuals'}
+            if identity(marker) == identity(expected) and (not expected.get('visuals') or marker.get('visuals', {}).get('count') == expected['visuals']['count']):
                 return marker
             last = 'a different app release is currently published'
         except (urllib.error.URLError, ValueError, TimeoutError) as exc:
@@ -45,14 +49,18 @@ def wait_published(base, expected, attempts=60, delay=10, fetch=get_json, sleep=
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--manifest', required=True)
+    parser.add_argument('--verify-only', action='store_true', help='Check publication without a cross-repository token')
     args = parser.parse_args()
     base = os.environ.get('ATLAS_MANUAL_BASE_URL', '')
     repo = os.environ.get('CHATBOT_REPO', '')
     token = os.environ.get('GH_TOKEN', '')
-    if not base or not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repo) or not token:
+    if not base or (not args.verify_only and (not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repo) or not token)):
         raise ValueError('ATLAS_MANUAL_BASE_URL, CHATBOT_REPO and CHATBOT_DISPATCH_TOKEN are required')
     expected = json.load(open(args.manifest, encoding='utf-8'))
     marker = wait_published(base, expected)
+    if args.verify_only:
+        print(f"Verified published manual {marker['version']}; scheduled chatbot sync will import it")
+        return
     body = json.dumps({'event_type': 'atlas-manual-published', 'client_payload': {
         'revision': marker['revision'], 'version': marker['version'], 'checksum': marker['files'][0]['sha256']}}).encode()
     request = urllib.request.Request(f'https://api.github.com/repos/{repo}/dispatches', data=body,

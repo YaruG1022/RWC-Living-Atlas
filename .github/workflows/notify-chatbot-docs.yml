@@ -1,6 +1,8 @@
 name: Validate and sync published user manual
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
   workflow_dispatch:
@@ -9,13 +11,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: app-manual-publish
+  group: app-manual-publish-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: LivingAtlas1-main/client
@@ -28,6 +30,7 @@ jobs:
           cache-dependency-path: LivingAtlas1-main/client/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: node --test scripts/export-manual.test.cjs
+      - run: python -m unittest discover -s ../../scripts -p 'test_notify_manual_release.py'
       - run: npm test -- --watchAll=false --runInBand --runTestsByPath src/UserManual.test.js src/manual/ManualText.test.js src/manual/ManualSources.test.js src/ChatbotWidget.sources.test.js src/Changelog.test.js
         env:
           CI: 'true'
@@ -37,10 +40,16 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: published-manual-candidate
-          path: LivingAtlas1-main/client/public/manual/current.json
+          path: LivingAtlas1-main/client/build/manual/current.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: manual-release-with-screenshots
+          path: LivingAtlas1-main/client/build/manual/
           if-no-files-found: error
 
   notify:
+    if: github.event_name != 'pull_request'
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -52,7 +61,12 @@ jobs:
           path: candidate
       - name: Wait for the exact deployed app manual and dispatch sync
         env:
-          ATLAS_MANUAL_BASE_URL: ${{ vars.ATLAS_MANUAL_BASE_URL }}
-          CHATBOT_REPO: ${{ vars.CHATBOT_REPO }}
+          ATLAS_MANUAL_BASE_URL: ${{ vars.ATLAS_MANUAL_BASE_URL || 'https://rwc-living-atlas.netlify.app' }}
+          CHATBOT_REPO: ${{ vars.CHATBOT_REPO || 'YaruG1022/RWC-Living-Atlas-Chatbot' }}
           GH_TOKEN: ${{ secrets.CHATBOT_DISPATCH_TOKEN }}
-        run: python scripts/notify-manual-release.py --manifest candidate/current.json
+        run: |
+          if [ -n "$GH_TOKEN" ]; then
+            python scripts/notify-manual-release.py --manifest candidate/current.json
+          else
+            python scripts/notify-manual-release.py --manifest candidate/current.json --verify-only
+          fi

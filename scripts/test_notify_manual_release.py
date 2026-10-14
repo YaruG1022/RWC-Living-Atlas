@@ -9,6 +9,12 @@ spec.loader.exec_module(notify)
 
 
 class PublishedReleaseTests(unittest.TestCase):
+    def test_uses_deployed_visual_digest_with_the_exact_text_release(self):
+        expected = {'version': 'same', 'revision': 'same', 'files': [{'sha256': 'same'}], 'visuals': {'count': 2, 'sha256': 'ci'}}
+        deployed = {**expected, 'visuals': {'count': 2, 'sha256': 'netlify'}}
+        self.assertEqual(notify.wait_published('https://atlas.example', expected, attempts=1, fetch=lambda _: deployed), deployed)
+        with self.assertRaises(RuntimeError):
+            notify.wait_published('https://atlas.example', expected, attempts=1, fetch=lambda _: {k: v for k, v in deployed.items() if k != 'visuals'})
     def test_waits_for_exact_successful_release(self):
         responses = iter([{'version': 'old'}, {'version': 'current'}])
         waits = []

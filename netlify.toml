@@ -3,6 +3,11 @@ base = "LivingAtlas1-main/client"
 command = "CI=false npm run build"
 publish = "build"
 
+[build.environment]
+NODE_VERSION = "22.17.0"
+NPM_FLAGS = "--ignore-scripts --no-audit --no-fund"
+REACT_APP_CHATBOT_API_URL = "https://rwc-living-atlas-chatbot.onrender.com"
+
 [[redirects]]
 from = "/*"
 to = "/index.html"

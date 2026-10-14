@@ -1,0 +1,1181 @@
+{
+  "schemaVersion": 1,
+  "id": "detail-view",
+  "title": "Card Detail View",
+  "navigationLabel": "Card Detail View",
+  "summary": "The full-screen modal with editing, images, files, and ArcGIS layers.",
+  "manualPath": "/user-manual?section=detail-view",
+  "blocks": [
+    {
+      "id": "detail-view-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Card Detail View"
+        }
+      ]
+    },
+    {
+      "id": "detail-view-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Clicking "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Open Detail View"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " on a card opens a full-screen panel showing all dataset information. It also has tools for editing, downloading a PDF, managing images and files, and toggling linked ArcGIS map layers."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Detail View Toolbar"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The toolbar at the top provides six action buttons:"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Edit"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (pencil icon) — enter edit mode to modify card content"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Download PDF"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (download icon) — save the card as a PDF"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Delete"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (trash icon) — permanently delete the card"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Help"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (question icon) — open the Detail View user manual section"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Onboarding"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (play icon) — start the guided walkthrough"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Close"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (×) — close the Detail View and return to the map"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "Edit and Delete require you to be the card owner or an administrator."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Edit Mode Toolbar"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "When in edit mode the toolbar replaces the Edit button with "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Save"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "text",
+          "text": "and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Cancel"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " buttons. If you make any changes an amber \"You have unsaved changes\" badge appears as a reminder. Clicking Cancel prompts a confirmation if there are unsaved changes."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-007",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Image Gallery"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The Detail View displays up to six selected images. Multiple images adapts the grid to the selected count; Slideshow shows one selected image at a time with navigation inside the image area. Click any tile to open the image in a full-screen lightbox."
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "See all N images"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " sits inside the gallery's bottom left corner in both viewing and editing modes and opens a grid of every uploaded image. In edit mode the Image layout dropdown sits inside the gallery's top right corner. Both controls are semi-transparent until hover or focus. Drag images or use the arrow icons to reorder; the first image becomes the card cover. Its neutral badge and selection border appear only in edit mode."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-009",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "All Images View"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The \"See all images\" view displays square thumbnails, four per row on desktop and fewer on narrow screens. In edit mode:"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Numbered checkboxes"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " choose up to six images for the main gallery; number 1 is the card cover. Selected images have a special border. Deselecting a number leaves it available for the next selection. Drag images on the main gallery to change their order. Numbered checkboxes and selection borders are hidden outside edit mode."
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Select circle"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (top-right of each image) selects images for deletion independently of the numbered checkbox"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Delete Selected"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " removes all selected images at once"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Add New Image"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " uploads an additional image, up to 30 total. Add New Image and Delete Selected sit beside Back to Learn More at the top. Save pending deletions before uploading if the stored card is at the limit. Save commits changes; Cancel discards them."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-011",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Title & Category"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-012",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The dataset's full title is displayed in large bold text below the gallery. The category label (River, Watershed, Places, Other, or Uncategorized) appears in smaller muted text below. In edit mode the title becomes an input field and the category becomes a dropdown."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-013",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Information Fields"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-014",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Dataset metadata is laid out in a two-column grid: Author, Card Creator, Email, Funding, and Organization. Point coordinates appear in Map location. In edit mode metadata fields become editable inputs; Card Creator is read-only and cannot be changed."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-015",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Edit Mode Inline Inputs"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-016",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "In edit mode each info field becomes an inline text input with a light border. The "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Card Creator"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " field has a grey background indicating it is read-only. The "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Description"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " field becomes a rich text editor with a formatting toolbar, and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Tags"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "text",
+          "text": "are edited as removable chips (see the Rich Text Description and Tags features below). A "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Visibility"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " dropdown sets the card to Public or Private."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-017",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Links"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-018",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "External URLs are shown as a bulleted list of clickable links. If a display text was provided it is shown instead of the raw URL. In edit mode each link row has a URL input and an optional display-text input, and multiple links can be added with "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "+ Add More Links"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-019",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Link Edit Rows"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-020",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Each link in edit mode is a pair of inputs: the URL and an optional display text. Click "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "×"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to remove that link row. Click"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "+ Add More Links"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to append a new empty row. All link changes are saved together when you press Save."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-021",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Downloadable Files"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-022",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Files attached to a card appear as a list of download links. Click any link to download that file directly. In edit mode you can delete existing files with the × button next to each filename, and attach new files using the"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Choose files"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " picker. Select multiple files at once (up to 5 MB each), or choose another batch without replacing earlier selections. Review and remove queued files before saving; new files upload when you press Save. Saved links download attachments, including text files, rather than opening a storage page."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-023",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Linked ArcGIS Layers"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-024",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Cards can be linked to specific ArcGIS map layers. Each linked item shows a breadcrumb path (state › folder › layer name). The "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "checkbox"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "text",
+          "text": "on the left toggles that layer's visibility on the map without closing the Detail View. The "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "›"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button on the right jumps to that layer in the ArcGIS Upload Panel. In edit mode you can remove links or add new ones with "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "+ Add ArcGIS Item"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-025",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Rich Text Description"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-026",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "In edit mode the Description field is a Word-style rich text editor with a toolbar for bold, italic, underline, strikethrough, bulleted and numbered lists, undo/redo, and a heading dropdown (Paragraph, Heading 1–6)."
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Link"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " inserts or edits a URL with display text at the cursor or selected text; use Remove link to unlink it. "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "File"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " inserts an existing attachment or lets you choose multiple new files (5 MB each). New attachments upload with Save; their inline links then download the file. Descriptions are stored as formatted HTML, displayed with their formatting in the Detail View, and converted to plain text for PDF export."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-027",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Tags & Visibility"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-028",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "In edit mode "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Tags"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " are edited as pills, each with its own"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " ×"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " remove button; type into the inline input and press"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Enter"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " or a comma to add a tag. The "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Visibility"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "text",
+          "text": "dropdown marks the card "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Public"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (visible to everyone) or"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Private"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (only visible to you). In view mode tags appear as read-only pills and visibility is shown as plain text."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-029",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Map Location & Location Editing"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-030",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Map location"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " section previews the actual marker icons, polygon shape or image footprint, with the card's saved colors and opacity. Click the preview in the live card to close details and locate it on the map; unsaved edits may require confirmation. The compact preview has a neutral background. Cards are shown on the map — as a "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Point"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Multi-point"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ","
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Polygon"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", or "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Image"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " overlay. In edit mode it also shows "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Edit Coordinate"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Edit Polygon / Edit Image"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Change location type"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " buttons; Change location type opens a menu to switch between Point, Polygon, and Image. Point and multi-point coordinates are displayed here as read-only text. Use Edit Coordinate to change them; there are no coordinate input boxes in the metadata area."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-031",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Linked Custom Layers"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-032",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Cards can also link to your saved "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Custom Layers"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". Each row shows a breadcrumb (Custom › folder › layer), a visibility checkbox, and a"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " ›"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button that jumps to the Custom Layers Panel. In edit mode you can remove links with "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "×"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " and add new ones with"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "+ Add Custom Layer"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-033",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Image Preview (Lightbox)"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "detail-view-034",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Clicking any gallery tile opens the image in a full-screen dark lightbox. Use the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "‹ / ›"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " panels on the left and right edges to navigate between images. The progress bar at the bottom shows your position; click any segment to jump to that image. Press "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "×"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " in the top-right corner or click the dark overlay to close the lightbox."
+        }
+      ]
+    }
+  ],
+  "images": [
+    {
+      "id": "detail-view-image-1",
+      "url": "/manual-sample-image.svg",
+      "caption": "Image 1"
+    }
+  ],
+  "examples": [
+    {
+      "id": "detail-view-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    },
+    {
+      "id": "detail-view-example-02",
+      "kind": "react-demo",
+      "caption": "Interactive example 2"
+    },
+    {
+      "id": "detail-view-example-03",
+      "kind": "react-demo",
+      "caption": "Interactive example 3"
+    },
+    {
+      "id": "detail-view-example-04",
+      "kind": "react-demo",
+      "caption": "Interactive example 4"
+    },
+    {
+      "id": "detail-view-example-05",
+      "kind": "react-demo",
+      "caption": "Interactive example 5"
+    },
+    {
+      "id": "detail-view-example-06",
+      "kind": "react-demo",
+      "caption": "Interactive example 6"
+    },
+    {
+      "id": "detail-view-example-07",
+      "kind": "react-demo",
+      "caption": "Interactive example 7"
+    },
+    {
+      "id": "detail-view-example-08",
+      "kind": "react-demo",
+      "caption": "Interactive example 8"
+    },
+    {
+      "id": "detail-view-example-09",
+      "kind": "react-demo",
+      "caption": "Interactive example 9"
+    },
+    {
+      "id": "detail-view-example-10",
+      "kind": "react-demo",
+      "caption": "Interactive example 10"
+    },
+    {
+      "id": "detail-view-example-11",
+      "kind": "react-demo",
+      "caption": "Interactive example 11"
+    },
+    {
+      "id": "detail-view-example-12",
+      "kind": "react-demo",
+      "caption": "Interactive example 12"
+    },
+    {
+      "id": "detail-view-example-13",
+      "kind": "react-demo",
+      "caption": "Interactive example 13"
+    },
+    {
+      "id": "detail-view-example-14",
+      "kind": "react-demo",
+      "caption": "Interactive example 14"
+    },
+    {
+      "id": "detail-view-example-15",
+      "kind": "react-demo",
+      "caption": "Interactive example 15"
+    },
+    {
+      "id": "detail-view-example-16",
+      "kind": "react-demo",
+      "caption": "Interactive example 16"
+    },
+    {
+      "id": "detail-view-example-17",
+      "kind": "react-demo",
+      "caption": "Interactive example 17"
+    }
+  ]
+}

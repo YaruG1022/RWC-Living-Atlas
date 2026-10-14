@@ -1,0 +1,538 @@
+{
+  "schemaVersion": 1,
+  "id": "polygon-tools",
+  "title": "Polygon Tools",
+  "navigationLabel": "Polygon Tools",
+  "summary": "Draw and edit polygon-based card locations with style and transform controls.",
+  "manualPath": "/user-manual?section=polygon-tools",
+  "blocks": [
+    {
+      "id": "polygon-tools-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Polygon Tools"
+        }
+      ]
+    },
+    {
+      "id": "polygon-tools-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Polygon Tools appears after choosing "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Polygon Tools"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " from"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Add Cards from Map"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " in the top-right control group. It lets you place vertices by clicking the map, then style, transform, and save the shape, then complete the card creation form to use it as the card’s polygon representation."
+        }
+      ]
+    },
+    {
+      "id": "polygon-tools-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "To start with a delineated basin, open the "
+        },
+        {
+          "type": "chapter-link",
+          "sectionId": "watershed-panel",
+          "content": [
+            {
+              "type": "text",
+              "text": "Watershed Panel"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "and choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Save as polygon"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". Edit Polygon loads the basin boundary for editing, then continues through the same card creation flow. Basins with interior holes must be saved as custom layers to preserve their geometry."
+        }
+      ]
+    },
+    {
+      "id": "polygon-tools-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Freehand Drawing"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "polygon-tools-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "After clicking the polygon button on the map, click anywhere on the map canvas to place vertices. A live preview of the polygon grows with each click. Once you have at least 3 points, "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Finish Drawing"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " appears — click it to close the polygon. Drag any numbered vertex marker to fine-tune its position."
+        }
+      ]
+    },
+    {
+      "id": "polygon-tools-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Shape Presets"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "polygon-tools-007",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click the shapes icon to open a preset menu: Triangle, Square, Rectangle, Circle, Dot, Pentagon, and Hexagon. After selecting a shape, drag on the map to place and size it. A circle is stored as a polygon with many vertices."
+        }
+      ]
+    },
+    {
+      "id": "polygon-tools-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Style: Line, Color & Opacity"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "polygon-tools-009",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The toolbar lets you change the polygon's "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "border line style"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "text",
+          "text": "(solid, dashed, dotted, dash-dot), "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "fill color"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " from a 10-color palette, and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "fill opacity"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " via a slider. Changes are reflected on the map immediately."
+        }
+      ]
+    },
+    {
+      "id": "polygon-tools-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Curve Mode"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "polygon-tools-011",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Toggle the curve button to switch polygon edges from straight lines to smooth Bézier curves. In curve mode a draggable control-point appears on each edge, letting you adjust the curvature independently."
+        }
+      ]
+    },
+    {
+      "id": "polygon-tools-012",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Transform: Move, Rotate & Resize"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "polygon-tools-013",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Three transform modes are available once the polygon has at least 3 vertices."
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Move"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " lets you drag the whole shape. "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Rotate"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "text",
+          "text": "spins it around its centroid. "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Resize"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " shows corner and edge handles for scaling and stretching. Only one mode is active at a time."
+        }
+      ]
+    },
+    {
+      "id": "polygon-tools-014",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Undo & Redo"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "polygon-tools-015",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Every vertex edit, style change, or transform is recorded in a history stack. Click "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Undo"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (or press "
+        },
+        {
+          "type": "kbd",
+          "content": [
+            {
+              "type": "text",
+              "text": "Ctrl+Z"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ") to step back, or"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Redo"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " ("
+        },
+        {
+          "type": "kbd",
+          "content": [
+            {
+              "type": "text",
+              "text": "Ctrl+Y"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ") to reapply. Buttons are dimmed when the stack is empty."
+        }
+      ]
+    },
+    {
+      "id": "polygon-tools-016",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Vertex Coordinate List"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "polygon-tools-017",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Each vertex is listed with editable lat/lng number inputs. You can type exact coordinates directly for precision. Click "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "×"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to remove any vertex. For circles, only the center coordinate is shown."
+        }
+      ]
+    },
+    {
+      "id": "polygon-tools-018",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Save, Finish & Cancel"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "polygon-tools-019",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "While drawing, "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Finish Drawing"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " closes the polygon. After finishing, "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Add More Points"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " resumes vertex placement."
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Save"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " transfers the polygon to the Card Creation form (disabled until 3+ vertices). Complete and submit that form to create the card; saving the shape alone does not create one. "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Cancel"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "leaves the editor without applying the new shape and closes the panel. The trash icon clears all vertices at any time."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": [
+    {
+      "id": "polygon-tools-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    },
+    {
+      "id": "polygon-tools-example-02",
+      "kind": "react-demo",
+      "caption": "Interactive example 2"
+    },
+    {
+      "id": "polygon-tools-example-03",
+      "kind": "react-demo",
+      "caption": "Interactive example 3"
+    },
+    {
+      "id": "polygon-tools-example-04",
+      "kind": "react-demo",
+      "caption": "Interactive example 4"
+    },
+    {
+      "id": "polygon-tools-example-05",
+      "kind": "react-demo",
+      "caption": "Interactive example 5"
+    },
+    {
+      "id": "polygon-tools-example-06",
+      "kind": "react-demo",
+      "caption": "Interactive example 6"
+    },
+    {
+      "id": "polygon-tools-example-07",
+      "kind": "react-demo",
+      "caption": "Interactive example 7"
+    },
+    {
+      "id": "polygon-tools-example-08",
+      "kind": "react-demo",
+      "caption": "Interactive example 8"
+    },
+    {
+      "id": "polygon-tools-example-09",
+      "kind": "react-demo",
+      "caption": "Interactive example 9"
+    }
+  ]
+}

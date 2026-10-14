@@ -1,0 +1,438 @@
+{
+  "schemaVersion": 1,
+  "id": "toolbar",
+  "title": "Card Panel Toolbar",
+  "navigationLabel": "Card Panel Toolbar",
+  "summary": "Tools for adding cards, sorting, filtering, and switching views.",
+  "manualPath": "/user-manual?section=toolbar",
+  "blocks": [
+    {
+      "id": "toolbar-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Card Panel Toolbar"
+        }
+      ]
+    },
+    {
+      "id": "toolbar-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The toolbar at the top of the card panel provides controls to add cards, adjust the sort order, filters, view modes, and docking side. Hover each element in the demo below to see its interactive state."
+        }
+      ]
+    },
+    {
+      "id": "toolbar-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Use the titlebar's Help button for the manual, Tutorial to replay the card tour, and × to collapse the panel. Reopening it retains the current search, filters, and view mode during the session. Closest To Me sorting needs your current location; Closest To Pin needs a location selected with the map search first."
+        }
+      ]
+    },
+    {
+      "id": "toolbar-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Add Card"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "toolbar-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Opens the card creation form so you can add a new dataset entry to the atlas. You must be logged in to use this button; if you are not, a prompt will appear asking you to sign in first."
+        }
+      ]
+    },
+    {
+      "id": "toolbar-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Sort By"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "toolbar-007",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Opens a dropdown to choose the card ordering: "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Newest First"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ","
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Oldest First"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Closest To Me"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", or"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Closest To Pin"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". Click Apply to confirm the selection or Clear to reset to default order."
+        }
+      ]
+    },
+    {
+      "id": "toolbar-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Filter By"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "toolbar-009",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Opens a dropdown to filter cards by category (River, Watershed, Places, Other), custom tags, and favorites. Select Apply to confirm or Clear to reset all filters. When one or more filters are active the button turns amber and shows a blue badge with the number of active filters."
+        }
+      ]
+    },
+    {
+      "id": "toolbar-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Favorites in Filter By"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "toolbar-011",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Open Filter By, select Show only favorited cards, then Apply. Combine favorites with category and tags. Clear resets all filters; closing without Apply discards pending changes. Login is required for the favorites option."
+        }
+      ]
+    },
+    {
+      "id": "toolbar-012",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "View Scope"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "toolbar-013",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Switches between showing "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "All Cards"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " from the database or only cards whose location falls within the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "current map viewport"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". When \"In View\" is active the card count in the info bar updates as you pan and zoom the map."
+        }
+      ]
+    },
+    {
+      "id": "toolbar-014",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Grid / List View"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "toolbar-015",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Switches the card panel between "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "grid view"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (card thumbnails laid out in a grid) and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "list view"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (compact rows showing just the title and action buttons). The icon shows the mode you will switch"
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": "to"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " when clicked. The button is highlighted when list view is active. List view is fixed at 310 pixels wide and cannot be resized. Grid view restores its adjustable width. When Project Cards and GIS both dock on the left, list view is used automatically. The bordered, square-cornered list area joins the toolbar and keeps rows inside the panel, including during hover movement. Hover a row for about half a second to see its grid-card preview toward the map: to the left of a right-docked panel, or to the right of a left-docked panel. Moving off the row dismisses it; very narrow spaces may hide the preview."
+        }
+      ]
+    },
+    {
+      "id": "toolbar-016",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Move Panel"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "toolbar-017",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Moves the card panel to the opposite side of the screen. Click once to dock it on the left, click again to move it back to the right. This is useful for keeping the panel out of the way of areas of the map you want to inspect."
+        }
+      ]
+    },
+    {
+      "id": "toolbar-018",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Card Search Bar"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "toolbar-019",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Type a keyword and press "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Enter"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " or click the search button to search for cards by title. Click the"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "×"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button to clear the search and return to the normal card listing. While a search is active the map viewport filter is temporarily suspended."
+        }
+      ]
+    },
+    {
+      "id": "toolbar-020",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Card Count Info Bar"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "toolbar-021",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Shows the total number of cards currently displayed after all active filters are applied, along with a label indicating the scope (\"all cards\" or \"in view\"). The count updates in real time as you apply filters, search, or pan the map."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": [
+    {
+      "id": "toolbar-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    },
+    {
+      "id": "toolbar-example-02",
+      "kind": "react-demo",
+      "caption": "Interactive example 2"
+    },
+    {
+      "id": "toolbar-example-03",
+      "kind": "react-demo",
+      "caption": "Interactive example 3"
+    },
+    {
+      "id": "toolbar-example-04",
+      "kind": "react-demo",
+      "caption": "Interactive example 4"
+    },
+    {
+      "id": "toolbar-example-05",
+      "kind": "react-demo",
+      "caption": "Interactive example 5"
+    },
+    {
+      "id": "toolbar-example-06",
+      "kind": "react-demo",
+      "caption": "Interactive example 6"
+    },
+    {
+      "id": "toolbar-example-07",
+      "kind": "react-demo",
+      "caption": "Interactive example 7"
+    },
+    {
+      "id": "toolbar-example-08",
+      "kind": "react-demo",
+      "caption": "Interactive example 8"
+    },
+    {
+      "id": "toolbar-example-09",
+      "kind": "react-demo",
+      "caption": "Interactive example 9"
+    },
+    {
+      "id": "toolbar-example-10",
+      "kind": "react-demo",
+      "caption": "Interactive example 10"
+    }
+  ]
+}

@@ -1,0 +1,297 @@
+{
+  "schemaVersion": 1,
+  "id": "add-png",
+  "title": "Add Image Overlay",
+  "navigationLabel": "Add PNG",
+  "summary": "Place a PNG overlay on map and create an image-overlay card from it.",
+  "manualPath": "/user-manual?section=add-png",
+  "blocks": [
+    {
+      "id": "add-png-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Add Image Overlay"
+        }
+      ]
+    },
+    {
+      "id": "add-png-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Use "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Add Cards from Map"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " in the top-right toolbar, then choose"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " image"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to select an image file and place it on the map."
+        }
+      ]
+    },
+    {
+      "id": "add-png-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Step 1: Select Image File"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-png-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click the pencil-shaped "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Add Card from Map"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button, then choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Image"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". Select an image file (PNG, JPG/JPEG, GIF, or WebP) from your device to enter overlay placement mode."
+        }
+      ]
+    },
+    {
+      "id": "add-png-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Step 2: Place and Edit Overlay"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-png-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "After file selection, the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Place Image"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " modal appears. The header hint starts as "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "\"Click and drag on the map to place the image\""
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", then changes based on mode (move/rotate/resize). Position the image and adjust with toolbar controls until alignment is correct."
+        }
+      ]
+    },
+    {
+      "id": "add-png-007",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The same toolbar also includes "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Undo"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Redo"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", and"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Clear All (delete)"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " so you can revert recent edits or reset placement quickly."
+        }
+      ]
+    },
+    {
+      "id": "add-png-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Save"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " is enabled after valid placement (4 corners). Click"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Cancel"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to exit placement without applying changes."
+        }
+      ]
+    },
+    {
+      "id": "add-png-009",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Step 3: Continue in Image Overlay Mode"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-png-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "After saving placement, Card Creation opens in "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Image Overlay"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "mode and shows summary like "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "\"Image placement saved: 4 corners\""
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". The overlay image is used as card map representation, while additional uploaded images are optional Learn More gallery images."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": [
+    {
+      "id": "add-png-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    },
+    {
+      "id": "add-png-example-02",
+      "kind": "react-demo",
+      "caption": "Interactive example 2"
+    },
+    {
+      "id": "add-png-example-03",
+      "kind": "react-demo",
+      "caption": "Interactive example 3"
+    }
+  ]
+}

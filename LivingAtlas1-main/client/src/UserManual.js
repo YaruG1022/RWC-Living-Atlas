@@ -57,6 +57,9 @@ import './Content2.css';
 import './SortDropdown.css';
 import './FilterDropdown.css';
 import './UserManual.css';
+import ManualText from './manual/ManualText';
+import { chapterById, sectionGroups } from './manual/catalog';
+
 import './FormModal.css';
 import './ArcGISPickerModal.css';
 import './ArcgisUploadPanel.css';
@@ -66,64 +69,10 @@ import './BasemapSwitcher.css';
 import './Content1.css';
 import './PolygonDrawingModal.css';
 
-const ADD_CARDS_FROM_MAP_SECTIONS = [
-  { id: 'add-single-point', label: 'Add Points / Coordinates' },
-  { id: 'polygon-tools',    label: 'Polygon Tools' },
-  { id: 'add-png',          label: 'Add PNG' },
-];
-
-const ARCGIS_SECTIONS = [
-  { id: 'arcgis-panel', label: 'ArcGIS Upload Panel' },
-  { id: 'custom-layers', label: 'Custom Layers Panel' },
-  { id: 'service-layer-info', label: 'Service / Layer Info Modal' },
-];
-
-const SECTION_GROUPS = [
-  {
-    id: 'getting-started',
-    label: 'Getting Started',
-    sections: [
-      { id: 'home', label: 'Overview' },
-      { id: 'navigation', label: 'Navigation & Preferences' },
-      { id: 'accounts', label: 'Login, Registration & Passwords' },
-      { id: 'profile-admin', label: 'Profile & Administration' },
-      { id: 'tutorials-updates', label: 'Tutorials & Updates' },
-      { id: 'feature-search-panel', label: 'Feature Search Panel' },
-      { id: 'chatbot', label: 'Atlas Helper' },
-    ],
-  },
-  {
-    id: 'cards-workspace',
-    label: 'Cards Workspace',
-    sections: [
-      { id: 'card-container', label: 'Card Container' },
-      { id: 'toolbar', label: 'Card Panel Toolbar' },
-      { id: 'detail-view', label: 'Card Detail View' },
-    ],
-  },
-  {
-    id: 'card-creation',
-    label: 'Card Creation',
-    sections: [
-      { id: 'add-card', label: 'Card Creation Form', children: ADD_CARDS_FROM_MAP_SECTIONS },
-      { id: 'arcgis-picker', label: 'ArcGIS Picker Modal' },
-    ],
-  },
-  {
-    id: 'arcgis-related',
-    label: 'ArcGIS Related',
-    sections: ARCGIS_SECTIONS,
-  },
-  {
-    id: 'map-view',
-    label: 'Map View',
-    sections: [
-      { id: 'basemap-panel', label: 'Basemap Panel' },
-      { id: 'watershed-panel', label: 'Watershed Panel' },
-      { id: 'map-controls', label: 'Map Controls' },
-    ],
-  },
-];
+const SECTION_GROUPS = sectionGroups;
+const ADD_CARDS_FROM_MAP_SECTIONS = chapterById['add-card']
+  ? sectionGroups.find(group => group.id === 'card-creation').sections.find(section => section.id === 'add-card').children
+  : [];
 
 const flattenSections = (sections) => sections.flatMap((section) => [
   { id: section.id, label: section.label },
@@ -236,24 +185,10 @@ function UserManual() {
 
       {activeSection === 'home' && (
       <section className="um-section">
-        <h2>Welcome to the User Manual</h2>
-        <p className="um-section-desc">
-          This guide explains every interactive feature available in the RWC Living Atlas.
-          Use the navigation on the left to browse each section — demos use the exact same
-          styles and hover effects as the real application, so you can try them directly
-          on this page. Examples illustrate controls and are not a live inventory of cards or layers.
-        </p>
+        <h2><ManualText sectionId="home" blockId="home-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="home" blockId="home-002" onNavigate={navTo} /></p>
 
-        <p className="um-section-desc">
-          RWC stands for <strong>Rivers, Watersheds, Communities</strong>. The atlas brings
-          environmental resources into a map workspace for tribal communities, academic
-          institutions, and government agencies. A <strong>card</strong> is a geographically
-          located resource with metadata, links, images, and files; it can appear as points,
-          a polygon, or an image overlay. You can browse the map, cards, and ArcGIS layers
-          without an account. Log in to create cards, favorite or pin them, and use Custom
-          Layers. Card owners can edit or delete their own cards; administrators can manage
-          any card and user accounts.
-        </p>
+        <p className="um-section-desc"><ManualText sectionId="home" blockId="home-003" onNavigate={navTo} /></p>
 
         <div className="um-home-cards">
           {HOME_CARD_SECTIONS.map(s => (
@@ -263,28 +198,7 @@ function UserManual() {
               onClick={() => navTo(s.id)}
             >
               <span className="um-home-card-title">{s.label}</span>
-              {{
-                'navigation': 'Find pages and panels, share a manual chapter, and understand saved display preferences.',
-                'accounts': 'Request access, log in, reset a forgotten password, and sign out.',
-                'profile-admin': 'Edit your profile, switch accounts, and manage users as an administrator.',
-                'tutorials-updates': 'Replay guided tutorials and read recent changes or full update history.',
-                'feature-search-panel': 'Use the left sidebar search panel to locate app features by keyword and launch them directly.',
-                'chatbot':        'Ask app questions and switch between sidebar and floating chat.',
-                'card-container': 'How cards are displayed, navigated, pinned, and favorited.',
-                'toolbar':        'Tools for adding cards, sorting, filtering, and switching views.',
-                'detail-view':    'The full-screen modal with editing, images, files, and ArcGIS layers.',
-                'add-card':       'Create a new card with required metadata, location mode, images/files, and optional ArcGIS links.',
-                'arcgis-picker':  'Browse and select ArcGIS services and layers to link directly to a card — opened from the Card Creation form.',
-                'arcgis-panel':   'Browse and toggle ArcGIS REST map layers organized by state, folder, and service.',
-                'service-layer-info': 'Detailed guide for Service/Layer Info modal features: metadata, opacity, historical filters, links, and layer fields.',
-                'custom-layers':  'Manage your personal saved layers with custom folders, drag-and-drop ordering, and pinned auto-load items.',
-                'basemap-panel':   'Choose Mapbox, OpenStreetMap or USGS basemaps while preserving layers and map view.',
-                'watershed-panel': 'Show StreamStats rivers, delineate an upstream basin, and save it as a custom layer or a polygon card.',
-                'map-controls':    'All interactive buttons on the map canvas — search, fullscreen, zoom, compass, geolocate, draw, and more.',
-                'add-single-point': 'Collect and edit one or more coordinates before creating a card.',
-                'polygon-tools':   'Draw and edit polygon-based card locations with style and transform controls.',
-                'add-png':         'Place a PNG overlay on map and create an image-overlay card from it.',
-              }[s.id]}
+              {chapterById[s.id].summary}
             </button>
           ))}
         </div>
@@ -293,144 +207,67 @@ function UserManual() {
 
       {activeSection === 'navigation' && (
       <section className="um-section">
-        <h2>Navigation &amp; Preferences</h2>
-        <h3>Pages and the user menu</h3>
-        <p>Click <strong>Home</strong> or the RWC Living Atlas title in the top navigation
-          bar to return to the map. <strong>About</strong> explains the project;
-          <strong> Contact</strong> provides the team's current contact details;
-          <strong> Updates</strong> opens release history; and <strong>User Manual</strong>
-          opens this guide. These pages are available without login.</p>
-        <p>When logged out, use <strong>Register</strong> to request access or
-          <strong> Login</strong> to sign in. After login, click your username or avatar to
-          open <strong>Profile</strong>, <strong>Switch Account</strong>, or
-          <strong> Logout</strong>. Administrators also see <strong>Administration</strong>.</p>
-        <h3>Map workspace panels</h3>
-        <p>The left sidebar opens Feature Search, ArcGIS Upload, Custom Layers, Basemap,
-          Watershed Delineation, tutorials, and What's new. Hover over an icon for its name.
-          Custom Layers requires login. Use the card panel's layout button to dock Project
-          Cards on either side, and its close button to collapse it. Closing a layer panel
-          leaves its displayed layers on the map; uncheck layers or use that panel's Clear
-          action to hide them. Opening ArcGIS Upload from the sidebar closes Custom Layers,
-          and opening Custom Layers closes ArcGIS Upload. A left-docked Project Cards panel
-          can share that side with the active layer panel.</p>
-        <h3>Saved display preferences</h3>
-        <p>Your basemap, card grid/list mode, card panel side, and helper sidebar/floating
-          mode are saved as display preferences. While logged out, pending preferences are
-          kept in this browser. After login they are merged into your account preferences
-          and synced when the preference service is available. These preferences do not
-          save every currently checked ArcGIS layer; pin items to auto-load them.</p>
-        <h3>Share a manual chapter</h3>
-        <p>Open a chapter directly with <code>/user-manual?section=chapter-id</code>, for
-          example <a href="/user-manual?section=add-card">Card Creation Form</a>.
-          Panel Help buttons open the corresponding chapter. Clicking a chapter in this
-          manual changes the displayed content; it does not change the URL automatically.</p>
+        <h2><ManualText sectionId="navigation" blockId="navigation-001" onNavigate={navTo} /></h2>
+        <h3><ManualText sectionId="navigation" blockId="navigation-002" onNavigate={navTo} /></h3>
+        <p><ManualText sectionId="navigation" blockId="navigation-003" onNavigate={navTo} /></p>
+        <p><ManualText sectionId="navigation" blockId="navigation-004" onNavigate={navTo} /></p>
+        <h3><ManualText sectionId="navigation" blockId="navigation-005" onNavigate={navTo} /></h3>
+        <p><ManualText sectionId="navigation" blockId="navigation-006" onNavigate={navTo} /></p>
+        <h3><ManualText sectionId="navigation" blockId="navigation-007" onNavigate={navTo} /></h3>
+        <p><ManualText sectionId="navigation" blockId="navigation-008" onNavigate={navTo} /></p>
+        <h3><ManualText sectionId="navigation" blockId="navigation-009" onNavigate={navTo} /></h3>
+        <p><ManualText sectionId="navigation" blockId="navigation-010" onNavigate={navTo} /></p>
       </section>
       )}
 
       {activeSection === 'accounts' && (
       <section className="um-section">
-        <h2>Login, Registration &amp; Passwords</h2>
-        <h3>Request an account</h3>
-        <ol>
-          <li>Click <strong>Register</strong> in the navigation bar.</li>
-          <li>Enter Username, Email, Password, and Sponsor/Message. Select the desired
-            access level: Regular User or Admin.</li>
-          <li>Click <strong>Submit Request</strong> and check the confirmation message.</li>
-          <li>Wait for an administrator to approve the request before logging in.
-            Requesting Admin does not immediately grant that role.</li>
-        </ol>
-        <h3>Log in</h3>
-        <ol>
-          <li>Click <strong>Login</strong>, enter your email and password, and click
-            <strong> Login</strong>.</li>
-          <li>After a successful login, the app returns to Home. If login fails, check
-            your credentials and whether your account request was approved.</li>
-        </ol>
-        <h3>Reset a forgotten password</h3>
-        <ol>
-          <li>On Login, click <strong>Forgot Password?</strong>.</li>
-          <li>Enter your registered email and submit the recovery request.</li>
-          <li>Open the reset link sent to your inbox. Enter a new password of at least
-            six characters and enter it again to confirm.</li>
-          <li>Click <strong>Reset Password</strong>, check the result, then log in with
-            the new password. If recovery fails, retry later or contact the team.</li>
-        </ol>
-        <h3>Log out and permissions</h3>
-        <p>Click your username or avatar and choose <strong>Logout</strong>. Browsing
-          remains available. Login is required for creating cards, favorites, card pins,
-          and your Custom Layers library. Editing or deleting a card requires ownership
-          or an administrator account. Administrator tools appear only for administrators.</p>
+        <h2><ManualText sectionId="accounts" blockId="accounts-001" onNavigate={navTo} /></h2>
+        <h3><ManualText sectionId="accounts" blockId="accounts-002" onNavigate={navTo} /></h3>
+        <ol><ManualText sectionId="accounts" blockId="accounts-003" onNavigate={navTo} /></ol>
+        <h3><ManualText sectionId="accounts" blockId="accounts-004" onNavigate={navTo} /></h3>
+        <ol><ManualText sectionId="accounts" blockId="accounts-005" onNavigate={navTo} /></ol>
+        <h3><ManualText sectionId="accounts" blockId="accounts-006" onNavigate={navTo} /></h3>
+        <ol><ManualText sectionId="accounts" blockId="accounts-007" onNavigate={navTo} /></ol>
+        <h3><ManualText sectionId="accounts" blockId="accounts-008" onNavigate={navTo} /></h3>
+        <p><ManualText sectionId="accounts" blockId="accounts-009" onNavigate={navTo} /></p>
       </section>
       )}
 
       {activeSection === 'profile-admin' && (
       <section className="um-section">
-        <h2>Profile &amp; Administration</h2>
-        <h3>Edit your profile</h3>
-        <ol>
-          <li>Log in, open the avatar menu, and choose <strong>Profile</strong>.</li>
-          <li>Click <strong>Edit Profile</strong>. Change your username or bio (up to
-            300 characters). To change your avatar, click the image and select a file.</li>
-          <li>Click <strong>Save</strong> to apply the changes or <strong>Cancel</strong>
-            to discard them. Your email is displayed as account information.</li>
-        </ol>
-        <p>Use <strong>Change Password</strong> on Profile to enter and confirm a new
-          password, then submit with Change Password. <strong>Invite New User</strong>
-          opens a registration dialog with Name, Email, Password, and Confirm Password;
-          submit Register and check its result. This differs from the public Register
-          page's access-request form.</p>
-        <h3>Switch accounts</h3>
-        <p>Choose <strong>Switch Account</strong> in the avatar menu to see accounts
-          previously used in this browser. Select an account to sign in as that user.
-          If switching fails or credentials have changed, log in again. Use the page's
-          add-account option to open Login for another account.</p>
-        <h3>Administration (administrators only)</h3>
-        <p>Choose <strong>Administration</strong> in the avatar menu. In
-          <strong> Manage Users</strong>, review the users and use the Name or Date Joined
-          column header to sort. Choose <strong>Change Role</strong>, select Regular User
-          or Admin, type <strong>Confirm</strong> exactly, and apply the change.
-          To delete a non-admin user, choose <strong>Delete</strong>, type
-          <strong> Confirm</strong>, and confirm deletion. Admin rows do not offer Delete.</p>
-        <p>In <strong>Sign Up Requests</strong>, review each request and choose
-          <strong> Approve</strong> to create the account or <strong>Deny</strong> to reject
-          it. Card editing and deletion remain in the Card Detail View; ArcGIS management
-          remains in the ArcGIS panel.</p>
+        <h2><ManualText sectionId="profile-admin" blockId="profile-admin-001" onNavigate={navTo} /></h2>
+        <h3><ManualText sectionId="profile-admin" blockId="profile-admin-002" onNavigate={navTo} /></h3>
+        <ol><ManualText sectionId="profile-admin" blockId="profile-admin-003" onNavigate={navTo} /></ol>
+        <p><ManualText sectionId="profile-admin" blockId="profile-admin-004" onNavigate={navTo} /></p>
+        <h3><ManualText sectionId="profile-admin" blockId="profile-admin-005" onNavigate={navTo} /></h3>
+        <p><ManualText sectionId="profile-admin" blockId="profile-admin-006" onNavigate={navTo} /></p>
+        <h3><ManualText sectionId="profile-admin" blockId="profile-admin-007" onNavigate={navTo} /></h3>
+        <p><ManualText sectionId="profile-admin" blockId="profile-admin-008" onNavigate={navTo} /></p>
+        <p><ManualText sectionId="profile-admin" blockId="profile-admin-009" onNavigate={navTo} /></p>
       </section>
       )}
 
       {activeSection === 'tutorials-updates' && (
       <section className="um-section">
-        <h2>Tutorials &amp; Updates</h2>
-        <h3>Start or replay a tutorial</h3>
-        <p>On Home, click the left sidebar's <strong>App onboarding</strong> info button,
-          then <strong>Start App Tour</strong> to start the guided tour. The
-          introduction can also appear on a first visit. Follow the highlighted steps;
-          use Previous/Next or the tour's keyboard controls, and exit when finished.</p>
-        <p>For a specific panel, use its <strong>Tutorial</strong> play button. Card,
-          ArcGIS Upload, Custom Layers, Basemap, Watershed, card creation, and detail
-          views provide their own guides where available. Help buttons open the manual.
-          Tutorials explain controls; complete and submit the actual form to save data.</p>
-        <h3>Read recent changes</h3>
-        <p>Click the sidebar <strong>What's new</strong> bell to open the latest update
-          popup; a dot marks an unseen update. Close it with its close button or backdrop.
-          Click <strong>Updates</strong> in the top navigation bar to read the full dated
-          release history. The manual and update history are available without login.</p>
+        <h2><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-001" onNavigate={navTo} /></h2>
+        <h3><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-002" onNavigate={navTo} /></h3>
+        <p><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-003" onNavigate={navTo} /></p>
+        <p><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-004" onNavigate={navTo} /></p>
+        <h3><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-005" onNavigate={navTo} /></h3>
+        <p><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-006" onNavigate={navTo} /></p>
       </section>
       )}
 
       {activeSection === 'feature-search-panel' && (
       <section className="um-section">
-        <h2>Feature Search Panel</h2>
-        <p className="um-section-desc">
-          The Feature Search Panel slides out from the left sidebar search icon. It helps
-          you quickly find actions across the homepage by keyword, then run those actions
-          directly from the result list.
-        </p>
+        <h2><ManualText sectionId="feature-search-panel" blockId="feature-search-panel-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="feature-search-panel" blockId="feature-search-panel-002" onNavigate={navTo} /></p>
 
         <div className="um-feature-list">
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="feature-search-panel-example-01">
               <div className="um-isolated-demo" style={{ alignItems: 'stretch', minWidth: '280px' }}>
                 <div style={{
                   background: 'linear-gradient(180deg, #f4f6f9 0%, #eceff4 100%)',
@@ -461,17 +298,13 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Panel Layout</p>
-              <p className="um-feature-desc">
-                The panel contains a keyword input, a <strong>Search</strong> button, a
-                <strong> Clear Search</strong> button, and a clickable results list below.
-                It shares the same visual style as other side panels for consistency.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="feature-search-panel" blockId="feature-search-panel-003" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="feature-search-panel" blockId="feature-search-panel-004" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="feature-search-panel-example-02">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '260px' }}>
                 <div className="search-mini-results" style={{ maxHeight: 'none' }}>
                   <button type="button" className="search-mini-result-item" style={{ pointerEvents: 'none' }}>View All Cards</button>
@@ -481,17 +314,13 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Keyword Search</p>
-              <p className="um-feature-desc">
-                Enter words like <strong>view</strong>, <strong>add</strong>,
-                <strong> basemap</strong>, or <strong>search</strong> to match mapped
-                feature keywords. Results update and can be launched directly.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="feature-search-panel" blockId="feature-search-panel-005" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="feature-search-panel" blockId="feature-search-panel-006" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="feature-search-panel-example-03">
               <div className="um-isolated-demo" style={{ gap: '10px' }}>
                 <button type="button" className="search-mini-result-item" style={{ pointerEvents: 'none' }}>
                   Add Card
@@ -499,12 +328,8 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Run Feature by Clicking Result</p>
-              <p className="um-feature-desc">
-                Clicking a result immediately runs the mapped action. Example:
-                <strong> Add Card</strong> opens the Create Card modal;
-                <strong> View All Cards</strong> opens the card container.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="feature-search-panel" blockId="feature-search-panel-007" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="feature-search-panel" blockId="feature-search-panel-008" onNavigate={navTo} /></p>
             </div>
           </div>
 
@@ -514,15 +339,11 @@ function UserManual() {
 
       {activeSection === 'card-container' && (
       <section className="um-section">
-        <h2>Card Container</h2>
-        <p className="um-section-desc">
-          Each dataset or resource is displayed as a card in the main view. The demo below
-          shows a fully-styled sample card. Hover over it to explore its interactive states,
-          then read the feature-by-feature breakdown below.
-        </p>
+        <h2><ManualText sectionId="card-container" blockId="card-container-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="card-container" blockId="card-container-002" onNavigate={navTo} /></p>
 
         {/* ---- Full annotated demo card ---- */}
-        <div className="um-card-demo-wrapper">
+        <div className="um-card-demo-wrapper" data-manual-example="card-container-example-01">
           <span className="um-card-demo-label">Demo card — hover to explore</span>
           <div className="um-card-container" style={{ position: 'relative' }}>
             <button className="card-grid-pin-btn" title="Pin to top" style={{ pointerEvents: 'none' }}>
@@ -592,24 +413,20 @@ function UserManual() {
 
           {/* 1. Thumbnail */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="card-container-example-02">
               <div className="card-thumbnail-container um-thumb-demo">
                 <div className="card-thumbnail card-thumbnail--empty">No image</div>
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Card Image / Thumbnail</p>
-              <p className="um-feature-desc">
-                Uploaded images appear at the top of each card. Cards without an uploaded
-                image show a neutral "No image" placeholder. The previous default logo is
-                temporarily hidden, and its file is kept for future replacement.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="card-container" blockId="card-container-003" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="card-container" blockId="card-container-004" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 2. Multi-image navigation */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="card-container-example-03">
               <div className="card-thumbnail-container um-thumb-demo">
                 <img src="/manual-sample-image.svg" alt="Demo thumbnail" className="card-thumbnail" />
                 <button
@@ -629,21 +446,15 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Multi-Image Navigation</p>
-              <p className="um-feature-desc">
-                When a card has more than one image, left (❮) and right (❯) arrow
-                buttons appear on hover over the thumbnail area. Click them to browse through
-                all available images without opening the detail view.
-              </p>
-              <span className="um-feature-note">
-                In the demo the arrows are always visible; on real cards they appear only on hover.
-              </span>
+              <p className="um-feature-title"><ManualText sectionId="card-container" blockId="card-container-005" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="card-container" blockId="card-container-006" onNavigate={navTo} /></p>
+              <span className="um-feature-note"><ManualText sectionId="card-container" blockId="card-container-007" onNavigate={navTo} /></span>
             </div>
           </div>
 
           {/* 3. Indicator dots */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="card-container-example-04">
               <div className="um-dots-demo">
                 <div className="card-image-indicators">
                   <span className="card-image-dot active" />
@@ -654,18 +465,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Image Indicator Dots</p>
-              <p className="um-feature-desc">
-                A row of dots at the bottom of the thumbnail shows the total number of images
-                and highlights the currently displayed one in white. Up to five dots are shown
-                at a time; dots further from the active image appear slightly smaller.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="card-container" blockId="card-container-008" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="card-container" blockId="card-container-009" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 4. Full-size preview */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="card-container-example-05">
               <div className="card-thumbnail-container um-thumb-demo">
                 <img
                   src="/manual-sample-image.svg"
@@ -676,21 +483,15 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Full-Size Image Preview</p>
-              <p className="um-feature-desc">
-                Clicking directly on the thumbnail image opens an enlarged preview overlay.
-                Inside the preview you can navigate between images with arrow buttons, or
-                close it by clicking outside.
-              </p>
-              <span className="um-feature-note">
-                The cursor changes to a zoom-in icon when hovering over the clickable image area.
-              </span>
+              <p className="um-feature-title"><ManualText sectionId="card-container" blockId="card-container-010" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="card-container" blockId="card-container-011" onNavigate={navTo} /></p>
+              <span className="um-feature-note"><ManualText sectionId="card-container" blockId="card-container-012" onNavigate={navTo} /></span>
             </div>
           </div>
 
           {/* 5. Favorite */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="card-container-example-06">
               <div className="um-isolated-demo">
                 <span
                   className="favorite-icon"
@@ -711,21 +512,15 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Favorite / Bookmark</p>
-              <p className="um-feature-desc">
-                The heart icon in the upper-right corner of each card lets you save cards to
-                your personal favorites list. An outlined heart means unfavorited; a filled
-                red heart means favorited. Click to toggle. Hover to see the scale effect.
-              </p>
-              <span className="um-feature-note">
-                You must be logged in to use this feature. A login prompt will appear if you are not.
-              </span>
+              <p className="um-feature-title"><ManualText sectionId="card-container" blockId="card-container-013" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="card-container" blockId="card-container-014" onNavigate={navTo} /></p>
+              <span className="um-feature-note"><ManualText sectionId="card-container" blockId="card-container-015" onNavigate={navTo} /></span>
             </div>
           </div>
 
           {/* 6. Pin to Top */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="card-container-example-07">
               <div className="um-isolated-demo" style={{ gap: '14px' }}>
                 <button className="card-grid-pin-btn" style={{ position: 'static', pointerEvents: 'none' }}>
                   <FontAwesomeIcon icon={faThumbtack} />
@@ -736,24 +531,15 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Pin to Top</p>
-              <p className="um-feature-desc">
-                The thumbtack icon in the upper-left corner of each card lets you pin that
-                card to the top of the card list. An unpinned button has a white background;
-                a pinned button turns gold. Pinned cards always appear first, regardless of
-                the current sort order, in the order they were pinned. A later pin follows
-                earlier pins; unpinning and pinning again moves it to the end of that group.
-                Click to toggle.
-              </p>
-              <span className="um-feature-note">
-                You must be logged in to use this feature. A login prompt will appear if you are not.
-              </span>
+              <p className="um-feature-title"><ManualText sectionId="card-container" blockId="card-container-016" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="card-container" blockId="card-container-017" onNavigate={navTo} /></p>
+              <span className="um-feature-note"><ManualText sectionId="card-container" blockId="card-container-018" onNavigate={navTo} /></span>
             </div>
           </div>
 
           {/* 7. Card title */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="card-container-example-08">
               <div className="um-meta-row-demo">
                 <div className="card" style={{ pointerEvents: 'none' }}>
                   <div style={{ width: '100%', height: 0 }} />
@@ -764,18 +550,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Card Title</p>
-              <p className="um-feature-desc">
-                The dataset name is displayed below the thumbnail. Titles are clamped to two
-                lines; if the title is longer it is cut off with an ellipsis. The full title
-                is always visible inside the detail view.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="card-container" blockId="card-container-019" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="card-container" blockId="card-container-020" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 7. Tags */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="card-container-example-09">
               <div className="um-meta-row-demo">
                 <div className="card" style={{ pointerEvents: 'none' }}>
                   <div style={{ width: '100%', height: 0 }} />
@@ -789,18 +571,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Tags</p>
-              <p className="um-feature-desc">
-                The small text below the title shows the card's tags, separated by commas.
-                Tags overflow with an ellipsis when there are too many to fit. Cards with no
-                tags show "No tags". Tags are added and edited in the Learn More modal.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="card-container" blockId="card-container-021" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="card-container" blockId="card-container-022" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 8. Zoom to map */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="card-container-example-10">
               <div className="um-meta-row-demo">
                 <div className="card" style={{ pointerEvents: 'none' }}>
                   <div style={{ width: '100%', height: 0 }} />
@@ -822,19 +600,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Zoom to Map</p>
-              <p className="um-feature-desc">
-                The circular magnifying-glass button on the right side of the tags row
-                flies the main map to the card's location — either a point marker or a
-                polygon area. Hover over it to see the scale effect; click it to animate
-                the map.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="card-container" blockId="card-container-023" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="card-container" blockId="card-container-024" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 9. Open details */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="card-container-example-11">
               <div className="um-card-container">
                 <div className="card" style={{ cursor: 'pointer' }}>
                   <div className="card-thumbnail-container" style={{ aspectRatio: '280/100' }}>
@@ -850,24 +623,16 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Open Detail View</p>
-              <p className="um-feature-desc">
-                Clicking anywhere on the card body (except the image, favorite icon, or
-                zoom button) opens the full detail view. There you can read the complete
-                description, browse all images, view linked map layers, and access attached
-                files and links.
-              </p>
-              <p className="um-feature-desc">You can also focus the card and press
-                <strong> Enter</strong> or <strong>Space</strong> to open its details.</p>
-              <span className="um-feature-note">
-                Hover over the demo card to see the lift-and-shadow effect that indicates it is clickable.
-              </span>
+              <p className="um-feature-title"><ManualText sectionId="card-container" blockId="card-container-025" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="card-container" blockId="card-container-026" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="card-container" blockId="card-container-027" onNavigate={navTo} /></p>
+              <span className="um-feature-note"><ManualText sectionId="card-container" blockId="card-container-028" onNavigate={navTo} /></span>
             </div>
           </div>
 
           {/* 10. Map-selected highlight */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="card-container-example-12">
               <div className="um-card-container">
                 <div className="card card--map-selected" style={{ pointerEvents: 'none' }}>
                   <div className="card-thumbnail-container" style={{ aspectRatio: '280/100' }}>
@@ -883,12 +648,8 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Map-Selected Highlight</p>
-              <p className="um-feature-desc">
-                When you click a card's location marker or polygon directly on the map, that
-                card is highlighted with a blue border and glow in the card list. This makes
-                it easy to identify which card corresponds to a map feature you clicked.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="card-container" blockId="card-container-029" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="card-container" blockId="card-container-030" onNavigate={navTo} /></p>
             </div>
           </div>
 
@@ -898,48 +659,26 @@ function UserManual() {
 
       {activeSection === 'chatbot' && (
         <section className="um-section">
-          <h2>RWC Living Atlas Helper</h2>
-          <p className="um-section-desc">In floating mode, open the helper handle. In sidebar mode, use the speech-bubble button in the left sidebar. Type a question and press the send button or Enter; Shift+Enter adds a new line. The circular two-arrow icon in the chat header switches between the sidebar and the floating window; hover it to see the destination.</p>
-          <div className="um-isolated-demo"><FontAwesomeIcon icon={faRightLeft} /> Switch to sidebar panel / Switch to floating widget</div>
-          <p>The floating window is 400 × 500 pixels on desktop and fits smaller screens. Use the floating helper handle to open or hide it and drag it to reposition. The header close button hides the conversation. Panel headers use compact question-mark, play, and close buttons where available: open the manual, start a guided tour, or close the panel.</p>
-          <h3>Ask about features or current public data</h3>
-          <p>The helper uses feature documentation to explain how the app works. When its
-            live data services are available, it can look up public card titles, categories,
-            descriptions, organizations, funding, tags, links, locations, and dates, or browse
-            the current state ArcGIS catalog. Ask, for example, how to create a card or which
-            public cards concern water quality. Counts, categories, tags, and available services
-            can change; request current data instead of treating manual examples as an inventory.
-            Summary facts may be briefly cached, and search results may be limited.</p>
-          <p>The helper's public-data tools exclude private cards and contributor account
-            identities, emails, and credentials. They do not create, edit, or delete records.
-            Close and reopen the helper to continue the current conversation; conversation
-            history is not saved across page reloads.</p>
-          <h3>Waiting, errors, and quick actions</h3>
-          <p>A typing indicator appears while waiting; sending is disabled until the request
-            completes. If the helper reports unavailable service or insufficient API credits,
-            try again later or contact the team. When live data cannot be reached, it may
-            still explain documented features, but cannot verify current inventory. ArcGIS
-            answers may include Upload Panel quick-action links: click one to navigate to the
-            relevant service and then choose which layers to display.</p>
+          <h2><ManualText sectionId="chatbot" blockId="chatbot-001" onNavigate={navTo} /></h2>
+          <p className="um-section-desc"><ManualText sectionId="chatbot" blockId="chatbot-002" onNavigate={navTo} /></p>
+          <div className="um-isolated-demo" data-manual-example="chatbot-example-01"><FontAwesomeIcon icon={faRightLeft} /> Switch to sidebar panel / Switch to floating widget</div>
+          <p><ManualText sectionId="chatbot" blockId="chatbot-003" onNavigate={navTo} /></p>
+          <h3><ManualText sectionId="chatbot" blockId="chatbot-004" onNavigate={navTo} /></h3>
+          <p><ManualText sectionId="chatbot" blockId="chatbot-005" onNavigate={navTo} /></p>
+          <p><ManualText sectionId="chatbot" blockId="chatbot-006" onNavigate={navTo} /></p>
+          <h3><ManualText sectionId="chatbot" blockId="chatbot-007" onNavigate={navTo} /></h3>
+          <p><ManualText sectionId="chatbot" blockId="chatbot-008" onNavigate={navTo} /></p>
         </section>
       )}
 
       {activeSection === 'toolbar' && (
       <section className="um-section">
-        <h2>Card Panel Toolbar</h2>
-        <p className="um-section-desc">
-          The toolbar at the top of the card panel provides controls to add cards, adjust the
-          sort order, filters, view modes, and docking side. Hover each element in the demo below to
-          see its interactive state.
-        </p>
-        <p className="um-feature-desc">Use the titlebar's Help button for the manual,
-          Tutorial to replay the card tour, and × to collapse the panel. Reopening it
-          retains the current search, filters, and view mode during the session.
-          Closest To Me sorting needs your current location; Closest To Pin needs a
-          location selected with the map search first.</p>
+        <h2><ManualText sectionId="toolbar" blockId="toolbar-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="toolbar" blockId="toolbar-002" onNavigate={navTo} /></p>
+        <p className="um-feature-desc"><ManualText sectionId="toolbar" blockId="toolbar-003" onNavigate={navTo} /></p>
 
         {/* Full toolbar demo */}
-        <div className="um-toolbar-demo-wrapper">
+        <div className="um-toolbar-demo-wrapper" data-manual-example="toolbar-example-01">
           <div className="card-panel-top" style={{ borderRadius: '8px', border: '1px solid #d8e1ea' }}>
             <div className="card-panel-titlebar">
               <span className="card-panel-title">Project Cards</span>
@@ -988,7 +727,7 @@ function UserManual() {
 
           {/* 1. Add Card */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="toolbar-example-02">
               <div className="um-isolated-demo">
                 <button type="button" className="card-toolbar-button" title="Add Card" style={{ pointerEvents: 'none' }}>
                   <FontAwesomeIcon icon={faPlus} /> Add Card
@@ -996,18 +735,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Add Card</p>
-              <p className="um-feature-desc">
-                Opens the card creation form so you can add a new dataset entry to the atlas.
-                You must be logged in to use this button; if you are not, a prompt will
-                appear asking you to sign in first.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="toolbar" blockId="toolbar-004" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="toolbar" blockId="toolbar-005" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 3. Sort Dropdown */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="toolbar-example-03">
               <div className="um-isolated-demo">
                 <div className="sort-dropdown" style={{ width: 'auto' }}>
                   <button type="button" className="sort-dropdown-trigger" style={{ pointerEvents: 'none' }}>
@@ -1018,19 +753,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Sort By</p>
-              <p className="um-feature-desc">
-                Opens a dropdown to choose the card ordering: <strong>Newest First</strong>,{' '}
-                <strong>Oldest First</strong>, <strong>Closest To Me</strong>, or{' '}
-                <strong>Closest To Pin</strong>. Click Apply to confirm the selection or
-                Clear to reset to default order.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="toolbar" blockId="toolbar-006" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="toolbar" blockId="toolbar-007" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 4. Filter Dropdown */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="toolbar-example-04">
               <div className="um-isolated-demo" style={{ display: 'flex', gap: '8px' }}>
                 <div className="filter-dropdown">
                   <button type="button" className="filter-dropdown-trigger" style={{ pointerEvents: 'none' }}>
@@ -1048,28 +778,24 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Filter By</p>
-              <p className="um-feature-desc">
-                Opens a dropdown to filter cards by category (River, Watershed, Places,
-                Other), custom tags, and favorites. Select Apply to confirm or Clear to reset all filters. When one or more filters are active the button
-                turns amber and shows a blue badge with the number of active filters.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="toolbar" blockId="toolbar-008" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="toolbar" blockId="toolbar-009" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo"><div className="um-isolated-demo">
+            <div className="um-feature-demo" data-manual-example="toolbar-example-05"><div className="um-isolated-demo">
               <label><input type="checkbox" defaultChecked readOnly /> Show only favorited cards</label>
             </div></div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Favorites in Filter By</p>
-              <p className="um-feature-desc">Open Filter By, select Show only favorited cards, then Apply. Combine favorites with category and tags. Clear resets all filters; closing without Apply discards pending changes. Login is required for the favorites option.</p>
+              <p className="um-feature-title"><ManualText sectionId="toolbar" blockId="toolbar-010" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="toolbar" blockId="toolbar-011" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 6. Scope toggle */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="toolbar-example-06">
               <div className="um-isolated-demo" style={{ display: 'flex', gap: '8px' }}>
                 <button type="button" className="card-toolbar-button card-toolbar-button--scope all-cards" style={{ pointerEvents: 'none' }}>
                   All Cards
@@ -1080,19 +806,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">View Scope</p>
-              <p className="um-feature-desc">
-                Switches between showing <strong>All Cards</strong> from the database or only
-                cards whose location falls within the <strong>current map viewport</strong>.
-                When "In View" is active the card count in the info bar updates as you pan
-                and zoom the map.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="toolbar" blockId="toolbar-012" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="toolbar" blockId="toolbar-013" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 7. Grid / List toggle */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="toolbar-example-07">
               <div className="um-isolated-demo" style={{ display: 'flex', gap: '8px' }}>
                 <button type="button" className="card-toolbar-button card-toolbar-button--icon" title="List View" style={{ pointerEvents: 'none' }}>
                   <FontAwesomeIcon icon={faList} />
@@ -1103,21 +824,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Grid / List View</p>
-              <p className="um-feature-desc">
-                Switches the card panel between <strong>grid view</strong> (card thumbnails
-                laid out in a grid) and <strong>list view</strong> (compact rows showing just
-                the title and action buttons). The icon shows the mode you will switch
-                <em>to</em> when clicked. The button is highlighted when list view is active. List view is fixed at 310 pixels wide and cannot be resized. Grid view restores its adjustable width. When Project Cards and GIS both dock on the left, list view is used automatically.
-                The bordered, square-cornered list area joins the toolbar and keeps rows inside the panel, including during hover movement.
-                Hover a row for about half a second to see its grid-card preview toward the map: to the left of a right-docked panel, or to the right of a left-docked panel. Moving off the row dismisses it; very narrow spaces may hide the preview.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="toolbar" blockId="toolbar-014" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="toolbar" blockId="toolbar-015" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 8. Move Panel */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="toolbar-example-08">
               <div className="um-isolated-demo">
                 <button type="button" className="card-toolbar-button card-toolbar-button--icon" title="Move panel to left" style={{ pointerEvents: 'none' }}>
                   <FontAwesomeIcon icon={faRightLeft} />
@@ -1125,18 +839,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Move Panel</p>
-              <p className="um-feature-desc">
-                Moves the card panel to the opposite side of the screen. Click once to dock
-                it on the left, click again to move it back to the right. This is useful for
-                keeping the panel out of the way of areas of the map you want to inspect.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="toolbar" blockId="toolbar-016" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="toolbar" blockId="toolbar-017" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 9. Search bar */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="toolbar-example-09">
               <div className="um-searchbar-demo">
                 <div className="card-panel-searchbar">
                   <input type="text" defaultValue="watershed" readOnly />
@@ -1150,20 +860,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Card Search Bar</p>
-              <p className="um-feature-desc">
-                Type a keyword and press <strong>Enter</strong> or click the search button to
-                search for cards by title. Click the{' '}
-                <strong>&times;</strong> button to clear the search and return to the normal
-                card listing. While a search is active the map viewport filter is
-                temporarily suspended.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="toolbar" blockId="toolbar-018" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="toolbar" blockId="toolbar-019" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 10. Info bar */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="toolbar-example-10">
               <div className="um-isolated-demo">
                 <div className="card-panel-info-bar">
                   <span className="card-panel-title">Project Cards</span>
@@ -1172,13 +876,8 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Card Count Info Bar</p>
-              <p className="um-feature-desc">
-                Shows the total number of cards currently displayed after all active filters
-                are applied, along with a label indicating the scope ("all cards" or "in
-                view"). The count updates in real time as you apply filters, search, or pan
-                the map.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="toolbar" blockId="toolbar-020" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="toolbar" blockId="toolbar-021" onNavigate={navTo} /></p>
             </div>
           </div>
 
@@ -1188,19 +887,11 @@ function UserManual() {
 
       {activeSection === 'add-card' && (
       <section className="um-section">
-        <h2>Card Creation Form</h2>
-        <p className="um-section-desc">
-          The Card Creation form lets you submit a new research entry to the atlas. Click the{' '}
-          <strong>Add Card</strong> button in the card panel toolbar to open it. You must be logged
-          in — a login prompt appears otherwise. You can also start location-first creation
-          from the map toolbar using <strong>Add Cards from Map</strong>, then choose
-          <strong> Add Points / Coordinates</strong>, <strong>Polygon Tools</strong>, or
-          <strong> Add PNG</strong>. Once submitted, the new card appears in the
-          card container and is pinned to the map.
-        </p>
+        <h2><ManualText sectionId="add-card" blockId="add-card-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="add-card" blockId="add-card-002" onNavigate={navTo} /></p>
 
         {/* ---- Overview demo: compact scrollable form ---- */}
-        <div className="um-form-demo-wrapper">
+        <div className="um-form-demo-wrapper" data-manual-example="add-card-example-01">
           <div className="um-form-demo-inner">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
               <h2 style={{ margin: 0 }}>Create Card</h2>
@@ -1242,7 +933,7 @@ function UserManual() {
 
           {/* 1. Opening the Form */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-card-example-02">
               <div className="um-isolated-demo">
                 <button type="button" className="card-toolbar-button" title="Add Card" style={{ pointerEvents: 'none' }}>
                   <FontAwesomeIcon icon={faPlus} /> Add Card
@@ -1250,19 +941,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Opening the Form</p>
-              <p className="um-feature-desc">
-                Click the <strong>Add Card</strong> button in the card panel toolbar. Login is
-                required; if you are not logged in, a prompt appears instead. You can also
-                open this form from map toolbar shortcuts (single point, polygon, image overlay)
-                with location pre-filled. The form slides in as a side panel over the map.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-card" blockId="add-card-003" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-card" blockId="add-card-004" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 2. Required Fields */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-card-example-03">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '260px' }}>
                 <label style={{ fontSize: '12px', fontWeight: 600, color: '#374957', marginBottom: '3px' }}>Author Name <span style={{ color: '#e05' }}>*</span></label>
                 <input type="text" readOnly defaultValue="Jane Doe" className="um-form-input-mock" style={{ marginBottom: '8px' }} />
@@ -1275,23 +961,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Required Fields</p>
-              <p className="um-feature-desc">
-                <strong>Author Name</strong>, <strong>Email</strong>, and <strong>Title</strong>{' '}
-                are required. <strong>Category</strong> is optional and can be one of:
-                River, Watershed, Places, or Other. Validation runs on submit and
-                highlights any missing or invalid fields. Title, Organization, and Funding
-                have a 255-character limit; Description is limited to 2000 plain-text
-                characters. A point uses latitude/longitude with up to eight decimal places;
-                a polygon needs at least three vertices; an image needs valid placement
-                with four corners. If submission fails, review the form's validation message.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-card" blockId="add-card-005" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-card" blockId="add-card-006" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 3. Optional Info Fields */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-card-example-04">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '260px' }}>
                 <label style={{ fontSize: '12px', fontWeight: 600, color: '#374957', marginBottom: '3px' }}>Description</label>
                 <textarea readOnly rows={2} defaultValue="Longitudinal stream temperature data…" className="um-form-input-mock" style={{ resize: 'none', marginBottom: '8px' }} />
@@ -1302,19 +979,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Content Fields</p>
-              <p className="um-feature-desc">
-                <strong>Description</strong> (max 2000 chars), <strong>Funding</strong>,
-                and <strong>Organization</strong> provide context for the card.{' '}
-                <strong>Tags</strong> (comma-separated) make cards discoverable in
-                search and filter. None of these are required.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-card" blockId="add-card-007" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-card" blockId="add-card-008" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 4. Links */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-card-example-05">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '280px' }}>
                 <div className="form-modal-link-row" style={{ pointerEvents: 'none' }}>
                   <input type="text" readOnly defaultValue="https://example.gov/data" className="form-modal-link-input" />
@@ -1328,18 +1000,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Links</p>
-              <p className="um-feature-desc">
-                Add one or more external links with optional display text. Click{' '}
-                <strong>+ Add More Links</strong> to add additional rows. Links appear
-                as clickable buttons on the card's Detail View.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-card" blockId="add-card-009" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-card" blockId="add-card-010" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 5. Location */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-card-example-06">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '260px', gap: '8px' }}>
                 <div className="form-modal-location-tabs" style={{ pointerEvents: 'none' }}>
                   <button type="button" className="form-modal-location-tab active">Single Point</button>
@@ -1357,21 +1025,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Location Picker</p>
-              <p className="um-feature-desc">
-                Choose <strong>Single Point</strong> to click on the map and confirm a
-                lat/lng coordinate, or enter coordinates manually. Choose{' '}
-                <strong>Polygon Area</strong> to draw a custom polygon directly on the
-                map. Choose <strong>Image Overlay</strong> to place a PNG on the map with
-                move/rotate/resize support. For polygon/image modes, centroid is stored as
-                the card's primary location. Location is required for card submission.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-card" blockId="add-card-011" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-card" blockId="add-card-012" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 5b. Polygon Area sub-options */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-card-example-07">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '240px', gap: '10px', pointerEvents: 'none' }}>
                 {/* tabs — polygon active */}
                 <div className="form-modal-location-tabs">
@@ -1393,32 +1054,15 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Polygon Area Mode</p>
-              <p className="um-feature-desc">
-                After switching to <strong>Polygon Area</strong>, click{' '}
-                <strong>Draw Polygon on Map</strong> to open Polygon Tools
-                floating on the map. Place vertices by clicking the map, then click{' '}
-                <strong>Save</strong> in the panel to confirm. The form shows a
-                confirmation summary (e.g. "Polygon saved: 5 points"). You can click{' '}
-                <strong>Redraw Polygon</strong> at any time to replace the shape.
-              </p>
-              <p className="um-feature-desc" style={{ marginTop: '8px' }}>
-                For a full breakdown of the drawing tools, styles, and transform modes,
-                see the{' '}
-                <button
-                  type="button"
-                  className="um-inline-link"
-                  onClick={() => navTo('polygon-tools')}
-                >
-                  Polygon Tools
-                </button>{' '}tab.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-card" blockId="add-card-013" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-card" blockId="add-card-014" onNavigate={navTo} /></p>
+              <p className="um-feature-desc" style={{ marginTop: '8px' }}><ManualText sectionId="add-card" blockId="add-card-015" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 5c. Image Overlay sub-options */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-card-example-08">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '240px', gap: '10px', pointerEvents: 'none' }}>
                 <div className="form-modal-location-tabs">
                   <button type="button" className="form-modal-location-tab">Single Point</button>
@@ -1438,18 +1082,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Image Overlay Mode</p>
-              <p className="um-feature-desc">
-                Switch to <strong>Image Overlay</strong>, then click <strong>Add Image to Map</strong>
-                to upload and place a supported image (PNG, JPG/JPEG, GIF, or WebP). After placement, use move/rotate/resize and click
-                <strong> Save</strong>. The form stores four corner vertices and shows a saved summary.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-card" blockId="add-card-016" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-card" blockId="add-card-017" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 6. Images & Files */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-card-example-09">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '240px', gap: '8px' }}>
                 <div className="form-modal-image-upload-area" style={{ pointerEvents: 'none', padding: '12px' }}>
                   <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#666' }}>Click or drag to add images</p>
@@ -1462,21 +1102,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Images &amp; File Attachments</p>
-              <p className="um-feature-desc">
-                Upload one or more images (PNG, JPG, GIF, WebP, max 5 MB each). The
-                first image becomes the card's thumbnail for point/polygon cards. For
-                image-overlay cards, the map representation image is managed separately,
-                and these images are used for the Learn More gallery. Upload supporting files
-                (PDFs, spreadsheets, etc., max 5 MB each) that viewers can download
-                from the Card Detail View.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-card" blockId="add-card-018" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-card" blockId="add-card-019" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 7. Linked ArcGIS Services */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-card-example-10">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
                 <button type="button" className="location_button" style={{ pointerEvents: 'none', marginBottom: 0 }}>
                   + Link ArcGIS Service / Layer
@@ -1490,19 +1123,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Linked ArcGIS Services</p>
-              <p className="um-feature-desc">
-                Optionally link ArcGIS services or individual layers to the card. Click{' '}
-                <strong>+ Link ArcGIS Service / Layer</strong> to open the ArcGIS picker
-                and browse by state. Linked items appear in the Card Detail View and can
-                be toggled directly on the map from there. Multiple links can be added.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-card" blockId="add-card-020" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-card" blockId="add-card-021" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 8. Card marker / polygon map popup */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-card-example-11">
               <div className="um-isolated-demo" style={{ padding: 0, minWidth: '260px', maxWidth: '300px', alignItems: 'stretch' }}>
                 <div className="um-card-popup-demo-wrapper">
                   <div className="card-pin-popup-panel">
@@ -1523,15 +1151,8 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Card Marker / Polygon Popup</p>
-              <p className="um-feature-desc">
-                Clicking a card marker pin or a card polygon on the map opens a rich popup.
-                The top section shows the card's thumbnail image — if multiple images are
-                attached, <strong>❮ ❯</strong> arrows appear on hover to cycle through them;
-                clicking the image opens a fullscreen lightbox. The popup is 275 × 250 pixels, with a compact Edit footer for cards you can edit and a scrollable information area. The bottom section shows the
-                card <strong>title</strong>, <strong>category</strong>, and <strong>tags</strong>.
-                Clicking anywhere on the info area opens the full <strong>Card Detail View</strong>.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-card" blockId="add-card-022" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-card" blockId="add-card-023" onNavigate={navTo} /></p>
             </div>
           </div>
 
@@ -1541,16 +1162,11 @@ function UserManual() {
 
       {activeSection === 'arcgis-picker' && (
       <section className="um-section">
-        <h2>ArcGIS Picker Modal</h2>
-        <p className="um-section-desc">
-          The ArcGIS Picker lets you search and select ArcGIS services or individual layers
-          to link to a card. It opens from the <strong>+ Link ArcGIS Service / Layer</strong>{' '}
-          button inside the Card Creation form. Selected items are attached to the card and can be
-          toggled on the map from the Card Detail View.
-        </p>
+        <h2><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-002" onNavigate={navTo} /></p>
 
         {/* ---- Overview demo ---- */}
-        <div className="um-picker-demo-wrapper">
+        <div className="um-picker-demo-wrapper" data-manual-example="arcgis-picker-example-01">
           {/* Header */}
           <div className="arcgis-picker-header" style={{ borderBottom: '1px solid #e0e0e0' }}>
             <div className="arcgis-picker-search-row">
@@ -1596,7 +1212,7 @@ function UserManual() {
 
           {/* 1. Opening */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-picker-example-02">
               <div className="um-isolated-demo">
                 <button type="button" className="location_button" style={{ pointerEvents: 'none', marginBottom: 0 }}>
                   + Link ArcGIS Service / Layer
@@ -1604,18 +1220,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Opening the Picker</p>
-              <p className="um-feature-desc">
-                Click <strong>+ Link ArcGIS Service / Layer</strong> inside the Add Card
-                form to open the picker. It loads available services from the database and
-                falls back to the bundled local list if the database is unavailable.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-003" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-004" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 2. Search */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-picker-example-03">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '280px' }}>
                 <div className="arcgis-picker-search-row" style={{ pointerEvents: 'none' }}>
                   <input type="text" className="arcgis-picker-search-input" readOnly defaultValue="streams" />
@@ -1641,19 +1253,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Search Bar &amp; Navigation</p>
-              <p className="um-feature-desc">
-                Type a keyword and press Enter or click the search button. The type
-                dropdown narrows results to <strong>Any</strong>, <strong>Folder</strong>,{' '}
-                <strong>Service</strong>, or <strong>Layer</strong>. When multiple matches
-                exist, a counter and Prev/Next arrows appear to jump between them.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-005" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-006" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 3. Drill-down Navigation */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-picker-example-04">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '260px', padding: 0, gap: 0 }}>
                 {/* breadcrumb */}
                 <div className="arcgis-picker-breadcrumb" style={{ pointerEvents: 'none' }}>
@@ -1672,19 +1279,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Drill-Down Navigation</p>
-              <p className="um-feature-desc">
-                In navigation mode the root view shows three state tiles (WA, ID, OR).
-                Click a state to see its folders; click a folder to see its services.
-                A breadcrumb bar at the top shows your current path, and the Back button
-                moves you one level up.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-007" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-008" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 4. Service rows */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-picker-example-05">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '260px', padding: 0, gap: 0 }}>
                 <div className="arcgis-picker-service-row" style={{ pointerEvents: 'none' }}>
                   <input type="checkbox" className="arcgis-picker-checkbox" readOnly />
@@ -1709,19 +1311,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Services &amp; Layer Selection</p>
-              <p className="um-feature-desc">
-                Each service row has a checkbox and an expand arrow. Checking the service
-                checkbox selects the whole service. Clicking the row expands it to show
-                individual layers — check individual layers to link only those. Group
-                layers expand recursively with their own checkboxes.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-009" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-010" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 5. Footer */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-picker-example-06">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '260px', padding: 0 }}>
                 <div className="arcgis-picker-footer" style={{ pointerEvents: 'none' }}>
                   <span className="arcgis-picker-count">3 items selected</span>
@@ -1733,13 +1330,8 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Add &amp; Cancel</p>
-              <p className="um-feature-desc">
-                The footer shows how many items are currently selected. <strong>Add</strong>{' '}
-                is enabled once at least one item is selected; clicking it inserts all
-                selected services and layers as linked items in the Card Creation form.{' '}
-                <strong>Cancel</strong> closes the picker without changing the form.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-011" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-012" onNavigate={navTo} /></p>
             </div>
           </div>
 
@@ -1749,15 +1341,11 @@ function UserManual() {
 
       {activeSection === 'detail-view' && (
       <section className="um-section">
-        <h2>Card Detail View</h2>
-        <p className="um-section-desc">
-          Clicking <strong>Open Detail View</strong> on a card opens a full-screen panel
-          showing all dataset information. It also has tools for editing, downloading a PDF,
-          managing images and files, and toggling linked ArcGIS map layers.
-        </p>
+        <h2><ManualText sectionId="detail-view" blockId="detail-view-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="detail-view" blockId="detail-view-002" onNavigate={navTo} /></p>
 
         {/* Full static mock of the modal shell */}
-        <div className="um-modal-demo-wrapper">
+        <div className="um-modal-demo-wrapper" data-manual-example="detail-view-example-01">
           <div className="learn-more-modal-shell" style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.12)' }}>
             <div className="learn-more-modal-toolbar">
               <div className="learn-more-modal-toolbar-left">
@@ -1865,7 +1453,7 @@ function UserManual() {
 
           {/* 1. Toolbar — view mode */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-02">
               <div className="um-isolated-demo" style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'space-between', minWidth: '220px' }}>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <button className="learn-more-modal-edit-btn" title="Edit" style={{ pointerEvents: 'none' }}>
@@ -1888,23 +1476,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Detail View Toolbar</p>
-              <p className="um-feature-desc">
-                The toolbar at the top provides six action buttons:
-                <br />• <strong>Edit</strong> (pencil icon) — enter edit mode to modify card content
-                <br />• <strong>Download PDF</strong> (download icon) — save the card as a PDF
-                <br />• <strong>Delete</strong> (trash icon) — permanently delete the card
-                <br />• <strong>Help</strong> (question icon) — open the Detail View user manual section
-                <br />• <strong>Onboarding</strong> (play icon) — start the guided walkthrough
-                <br />• <strong>Close</strong> (×) — close the Detail View and return to the map
-                <br />Edit and Delete require you to be the card owner or an administrator.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-003" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-004" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 2. Toolbar — edit mode */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-03">
               <div className="um-isolated-demo" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div className="learn-more-modal-toolbar-actions">
                   <button className="learn-more-modal-toolbar-btn save" style={{ pointerEvents: 'none' }}>Save</button>
@@ -1914,36 +1493,27 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Edit Mode Toolbar</p>
-              <p className="um-feature-desc">
-                When in edit mode the toolbar replaces the Edit button with <strong>Save</strong>{' '}
-                and <strong>Cancel</strong> buttons. If you make any changes an amber
-                "You have unsaved changes" badge appears as a reminder. Clicking Cancel
-                prompts a confirmation if there are unsaved changes.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-005" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-006" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 3. Image Gallery */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-04">
               <div className="um-isolated-demo um-gallery-demo">
                 <LearnMoreGallery images={[1, 2, 3, 4, 5].map(id => ({ id, url: '/manual-sample-image.svg' }))} editing coverUrl="/manual-sample-image.svg" onOpen={() => {}} onReorder={() => {}} onDelete={() => {}} onLayoutChange={() => {}} onSeeAll={() => {}} />
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Image Gallery</p>
-              <p className="um-feature-desc">
-                The Detail View displays up to six selected images. Multiple images adapts the grid to the selected count; Slideshow shows one selected image at a time with navigation inside the image area.
-                Click any tile to open the image in a full-screen lightbox.
-                <strong>See all N images</strong> sits inside the gallery's bottom left corner in both viewing and editing modes and opens a grid of every uploaded image. In edit mode the Image layout dropdown sits inside the gallery's top right corner. Both controls are semi-transparent until hover or focus. Drag images or use the arrow icons to reorder; the first image becomes the card cover. Its neutral badge and selection border appear only in edit mode.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-007" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-008" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 4. All Images view */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-05">
               <div className="um-isolated-demo um-all-images-demo">
                 <div className="learn-more-all-images-view">
                   <div className="learn-more-all-images-header">
@@ -1970,20 +1540,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">All Images View</p>
-              <p className="um-feature-desc">
-                The "See all images" view displays square thumbnails, four per row on desktop and fewer on narrow screens. In edit mode:
-                <br />• <strong>Numbered checkboxes</strong> choose up to six images for the main gallery; number 1 is the card cover. Selected images have a special border. Deselecting a number leaves it available for the next selection. Drag images on the main gallery to change their order. Numbered checkboxes and selection borders are hidden outside edit mode.
-                <br />• <strong>Select circle</strong> (top-right of each image) selects images for deletion independently of the numbered checkbox
-                <br />• <strong>Delete Selected</strong> removes all selected images at once
-                <br />• <strong>Add New Image</strong> uploads an additional image, up to 30 total. Add New Image and Delete Selected sit beside Back to Learn More at the top. Save pending deletions before uploading if the stored card is at the limit. Save commits changes; Cancel discards them.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-009" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-010" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 5. Title & Category */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-06">
               <div className="um-isolated-demo">
                 <div className="learn-more-modal-title-section" style={{ margin: 0 }}>
                   <h2 style={{ margin: '0 0 6px' }}>Sample Dataset Title</h2>
@@ -1992,19 +1556,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Title &amp; Category</p>
-              <p className="um-feature-desc">
-                The dataset's full title is displayed in large bold text below the gallery.
-                The category label (River, Watershed, Places, Other, or Uncategorized)
-                appears in smaller muted text below. In edit mode the title becomes an input
-                field and the category becomes a dropdown.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-011" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-012" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 6. Info fields — view mode */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-07">
               <div className="um-isolated-demo um-fields-demo">
                 <div className="learn-more-fields-grid">
                   <p><strong>Author:</strong> Jane Smith</p>
@@ -2016,18 +1575,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Information Fields</p>
-              <p className="um-feature-desc">
-                Dataset metadata is laid out in a two-column grid: Author, Card Creator,
-                Email, Funding, and Organization. Point coordinates appear in Map location. In edit mode metadata fields become editable inputs; Card
-                Creator is read-only and cannot be changed.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-013" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-014" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 7. Info fields — edit mode inputs */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-08">
               <div className="um-isolated-demo um-fields-demo">
                 <div className="learn-more-fields-grid">
                   <div className="learn-more-field-cell">
@@ -2042,22 +1597,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Edit Mode Inline Inputs</p>
-              <p className="um-feature-desc">
-                In edit mode each info field becomes an inline text input with a light
-                border. The <strong>Card Creator</strong> field has a grey background
-                indicating it is read-only. The <strong>Description</strong> field becomes
-                a rich text editor with a formatting toolbar, and <strong>Tags</strong>{' '}
-                are edited as removable chips (see the Rich Text Description and Tags
-                features below). A <strong>Visibility</strong> dropdown sets the card to
-                Public or Private.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-015" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-016" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 8. Links — view mode */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-09">
               <div className="um-isolated-demo">
                 <div className="learn-more-links-view">
                   <strong>Links:</strong>
@@ -2069,19 +1616,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Links</p>
-              <p className="um-feature-desc">
-                External URLs are shown as a bulleted list of clickable links. If a display
-                text was provided it is shown instead of the raw URL. In edit mode each
-                link row has a URL input and an optional display-text input, and multiple
-                links can be added with <strong>+ Add More Links</strong>.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-017" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-018" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 9. Links — edit mode rows */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-10">
               <div className="um-isolated-demo" style={{ minWidth: '280px' }}>
                 <div className="learn-more-link-row">
                   <input className="learn-more-inline-input" type="text" placeholder="URL" defaultValue="https://cereo.wsu.edu" readOnly style={{ marginBottom: 0 }} />
@@ -2092,19 +1634,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Link Edit Rows</p>
-              <p className="um-feature-desc">
-                Each link in edit mode is a pair of inputs: the URL and an optional display
-                text. Click <strong>×</strong> to remove that link row. Click{' '}
-                <strong>+ Add More Links</strong> to append a new empty row. All link
-                changes are saved together when you press Save.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-019" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-020" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 10. Downloadable Files */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-11">
               <div className="um-isolated-demo">
                 <div className="file-list learn-more-file-list" style={{ margin: 0, paddingTop: 0, borderTop: 'none' }}>
                   <h3>Downloadable Files:</h3>
@@ -2116,22 +1653,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Downloadable Files</p>
-              <p className="um-feature-desc">
-                Files attached to a card appear as a list of download links. Click any link
-                to download that file directly. In edit mode you can delete existing files
-                with the × button next to each filename, and attach new files using the
-                <strong>Choose files</strong> picker. Select multiple files at once (up to 5 MB each),
-                or choose another batch without replacing earlier selections. Review and remove
-                queued files before saving; new files upload when you press Save. Saved links
-                download attachments, including text files, rather than opening a storage page.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-021" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-022" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 11. ArcGIS Linked Layers */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-12">
               <div className="um-isolated-demo um-arcgis-demo">
                 <p style={{ margin: '0 0 6px', fontSize: '0.95rem', color: '#374151' }}><strong>Linked ArcGIS Services/Layers:</strong></p>
                 <ul className="learn-more-arcgis-links-list">
@@ -2165,21 +1694,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Linked ArcGIS Layers</p>
-              <p className="um-feature-desc">
-                Cards can be linked to specific ArcGIS map layers. Each linked item shows a
-                breadcrumb path (state › folder › layer name). The <strong>checkbox</strong>{' '}
-                on the left toggles that layer's visibility on the map without closing the
-                Detail View. The <strong>›</strong> button on the right jumps to that layer
-                in the ArcGIS Upload Panel. In edit mode you can remove links or add new
-                ones with <strong>+ Add ArcGIS Item</strong>.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-023" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-024" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 11b. Rich Text Description */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-13">
               <div className="um-isolated-demo um-fields-demo">
                 <p style={{ margin: '0 0 6px' }}><strong>Description:</strong></p>
                 <div style={{ border: '1px solid #d8e1ea', borderRadius: '6px', padding: '6px 8px' }}>
@@ -2193,24 +1715,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Rich Text Description</p>
-              <p className="um-feature-desc">
-                In edit mode the Description field is a Word-style rich text editor with a
-                toolbar for bold, italic, underline, strikethrough, bulleted and numbered
-                lists, undo/redo, and a heading dropdown (Paragraph, Heading 1–6).
-                <strong>Link</strong> inserts or edits a URL with display text at the cursor or
-                selected text; use Remove link to unlink it. <strong>File</strong> inserts an
-                existing attachment or lets you choose multiple new files (5 MB each).
-                New attachments upload with Save; their inline links then download the file.
-                Descriptions are stored as formatted HTML, displayed with their formatting
-                in the Detail View, and converted to plain text for PDF export.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-025" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-026" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 11c. Tags & Visibility */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-14">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '10px' }}>
                 <div>
                   <p style={{ margin: '0 0 4px' }}><strong>Tags:</strong></p>
@@ -2230,21 +1742,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Tags &amp; Visibility</p>
-              <p className="um-feature-desc">
-                In edit mode <strong>Tags</strong> are edited as pills, each with its own
-                <strong> ×</strong> remove button; type into the inline input and press
-                <strong> Enter</strong> or a comma to add a tag. The <strong>Visibility</strong>{' '}
-                dropdown marks the card <strong>Public</strong> (visible to everyone) or{' '}
-                <strong>Private</strong> (only visible to you). In view mode tags appear as
-                read-only pills and visibility is shown as plain text.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-027" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-028" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 11d. Representation */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-15">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '10px' }}>
                 <div className="learn-more-location-section" style={{ margin: 0 }}>
                   <p style={{ margin: '0 0 6px' }}><strong>Map location:</strong></p>
@@ -2263,25 +1768,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Map Location &amp; Location Editing</p>
-              <p className="um-feature-desc">
-                The <strong>Map location</strong> section previews the actual marker icons,
-                polygon shape or image footprint, with the card's saved colors and opacity.
-                Click the preview in the live card to close details and locate it on the map;
-                unsaved edits may require confirmation. The compact preview has a neutral background.
-                Cards are shown on
-                the map — as a <strong>Point</strong>, <strong>Multi-point</strong>,{' '}
-                <strong>Polygon</strong>, or <strong>Image</strong> overlay. In edit mode it
-                also shows <strong>Edit Coordinate</strong>, <strong>Edit Polygon / Edit
-                Image</strong>, and <strong>Change location type</strong> buttons; Change
-                location type opens a menu to switch between Point, Polygon, and Image. Point and multi-point coordinates are displayed here as read-only text. Use Edit Coordinate to change them; there are no coordinate input boxes in the metadata area.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-029" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-030" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 11e. Linked Custom Layers */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-16">
               <div className="um-isolated-demo um-arcgis-demo">
                 <p style={{ margin: '0 0 6px', fontSize: '0.95rem', color: '#374151' }}><strong>Linked Custom Layers:</strong></p>
                 <ul className="learn-more-arcgis-links-list">
@@ -2302,20 +1796,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Linked Custom Layers</p>
-              <p className="um-feature-desc">
-                Cards can also link to your saved <strong>Custom Layers</strong>. Each row
-                shows a breadcrumb (Custom › folder › layer), a visibility checkbox, and a
-                <strong> ›</strong> button that jumps to the Custom Layers Panel. In edit
-                mode you can remove links with <strong>×</strong> and add new ones with{' '}
-                <strong>+ Add Custom Layer</strong>.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-031" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-032" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 12. Image Preview lightbox */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="detail-view-example-17">
               <div className="um-isolated-demo um-image-preview-demo">
                 <div style={{ position: 'relative', background: '#111', borderRadius: '6px', overflow: 'hidden', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <img src="/manual-sample-image.svg" alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
@@ -2331,14 +1819,8 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Image Preview (Lightbox)</p>
-              <p className="um-feature-desc">
-                Clicking any gallery tile opens the image in a full-screen dark lightbox.
-                Use the <strong>‹ / ›</strong> panels on the left and right edges to
-                navigate between images. The progress bar at the bottom shows your position;
-                click any segment to jump to that image. Press <strong>×</strong> in the
-                top-right corner or click the dark overlay to close the lightbox.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-033" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-034" onNavigate={navTo} /></p>
             </div>
           </div>
 
@@ -2348,52 +1830,19 @@ function UserManual() {
 
       {activeSection === 'arcgis-panel' && (
       <section className="um-section">
-        <h2>ArcGIS Upload Panel</h2>
-        <p className="um-section-desc">
-          The ArcGIS Upload Panel lets you browse and add ArcGIS REST map layers directly
-          onto the main map. Open it from the <strong>Layers</strong> button in the left
-          sidebar. Services are organized by state (WA / ID / OR), then by folder, then by
-          individual service and layer, with a built-in layers folder available alongside
-          the state folders.
-        </p>
-        <h3>Choose layers and wait for loading</h3>
-        <p>Check a service to select its leaf layers, expand it to choose individual
-          layers, or check a group to toggle its descendants together. Where a layer has
-          selectable legend entries, it remains checked while any entry is selected;
-          clearing every entry also unchecks the parent layer. Uncheck to hide layers,
-          or use Clear to remove this panel's selections. Loading messages and the map
-          spinner track pending layers; large or unavailable upstream datasets can take
-          longer to appear.</p>
-        <p>The panel normally loads its catalog from the backend and can fall back to
-          bundled data if that catalog is unavailable. Its source status indicates which
-          catalog you are browsing. Layer images and features are still requested from
-          the upstream services. Search follows the current root, state, or folder;
-          return to Root to search more broadly. Unloaded layer metadata may be fetched
-          during search, so wait for the search indicator before judging the results.</p>
-        <h3>State data sources and built-in layers</h3>
-        <ul>
-          <li><strong>Washington:</strong>
-            <a href="https://gis.ecology.wa.gov/serverext/rest/services" target="_blank" rel="noopener noreferrer"> ArcGIS source</a>.</li>
-          <li><strong>Idaho:</strong>
-            <a href="https://gis.idwr.idaho.gov/hosting/rest/services" target="_blank" rel="noopener noreferrer"> ArcGIS source</a>.</li>
-          <li><strong>Oregon:</strong>
-            <a href="https://navigator.state.or.us/arcgis/rest/services" target="_blank" rel="noopener noreferrer"> ArcGIS source</a>.</li>
-        </ul>
-        <p>Browse the current catalog for the folders and services available now. Use
-          Learn More and the service's source link to inspect metadata; manual examples
-          are not a list of current datasets.</p>
-        <p>A <strong>MapServer</strong> can provide rendered map images and queryable
-          layers; a <strong>FeatureServer</strong> provides individual vector features.
-          Available metadata and controls depend on the service. <strong>Built-in Layers</strong>
-          are separate from state services and your saved Custom Layers. Enable Hydrological
-          Boundaries or City Limits there, then click a visible feature to inspect its
-          name, identifiers, or area information.</p>
-        <p>Saving to Custom Layers and pinning for auto-load require login. Pinned items
-          are saved to your account preferences and restored when services become available;
-          unpinned checked selections are not all restored after a reload.</p>
+        <h2><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-002" onNavigate={navTo} /></p>
+        <h3><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-003" onNavigate={navTo} /></h3>
+        <p><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-004" onNavigate={navTo} /></p>
+        <p><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-005" onNavigate={navTo} /></p>
+        <h3><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-006" onNavigate={navTo} /></h3>
+        <ul><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-007" onNavigate={navTo} /></ul>
+        <p><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-008" onNavigate={navTo} /></p>
+        <p><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-009" onNavigate={navTo} /></p>
+        <p><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-010" onNavigate={navTo} /></p>
 
         {/* ---- Panel shell demo ---- */}
-        <div className="um-arcgis-panel-mock">
+        <div className="um-arcgis-panel-mock" data-manual-example="arcgis-panel-example-01">
           <div className="upload-panel-header">
             <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#223244' }}>Browse ArcGIS Services</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -2461,7 +1910,7 @@ function UserManual() {
 
           {/* 1. Opening the Panel */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-panel-example-02">
               <div className="um-isolated-demo">
                 <button type="button" className="card-toolbar-button" title="Toggle ArcGIS Layers" style={{ pointerEvents: 'none' }}>
                   <FontAwesomeIcon icon={faGrip} />
@@ -2470,18 +1919,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Opening the Panel</p>
-              <p className="um-feature-desc">
-                Click the <strong>Layers</strong> button in the left sidebar to open or close
-                the ArcGIS Upload Panel. The panel slides in from the left edge of the screen.
-                When the card panel is also open, the two panels split the left side vertically.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-011" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-012" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 2. Panel Header */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-panel-example-03">
               <div className="um-isolated-demo" style={{ minWidth: '260px', padding: 0 }}>
                 <div className="upload-panel-header" style={{ border: '1px solid #d8e1ea', borderRadius: '6px', padding: '8px 12px' }}>
                   <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#223244' }}>Browse ArcGIS Services</h3>
@@ -2492,19 +1937,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Panel Header</p>
-              <p className="um-feature-desc">
-                The header displays the panel title plus <strong>Help</strong>, <strong>Tutorial</strong>,
-                and <strong>×</strong> close buttons. Help opens the ArcGIS Upload Panel section of the
-                manual, Tutorial launches the guided onboarding flow, and closing the panel does
-                <em> not</em> remove any layers already added to the map.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-013" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-014" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 3. Search Bar */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-panel-example-04">
               <div className="um-isolated-demo" style={{ minWidth: '280px' }}>
                 <div className="upload-panel-searchbar">
                   <input type="text" defaultValue="Hydrology" readOnly />
@@ -2518,22 +1958,15 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Service Search Bar</p>
-              <p className="um-feature-desc">
-                Type a keyword and press <strong>Enter</strong> or click the search button
-                to search within the <strong>current scope</strong> shown in the panel:
-                the full root view, a single state, or the currently opened folder. Click
-                <strong> ×</strong> to clear the search and return to the normal navigation view.
-              </p>
-              <span className="um-feature-note">
-                While a search is active, a result-navigation counter appears with ▲ / ▼ arrows to jump between matches, and the panel may continue loading additional layer results in the background.
-              </span>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-015" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-016" onNavigate={navTo} /></p>
+              <span className="um-feature-note"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-017" onNavigate={navTo} /></span>
             </div>
           </div>
 
           {/* 4. Show Added Only */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-panel-example-05">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
                 <button type="button" className="clear-all-layers-btn clear-all-layers-btn--toggle is-active" style={{ pointerEvents: 'none' }}>
                   <FontAwesomeIcon icon={faEye} />
@@ -2542,18 +1975,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Show Added Only</p>
-              <p className="um-feature-desc">
-                <strong>Added</strong> (Show Added Only) is a toggle button in the action row. When active,
-                the panel expands only folders and services that currently have checked layers on
-                the map, making it easier to review or remove what is already loaded.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-018" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-019" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 5. Layer Opacity */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-panel-example-06">
               <div className="um-isolated-demo" style={{ minWidth: '240px' }}>
                 <div className="upload-panel-opacity-slider-row">
                   <label>Layer Opacity:</label>
@@ -2571,19 +2000,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Layer Opacity</p>
-              <p className="um-feature-desc">
-                The opacity slider controls the transparency of <em>all</em> ArcGIS layers
-                added to the map at once. Drag left for more transparent, right for fully
-                opaque. The current percentage is shown beside the slider and updates live
-                as you drag.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-020" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-021" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 6. Update & Clear Controls */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-panel-example-07">
               <div className="um-isolated-demo" style={{ gap: '8px' }}>
                 <button className="upload-panel-update-btn" title="Update services" style={{ pointerEvents: 'none' }}>
                   <FontAwesomeIcon icon={faSync} />
@@ -2594,22 +2018,15 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Update &amp; Clear Controls</p>
-              <p className="um-feature-desc">
-                The <strong>⟳ sync button</strong> re-fetches the services list from the
-                ArcGIS REST servers and updates the database, discovering newly published or
-                renamed services. <strong>Clear All Layers</strong> unchecks every active
-                layer and removes them all from the map in one click.
-              </p>
-              <span className="um-feature-note">
-                Updating services may take a moment; a progress message is shown while the operation runs.
-              </span>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-022" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-023" onNavigate={navTo} /></p>
+              <span className="um-feature-note"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-024" onNavigate={navTo} /></span>
             </div>
           </div>
 
           {/* 7. Service Tree Hierarchy */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-panel-example-08">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '260px', padding: 0, gap: 0 }}>
                 <div className="upload-state-folder" style={{ borderRadius: '4px 4px 0 0' }}>
                   <FontAwesomeIcon icon={faFolder} style={{ marginRight: '6px', color: '#5a7fa8' }} />
@@ -2634,21 +2051,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Service Tree Hierarchy</p>
-              <p className="um-feature-desc">
-                Services are organized in a file-explorer style hierarchy:{' '}
-                <strong>Root</strong> → <strong>State</strong> (WA, ID, OR or Built-in Layers)
-                → <strong>Folder</strong> → <strong>Service / Layer</strong>. Click a state
-                folder to enter that state, click a folder to drill into it, and use the
-                breadcrumb bar to navigate back out. Inside a folder, click a service row to
-                expand and show its individual layers.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-025" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-026" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 8. Layer Rows & Right-Click Menu */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-panel-example-09">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '12px' }}>
                 {/* Service row */}
                 <div>
@@ -2670,26 +2080,16 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Layer Rows &amp; Right-Click Menu</p>
-              <p className="um-feature-desc">
-                Each service or layer is shown as a row with a checkbox and name.
-                <strong> Right-click</strong> a service row to open a context menu:
-                <br />• <strong>Learn More</strong> — open the Service / Layer Info modal with ArcGIS REST metadata
-                <br />• <strong>Save to Custom Layers</strong> — copy the service into your Custom Layers library
-                <br />• <strong>Pin (Auto-load)</strong> — pin the item so it loads automatically every time the panel opens; right-click again and choose <strong>Unpin</strong> to remove it
-              </p>
-              <p className="um-feature-desc" style={{ marginTop: '8px' }}>
-                Right-clicking a <strong>layer</strong> row offers <strong>Learn More</strong> and <strong>Pin (Auto-load)</strong>.
-              </p>
-              <span className="um-feature-note">
-                You can also click the <strong>three-dot button</strong> on a service row (same as Learn More) to open Service info directly.
-              </span>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-027" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-028" onNavigate={navTo} /></p>
+              <p className="um-feature-desc" style={{ marginTop: '8px' }}><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-029" onNavigate={navTo} /></p>
+              <span className="um-feature-note"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-030" onNavigate={navTo} /></span>
             </div>
           </div>
 
           {/* 9. Search Result Navigation */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-panel-example-10">
               <div className="um-isolated-demo">
                 <div className="panel-nav-mini" style={{ position: 'static' }}>
                   <span className="panel-nav-mini-counter">2 / 7</span>
@@ -2703,19 +2103,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Search Result Navigation</p>
-              <p className="um-feature-desc">
-                When a search returns multiple matches, a floating counter (e.g. "2 / 7")
-                appears with <strong>▲ / ▼</strong> arrows to jump between matches. The
-                panel automatically scrolls to bring each highlighted match into view.
-                "0 results" is shown when nothing matched the keyword.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-031" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-032" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 10. Map click popup */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-panel-example-11">
               <div className="um-isolated-demo" style={{ padding: 0, minWidth: '260px', alignItems: 'stretch' }}>
                 <div className="arcgis-popup-wrapper" style={{ border: '1px solid #d0d7e2', borderRadius: '6px', overflow: 'hidden', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
                   <div className="arcgis-popup-header">
@@ -2737,21 +2132,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Map Click Popup (Layer Features)</p>
-              <p className="um-feature-desc">
-                When a visible ArcGIS layer is active on the map, clicking any feature on it
-                opens a Mapbox popup with a property table. The popup header shows the layer
-                name; the body lists all feature attributes (e.g. GNIS_NAME, geometry type,
-                length). Long descriptions are collapsed with a <strong>Show more</strong>{' '}
-                link. Multiple features can be open simultaneously — each new popup is
-                stacked offset from the previous one.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-033" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-034" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 11. Service / Layer info modal */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="arcgis-panel-example-12">
               <div className="um-isolated-demo" style={{ padding: 0, minWidth: '260px', alignItems: 'stretch' }}>
                 <div className="um-svcinfo-demo-wrapper">
                   <div className="arcgis-service-info-modal">
@@ -2798,24 +2186,9 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Service / Layer Info Modal</p>
-              <p className="um-feature-desc">
-                This modal now has a dedicated tab in the manual with complete coverage of
-                each internal feature, including service metadata, service opacity,
-                historical filters (Date Range and Timeline), Layers / Sublayers links,
-                and layer-level metadata fields.
-              </p>
-              <p className="um-feature-desc" style={{ marginTop: '8px' }}>
-                Open the detailed guide here:{' '}
-                <button
-                  type="button"
-                  className="um-inline-link"
-                  onClick={() => navTo('service-layer-info')}
-                >
-                  Service / Layer Info Modal
-                </button>
-                .
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-035" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-036" onNavigate={navTo} /></p>
+              <p className="um-feature-desc" style={{ marginTop: '8px' }}><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-037" onNavigate={navTo} /></p>
             </div>
           </div>
 
@@ -2825,19 +2198,13 @@ function UserManual() {
 
       {activeSection === 'service-layer-info' && (
       <section className="um-section um-section--service-layer-info">
-        <h2>Service / Layer Info Modal</h2>
-        <p className="um-section-desc">
-          This tab documents the floating info modal used by both the ArcGIS Upload Panel and
-          the Custom Layers Panel. The modal appears on the right side and has two variants:
-          <strong> Service info</strong> and <strong>Layer Info</strong>. The content below follows
-          the current implementation in the shared modal UI, with upload-only historical view
-          controls called out explicitly where they differ.
-        </p>
+        <h2><ManualText sectionId="service-layer-info" blockId="service-layer-info-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="service-layer-info" blockId="service-layer-info-002" onNavigate={navTo} /></p>
 
         <div className="um-feature-list">
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="service-layer-info-example-01">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
                 <div className="layer-context-menu" style={{ position: 'static', boxShadow: 'none' }}>
                   <button style={{ pointerEvents: 'none' }}>Learn More</button>
@@ -2851,18 +2218,13 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">1) Ways to Open the Modal</p>
-              <p className="um-feature-desc">
-                There are three entry paths:
-                <br />• Right-click a service or layer row and choose <strong>Learn More</strong>.
-                <br />• Click the service row <strong>three-dot Learn more button</strong>.
-                <br />• In Service info, click a <strong>Layers / Sublayers</strong> link to open Layer Info directly.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="service-layer-info" blockId="service-layer-info-003" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="service-layer-info" blockId="service-layer-info-004" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="service-layer-info-example-02">
               <div className="um-isolated-demo" style={{ padding: 0, minWidth: '280px', alignItems: 'stretch' }}>
                 <div className="arcgis-service-info-modal" style={{ position: 'static' }}>
                   <div className="arcgis-service-info-modal-header">
@@ -2877,18 +2239,13 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">2) Header, Close, Loading, and Empty States</p>
-              <p className="um-feature-desc">
-                The header title changes by mode (<strong>Service info</strong> vs <strong>Layer Info: &lt;name&gt;</strong>),
-                and the <strong>×</strong> button closes the current modal. While fetching REST metadata,
-                loading text is shown. If the endpoint returns no useful data, an empty message
-                is displayed and an endpoint link is still provided.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="service-layer-info" blockId="service-layer-info-005" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="service-layer-info" blockId="service-layer-info-006" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="service-layer-info-example-03">
               <div className="um-isolated-demo" style={{ padding: 0, minWidth: '280px', alignItems: 'stretch' }}>
                 <div className="arcgis-service-info-modal" style={{ position: 'static' }}>
                   <div className="arcgis-service-info-modal-content" style={{ pointerEvents: 'none' }}>
@@ -2901,17 +2258,13 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">3) Service Metadata Block</p>
-              <p className="um-feature-desc">
-                Service info normalizes and shows core metadata from ArcGIS REST:
-                description/serviceDescription, service item id, copyright text,
-                and spatial reference (latest WKID, WKID, or WKT fallback).
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="service-layer-info" blockId="service-layer-info-007" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="service-layer-info" blockId="service-layer-info-008" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="service-layer-info-example-04">
               <div className="um-isolated-demo" style={{ minWidth: '280px' }}>
                 <div className="arcgis-service-info-row service-info-opacity-row" style={{ width: '100%' }}>
                   <strong>Service Opacity:</strong>
@@ -2932,16 +2285,13 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">4) Per-Service Opacity Control</p>
-              <p className="um-feature-desc">
-                The <strong>Service Opacity</strong> slider adjusts map opacity only for the active
-                service key. Value is tracked per service in modal state and applied live to map layers.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="service-layer-info" blockId="service-layer-info-009" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="service-layer-info" blockId="service-layer-info-010" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="service-layer-info-example-05">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '280px', gap: '8px' }}>
                 <div className="service-info-time-tabs" style={{ pointerEvents: 'none' }}>
                   <button className="service-info-time-tab active">Date Range</button>
@@ -2960,18 +2310,13 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">5) Historical View: Date Range + Timeline</p>
-              <p className="um-feature-desc">
-                Historical View contains two tabs:
-                <br />• <strong>Date Range</strong>: select From/To dates, Apply to filter, Clear to remove.
-                <br />• <strong>Timeline</strong>: year and month sliders with draggable handles.
-                <br />When active, the modal shows a time-filter summary line with the current date span.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="service-layer-info" blockId="service-layer-info-011" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="service-layer-info" blockId="service-layer-info-012" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="service-layer-info-example-06">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'flex-start', minWidth: '280px', gap: '8px' }}>
                 <div className="arcgis-service-info-row" style={{ width: '100%' }}>
                   <strong>Layers / Sublayers:</strong>
@@ -2987,17 +2332,13 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">6) Layers / Sublayers Link Tree</p>
-              <p className="um-feature-desc">
-                Service info renders a hierarchical layer tree. Clicking a layer link opens
-                the corresponding Layer Info modal for that layer id. This is the fastest
-                path from service-level metadata to layer-level details.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="service-layer-info" blockId="service-layer-info-013" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="service-layer-info" blockId="service-layer-info-014" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="service-layer-info-example-07">
               <div className="um-isolated-demo" style={{ padding: 0, minWidth: '280px', alignItems: 'stretch' }}>
                 <div className="arcgis-service-info-modal" style={{ position: 'static' }}>
                   <div className="arcgis-service-info-modal-header">
@@ -3017,35 +2358,26 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">7) Layer Info Fields (Detailed)</p>
-              <p className="um-feature-desc">
-                Layer Info includes all available layer-level fields from REST metadata:
-                description, layer name, geometry type, copyright text,
-                min/max scale, default visibility, attachment support,
-                and fields summary (count + first few field names).
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="service-layer-info" blockId="service-layer-info-015" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="service-layer-info" blockId="service-layer-info-016" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="service-layer-info-example-08">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
                 <div style={{ fontSize: '12px', color: '#1976d2' }}>View ArcGIS Service Page →</div>
                 <div style={{ fontSize: '12px', color: '#1976d2' }}>View ArcGIS Layer Page →</div>
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">8) Endpoint Links and Data Source Verification</p>
-              <p className="um-feature-desc">
-                Both modal types provide direct links to the corresponding ArcGIS REST pages.
-                Use these links to verify source metadata, inspect native JSON responses,
-                and cross-check map behavior against upstream service/layer definitions.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="service-layer-info" blockId="service-layer-info-017" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="service-layer-info" blockId="service-layer-info-018" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="service-layer-info-example-09">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '280px', gap: '10px' }}>
                 <button
                   type="button"
@@ -3071,18 +2403,13 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">9) Save to Custom Layers Actions</p>
-              <p className="um-feature-desc">
-                Both <strong>Service info</strong> and <strong>Layer Info</strong> include a
-                <strong> Save</strong> action at the bottom. This lets you persist either the whole
-                service or the currently focused layer into <strong>Custom Layers</strong> without
-                leaving the modal.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="service-layer-info" blockId="service-layer-info-019" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="service-layer-info" blockId="service-layer-info-020" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="service-layer-info-example-10">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '280px', gap: '10px' }}>
                 <div className="arcgis-service-info-row" style={{ width: '100%' }}>
                   <strong>Legend:</strong>
@@ -3108,17 +2435,13 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">10) Legend and Layer Hierarchy Navigation</p>
-              <p className="um-feature-desc">
-                Layer Info can show a symbol legend, a clickable <strong>Parent Layer</strong> link,
-                and a scrollable list of <strong>Child Layers</strong>. These links let you move
-                through group-layer hierarchies without returning to the panel tree.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="service-layer-info" blockId="service-layer-info-021" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="service-layer-info" blockId="service-layer-info-022" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="service-layer-info-example-11">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '280px', gap: '8px' }}>
                 <select style={{ padding: '6px 8px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '13px' }} defaultValue="OBJECTID" disabled>
                   <option value="OBJECTID">OBJECTID (esriFieldTypeOID)</option>
@@ -3134,13 +2457,8 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">11) Field Filter Builder</p>
-              <p className="um-feature-desc">
-                When layer field metadata is available, Layer Info provides a field filter builder.
-                Choose a field, select an operator such as <strong>=</strong>, <strong>LIKE</strong>,
-                or <strong>IN</strong>, enter a value, then apply the generated expression directly to
-                the map layer. <strong>Clear</strong> resets the filter back to the default view.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="service-layer-info" blockId="service-layer-info-023" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="service-layer-info" blockId="service-layer-info-024" onNavigate={navTo} /></p>
             </div>
           </div>
 
@@ -3150,33 +2468,13 @@ function UserManual() {
 
       {activeSection === 'custom-layers' && (
       <section className="um-section">
-        <h2>Custom Layers Panel</h2>
-        <p className="um-section-desc">
-          The Custom Layers Panel is your personal library of saved map layers. Add ArcGIS
-          services here from the ArcGIS Upload Panel, or upload your own GeoJSON, KML, and
-          Shapefile (.zip) files directly. Organize layers into folders, reorder them by
-          dragging, and pin items to auto-load every time you open the panel. Login is
-          required to use this panel.
-        </p>
-        <p>Check a saved service to display its layers, or expand it and select individual
-          layers or groups. Unchecking a layer hides it without deleting it from your
-          library; Clear removes the panel's displayed layers. Removing a service from
-          Custom Layers deletes your saved entry and unloads it. Search follows the
-          current folder scope; return to Root to search the entire library, then use
-          Previous/Next for matches.
-          Folder names can use paths such as Hydrology/Rivers for nested organization.
-          Custom Layers auto-load pins are remembered in this browser. Your saved layer
-          library and its folder/order changes are stored in your account; ArcGIS Upload
-          pins use separate account preferences.</p>
-        <p className="um-section-desc">
-          You can also save a StreamStats basin from the <button type="button" className="um-nav-item" onClick={() => navTo('watershed-panel')}>Watershed Panel</button>.
-          Choose <strong>Save as custom layer</strong> there to store the complete basin in
-          <strong> Root</strong>, regardless of the folder currently open here. The list refreshes after
-          saving; expand the saved layer and enable it to display it on the map.
-        </p>
+        <h2><ManualText sectionId="custom-layers" blockId="custom-layers-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="custom-layers" blockId="custom-layers-002" onNavigate={navTo} /></p>
+        <p><ManualText sectionId="custom-layers" blockId="custom-layers-003" onNavigate={navTo} /></p>
+        <p className="um-section-desc"><ManualText sectionId="custom-layers" blockId="custom-layers-004" onNavigate={navTo} /></p>
 
         {/* ---- Panel shell demo ---- */}
-        <div className="um-arcgis-panel-mock">
+        <div className="um-arcgis-panel-mock" data-manual-example="custom-layers-example-01">
           <div className="custom-layers-panel-header" style={{ padding: '2px 12px', borderBottom: '1px solid #d8e1ea' }}>
             <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#223244', flex: 1 }}>Custom Layers</h3>
             <button className="custom-layers-panel-close-btn custom-layers-panel-close-btn--help" style={{ pointerEvents: 'none' }}>
@@ -3227,7 +2525,7 @@ function UserManual() {
 
           {/* 1. Opening the Panel */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="custom-layers-example-02">
               <div className="um-isolated-demo">
                 <button type="button" className="card-toolbar-button" title="Custom Layers" style={{ pointerEvents: 'none' }}>
                   <FontAwesomeIcon icon={faFolderPlus} />
@@ -3236,19 +2534,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Opening the Panel</p>
-              <p className="um-feature-desc">
-                Click the <strong>Custom Layers</strong> button in the left sidebar to open
-                or close the panel. You must be logged in; a login prompt appears otherwise.
-                Opening it from the sidebar closes the ArcGIS Upload Panel. When Project
-                Cards is docked on the left, it shares that side with Custom Layers vertically.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="custom-layers" blockId="custom-layers-005" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="custom-layers" blockId="custom-layers-006" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 2. Panel Header */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="custom-layers-example-03">
               <div className="um-isolated-demo" style={{ padding: 0, minWidth: '260px' }}>
                 <div className="custom-layers-panel-header" style={{ border: '1px solid #d8e1ea', borderRadius: '6px', padding: '8px 12px' }}>
                   <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#223244', flex: 1 }}>Custom Layers</h3>
@@ -3265,22 +2558,15 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Panel Header</p>
-              <p className="um-feature-desc">
-                The header shows the panel title plus <strong>Help</strong>, <strong>Tutorial</strong>,
-                and <strong>×</strong> close buttons. Help opens the manual, Tutorial starts the
-                guided walkthrough, and closing the panel does not remove layers already added
-                to the map.
-              </p>
-              <span className="um-feature-note">
-                The compact <strong>Folder</strong> and <strong>Upload</strong> buttons sit below the opacity slider, beside <strong>Added</strong> and <strong>Clear</strong>. Hover for full action labels.
-              </span>
+              <p className="um-feature-title"><ManualText sectionId="custom-layers" blockId="custom-layers-007" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="custom-layers" blockId="custom-layers-008" onNavigate={navTo} /></p>
+              <span className="um-feature-note"><ManualText sectionId="custom-layers" blockId="custom-layers-009" onNavigate={navTo} /></span>
             </div>
           </div>
 
           {/* 3. Search Bar */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="custom-layers-example-04">
               <div className="um-isolated-demo" style={{ minWidth: '280px' }}>
                 <div className="upload-panel-searchbar">
                   <input type="text" defaultValue="streams" readOnly />
@@ -3294,19 +2580,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Search Bar</p>
-              <p className="um-feature-desc">
-                Search across all your custom folders, services, and layers within the
-                current scope. Press <strong>Enter</strong> or use the search button to run
-                the query, and use the clear button to reset back to the full list. Navigation
-                arrows appear when there are multiple matches.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="custom-layers" blockId="custom-layers-010" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="custom-layers" blockId="custom-layers-011" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 4. Layer Opacity */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="custom-layers-example-05">
               <div className="um-isolated-demo" style={{ minWidth: '240px' }}>
                 <div className="upload-panel-opacity-slider-row">
                   <label>Layer Opacity:</label>
@@ -3324,17 +2605,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Layer Opacity</p>
-              <p className="um-feature-desc">
-                Drag the slider to adjust the transparency of all custom layers on the map
-                simultaneously. The percentage updates live as you drag.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="custom-layers" blockId="custom-layers-012" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="custom-layers" blockId="custom-layers-013" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 5. Show Added / Clear All */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="custom-layers-example-06">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
                 <button type="button" className="clear-all-layers-btn custom-layers-panel-new-folder-btn" style={{ pointerEvents: 'none' }}>
                   <FontAwesomeIcon icon={faFolderPlus} />
@@ -3354,20 +2632,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Folder, Upload, Added &amp; Clear</p>
-              <p className="um-feature-desc">
-                The compact action row groups <strong>Folder</strong>, <strong>Upload</strong>,{' '}
-                <strong>Added</strong>, and <strong>Clear</strong> in one place. Hover buttons for their full labels.
-                Upload File imports a GeoJSON, KML, or Shapefile (.zip) file as a new layer.
-                Show Added Only collapses the list to services with at least one active layer,
-                while Clear All removes all checked layers from the map in one click.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="custom-layers" blockId="custom-layers-014" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="custom-layers" blockId="custom-layers-015" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 6. Folder Structure */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="custom-layers-example-07">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '260px', padding: 0, gap: 0 }}>
                 <div className="custom-layers-folder" style={{ borderRadius: '4px 4px 0 0' }}>
                   <FontAwesomeIcon icon={faFolder} style={{ color: '#5a7fa8', fontSize: '12px' }} />
@@ -3386,19 +2658,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Folder Structure</p>
-              <p className="um-feature-desc">
-                Services are grouped inside user-created folders. Click a folder to navigate
-                into it (file-explorer style). A breadcrumb bar at the top shows your
-                current path and lets you navigate back. Folders can be nested inside other
-                folders by dragging one folder onto another.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="custom-layers" blockId="custom-layers-016" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="custom-layers" blockId="custom-layers-017" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 7. Drag-and-Drop Reordering */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="custom-layers-example-08">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '260px', padding: 0, gap: '3px' }}>
                 <div className="custom-layers-item" style={{ background: '#e3eef9', borderRadius: '4px', cursor: 'grab' }}>
                   <span style={{ fontSize: '11px', color: '#5c6f82', marginRight: '6px' }}>⠿</span>
@@ -3418,19 +2685,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Drag-and-Drop Reordering</p>
-              <p className="um-feature-desc">
-                Drag any service row to reorder it within its folder. Drag a service onto a
-                folder header to move it into that folder. Drag a folder onto another folder
-                to nest it. Drag a layer row (when a service is expanded) to reorder layers
-                within that service. All changes are saved to the database automatically.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="custom-layers" blockId="custom-layers-018" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="custom-layers" blockId="custom-layers-019" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 8. Right-Click Menu */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="custom-layers-example-09">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '12px' }}>
                 <div>
                   <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#5c6f82', fontWeight: 600 }}>Right-click a service:</p>
@@ -3458,21 +2720,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Right-Click Menu</p>
-              <p className="um-feature-desc">
-                Right-click any row to open a context menu:
-                <br />• <strong>Rename</strong> — rename a service or folder
-                <br />• <strong>Learn More</strong> — view metadata from the ArcGIS REST endpoint
-                <br />• <strong>Remove from Custom Layers</strong> — permanently delete the service from your library and unload it from the map
-                <br />• <strong>Delete Folder</strong> — delete the folder (services inside are moved to Root)
-                <br />• <strong>Pin (Auto-load)</strong> — auto-load the item every time the panel opens; right-click again to Unpin
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="custom-layers" blockId="custom-layers-020" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="custom-layers" blockId="custom-layers-021" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 9. Adding Layers from Upload Panel */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="custom-layers-example-10">
               <div className="um-isolated-demo">
                 <div className="layer-context-menu" style={{ position: 'static', boxShadow: 'none' }}>
                   <button style={{ pointerEvents: 'none' }}>Rename</button>
@@ -3483,17 +2738,9 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Adding Layers from the Upload Panel</p>
-              <p className="um-feature-desc">
-                In the ArcGIS Upload Panel, you can save content into Custom Layers either by
-                right-clicking a service row or by using the <strong>Save</strong> button at the
-                bottom of the Service Info or Layer Info modal. This copies the service or layer
-                into your Custom Layers library where you can organize it into folders and reorder
-                it at will. The original item in the Upload Panel is unaffected.
-              </p>
-              <span className="um-feature-note">
-                You must be logged in to save layers. A login prompt will appear if you are not.
-              </span>
+              <p className="um-feature-title"><ManualText sectionId="custom-layers" blockId="custom-layers-022" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="custom-layers" blockId="custom-layers-023" onNavigate={navTo} /></p>
+              <span className="um-feature-note"><ManualText sectionId="custom-layers" blockId="custom-layers-024" onNavigate={navTo} /></span>
             </div>
           </div>
 
@@ -3503,102 +2750,41 @@ function UserManual() {
 
       {activeSection === 'watershed-panel' && (
       <section className="um-section">
-        <h2>Watershed Panel</h2>
-        <p className="um-section-desc">
-          Open <strong>Watershed Delineation</strong> with the water-waves button in the left sidebar.
-          This panel uses USGS StreamStats to display river channels and compute the upstream basin
-          draining to a selected pour point. Use <strong>Help</strong> (?) to open this chapter or
-          <strong> Tutorial</strong> (play) for a guided walkthrough. The tutorial explains the save
-          controls even before a basin is available; it does not delineate or save anything for you.
-        </p>
+        <h2><ManualText sectionId="watershed-panel" blockId="watershed-panel-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="watershed-panel" blockId="watershed-panel-002" onNavigate={navTo} /></p>
 
-        <h3>1. Choose a state and display rivers</h3>
-        <p>
-          Select <strong>Washington (WA)</strong>, <strong>Idaho (ID)</strong>, or <strong>Oregon (OR)</strong>
-          for the location you want to delineate. Rivers are hidden by default. Check
-          <strong> Show StreamStats rivers</strong> to display the selected state’s river channels;
-          uncheck it to hide them. Changing the state updates the river overlay but does not recompute
-          an existing basin.
-        </p>
-        <ul>
-          <li>For WA and OR, zoom to level <strong>12 or closer</strong>; for ID, use <strong>13 or closer</strong>.</li>
-          <li>Look within the selected state. At a wider map view the river layer may be enabled but not visible.</li>
-          <li>Closing and reopening the panel or changing basemaps retains the river visibility setting during the session.</li>
-        </ul>
+        <h3><ManualText sectionId="watershed-panel" blockId="watershed-panel-003" onNavigate={navTo} /></h3>
+        <p><ManualText sectionId="watershed-panel" blockId="watershed-panel-004" onNavigate={navTo} /></p>
+        <ul><ManualText sectionId="watershed-panel" blockId="watershed-panel-005" onNavigate={navTo} /></ul>
 
-        <h3>2. Delineate and review a basin</h3>
-        <ol>
-          <li>Zoom to at least level 12, then choose <strong>Select point on map</strong>. The cursor becomes a crosshair.</li>
-          <li>Click a river channel in the selected state. StreamStats snaps the point to its stream grid and computes the upstream basin.</li>
-          <li>Wait for the response. On success, the map zooms to the yellow basin and displays the returned pour point. The panel shows result details and the save controls.</li>
-        </ol>
-        <p>
-          <strong>Cancel point selection</strong> exits picking mode. During a request,
-          <strong> Cancel</strong> stops waiting for the result. Requests may take up to two minutes
-          before timing out. If a request fails or no watershed is returned, check the state,
-          zoom in, and try a point closer to a stream channel.
-        </p>
+        <h3><ManualText sectionId="watershed-panel" blockId="watershed-panel-006" onNavigate={navTo} /></h3>
+        <ol><ManualText sectionId="watershed-panel" blockId="watershed-panel-007" onNavigate={navTo} /></ol>
+        <p><ManualText sectionId="watershed-panel" blockId="watershed-panel-008" onNavigate={navTo} /></p>
 
-        <h3>3. Save as custom layer</h3>
-        <ol>
-          <li>Log in and wait until the basin is displayed.</li>
-          <li>Enter a <strong>Basin name</strong>, then choose <strong>Save as custom layer</strong>.</li>
-          <li>Wait for the confirmation that the layer was saved to <strong>Custom Layers / Root</strong>.</li>
-          <li>Open Custom Layers, navigate to Root, and enable the saved layer to show it. You can manage it using the existing custom-layer controls.</li>
-        </ol>
-        <p>
-          This saves the complete basin GeoJSON, including separate polygon parts and interior holes,
-          to your personal layer library. Root is used even if another folder is currently open.
-          The list refreshes after a successful save. If saving fails, the basin remains available
-          so you can retry. Saving a custom layer does not create a card.
-        </p>
+        <h3><ManualText sectionId="watershed-panel" blockId="watershed-panel-009" onNavigate={navTo} /></h3>
+        <ol><ManualText sectionId="watershed-panel" blockId="watershed-panel-010" onNavigate={navTo} /></ol>
+        <p><ManualText sectionId="watershed-panel" blockId="watershed-panel-011" onNavigate={navTo} /></p>
         <button type="button" className="um-nav-item" onClick={() => navTo('custom-layers')}>Read about Custom Layers</button>
 
-        <h3>4. Save as polygon for a card</h3>
-        <ol>
-          <li>Log in and choose <strong>Save as polygon</strong> after the basin is displayed.</li>
-          <li><strong>Edit Polygon</strong> opens with the basin boundary already loaded. Adjust its vertices and styling as needed.</li>
-          <li>Save the edited shape to continue to the existing card creation form, with the polygon representation prefilled.</li>
-          <li>Complete the required card fields and submit the form to save the card.</li>
-        </ol>
-        <p>
-          Opening or cancelling Edit Polygon does not create a card. Separate polygon components are
-          supported. The existing editor does <strong>not support interior holes</strong>: for a basin
-          with holes, the panel asks you to use <strong>Save as custom layer</strong> so the complete
-          geometry is preserved.
-        </p>
+        <h3><ManualText sectionId="watershed-panel" blockId="watershed-panel-012" onNavigate={navTo} /></h3>
+        <ol><ManualText sectionId="watershed-panel" blockId="watershed-panel-013" onNavigate={navTo} /></ol>
+        <p><ManualText sectionId="watershed-panel" blockId="watershed-panel-014" onNavigate={navTo} /></p>
         <button type="button" className="um-nav-item" onClick={() => navTo('add-card')}>Read about the Card Creation Form</button>
 
-        <h3>5. Clear results and troubleshoot</h3>
-        <p>
-          <strong>Clear result from map</strong> removes only the temporary basin and pour point.
-          It does not hide the StreamStats rivers, delete a saved custom layer, or delete a card.
-          Uncheck the river checkbox to hide rivers; manage saved layers and cards in their own panels.
-        </p>
-        <p>
-          If rivers fail to load, check the state and zoom level, then toggle rivers off and on.
-          A service error can prevent the river image from loading even when a network request reports
-          success. If it persists, try again later. River loading errors and basin delineation errors
-          are shown separately. Both save options require login; signing in does not automatically save a basin.
-        </p>
+        <h3><ManualText sectionId="watershed-panel" blockId="watershed-panel-015" onNavigate={navTo} /></h3>
+        <p><ManualText sectionId="watershed-panel" blockId="watershed-panel-016" onNavigate={navTo} /></p>
+        <p><ManualText sectionId="watershed-panel" blockId="watershed-panel-017" onNavigate={navTo} /></p>
       </section>
       )}
 
       {activeSection === 'basemap-panel' && (
       <section className="um-section">
-        <h2>Basemap Panel</h2>
-        <p className="um-section-desc">
-          The Basemap Panel lets you switch between Mapbox styles and free public basemaps directly from the
-          map view. Click the map icon on the left sidebar to open or close it. Switching
-          styles preserves all custom ArcGIS layers, the current camera position, zoom,
-          bearing, and pitch. You can also search styles by label or description.
-        </p>
-        <p>Your basemap choice is saved with your display preferences: in this browser
-          while logged out, and synced with your account after login when the preference
-          service is available.</p>
+        <h2><ManualText sectionId="basemap-panel" blockId="basemap-panel-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="basemap-panel" blockId="basemap-panel-002" onNavigate={navTo} /></p>
+        <p><ManualText sectionId="basemap-panel" blockId="basemap-panel-003" onNavigate={navTo} /></p>
 
         {/* ---- Overview demo ---- */}
-        <div className="um-basemap-demo-wrapper">
+        <div className="um-basemap-demo-wrapper" data-manual-example="basemap-panel-example-01">
           <div className="basemap-switcher-header">
             <span className="basemap-switcher-title">Map Style</span>
             <button className="basemap-switcher-close" style={{ pointerEvents: 'none' }}>✕</button>
@@ -3638,7 +2824,7 @@ function UserManual() {
 
           {/* 1. Opening */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="basemap-panel-example-02">
               <div className="um-isolated-demo">
                 <button
                   type="button"
@@ -3655,18 +2841,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Opening the Panel</p>
-              <p className="um-feature-desc">
-                Click the <strong>map icon</strong> on the left sidebar to toggle the
-                Basemap Panel. Click it again, or press the <strong>✕</strong> in the panel
-                header, to close it.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="basemap-panel" blockId="basemap-panel-004" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="basemap-panel" blockId="basemap-panel-005" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 2. Available styles */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="basemap-panel-example-03">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 0, padding: 0, minWidth: '240px' }}>
                 {[
                   { label: 'Streets',  bg: '#c8d8e8' },
@@ -3681,24 +2863,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Available Built-in Styles</p>
-              <p className="um-feature-desc">
-                The panel lists eight Mapbox styles:{' '}
-                <em>Satellite (Imagery)</em>, <em>Satellite + Streets</em>, <em>Navigation Day</em>,{' '}
-                <em>Navigation Night</em>, <em>Outdoors</em>, <em>Streets</em>, <em>Light</em>, and <em>Dark</em>.
-                It also offers <em>OpenStreetMap</em>, <em>USGS Topographic</em>,
-                <em> USGS Aerial Imagery</em> and <em>USGS Shaded Relief</em>, without an extra API key.
-                OpenStreetMap covers worldwide streets; USGS maps focus on the U.S., with
-                imagery detail varying by location. Shaded Relief is a broad overview and
-                does not gain detail past zoom 7. Public tile availability is best effort.
-                Each entry shows a preview, style name, and short description.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="basemap-panel" blockId="basemap-panel-006" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="basemap-panel" blockId="basemap-panel-007" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 3. Search map styles */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="basemap-panel-example-04">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '260px', gap: '8px' }}>
                 <div className="upload-panel-searchbar" style={{ pointerEvents: 'none' }}>
                   <input type="text" readOnly defaultValue="satellite" />
@@ -3712,17 +2884,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Search Styles</p>
-              <p className="um-feature-desc">
-                Enter a keyword and press <strong>Enter</strong> or click Search to filter
-                styles by both title and description. Click Clear to reset the full list.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="basemap-panel" blockId="basemap-panel-008" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="basemap-panel" blockId="basemap-panel-009" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 4. Active selection */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="basemap-panel-example-05">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 0, padding: 0, minWidth: '240px' }}>
                 <div className="basemap-switcher-item" style={{ pointerEvents: 'none', opacity: 0.55 }}>
                   <div style={{ width: '72px', height: '48px', borderRadius: '4px', border: '1px solid #ddd', background: '#c8d8e8', flexShrink: 0 }} />
@@ -3739,18 +2908,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Active Style Indicator</p>
-              <p className="um-feature-desc">
-                The currently active style is highlighted with a light-blue background and a
-                blue left border. Clicking any other style immediately applies it to the map
-                without a page reload.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="basemap-panel" blockId="basemap-panel-010" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="basemap-panel" blockId="basemap-panel-011" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 4. Layer & state preservation */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="basemap-panel-example-06">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', gap: '8px', minWidth: '190px' }}>
                 {[
                   'ArcGIS layers preserved',
@@ -3765,12 +2930,8 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Layer &amp; State Preservation</p>
-              <p className="um-feature-desc">
-                When you switch styles, the map automatically saves your camera position
-                (center, zoom, bearing, pitch) and all active custom ArcGIS layers, then
-                restores them once the new style finishes loading.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="basemap-panel" blockId="basemap-panel-012" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="basemap-panel" blockId="basemap-panel-013" onNavigate={navTo} /></p>
             </div>
           </div>
 
@@ -3780,17 +2941,8 @@ function UserManual() {
 
       {activeSection === 'map-controls' && (
       <section className="um-section">
-        <h2>Map Controls</h2>
-        <p className="um-section-desc">
-          The map canvas has two groups of controls: a vertical stack in the
-          <strong> top-left</strong> and a vertical stack in the <strong>top-right</strong>.
-          Together they provide search, fullscreen, zoom, compass, location, drawing, card
-          creation shortcuts, a draggable z-axis zoom control, and utility tools. View/navigation controls are available to
-          everyone; card-creation shortcuts require login. Compact square buttons sit in
-          continuous 32px-wide toolbars, 6px from the map edge. The search bar and zoom axis
-          use the same slate colors and soft shadow. Bottom-left center, zoom and mouse
-          coordinates use a compact two-line readout.
-        </p>
+        <h2><ManualText sectionId="map-controls" blockId="map-controls-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="map-controls" blockId="map-controls-002" onNavigate={navTo} /></p>
 
         {/* ---- overview layout ---- */}
         <div className="um-mapctrl-overview">
@@ -3840,7 +2992,7 @@ function UserManual() {
 
           {/* 1. Geocoder search */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="map-controls-example-01">
               <div className="um-isolated-demo">
                 <div className="um-mapctrl-geocoder-mock" style={{ minWidth: '220px' }}>
                   <FontAwesomeIcon icon={faSearch} style={{ color: '#aaa', marginRight: 6 }} />
@@ -3849,18 +3001,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Search / Geocoder</p>
-              <p className="um-feature-desc">
-                Type an address, place name, or <em>lat, lng</em> coordinates to fly the map
-                to that location. Results are highlighted with a green marker. After selecting
-                a result the visible card list is filtered to the new viewport bounds.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="map-controls" blockId="map-controls-003" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="map-controls" blockId="map-controls-004" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 2. Fullscreen */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="map-controls-example-02">
               <div className="um-isolated-demo" style={{ gap: '6px' }}>
                 <div className="um-mapctrl-group">
                   <button className="um-mapctrl-btn" style={{ pointerEvents: 'none' }} title="Enter Fullscreen">
@@ -3876,17 +3024,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Fullscreen Toggle</p>
-              <p className="um-feature-desc">
-                Click the expand icon to enter browser fullscreen mode; the icon changes to
-                a compress icon. Click again (or press <kbd>Esc</kbd>) to exit.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="map-controls" blockId="map-controls-005" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="map-controls" blockId="map-controls-006" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 3. Zoom & compass */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="map-controls-example-03">
               <div className="um-isolated-demo">
                 <div className="um-mapctrl-group" style={{ pointerEvents: 'none' }}>
                   <button className="um-mapctrl-btn" title="Zoom In"><strong>+</strong></button>
@@ -3898,18 +3043,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Zoom In / Out &amp; Compass</p>
-              <p className="um-feature-desc">
-                <strong>+</strong> and <strong>−</strong> adjust the map zoom level. The
-                compass/rotate button resets the map bearing to north when you have panned
-                the rotation. You can also scroll the mouse wheel to zoom or drag to rotate.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="map-controls" blockId="map-controls-007" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="map-controls" blockId="map-controls-008" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 4. Geolocate */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="map-controls-example-04">
               <div className="um-isolated-demo">
                 <div className="um-mapctrl-group" style={{ pointerEvents: 'none' }}>
                   <button className="um-mapctrl-btn" title="Geolocate">
@@ -3919,18 +3060,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Geolocate (Current Location)</p>
-              <p className="um-feature-desc">
-                Click to fly to your current GPS position and optionally track it. Your
-                heading is shown as an arrow when the device supports it. Requires browser
-                location permission.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="map-controls" blockId="map-controls-009" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="map-controls" blockId="map-controls-010" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 5. Add cards from map */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="map-controls-example-05">
               <div className="um-isolated-demo">
                 <div className="um-mapctrl-group" style={{ pointerEvents: 'none' }}>
                   <button className="um-mapctrl-btn" title="Add cards from map">
@@ -3940,34 +3077,15 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Add Cards from Map (Collapsible Menu)</p>
-              <p className="um-feature-desc">
-                The <strong>pencil</strong> button opens <strong>Coordinate</strong>,
-                <strong> Polygon</strong> and <strong>Image</strong>. The menu and their
-                Add Points, Draw Polygon and Place Image editors sit immediately left of
-                the toolbar. All three editors share the same header, tool and action styling.
-              </p>
-              <p className="um-feature-desc" style={{ marginTop: '8px' }}>
-                See each dedicated tab for details:{' '}
-                <button type="button" className="um-inline-link" onClick={() => navTo('add-single-point')}>
-                  Add Points / Coordinates
-                </button>
-                ,{' '}
-                <button type="button" className="um-inline-link" onClick={() => navTo('polygon-tools')}>
-                  Polygon Tools
-                </button>
-                ,{' '}
-                <button type="button" className="um-inline-link" onClick={() => navTo('add-png')}>
-                  Add PNG
-                </button>
-                .
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="map-controls" blockId="map-controls-011" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="map-controls" blockId="map-controls-012" onNavigate={navTo} /></p>
+              <p className="um-feature-desc" style={{ marginTop: '8px' }}><ManualText sectionId="map-controls" blockId="map-controls-013" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 5b. Z-axis */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="map-controls-example-06">
               <div className="um-isolated-demo">
                 <div className="um-mapctrl-zaxis" aria-hidden="true">
                   <div className="um-mapctrl-zaxis__scale">
@@ -3979,18 +3097,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Z-Axis Zoom Slider</p>
-              <p className="um-feature-desc">
-                The custom vertical z-axis shows the current map zoom level in real time.
-                Drag the pointer up or down to change zoom directly, or click along the axis
-                for a quick jump to a new zoom level.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="map-controls" blockId="map-controls-014" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="map-controls" blockId="map-controls-015" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 6. Toggle markers */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="map-controls-example-07">
               <div className="um-isolated-demo" style={{ gap: '10px' }}>
                 <div className="um-mapctrl-group" style={{ pointerEvents: 'none' }}>
                   <button className="um-mapctrl-btn" title="Markers visible (active)">
@@ -4006,18 +3120,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Toggle Markers &amp; Polygons Visibility</p>
-              <p className="um-feature-desc">
-                Click the eye icon to hide all card markers and polygon overlays on the map.
-                Click again to show them. The icon dims when markers are hidden.
-                This is useful for viewing the base map or ArcGIS layers without clutter.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="map-controls" blockId="map-controls-016" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="map-controls" blockId="map-controls-017" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 7. Reset view */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="map-controls-example-08">
               <div className="um-isolated-demo">
                 <div className="um-mapctrl-group" style={{ pointerEvents: 'none' }}>
                   <button className="um-mapctrl-btn" title="Reset Map View">
@@ -4027,17 +3137,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Reset Map View</p>
-              <p className="um-feature-desc">
-                The inward-arrow icon flies the map back to the default Pacific Northwest overview (centered near
-                Washington State, zoom&nbsp;5.5). Useful after panning or zooming far away.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="map-controls" blockId="map-controls-018" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="map-controls" blockId="map-controls-019" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 8. Screenshot */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="map-controls-example-09">
               <div className="um-isolated-demo">
                 <div className="um-mapctrl-group" style={{ pointerEvents: 'none' }}>
                   <button className="um-mapctrl-btn" title="Screenshot Map">
@@ -4047,11 +3154,8 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Screenshot Map</p>
-              <p className="um-feature-desc">
-                Captures the current map canvas (excluding control overlays) as a PNG and
-                downloads it automatically. File name includes a timestamp.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="map-controls" blockId="map-controls-020" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="map-controls" blockId="map-controls-021" onNavigate={navTo} /></p>
             </div>
           </div>
 
@@ -4061,16 +3165,12 @@ function UserManual() {
 
       {activeSection === 'add-single-point' && (
       <section className="um-section">
-        <h2>Add Points / Coordinates</h2>
-        <p className="um-section-desc">
-          Use <strong>Add Cards from Map</strong> in the top-right toolbar, then select
-          <strong> Coordinate</strong>. The Add Points editor opens beside the map toolbar.
-          Add one or several points, edit each row's latitude and longitude, and choose its marker icon.
-        </p>
+        <h2><ManualText sectionId="add-single-point" blockId="add-single-point-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="add-single-point" blockId="add-single-point-002" onNavigate={navTo} /></p>
 
         <div className="um-feature-list">
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-single-point-example-01">
               <div className="um-isolated-demo">
                 <div className="um-mapctrl-group" style={{ pointerEvents: 'none' }}>
                   <button className="um-mapctrl-btn" title="Add cards from map"><FontAwesomeIcon icon={faPenToSquare} /></button>
@@ -4082,46 +3182,34 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Step 1: Start the Shortcut</p>
-              <p className="um-feature-desc">
-                Click the pencil-shaped <strong>Add Card from Map</strong> button, then choose{' '}
-                <strong>Coordinate</strong>. Add Points opens directly to the left of the toolbar.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-single-point" blockId="add-single-point-003" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-single-point" blockId="add-single-point-004" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-single-point-example-02">
               <div className="um-isolated-demo" style={{ gap: '8px' }}>
                 <input className="polygon-draw-vertex-input" aria-label="Example latitude" readOnly value="47.612300" />
                 <input className="polygon-draw-vertex-input" aria-label="Example longitude" readOnly value="-122.335500" />
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Step 2: Add and Refine Points</p>
-              <p className="um-feature-desc">
-                Use the plus tool and click the map to add points. Edit coordinates in the numbered rows,
-                change icons, or remove individual points. New markers have a dark outline and translucent gray fill;
-                saved custom colors are preserved. The toolbar provides color, opacity, move, rotate, scale,
-                undo, redo, and clear controls. Unavailable actions are disabled.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-single-point" blockId="add-single-point-005" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-single-point" blockId="add-single-point-006" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-single-point-example-03">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>
                 <span style={{ fontSize: '12px', color: '#3f536a' }}>Result after Save:</span>
                 <span style={{ fontSize: '12px', color: '#1f7a45', fontWeight: 600 }}>Point locations are transferred to the creation form</span>
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Step 3: Complete Card Data</p>
-              <p className="um-feature-desc">
-                Click Save to transfer points into the Card Creation form, then fill title, category, description,
-                links, images, files, and optional ArcGIS links. Submit to create a point-based
-                card marker on the map. Saving points alone does not create a card. Cancel leaves the map editor without applying changes.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-single-point" blockId="add-single-point-007" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-single-point" blockId="add-single-point-008" onNavigate={navTo} /></p>
             </div>
           </div>
         </div>
@@ -4130,15 +3218,12 @@ function UserManual() {
 
       {activeSection === 'add-png' && (
       <section className="um-section">
-        <h2>Add Image Overlay</h2>
-        <p className="um-section-desc">
-          Use <strong>Add Cards from Map</strong> in the top-right toolbar, then choose
-          <strong> image</strong> to select an image file and place it on the map.
-        </p>
+        <h2><ManualText sectionId="add-png" blockId="add-png-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="add-png" blockId="add-png-002" onNavigate={navTo} /></p>
 
         <div className="um-feature-list">
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-png-example-01">
               <div className="um-isolated-demo">
                 <div className="um-mapctrl-group" style={{ pointerEvents: 'none' }}>
                   <button className="um-mapctrl-btn" title="Add cards from map"><FontAwesomeIcon icon={faPenToSquare} /></button>
@@ -4150,16 +3235,13 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Step 1: Select Image File</p>
-              <p className="um-feature-desc">
-                Click the pencil-shaped <strong>Add Card from Map</strong> button, then choose <strong>Image</strong>.
-                Select an image file (PNG, JPG/JPEG, GIF, or WebP) from your device to enter overlay placement mode.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-png" blockId="add-png-003" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-png" blockId="add-png-004" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-png-example-02">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '250px', gap: '8px', pointerEvents: 'none' }}>
                 <div className="polygon-draw-modal" style={{ position: 'static', top: 'auto', right: 'auto', width: '100%', maxHeight: 'none' }}>
                   <div className="polygon-draw-modal-header">
@@ -4227,41 +3309,23 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Step 2: Place and Edit Overlay</p>
-              <p className="um-feature-desc">
-                After file selection, the <strong>Place Image</strong> modal appears. The header
-                hint starts as <strong>"Click and drag on the map to place the image"</strong>,
-                then changes based on mode (move/rotate/resize). Position the image and adjust
-                with toolbar controls until alignment is correct.
-              </p>
-              <p className="um-feature-desc" style={{ marginTop: '8px' }}>
-                The same toolbar also includes <strong>Undo</strong>, <strong>Redo</strong>, and
-                <strong> Clear All (delete)</strong> so you can revert recent edits or reset
-                placement quickly.
-              </p>
-              <p className="um-feature-desc" style={{ marginTop: '8px' }}>
-                <strong>Save</strong> is enabled after valid placement (4 corners). Click
-                <strong> Cancel</strong> to exit placement without applying changes.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-png" blockId="add-png-005" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-png" blockId="add-png-006" onNavigate={navTo} /></p>
+              <p className="um-feature-desc" style={{ marginTop: '8px' }}><ManualText sectionId="add-png" blockId="add-png-007" onNavigate={navTo} /></p>
+              <p className="um-feature-desc" style={{ marginTop: '8px' }}><ManualText sectionId="add-png" blockId="add-png-008" onNavigate={navTo} /></p>
             </div>
           </div>
 
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="add-png-example-03">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>
                 <span style={{ fontSize: '12px', color: '#3f536a' }}>Saved data:</span>
                 <span style={{ fontSize: '12px', color: '#1f7a45', fontWeight: 600 }}>4 corner vertices + overlay image</span>
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Step 3: Continue in Image Overlay Mode</p>
-              <p className="um-feature-desc">
-                After saving placement, Card Creation opens in <strong>Image Overlay</strong>
-                mode and shows summary like <strong>"Image placement saved: 4 corners"</strong>.
-                The overlay image is used as card map
-                representation, while additional uploaded images are optional Learn More gallery
-                images.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="add-png" blockId="add-png-009" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="add-png" blockId="add-png-010" onNavigate={navTo} /></p>
             </div>
           </div>
         </div>
@@ -4270,23 +3334,12 @@ function UserManual() {
 
       {activeSection === 'polygon-tools' && (
       <section className="um-section">
-        <h2>Polygon Tools</h2>
-        <p className="um-section-desc">
-          Polygon Tools appears after choosing <strong>Polygon Tools</strong> from
-          <strong> Add Cards from Map</strong> in the top-right control group. It lets you place
-          vertices by clicking the map, then
-          style, transform, and save the shape, then complete the card creation form
-          to use it as the card’s polygon representation.
-        </p>
-        <p className="um-section-desc">
-          To start with a delineated basin, open the <button type="button" className="um-nav-item" onClick={() => navTo('watershed-panel')}>Watershed Panel</button>
-          and choose <strong>Save as polygon</strong>. Edit Polygon loads the basin boundary for editing,
-          then continues through the same card creation flow. Basins with interior holes must be
-          saved as custom layers to preserve their geometry.
-        </p>
+        <h2><ManualText sectionId="polygon-tools" blockId="polygon-tools-001" onNavigate={navTo} /></h2>
+        <p className="um-section-desc"><ManualText sectionId="polygon-tools" blockId="polygon-tools-002" onNavigate={navTo} /></p>
+        <p className="um-section-desc"><ManualText sectionId="polygon-tools" blockId="polygon-tools-003" onNavigate={navTo} /></p>
 
         {/* ---- Overview demo ---- */}
-        <div className="um-polydraw-demo-wrapper">
+        <div className="um-polydraw-demo-wrapper" data-manual-example="polygon-tools-example-01">
           {/* Header */}
           <div className="polygon-draw-modal-header">
             <h3>Draw Polygon</h3>
@@ -4391,7 +3444,7 @@ function UserManual() {
 
           {/* 1. Freehand drawing */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="polygon-tools-example-02">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', gap: '8px', minWidth: '180px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#444' }}>
                   <FontAwesomeIcon icon={faDrawPolygon} style={{ color: '#1d4ed8', fontSize: '16px' }} />
@@ -4404,19 +3457,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Freehand Drawing</p>
-              <p className="um-feature-desc">
-                After clicking the polygon button on the map, click anywhere on the map canvas
-                to place vertices. A live preview of the polygon grows with each click. Once
-                you have at least 3 points, <strong>Finish Drawing</strong> appears — click it
-                to close the polygon. Drag any numbered vertex marker to fine-tune its position.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="polygon-tools" blockId="polygon-tools-004" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="polygon-tools" blockId="polygon-tools-005" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 2. Shape presets */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="polygon-tools-example-03">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', gap: 0, padding: 0, minWidth: '140px' }}>
                 <div className="polygon-draw-style-toolbar" style={{ pointerEvents: 'none', borderBottom: 'none', padding: '5px 6px' }}>
                   <div className="polygon-draw-style-btn-wrap">
@@ -4439,19 +3487,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Shape Presets</p>
-              <p className="um-feature-desc">
-                Click the shapes icon to open a preset menu: Triangle, Square, Rectangle,
-                Circle, Dot, Pentagon, and Hexagon. After selecting a shape, drag on the
-                map to place and size it. A circle is stored as a polygon with many
-                vertices.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="polygon-tools" blockId="polygon-tools-006" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="polygon-tools" blockId="polygon-tools-007" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 3. Styling */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="polygon-tools-example-04">
               <div className="um-isolated-demo" style={{ pointerEvents: 'none', gap: '6px', flexWrap: 'wrap', maxWidth: '220px' }}>
                 {/* line style swatches */}
                 {['solid','dashed','dotted'].map(s => (
@@ -4473,19 +3516,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Style: Line, Color &amp; Opacity</p>
-              <p className="um-feature-desc">
-                The toolbar lets you change the polygon's <strong>border line style</strong>{' '}
-                (solid, dashed, dotted, dash-dot), <strong>fill color</strong> from a
-                10-color palette, and <strong>fill opacity</strong> via a slider. Changes
-                are reflected on the map immediately.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="polygon-tools" blockId="polygon-tools-008" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="polygon-tools" blockId="polygon-tools-009" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 4. Curve mode */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="polygon-tools-example-05">
               <div className="um-isolated-demo" style={{ pointerEvents: 'none', gap: '14px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                   <svg width="50" height="36" viewBox="0 0 50 36" fill="none" stroke="#0077c0" strokeWidth="2">
@@ -4502,18 +3540,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Curve Mode</p>
-              <p className="um-feature-desc">
-                Toggle the curve button to switch polygon edges from straight lines to
-                smooth Bézier curves. In curve mode a draggable control-point appears
-                on each edge, letting you adjust the curvature independently.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="polygon-tools" blockId="polygon-tools-010" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="polygon-tools" blockId="polygon-tools-011" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 5. Transform: move / rotate / resize */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="polygon-tools-example-06">
               <div className="um-isolated-demo" style={{ pointerEvents: 'none', gap: '10px' }}>
                 {[
                   { icon: faHand,                         label: 'Move',   active: true },
@@ -4532,19 +3566,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Transform: Move, Rotate &amp; Resize</p>
-              <p className="um-feature-desc">
-                Three transform modes are available once the polygon has at least 3 vertices.{' '}
-                <strong>Move</strong> lets you drag the whole shape. <strong>Rotate</strong>{' '}
-                spins it around its centroid. <strong>Resize</strong> shows corner and edge
-                handles for scaling and stretching. Only one mode is active at a time.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="polygon-tools" blockId="polygon-tools-012" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="polygon-tools" blockId="polygon-tools-013" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 6. Undo / Redo */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="polygon-tools-example-07">
               <div className="um-isolated-demo" style={{ pointerEvents: 'none', gap: '10px' }}>
                 <div className="polygon-draw-style-btn-wrap">
                   <button type="button" className="polygon-draw-style-btn" title="Undo (Ctrl+Z)">
@@ -4559,19 +3588,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Undo &amp; Redo</p>
-              <p className="um-feature-desc">
-                Every vertex edit, style change, or transform is recorded in a history stack.
-                Click <strong>Undo</strong> (or press <kbd>Ctrl+Z</kbd>) to step back, or{' '}
-                <strong>Redo</strong> (<kbd>Ctrl+Y</kbd>) to reapply. Buttons are dimmed when
-                the stack is empty.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="polygon-tools" blockId="polygon-tools-014" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="polygon-tools" blockId="polygon-tools-015" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 7. Vertex list */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="polygon-tools-example-08">
               <div className="um-isolated-demo" style={{ pointerEvents: 'none', padding: 0, minWidth: '210px' }}>
                 <div className="polygon-draw-modal-vertices" style={{ maxHeight: 'unset' }}>
                   {[{ lat: '47.6062', lng: '-122.332' }, { lat: '47.5112', lng: '-122.257' }].map((v, i) => (
@@ -4589,18 +3613,14 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Vertex Coordinate List</p>
-              <p className="um-feature-desc">
-                Each vertex is listed with editable lat/lng number inputs. You can type exact
-                coordinates directly for precision. Click <strong>×</strong> to remove any
-                vertex. For circles, only the center coordinate is shown.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="polygon-tools" blockId="polygon-tools-016" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="polygon-tools" blockId="polygon-tools-017" onNavigate={navTo} /></p>
             </div>
           </div>
 
           {/* 8. Save / Cancel / Clear */}
           <div className="um-feature-row">
-            <div className="um-feature-demo">
+            <div className="um-feature-demo" data-manual-example="polygon-tools-example-09">
               <div className="um-isolated-demo" style={{ pointerEvents: 'none', flexWrap: 'wrap', gap: '4px', maxWidth: '200px' }}>
                 <button type="button" className="polygon-draw-modal-btn polygon-draw-modal-btn-finish" style={{ flex: '1 1 90px' }}>Finish Drawing</button>
                 <button type="button" className="polygon-draw-modal-btn polygon-draw-modal-btn-resume" style={{ flex: '1 1 90px' }}>Add More Points</button>
@@ -4609,16 +3629,8 @@ function UserManual() {
               </div>
             </div>
             <div className="um-feature-info">
-              <p className="um-feature-title">Save, Finish &amp; Cancel</p>
-              <p className="um-feature-desc">
-                While drawing, <strong>Finish Drawing</strong> closes the polygon. After
-                finishing, <strong>Add More Points</strong> resumes vertex placement.{' '}
-                <strong>Save</strong> transfers the polygon to the Card Creation form
-                (disabled until 3+ vertices). Complete and submit that form to create the
-                card; saving the shape alone does not create one. <strong>Cancel</strong>
-                leaves the editor without applying the new shape and closes the
-                panel. The trash icon clears all vertices at any time.
-              </p>
+              <p className="um-feature-title"><ManualText sectionId="polygon-tools" blockId="polygon-tools-018" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="polygon-tools" blockId="polygon-tools-019" onNavigate={navTo} /></p>
             </div>
           </div>
 

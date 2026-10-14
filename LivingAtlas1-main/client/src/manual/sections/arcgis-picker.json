@@ -1,0 +1,289 @@
+{
+  "schemaVersion": 1,
+  "id": "arcgis-picker",
+  "title": "ArcGIS Picker Modal",
+  "navigationLabel": "ArcGIS Picker Modal",
+  "summary": "Browse and select ArcGIS services and layers to link directly to a card — opened from the Card Creation form.",
+  "manualPath": "/user-manual?section=arcgis-picker",
+  "blocks": [
+    {
+      "id": "arcgis-picker-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "ArcGIS Picker Modal"
+        }
+      ]
+    },
+    {
+      "id": "arcgis-picker-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The ArcGIS Picker lets you search and select ArcGIS services or individual layers to link to a card. It opens from the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "+ Link ArcGIS Service / Layer"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "text",
+          "text": "button inside the Card Creation form. Selected items are attached to the card and can be toggled on the map from the Card Detail View."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-picker-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Opening the Picker"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-picker-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "+ Link ArcGIS Service / Layer"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " inside the Add Card form to open the picker. It loads available services from the database and falls back to the bundled local list if the database is unavailable."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-picker-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Search Bar & Navigation"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-picker-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Type a keyword and press Enter or click the search button. The type dropdown narrows results to "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Any"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Folder"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ","
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Service"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", or "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Layer"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". When multiple matches exist, a counter and Prev/Next arrows appear to jump between them."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-picker-007",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Drill-Down Navigation"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-picker-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "In navigation mode the root view shows three state tiles (WA, ID, OR). Click a state to see its folders; click a folder to see its services. A breadcrumb bar at the top shows your current path, and the Back button moves you one level up."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-picker-009",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Services & Layer Selection"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-picker-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Each service row has a checkbox and an expand arrow. Checking the service checkbox selects the whole service. Clicking the row expands it to show individual layers — check individual layers to link only those. Group layers expand recursively with their own checkboxes."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-picker-011",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Add & Cancel"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-picker-012",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The footer shows how many items are currently selected. "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Add"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "text",
+          "text": "is enabled once at least one item is selected; clicking it inserts all selected services and layers as linked items in the Card Creation form."
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Cancel"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " closes the picker without changing the form."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": [
+    {
+      "id": "arcgis-picker-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    },
+    {
+      "id": "arcgis-picker-example-02",
+      "kind": "react-demo",
+      "caption": "Interactive example 2"
+    },
+    {
+      "id": "arcgis-picker-example-03",
+      "kind": "react-demo",
+      "caption": "Interactive example 3"
+    },
+    {
+      "id": "arcgis-picker-example-04",
+      "kind": "react-demo",
+      "caption": "Interactive example 4"
+    },
+    {
+      "id": "arcgis-picker-example-05",
+      "kind": "react-demo",
+      "caption": "Interactive example 5"
+    },
+    {
+      "id": "arcgis-picker-example-06",
+      "kind": "react-demo",
+      "caption": "Interactive example 6"
+    }
+  ]
+}

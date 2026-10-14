@@ -1,0 +1,762 @@
+{
+  "schemaVersion": 1,
+  "id": "add-card",
+  "title": "Card Creation Form",
+  "navigationLabel": "Card Creation Form",
+  "summary": "Create a new card with required metadata, location mode, images/files, and optional ArcGIS links.",
+  "manualPath": "/user-manual?section=add-card",
+  "blocks": [
+    {
+      "id": "add-card-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Card Creation Form"
+        }
+      ]
+    },
+    {
+      "id": "add-card-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The Card Creation form lets you submit a new research entry to the atlas. Click the"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Add Card"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button in the card panel toolbar to open it. You must be logged in — a login prompt appears otherwise. You can also start location-first creation from the map toolbar using "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Add Cards from Map"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", then choose"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Add Points / Coordinates"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Polygon Tools"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", or"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Add PNG"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". Once submitted, the new card appears in the card container and is pinned to the map."
+        }
+      ]
+    },
+    {
+      "id": "add-card-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Opening the Form"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-card-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Add Card"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button in the card panel toolbar. Login is required; if you are not logged in, a prompt appears instead. You can also open this form from map toolbar shortcuts (single point, polygon, image overlay) with location pre-filled. The form slides in as a side panel over the map."
+        }
+      ]
+    },
+    {
+      "id": "add-card-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Required Fields"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-card-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Author Name"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Email"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Title"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "text",
+          "text": "are required. "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Category"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " is optional and can be one of: River, Watershed, Places, or Other. Validation runs on submit and highlights any missing or invalid fields. Title, Organization, and Funding have a 255-character limit; Description is limited to 2000 plain-text characters. A point uses latitude/longitude with up to eight decimal places; a polygon needs at least three vertices; an image needs valid placement with four corners. If submission fails, review the form's validation message."
+        }
+      ]
+    },
+    {
+      "id": "add-card-007",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Content Fields"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-card-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Description"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (max 2000 chars), "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Funding"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Organization"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " provide context for the card."
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Tags"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (comma-separated) make cards discoverable in search and filter. None of these are required."
+        }
+      ]
+    },
+    {
+      "id": "add-card-009",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Links"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-card-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Add one or more external links with optional display text. Click"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "+ Add More Links"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to add additional rows. Links appear as clickable buttons on the card's Detail View."
+        }
+      ]
+    },
+    {
+      "id": "add-card-011",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Location Picker"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-card-012",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Single Point"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to click on the map and confirm a lat/lng coordinate, or enter coordinates manually. Choose"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Polygon Area"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to draw a custom polygon directly on the map. Choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Image Overlay"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to place a PNG on the map with move/rotate/resize support. For polygon/image modes, centroid is stored as the card's primary location. Location is required for card submission."
+        }
+      ]
+    },
+    {
+      "id": "add-card-013",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Polygon Area Mode"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-card-014",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "After switching to "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Polygon Area"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", click"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Draw Polygon on Map"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to open Polygon Tools floating on the map. Place vertices by clicking the map, then click"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Save"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " in the panel to confirm. The form shows a confirmation summary (e.g. \"Polygon saved: 5 points\"). You can click"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Redraw Polygon"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " at any time to replace the shape."
+        }
+      ]
+    },
+    {
+      "id": "add-card-015",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "For a full breakdown of the drawing tools, styles, and transform modes, see the"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "chapter-link",
+          "sectionId": "polygon-tools",
+          "content": [
+            {
+              "type": "text",
+              "text": "Polygon Tools"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "text",
+          "text": "tab."
+        }
+      ]
+    },
+    {
+      "id": "add-card-016",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Image Overlay Mode"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-card-017",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Switch to "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Image Overlay"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", then click "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Add Image to Map"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "to upload and place a supported image (PNG, JPG/JPEG, GIF, or WebP). After placement, use move/rotate/resize and click"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Save"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". The form stores four corner vertices and shows a saved summary."
+        }
+      ]
+    },
+    {
+      "id": "add-card-018",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Images & File Attachments"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-card-019",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Upload one or more images (PNG, JPG, GIF, WebP, max 5 MB each). The first image becomes the card's thumbnail for point/polygon cards. For image-overlay cards, the map representation image is managed separately, and these images are used for the Learn More gallery. Upload supporting files (PDFs, spreadsheets, etc., max 5 MB each) that viewers can download from the Card Detail View."
+        }
+      ]
+    },
+    {
+      "id": "add-card-020",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Linked ArcGIS Services"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-card-021",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Optionally link ArcGIS services or individual layers to the card. Click"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "+ Link ArcGIS Service / Layer"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to open the ArcGIS picker and browse by state. Linked items appear in the Card Detail View and can be toggled directly on the map from there. Multiple links can be added."
+        }
+      ]
+    },
+    {
+      "id": "add-card-022",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Card Marker / Polygon Popup"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-card-023",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Clicking a card marker pin or a card polygon on the map opens a rich popup. The top section shows the card's thumbnail image — if multiple images are attached, "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "❮ ❯"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " arrows appear on hover to cycle through them; clicking the image opens a fullscreen lightbox. The popup is 275 × 250 pixels, with a compact Edit footer for cards you can edit and a scrollable information area. The bottom section shows the card "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "title"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "category"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "tags"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". Clicking anywhere on the info area opens the full "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Card Detail View"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": [
+    {
+      "id": "add-card-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    },
+    {
+      "id": "add-card-example-02",
+      "kind": "react-demo",
+      "caption": "Interactive example 2"
+    },
+    {
+      "id": "add-card-example-03",
+      "kind": "react-demo",
+      "caption": "Interactive example 3"
+    },
+    {
+      "id": "add-card-example-04",
+      "kind": "react-demo",
+      "caption": "Interactive example 4"
+    },
+    {
+      "id": "add-card-example-05",
+      "kind": "react-demo",
+      "caption": "Interactive example 5"
+    },
+    {
+      "id": "add-card-example-06",
+      "kind": "react-demo",
+      "caption": "Interactive example 6"
+    },
+    {
+      "id": "add-card-example-07",
+      "kind": "react-demo",
+      "caption": "Interactive example 7"
+    },
+    {
+      "id": "add-card-example-08",
+      "kind": "react-demo",
+      "caption": "Interactive example 8"
+    },
+    {
+      "id": "add-card-example-09",
+      "kind": "react-demo",
+      "caption": "Interactive example 9"
+    },
+    {
+      "id": "add-card-example-10",
+      "kind": "react-demo",
+      "caption": "Interactive example 10"
+    },
+    {
+      "id": "add-card-example-11",
+      "kind": "react-demo",
+      "caption": "Interactive example 11"
+    }
+  ]
+}

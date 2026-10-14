@@ -1,0 +1,216 @@
+{
+  "schemaVersion": 1,
+  "id": "feature-search-panel",
+  "title": "Feature Search Panel",
+  "navigationLabel": "Feature Search Panel",
+  "summary": "Use the left sidebar search panel to locate app features by keyword and launch them directly.",
+  "manualPath": "/user-manual?section=feature-search-panel",
+  "blocks": [
+    {
+      "id": "feature-search-panel-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Feature Search Panel"
+        }
+      ]
+    },
+    {
+      "id": "feature-search-panel-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The Feature Search Panel slides out from the left sidebar search icon. It helps you quickly find actions across the homepage by keyword, then run those actions directly from the result list."
+        }
+      ]
+    },
+    {
+      "id": "feature-search-panel-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Panel Layout"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "feature-search-panel-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The panel contains a keyword input, a "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Search"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button, a"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Clear Search"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button, and a clickable results list below. It shares the same visual style as other side panels for consistency."
+        }
+      ]
+    },
+    {
+      "id": "feature-search-panel-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Keyword Search"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "feature-search-panel-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Enter words like "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "view"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "add"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ","
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " basemap"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", or "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "search"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to match mapped feature keywords. Results update and can be launched directly."
+        }
+      ]
+    },
+    {
+      "id": "feature-search-panel-007",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Run Feature by Clicking Result"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "feature-search-panel-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Clicking a result immediately runs the mapped action. Example:"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Add Card"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " opens the Create Card modal;"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " View All Cards"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " opens the card container."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": [
+    {
+      "id": "feature-search-panel-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    },
+    {
+      "id": "feature-search-panel-example-02",
+      "kind": "react-demo",
+      "caption": "Interactive example 2"
+    },
+    {
+      "id": "feature-search-panel-example-03",
+      "kind": "react-demo",
+      "caption": "Interactive example 3"
+    }
+  ]
+}

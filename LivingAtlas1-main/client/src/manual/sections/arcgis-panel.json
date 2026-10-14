@@ -1,0 +1,988 @@
+{
+  "schemaVersion": 1,
+  "id": "arcgis-panel",
+  "title": "ArcGIS Upload Panel",
+  "navigationLabel": "ArcGIS Upload Panel",
+  "summary": "Browse and toggle ArcGIS REST map layers organized by state, folder, and service.",
+  "manualPath": "/user-manual?section=arcgis-panel",
+  "blocks": [
+    {
+      "id": "arcgis-panel-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "ArcGIS Upload Panel"
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The ArcGIS Upload Panel lets you browse and add ArcGIS REST map layers directly onto the main map. Open it from the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Layers"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button in the left sidebar. Services are organized by state (WA / ID / OR), then by folder, then by individual service and layer, with a built-in layers folder available alongside the state folders."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-003",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Choose layers and wait for loading"
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Check a service to select its leaf layers, expand it to choose individual layers, or check a group to toggle its descendants together. Where a layer has selectable legend entries, it remains checked while any entry is selected; clearing every entry also unchecks the parent layer. Uncheck to hide layers, or use Clear to remove this panel's selections. Loading messages and the map spinner track pending layers; large or unavailable upstream datasets can take longer to appear."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The panel normally loads its catalog from the backend and can fall back to bundled data if that catalog is unavailable. Its source status indicates which catalog you are browsing. Layer images and features are still requested from the upstream services. Search follows the current root, state, or folder; return to Root to search more broadly. Unloaded layer metadata may be fetched during search, so wait for the search indicator before judging the results."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-006",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "State data sources and built-in layers"
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-007",
+      "type": "list",
+      "content": [
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Washington:"
+                }
+              ]
+            },
+            {
+              "type": "link",
+              "content": [
+                {
+                  "type": "text",
+                  "text": " ArcGIS source"
+                }
+              ],
+              "href": "https://gis.ecology.wa.gov/serverext/rest/services"
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Idaho:"
+                }
+              ]
+            },
+            {
+              "type": "link",
+              "content": [
+                {
+                  "type": "text",
+                  "text": " ArcGIS source"
+                }
+              ],
+              "href": "https://gis.idwr.idaho.gov/hosting/rest/services"
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Oregon:"
+                }
+              ]
+            },
+            {
+              "type": "link",
+              "content": [
+                {
+                  "type": "text",
+                  "text": " ArcGIS source"
+                }
+              ],
+              "href": "https://navigator.state.or.us/arcgis/rest/services"
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ]
+        }
+      ],
+      "stepIds": [
+        "arcgis-panel-007-step-1",
+        "arcgis-panel-007-step-2",
+        "arcgis-panel-007-step-3"
+      ]
+    },
+    {
+      "id": "arcgis-panel-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Browse the current catalog for the folders and services available now. Use Learn More and the service's source link to inspect metadata; manual examples are not a list of current datasets."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-009",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "A "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "MapServer"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " can provide rendered map images and queryable layers; a "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "FeatureServer"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " provides individual vector features. Available metadata and controls depend on the service. "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Built-in Layers"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "are separate from state services and your saved Custom Layers. Enable Hydrological Boundaries or City Limits there, then click a visible feature to inspect its name, identifiers, or area information."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Saving to Custom Layers and pinning for auto-load require login. Pinned items are saved to your account preferences and restored when services become available; unpinned checked selections are not all restored after a reload."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-011",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Opening the Panel"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-panel-012",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Layers"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button in the left sidebar to open or close the ArcGIS Upload Panel. The panel slides in from the left edge of the screen. When the card panel is also open, the two panels split the left side vertically."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-013",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Panel Header"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-panel-014",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The header displays the panel title plus "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Help"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Tutorial"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "×"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " close buttons. Help opens the ArcGIS Upload Panel section of the manual, Tutorial launches the guided onboarding flow, and closing the panel does"
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": " not"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " remove any layers already added to the map."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-015",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Service Search Bar"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-panel-016",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Type a keyword and press "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Enter"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " or click the search button to search within the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "current scope"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " shown in the panel: the full root view, a single state, or the currently opened folder. Click"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " ×"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to clear the search and return to the normal navigation view."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-017",
+      "type": "note",
+      "content": [
+        {
+          "type": "text",
+          "text": "While a search is active, a result-navigation counter appears with ▲ / ▼ arrows to jump between matches, and the panel may continue loading additional layer results in the background."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-018",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Show Added Only"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-panel-019",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Added"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (Show Added Only) is a toggle button in the action row. When active, the panel expands only folders and services that currently have checked layers on the map, making it easier to review or remove what is already loaded."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-020",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Layer Opacity"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-panel-021",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The opacity slider controls the transparency of "
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": "all"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " ArcGIS layers added to the map at once. Drag left for more transparent, right for fully opaque. The current percentage is shown beside the slider and updates live as you drag."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-022",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Update & Clear Controls"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-panel-023",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "⟳ sync button"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " re-fetches the services list from the ArcGIS REST servers and updates the database, discovering newly published or renamed services. "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Clear All Layers"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " unchecks every active layer and removes them all from the map in one click."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-024",
+      "type": "note",
+      "content": [
+        {
+          "type": "text",
+          "text": "Updating services may take a moment; a progress message is shown while the operation runs."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-025",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Service Tree Hierarchy"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-panel-026",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Services are organized in a file-explorer style hierarchy:"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Root"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " → "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "State"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (WA, ID, OR or Built-in Layers) → "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Folder"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " → "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Service / Layer"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". Click a state folder to enter that state, click a folder to drill into it, and use the breadcrumb bar to navigate back out. Inside a folder, click a service row to expand and show its individual layers."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-027",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Layer Rows & Right-Click Menu"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-panel-028",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Each service or layer is shown as a row with a checkbox and name."
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Right-click"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " a service row to open a context menu:"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Learn More"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " — open the Service / Layer Info modal with ArcGIS REST metadata"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Save to Custom Layers"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " — copy the service into your Custom Layers library"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Pin (Auto-load)"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " — pin the item so it loads automatically every time the panel opens; right-click again and choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Unpin"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to remove it"
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-029",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Right-clicking a "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "layer"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " row offers "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Learn More"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Pin (Auto-load)"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-030",
+      "type": "note",
+      "content": [
+        {
+          "type": "text",
+          "text": "You can also click the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "three-dot button"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " on a service row (same as Learn More) to open Service info directly."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-031",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Search Result Navigation"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-panel-032",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "When a search returns multiple matches, a floating counter (e.g. \"2 / 7\") appears with "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "▲ / ▼"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " arrows to jump between matches. The panel automatically scrolls to bring each highlighted match into view. \"0 results\" is shown when nothing matched the keyword."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-033",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Map Click Popup (Layer Features)"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-panel-034",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "When a visible ArcGIS layer is active on the map, clicking any feature on it opens a Mapbox popup with a property table. The popup header shows the layer name; the body lists all feature attributes (e.g. GNIS_NAME, geometry type, length). Long descriptions are collapsed with a "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Show more"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "text",
+          "text": "link. Multiple features can be open simultaneously — each new popup is stacked offset from the previous one."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-035",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Service / Layer Info Modal"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "arcgis-panel-036",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "This modal now has a dedicated tab in the manual with complete coverage of each internal feature, including service metadata, service opacity, historical filters (Date Range and Timeline), Layers / Sublayers links, and layer-level metadata fields."
+        }
+      ]
+    },
+    {
+      "id": "arcgis-panel-037",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Open the detailed guide here:"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "chapter-link",
+          "sectionId": "service-layer-info",
+          "content": [
+            {
+              "type": "text",
+              "text": "Service / Layer Info Modal"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": [
+    {
+      "id": "arcgis-panel-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    },
+    {
+      "id": "arcgis-panel-example-02",
+      "kind": "react-demo",
+      "caption": "Interactive example 2"
+    },
+    {
+      "id": "arcgis-panel-example-03",
+      "kind": "react-demo",
+      "caption": "Interactive example 3"
+    },
+    {
+      "id": "arcgis-panel-example-04",
+      "kind": "react-demo",
+      "caption": "Interactive example 4"
+    },
+    {
+      "id": "arcgis-panel-example-05",
+      "kind": "react-demo",
+      "caption": "Interactive example 5"
+    },
+    {
+      "id": "arcgis-panel-example-06",
+      "kind": "react-demo",
+      "caption": "Interactive example 6"
+    },
+    {
+      "id": "arcgis-panel-example-07",
+      "kind": "react-demo",
+      "caption": "Interactive example 7"
+    },
+    {
+      "id": "arcgis-panel-example-08",
+      "kind": "react-demo",
+      "caption": "Interactive example 8"
+    },
+    {
+      "id": "arcgis-panel-example-09",
+      "kind": "react-demo",
+      "caption": "Interactive example 9"
+    },
+    {
+      "id": "arcgis-panel-example-10",
+      "kind": "react-demo",
+      "caption": "Interactive example 10"
+    },
+    {
+      "id": "arcgis-panel-example-11",
+      "kind": "react-demo",
+      "caption": "Interactive example 11"
+    },
+    {
+      "id": "arcgis-panel-example-12",
+      "kind": "react-demo",
+      "caption": "Interactive example 12"
+    }
+  ]
+}

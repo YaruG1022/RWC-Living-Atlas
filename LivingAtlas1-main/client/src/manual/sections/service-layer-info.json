@@ -1,0 +1,635 @@
+{
+  "schemaVersion": 1,
+  "id": "service-layer-info",
+  "title": "Service / Layer Info Modal",
+  "navigationLabel": "Service / Layer Info Modal",
+  "summary": "Detailed guide for Service/Layer Info modal features: metadata, opacity, historical filters, links, and layer fields.",
+  "manualPath": "/user-manual?section=service-layer-info",
+  "blocks": [
+    {
+      "id": "service-layer-info-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Service / Layer Info Modal"
+        }
+      ]
+    },
+    {
+      "id": "service-layer-info-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "This tab documents the floating info modal used by both the ArcGIS Upload Panel and the Custom Layers Panel. The modal appears on the right side and has two variants:"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Service info"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Layer Info"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". The content below follows the current implementation in the shared modal UI, with upload-only historical view controls called out explicitly where they differ."
+        }
+      ]
+    },
+    {
+      "id": "service-layer-info-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "1) Ways to Open the Modal"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "service-layer-info-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "There are three entry paths:"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• Right-click a service or layer row and choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Learn More"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• Click the service row "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "three-dot Learn more button"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• In Service info, click a "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Layers / Sublayers"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " link to open Layer Info directly."
+        }
+      ]
+    },
+    {
+      "id": "service-layer-info-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "2) Header, Close, Loading, and Empty States"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "service-layer-info-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The header title changes by mode ("
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Service info"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " vs "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Layer Info: <name>"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "), and the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "×"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button closes the current modal. While fetching REST metadata, loading text is shown. If the endpoint returns no useful data, an empty message is displayed and an endpoint link is still provided."
+        }
+      ]
+    },
+    {
+      "id": "service-layer-info-007",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "3) Service Metadata Block"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "service-layer-info-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Service info normalizes and shows core metadata from ArcGIS REST: description/serviceDescription, service item id, copyright text, and spatial reference (latest WKID, WKID, or WKT fallback)."
+        }
+      ]
+    },
+    {
+      "id": "service-layer-info-009",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "4) Per-Service Opacity Control"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "service-layer-info-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Service Opacity"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " slider adjusts map opacity only for the active service key. Value is tracked per service in modal state and applied live to map layers."
+        }
+      ]
+    },
+    {
+      "id": "service-layer-info-011",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "5) Historical View: Date Range + Timeline"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "service-layer-info-012",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Historical View contains two tabs:"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Date Range"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ": select From/To dates, Apply to filter, Clear to remove."
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Timeline"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ": year and month sliders with draggable handles."
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "When active, the modal shows a time-filter summary line with the current date span."
+        }
+      ]
+    },
+    {
+      "id": "service-layer-info-013",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "6) Layers / Sublayers Link Tree"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "service-layer-info-014",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Service info renders a hierarchical layer tree. Clicking a layer link opens the corresponding Layer Info modal for that layer id. This is the fastest path from service-level metadata to layer-level details."
+        }
+      ]
+    },
+    {
+      "id": "service-layer-info-015",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "7) Layer Info Fields (Detailed)"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "service-layer-info-016",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Layer Info includes all available layer-level fields from REST metadata: description, layer name, geometry type, copyright text, min/max scale, default visibility, attachment support, and fields summary (count + first few field names)."
+        }
+      ]
+    },
+    {
+      "id": "service-layer-info-017",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "8) Endpoint Links and Data Source Verification"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "service-layer-info-018",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Both modal types provide direct links to the corresponding ArcGIS REST pages. Use these links to verify source metadata, inspect native JSON responses, and cross-check map behavior against upstream service/layer definitions."
+        }
+      ]
+    },
+    {
+      "id": "service-layer-info-019",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "9) Save to Custom Layers Actions"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "service-layer-info-020",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Both "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Service info"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Layer Info"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " include a"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Save"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " action at the bottom. This lets you persist either the whole service or the currently focused layer into "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Custom Layers"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " without leaving the modal."
+        }
+      ]
+    },
+    {
+      "id": "service-layer-info-021",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "10) Legend and Layer Hierarchy Navigation"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "service-layer-info-022",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Layer Info can show a symbol legend, a clickable "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Parent Layer"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " link, and a scrollable list of "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Child Layers"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". These links let you move through group-layer hierarchies without returning to the panel tree."
+        }
+      ]
+    },
+    {
+      "id": "service-layer-info-023",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "11) Field Filter Builder"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "service-layer-info-024",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "When layer field metadata is available, Layer Info provides a field filter builder. Choose a field, select an operator such as "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "="
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "LIKE"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", or "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "IN"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", enter a value, then apply the generated expression directly to the map layer. "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Clear"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " resets the filter back to the default view."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": [
+    {
+      "id": "service-layer-info-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    },
+    {
+      "id": "service-layer-info-example-02",
+      "kind": "react-demo",
+      "caption": "Interactive example 2"
+    },
+    {
+      "id": "service-layer-info-example-03",
+      "kind": "react-demo",
+      "caption": "Interactive example 3"
+    },
+    {
+      "id": "service-layer-info-example-04",
+      "kind": "react-demo",
+      "caption": "Interactive example 4"
+    },
+    {
+      "id": "service-layer-info-example-05",
+      "kind": "react-demo",
+      "caption": "Interactive example 5"
+    },
+    {
+      "id": "service-layer-info-example-06",
+      "kind": "react-demo",
+      "caption": "Interactive example 6"
+    },
+    {
+      "id": "service-layer-info-example-07",
+      "kind": "react-demo",
+      "caption": "Interactive example 7"
+    },
+    {
+      "id": "service-layer-info-example-08",
+      "kind": "react-demo",
+      "caption": "Interactive example 8"
+    },
+    {
+      "id": "service-layer-info-example-09",
+      "kind": "react-demo",
+      "caption": "Interactive example 9"
+    },
+    {
+      "id": "service-layer-info-example-10",
+      "kind": "react-demo",
+      "caption": "Interactive example 10"
+    },
+    {
+      "id": "service-layer-info-example-11",
+      "kind": "react-demo",
+      "caption": "Interactive example 11"
+    }
+  ]
+}

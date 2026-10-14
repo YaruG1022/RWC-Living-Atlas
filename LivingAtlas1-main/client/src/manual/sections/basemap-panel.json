@@ -1,0 +1,382 @@
+{
+  "schemaVersion": 1,
+  "id": "basemap-panel",
+  "title": "Basemap Panel",
+  "navigationLabel": "Basemap Panel",
+  "summary": "Choose Mapbox, OpenStreetMap or USGS basemaps while preserving layers and map view.",
+  "manualPath": "/user-manual?section=basemap-panel",
+  "blocks": [
+    {
+      "id": "basemap-panel-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Basemap Panel"
+        }
+      ]
+    },
+    {
+      "id": "basemap-panel-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The Basemap Panel lets you switch between Mapbox styles and free public basemaps directly from the map view. Click the map icon on the left sidebar to open or close it. Switching styles preserves all custom ArcGIS layers, the current camera position, zoom, bearing, and pitch. You can also search styles by label or description."
+        }
+      ]
+    },
+    {
+      "id": "basemap-panel-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Your basemap choice is saved with your display preferences: in this browser while logged out, and synced with your account after login when the preference service is available."
+        }
+      ]
+    },
+    {
+      "id": "basemap-panel-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Opening the Panel"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "basemap-panel-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "map icon"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " on the left sidebar to toggle the Basemap Panel. Click it again, or press the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "✕"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " in the panel header, to close it."
+        }
+      ]
+    },
+    {
+      "id": "basemap-panel-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Available Built-in Styles"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "basemap-panel-007",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The panel lists eight Mapbox styles:"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": "Satellite (Imagery)"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": "Satellite + Streets"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": "Navigation Day"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ","
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": "Navigation Night"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": "Outdoors"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": "Streets"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": "Light"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", and "
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": "Dark"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". It also offers "
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": "OpenStreetMap"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": "USGS Topographic"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ","
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": " USGS Aerial Imagery"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " and "
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": "USGS Shaded Relief"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", without an extra API key. OpenStreetMap covers worldwide streets; USGS maps focus on the U.S., with imagery detail varying by location. Shaded Relief is a broad overview and does not gain detail past zoom 7. Public tile availability is best effort. Each entry shows a preview, style name, and short description."
+        }
+      ]
+    },
+    {
+      "id": "basemap-panel-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Search Styles"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "basemap-panel-009",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Enter a keyword and press "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Enter"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " or click Search to filter styles by both title and description. Click Clear to reset the full list."
+        }
+      ]
+    },
+    {
+      "id": "basemap-panel-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Active Style Indicator"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "basemap-panel-011",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The currently active style is highlighted with a light-blue background and a blue left border. Clicking any other style immediately applies it to the map without a page reload."
+        }
+      ]
+    },
+    {
+      "id": "basemap-panel-012",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Layer & State Preservation"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "basemap-panel-013",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "When you switch styles, the map automatically saves your camera position (center, zoom, bearing, pitch) and all active custom ArcGIS layers, then restores them once the new style finishes loading."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": [
+    {
+      "id": "basemap-panel-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    },
+    {
+      "id": "basemap-panel-example-02",
+      "kind": "react-demo",
+      "caption": "Interactive example 2"
+    },
+    {
+      "id": "basemap-panel-example-03",
+      "kind": "react-demo",
+      "caption": "Interactive example 3"
+    },
+    {
+      "id": "basemap-panel-example-04",
+      "kind": "react-demo",
+      "caption": "Interactive example 4"
+    },
+    {
+      "id": "basemap-panel-example-05",
+      "kind": "react-demo",
+      "caption": "Interactive example 5"
+    },
+    {
+      "id": "basemap-panel-example-06",
+      "kind": "react-demo",
+      "caption": "Interactive example 6"
+    }
+  ]
+}

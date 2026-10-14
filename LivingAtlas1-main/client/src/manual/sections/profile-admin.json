@@ -1,0 +1,343 @@
+{
+  "schemaVersion": 1,
+  "id": "profile-admin",
+  "title": "Profile & Administration",
+  "navigationLabel": "Profile & Administration",
+  "summary": "Edit your profile, switch accounts, and manage users as an administrator.",
+  "manualPath": "/user-manual?section=profile-admin",
+  "blocks": [
+    {
+      "id": "profile-admin-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Profile & Administration"
+        }
+      ]
+    },
+    {
+      "id": "profile-admin-002",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Edit your profile"
+        }
+      ]
+    },
+    {
+      "id": "profile-admin-003",
+      "type": "list",
+      "content": [
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Log in, open the avatar menu, and choose "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Profile"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Click "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Edit Profile"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": ". Change your username or bio (up to 300 characters). To change your avatar, click the image and select a file."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Click "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Save"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " to apply the changes or "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Cancel"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "to discard them. Your email is displayed as account information."
+            }
+          ]
+        }
+      ],
+      "ordered": true,
+      "stepIds": [
+        "profile-admin-003-step-1",
+        "profile-admin-003-step-2",
+        "profile-admin-003-step-3"
+      ]
+    },
+    {
+      "id": "profile-admin-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Use "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Change Password"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " on Profile to enter and confirm a new password, then submit with Change Password. "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Invite New User"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "opens a registration dialog with Name, Email, Password, and Confirm Password; submit Register and check its result. This differs from the public Register page's access-request form."
+        }
+      ]
+    },
+    {
+      "id": "profile-admin-005",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Switch accounts"
+        }
+      ]
+    },
+    {
+      "id": "profile-admin-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Switch Account"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " in the avatar menu to see accounts previously used in this browser. Select an account to sign in as that user. If switching fails or credentials have changed, log in again. Use the page's add-account option to open Login for another account."
+        }
+      ]
+    },
+    {
+      "id": "profile-admin-007",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Administration (administrators only)"
+        }
+      ]
+    },
+    {
+      "id": "profile-admin-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Administration"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " in the avatar menu. In"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Manage Users"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", review the users and use the Name or Date Joined column header to sort. Choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Change Role"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", select Regular User or Admin, type "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Confirm"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " exactly, and apply the change. To delete a non-admin user, choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Delete"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", type"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Confirm"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", and confirm deletion. Admin rows do not offer Delete."
+        }
+      ]
+    },
+    {
+      "id": "profile-admin-009",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "In "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Sign Up Requests"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", review each request and choose"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Approve"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to create the account or "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Deny"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to reject it. Card editing and deletion remain in the Card Detail View; ArcGIS management remains in the ArcGIS panel."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": []
+}

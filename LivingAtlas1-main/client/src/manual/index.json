@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "groups": [
+    {
+      "id": "getting-started",
+      "label": "Getting Started",
+      "sections": [
+        {
+          "id": "home"
+        },
+        {
+          "id": "navigation"
+        },
+        {
+          "id": "accounts"
+        },
+        {
+          "id": "profile-admin"
+        },
+        {
+          "id": "tutorials-updates"
+        },
+        {
+          "id": "feature-search-panel"
+        },
+        {
+          "id": "chatbot"
+        }
+      ]
+    },
+    {
+      "id": "cards-workspace",
+      "label": "Cards Workspace",
+      "sections": [
+        {
+          "id": "card-container"
+        },
+        {
+          "id": "toolbar"
+        },
+        {
+          "id": "detail-view"
+        }
+      ]
+    },
+    {
+      "id": "card-creation",
+      "label": "Card Creation",
+      "sections": [
+        {
+          "id": "add-card",
+          "children": [
+            "add-single-point",
+            "polygon-tools",
+            "add-png"
+          ]
+        },
+        {
+          "id": "arcgis-picker"
+        }
+      ]
+    },
+    {
+      "id": "arcgis-related",
+      "label": "ArcGIS Related",
+      "sections": [
+        {
+          "id": "arcgis-panel"
+        },
+        {
+          "id": "custom-layers"
+        },
+        {
+          "id": "service-layer-info"
+        }
+      ]
+    },
+    {
+      "id": "map-view",
+      "label": "Map View",
+      "sections": [
+        {
+          "id": "basemap-panel"
+        },
+        {
+          "id": "watershed-panel"
+        },
+        {
+          "id": "map-controls"
+        }
+      ]
+    }
+  ]
+}

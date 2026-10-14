@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "id": "tutorials-updates",
+  "title": "Tutorials & Updates",
+  "navigationLabel": "Tutorials & Updates",
+  "summary": "Replay guided tutorials and read recent changes or full update history.",
+  "manualPath": "/user-manual?section=tutorials-updates",
+  "blocks": [
+    {
+      "id": "tutorials-updates-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Tutorials & Updates"
+        }
+      ]
+    },
+    {
+      "id": "tutorials-updates-002",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Start or replay a tutorial"
+        }
+      ]
+    },
+    {
+      "id": "tutorials-updates-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "On Home, click the left sidebar's "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "App onboarding"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " info button, then "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Start App Tour"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to start the guided tour. The introduction can also appear on a first visit. Follow the highlighted steps; use Previous/Next or the tour's keyboard controls, and exit when finished."
+        }
+      ]
+    },
+    {
+      "id": "tutorials-updates-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "For a specific panel, use its "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Tutorial"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " play button. Card, ArcGIS Upload, Custom Layers, Basemap, Watershed, card creation, and detail views provide their own guides where available. Help buttons open the manual. Tutorials explain controls; complete and submit the actual form to save data."
+        }
+      ]
+    },
+    {
+      "id": "tutorials-updates-005",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Read recent changes"
+        }
+      ]
+    },
+    {
+      "id": "tutorials-updates-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click the sidebar "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "What's new"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " bell to open the latest update popup; a dot marks an unseen update. Close it with its close button or backdrop. Click "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Updates"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " in the top navigation bar to read the full dated release history. The manual and update history are available without login."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": []
+}

@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "id": "add-single-point",
+  "title": "Add Points / Coordinates",
+  "navigationLabel": "Add Points / Coordinates",
+  "summary": "Collect and edit one or more coordinates before creating a card.",
+  "manualPath": "/user-manual?section=add-single-point",
+  "blocks": [
+    {
+      "id": "add-single-point-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Add Points / Coordinates"
+        }
+      ]
+    },
+    {
+      "id": "add-single-point-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Use "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Add Cards from Map"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " in the top-right toolbar, then select"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Coordinate"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". The Add Points editor opens beside the map toolbar. Add one or several points, edit each row's latitude and longitude, and choose its marker icon."
+        }
+      ]
+    },
+    {
+      "id": "add-single-point-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Step 1: Start the Shortcut"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-single-point-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click the pencil-shaped "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Add Card from Map"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button, then choose"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Coordinate"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". Add Points opens directly to the left of the toolbar."
+        }
+      ]
+    },
+    {
+      "id": "add-single-point-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Step 2: Add and Refine Points"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-single-point-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Use the plus tool and click the map to add points. Edit coordinates in the numbered rows, change icons, or remove individual points. New markers have a dark outline and translucent gray fill; saved custom colors are preserved. The toolbar provides color, opacity, move, rotate, scale, undo, redo, and clear controls. Unavailable actions are disabled."
+        }
+      ]
+    },
+    {
+      "id": "add-single-point-007",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Step 3: Complete Card Data"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "add-single-point-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click Save to transfer points into the Card Creation form, then fill title, category, description, links, images, files, and optional ArcGIS links. Submit to create a point-based card marker on the map. Saving points alone does not create a card. Cancel leaves the map editor without applying changes."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": [
+    {
+      "id": "add-single-point-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    },
+    {
+      "id": "add-single-point-example-02",
+      "kind": "react-demo",
+      "caption": "Interactive example 2"
+    },
+    {
+      "id": "add-single-point-example-03",
+      "kind": "react-demo",
+      "caption": "Interactive example 3"
+    }
+  ]
+}

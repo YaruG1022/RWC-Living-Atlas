@@ -1,0 +1,458 @@
+{
+  "schemaVersion": 1,
+  "id": "map-controls",
+  "title": "Map Controls",
+  "navigationLabel": "Map Controls",
+  "summary": "All interactive buttons on the map canvas — search, fullscreen, zoom, compass, geolocate, draw, and more.",
+  "manualPath": "/user-manual?section=map-controls",
+  "blocks": [
+    {
+      "id": "map-controls-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Map Controls"
+        }
+      ]
+    },
+    {
+      "id": "map-controls-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The map canvas has two groups of controls: a vertical stack in the"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " top-left"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " and a vertical stack in the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "top-right"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". Together they provide search, fullscreen, zoom, compass, location, drawing, card creation shortcuts, a draggable z-axis zoom control, and utility tools. View/navigation controls are available to everyone; card-creation shortcuts require login. Compact square buttons sit in continuous 32px-wide toolbars, 6px from the map edge. The search bar and zoom axis use the same slate colors and soft shadow. Bottom-left center, zoom and mouse coordinates use a compact two-line readout."
+        }
+      ]
+    },
+    {
+      "id": "map-controls-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Search / Geocoder"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "map-controls-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Type an address, place name, or "
+        },
+        {
+          "type": "em",
+          "content": [
+            {
+              "type": "text",
+              "text": "lat, lng"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " coordinates to fly the map to that location. Results are highlighted with a green marker. After selecting a result the visible card list is filtered to the new viewport bounds."
+        }
+      ]
+    },
+    {
+      "id": "map-controls-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Fullscreen Toggle"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "map-controls-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click the expand icon to enter browser fullscreen mode; the icon changes to a compress icon. Click again (or press "
+        },
+        {
+          "type": "kbd",
+          "content": [
+            {
+              "type": "text",
+              "text": "Esc"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ") to exit."
+        }
+      ]
+    },
+    {
+      "id": "map-controls-007",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Zoom In / Out & Compass"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "map-controls-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "+"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "−"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " adjust the map zoom level. The compass/rotate button resets the map bearing to north when you have panned the rotation. You can also scroll the mouse wheel to zoom or drag to rotate."
+        }
+      ]
+    },
+    {
+      "id": "map-controls-009",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Geolocate (Current Location)"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "map-controls-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click to fly to your current GPS position and optionally track it. Your heading is shown as an arrow when the device supports it. Requires browser location permission."
+        }
+      ]
+    },
+    {
+      "id": "map-controls-011",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Add Cards from Map (Collapsible Menu)"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "map-controls-012",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "pencil"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button opens "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Coordinate"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ","
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Polygon"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Image"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". The menu and their Add Points, Draw Polygon and Place Image editors sit immediately left of the toolbar. All three editors share the same header, tool and action styling."
+        }
+      ]
+    },
+    {
+      "id": "map-controls-013",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "See each dedicated tab for details:"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "chapter-link",
+          "sectionId": "add-single-point",
+          "content": [
+            {
+              "type": "text",
+              "text": "Add Points / Coordinates"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ","
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "chapter-link",
+          "sectionId": "polygon-tools",
+          "content": [
+            {
+              "type": "text",
+              "text": "Polygon Tools"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ","
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "chapter-link",
+          "sectionId": "add-png",
+          "content": [
+            {
+              "type": "text",
+              "text": "Add PNG"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        }
+      ]
+    },
+    {
+      "id": "map-controls-014",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Z-Axis Zoom Slider"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "map-controls-015",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The custom vertical z-axis shows the current map zoom level in real time. Drag the pointer up or down to change zoom directly, or click along the axis for a quick jump to a new zoom level."
+        }
+      ]
+    },
+    {
+      "id": "map-controls-016",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Toggle Markers & Polygons Visibility"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "map-controls-017",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click the eye icon to hide all card markers and polygon overlays on the map. Click again to show them. The icon dims when markers are hidden. This is useful for viewing the base map or ArcGIS layers without clutter."
+        }
+      ]
+    },
+    {
+      "id": "map-controls-018",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Reset Map View"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "map-controls-019",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The inward-arrow icon flies the map back to the default Pacific Northwest overview (centered near Washington State, zoom 5.5). Useful after panning or zooming far away."
+        }
+      ]
+    },
+    {
+      "id": "map-controls-020",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Screenshot Map"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "map-controls-021",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Captures the current map canvas (excluding control overlays) as a PNG and downloads it automatically. File name includes a timestamp."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": [
+    {
+      "id": "map-controls-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    },
+    {
+      "id": "map-controls-example-02",
+      "kind": "react-demo",
+      "caption": "Interactive example 2"
+    },
+    {
+      "id": "map-controls-example-03",
+      "kind": "react-demo",
+      "caption": "Interactive example 3"
+    },
+    {
+      "id": "map-controls-example-04",
+      "kind": "react-demo",
+      "caption": "Interactive example 4"
+    },
+    {
+      "id": "map-controls-example-05",
+      "kind": "react-demo",
+      "caption": "Interactive example 5"
+    },
+    {
+      "id": "map-controls-example-06",
+      "kind": "react-demo",
+      "caption": "Interactive example 6"
+    },
+    {
+      "id": "map-controls-example-07",
+      "kind": "react-demo",
+      "caption": "Interactive example 7"
+    },
+    {
+      "id": "map-controls-example-08",
+      "kind": "react-demo",
+      "caption": "Interactive example 8"
+    },
+    {
+      "id": "map-controls-example-09",
+      "kind": "react-demo",
+      "caption": "Interactive example 9"
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "id": "home",
+  "title": "Welcome to the User Manual",
+  "navigationLabel": "Overview",
+  "summary": "An overview of the RWC Living Atlas user guide.",
+  "manualPath": "/user-manual?section=home",
+  "blocks": [
+    {
+      "id": "home-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Welcome to the User Manual"
+        }
+      ]
+    },
+    {
+      "id": "home-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "This guide explains every interactive feature available in the RWC Living Atlas. Use the navigation on the left to browse each section — demos use the exact same styles and hover effects as the real application, so you can try them directly on this page. Examples illustrate controls and are not a live inventory of cards or layers."
+        }
+      ]
+    },
+    {
+      "id": "home-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "RWC stands for "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Rivers, Watersheds, Communities"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". The atlas brings environmental resources into a map workspace for tribal communities, academic institutions, and government agencies. A "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "card"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " is a geographically located resource with metadata, links, images, and files; it can appear as points, a polygon, or an image overlay. You can browse the map, cards, and ArcGIS layers without an account. Log in to create cards, favorite or pin them, and use Custom Layers. Card owners can edit or delete their own cards; administrators can manage any card and user accounts."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": []
+}

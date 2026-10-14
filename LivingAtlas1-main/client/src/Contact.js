@@ -34,7 +34,7 @@ function Contact(props) {
                 <h1>Contact Us</h1>
                 <h2>Address</h2>
                 <p>CEREO</p>
-                <p>PACCAR Room 242</p>
+                <p>Paccar Room 360</p>
                 <p>Washington State</p>
                 <p>University</p>
                 <p>Pullman, WA 99164-5825</p>

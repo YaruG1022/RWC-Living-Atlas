@@ -1,0 +1,417 @@
+{
+  "schemaVersion": 1,
+  "id": "card-container",
+  "title": "Card Container",
+  "navigationLabel": "Card Container",
+  "summary": "How cards are displayed, navigated, pinned, and favorited.",
+  "manualPath": "/user-manual?section=card-container",
+  "blocks": [
+    {
+      "id": "card-container-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Card Container"
+        }
+      ]
+    },
+    {
+      "id": "card-container-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Each dataset or resource is displayed as a card in the main view. The demo below shows a fully-styled sample card. Hover over it to explore its interactive states, then read the feature-by-feature breakdown below."
+        }
+      ]
+    },
+    {
+      "id": "card-container-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Card Image / Thumbnail"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "card-container-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Uploaded images appear at the top of each card. Cards without an uploaded image show a neutral \"No image\" placeholder. The previous default logo is temporarily hidden, and its file is kept for future replacement."
+        }
+      ]
+    },
+    {
+      "id": "card-container-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Multi-Image Navigation"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "card-container-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "When a card has more than one image, left (❮) and right (❯) arrow buttons appear on hover over the thumbnail area. Click them to browse through all available images without opening the detail view."
+        }
+      ]
+    },
+    {
+      "id": "card-container-007",
+      "type": "note",
+      "content": [
+        {
+          "type": "text",
+          "text": "In the demo the arrows are always visible; on real cards they appear only on hover."
+        }
+      ]
+    },
+    {
+      "id": "card-container-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Image Indicator Dots"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "card-container-009",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "A row of dots at the bottom of the thumbnail shows the total number of images and highlights the currently displayed one in white. Up to five dots are shown at a time; dots further from the active image appear slightly smaller."
+        }
+      ]
+    },
+    {
+      "id": "card-container-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Full-Size Image Preview"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "card-container-011",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Clicking directly on the thumbnail image opens an enlarged preview overlay. Inside the preview you can navigate between images with arrow buttons, or close it by clicking outside."
+        }
+      ]
+    },
+    {
+      "id": "card-container-012",
+      "type": "note",
+      "content": [
+        {
+          "type": "text",
+          "text": "The cursor changes to a zoom-in icon when hovering over the clickable image area."
+        }
+      ]
+    },
+    {
+      "id": "card-container-013",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Favorite / Bookmark"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "card-container-014",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The heart icon in the upper-right corner of each card lets you save cards to your personal favorites list. An outlined heart means unfavorited; a filled red heart means favorited. Click to toggle. Hover to see the scale effect."
+        }
+      ]
+    },
+    {
+      "id": "card-container-015",
+      "type": "note",
+      "content": [
+        {
+          "type": "text",
+          "text": "You must be logged in to use this feature. A login prompt will appear if you are not."
+        }
+      ]
+    },
+    {
+      "id": "card-container-016",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Pin to Top"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "card-container-017",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The thumbtack icon in the upper-left corner of each card lets you pin that card to the top of the card list. An unpinned button has a white background; a pinned button turns gold. Pinned cards always appear first, regardless of the current sort order, in the order they were pinned. A later pin follows earlier pins; unpinning and pinning again moves it to the end of that group. Click to toggle."
+        }
+      ]
+    },
+    {
+      "id": "card-container-018",
+      "type": "note",
+      "content": [
+        {
+          "type": "text",
+          "text": "You must be logged in to use this feature. A login prompt will appear if you are not."
+        }
+      ]
+    },
+    {
+      "id": "card-container-019",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Card Title"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "card-container-020",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The dataset name is displayed below the thumbnail. Titles are clamped to two lines; if the title is longer it is cut off with an ellipsis. The full title is always visible inside the detail view."
+        }
+      ]
+    },
+    {
+      "id": "card-container-021",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Tags"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "card-container-022",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The small text below the title shows the card's tags, separated by commas. Tags overflow with an ellipsis when there are too many to fit. Cards with no tags show \"No tags\". Tags are added and edited in the Learn More modal."
+        }
+      ]
+    },
+    {
+      "id": "card-container-023",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Zoom to Map"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "card-container-024",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The circular magnifying-glass button on the right side of the tags row flies the main map to the card's location — either a point marker or a polygon area. Hover over it to see the scale effect; click it to animate the map."
+        }
+      ]
+    },
+    {
+      "id": "card-container-025",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Open Detail View"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "card-container-026",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Clicking anywhere on the card body (except the image, favorite icon, or zoom button) opens the full detail view. There you can read the complete description, browse all images, view linked map layers, and access attached files and links."
+        }
+      ]
+    },
+    {
+      "id": "card-container-027",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "You can also focus the card and press"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Enter"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " or "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Space"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to open its details."
+        }
+      ]
+    },
+    {
+      "id": "card-container-028",
+      "type": "note",
+      "content": [
+        {
+          "type": "text",
+          "text": "Hover over the demo card to see the lift-and-shadow effect that indicates it is clickable."
+        }
+      ]
+    },
+    {
+      "id": "card-container-029",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Map-Selected Highlight"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "card-container-030",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "When you click a card's location marker or polygon directly on the map, that card is highlighted with a blue border and glow in the card list. This makes it easy to identify which card corresponds to a map feature you clicked."
+        }
+      ]
+    }
+  ],
+  "images": [
+    {
+      "id": "card-container-image-1",
+      "url": "/manual-sample-image.svg",
+      "caption": "Demo thumbnail"
+    }
+  ],
+  "examples": [
+    {
+      "id": "card-container-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    },
+    {
+      "id": "card-container-example-02",
+      "kind": "react-demo",
+      "caption": "Interactive example 2"
+    },
+    {
+      "id": "card-container-example-03",
+      "kind": "react-demo",
+      "caption": "Interactive example 3"
+    },
+    {
+      "id": "card-container-example-04",
+      "kind": "react-demo",
+      "caption": "Interactive example 4"
+    },
+    {
+      "id": "card-container-example-05",
+      "kind": "react-demo",
+      "caption": "Interactive example 5"
+    },
+    {
+      "id": "card-container-example-06",
+      "kind": "react-demo",
+      "caption": "Interactive example 6"
+    },
+    {
+      "id": "card-container-example-07",
+      "kind": "react-demo",
+      "caption": "Interactive example 7"
+    },
+    {
+      "id": "card-container-example-08",
+      "kind": "react-demo",
+      "caption": "Interactive example 8"
+    },
+    {
+      "id": "card-container-example-09",
+      "kind": "react-demo",
+      "caption": "Interactive example 9"
+    },
+    {
+      "id": "card-container-example-10",
+      "kind": "react-demo",
+      "caption": "Interactive example 10"
+    },
+    {
+      "id": "card-container-example-11",
+      "kind": "react-demo",
+      "caption": "Interactive example 11"
+    },
+    {
+      "id": "card-container-example-12",
+      "kind": "react-demo",
+      "caption": "Interactive example 12"
+    }
+  ]
+}

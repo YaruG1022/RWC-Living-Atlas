@@ -3,10 +3,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEarthAmericas, faRightLeft } from '@fortawesome/free-solid-svg-icons';
 import api from './api';
 import './ChatbotWidget.css';
+import ManualSources from './manual/ManualSources';
 
 // Standalone chatbot service URL. When REACT_APP_CHATBOT_API_URL is set (e.g.
 // on Netlify), chat requests go to that service instead of the main backend;
-// when unset, they fall back to the main backend's built-in /chat endpoint.
+// when unset, requests use the main API URL; that deployment must explicitly
+// proxy /chat/ask to this service. Configure the standalone service for sources.
 const CHATBOT_API_BASE = (process.env.REACT_APP_CHATBOT_API_URL || '').replace(/\/+$/, '');
 
 export default function ChatbotWidget({
@@ -193,10 +195,10 @@ export default function ChatbotWidget({
     try {
       const res = await api.post('/chat/ask', {
         question: text,
-        history: messages.slice(-6),
+        history: messages.slice(-6).map(({ role, text }) => ({ role, text })),
       }, CHATBOT_API_BASE ? { baseURL: CHATBOT_API_BASE } : {});
       const answer = res.data?.answer ?? 'Sorry, I couldn\'t get a response.';
-      setMessages(prev => [...prev, { role: 'assistant', text: formatAssistantText(answer) }]);
+      setMessages(prev => [...prev, { role: 'assistant', text: formatAssistantText(answer), sources: res.data?.sources || [] }]);
     } catch (err) {
       const status = err?.response?.status;
       const detail = err?.response?.data?.detail;
@@ -337,6 +339,7 @@ export default function ChatbotWidget({
               className={`chatbot-widget__msg chatbot-widget__msg--${msg.role}`}
             >
               {renderMessageText(msg, i)}
+              {msg.role === 'assistant' && <ManualSources sources={msg.sources} />}
             </div>
           ))}
           {loading && (

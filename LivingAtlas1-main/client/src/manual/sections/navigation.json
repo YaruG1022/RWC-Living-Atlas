@@ -1,0 +1,287 @@
+{
+  "schemaVersion": 1,
+  "id": "navigation",
+  "title": "Navigation & Preferences",
+  "navigationLabel": "Navigation & Preferences",
+  "summary": "Find pages and panels, share a manual chapter, and understand saved display preferences.",
+  "manualPath": "/user-manual?section=navigation",
+  "blocks": [
+    {
+      "id": "navigation-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Navigation & Preferences"
+        }
+      ]
+    },
+    {
+      "id": "navigation-002",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Pages and the user menu"
+        }
+      ]
+    },
+    {
+      "id": "navigation-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Home"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " or the RWC Living Atlas title in the top navigation bar to return to the map. "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "About"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " explains the project;"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Contact"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " provides the team's current contact details;"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Updates"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " opens release history; and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "User Manual"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "opens this guide. These pages are available without login."
+        }
+      ]
+    },
+    {
+      "id": "navigation-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "When logged out, use "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Register"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to request access or"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Login"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to sign in. After login, click your username or avatar to open "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Profile"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Switch Account"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", or"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Logout"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". Administrators also see "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Administration"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        }
+      ]
+    },
+    {
+      "id": "navigation-005",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Map workspace panels"
+        }
+      ]
+    },
+    {
+      "id": "navigation-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The left sidebar opens Feature Search, ArcGIS Upload, Custom Layers, Basemap, Watershed Delineation, tutorials, and What's new. Hover over an icon for its name. Custom Layers requires login. Use the card panel's layout button to dock Project Cards on either side, and its close button to collapse it. Closing a layer panel leaves its displayed layers on the map; uncheck layers or use that panel's Clear action to hide them. Opening ArcGIS Upload from the sidebar closes Custom Layers, and opening Custom Layers closes ArcGIS Upload. A left-docked Project Cards panel can share that side with the active layer panel."
+        }
+      ]
+    },
+    {
+      "id": "navigation-007",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Saved display preferences"
+        }
+      ]
+    },
+    {
+      "id": "navigation-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Your basemap, card grid/list mode, card panel side, and helper sidebar/floating mode are saved as display preferences. While logged out, pending preferences are kept in this browser. After login they are merged into your account preferences and synced when the preference service is available. These preferences do not save every currently checked ArcGIS layer; pin items to auto-load them."
+        }
+      ]
+    },
+    {
+      "id": "navigation-009",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Share a manual chapter"
+        }
+      ]
+    },
+    {
+      "id": "navigation-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Open a chapter directly with "
+        },
+        {
+          "type": "code",
+          "content": [
+            {
+              "type": "text",
+              "text": "/user-manual?section=chapter-id"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", for example "
+        },
+        {
+          "type": "link",
+          "content": [
+            {
+              "type": "text",
+              "text": "Card Creation Form"
+            }
+          ],
+          "href": "/user-manual?section=add-card"
+        },
+        {
+          "type": "text",
+          "text": ". Panel Help buttons open the corresponding chapter. Clicking a chapter in this manual changes the displayed content; it does not change the URL automatically."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": []
+}

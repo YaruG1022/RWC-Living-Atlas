@@ -2,7 +2,7 @@ import React from 'react';
 import Modal from 'react-modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { latestGuiUpdateDate, latestGuiUpdates, previousGuiUpdateDate, previousGuiUpdates, earlierGuiUpdateDate, earlierGuiUpdates } from './latestGuiUpdates';
+import { latestGuiUpdateDate, latestGuiUpdates, previousGuiUpdateDate, previousGuiUpdates, earlierGuiUpdateDate, earlierGuiUpdates, contactGuiUpdateDate, contactGuiUpdates } from './latestGuiUpdates';
 
 function ChangelogModal({ isOpen, onClose }) {
     return (
@@ -29,6 +29,21 @@ function ChangelogModal({ isOpen, onClose }) {
                     </summary>
                     <div className="onboarding-section-content">
                         {latestGuiUpdates.map(group => <React.Fragment key={group.title}>
+                            <h4>{group.title}</h4>
+                            <ul className="changelog-list">
+                                {group.items.map(item => <li key={item}>{item}</li>)}
+                            </ul>
+                        </React.Fragment>)}
+                    </div>
+                </details>
+
+                <details className="onboarding-section changelog-release">
+                    <summary>
+                        <h3>Update Date: {contactGuiUpdateDate}</h3>
+                        <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />
+                    </summary>
+                    <div className="onboarding-section-content">
+                        {contactGuiUpdates.map(group => <React.Fragment key={group.title}>
                             <h4>{group.title}</h4>
                             <ul className="changelog-list">
                                 {group.items.map(item => <li key={item}>{item}</li>)}

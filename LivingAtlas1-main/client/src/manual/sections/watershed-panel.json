@@ -1,0 +1,571 @@
+{
+  "schemaVersion": 1,
+  "id": "watershed-panel",
+  "title": "Watershed Panel",
+  "navigationLabel": "Watershed Panel",
+  "summary": "Show StreamStats rivers, delineate an upstream basin, and save it as a custom layer or a polygon card.",
+  "manualPath": "/user-manual?section=watershed-panel",
+  "blocks": [
+    {
+      "id": "watershed-panel-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Watershed Panel"
+        }
+      ]
+    },
+    {
+      "id": "watershed-panel-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Open "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Watershed Delineation"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " with the water-waves button in the left sidebar. This panel uses USGS StreamStats to display river channels and compute the upstream basin draining to a selected pour point. Use "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Help"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (?) to open this chapter or"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Tutorial"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " (play) for a guided walkthrough. The tutorial explains the save controls even before a basin is available; it does not delineate or save anything for you."
+        }
+      ]
+    },
+    {
+      "id": "watershed-panel-003",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "1. Choose a state and display rivers"
+        }
+      ]
+    },
+    {
+      "id": "watershed-panel-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Select "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Washington (WA)"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Idaho (ID)"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", or "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Oregon (OR)"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "for the location you want to delineate. Rivers are hidden by default. Check"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Show StreamStats rivers"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to display the selected state’s river channels; uncheck it to hide them. Changing the state updates the river overlay but does not recompute an existing basin."
+        }
+      ]
+    },
+    {
+      "id": "watershed-panel-005",
+      "type": "list",
+      "content": [
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "For WA and OR, zoom to level "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "12 or closer"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "; for ID, use "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "13 or closer"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Look within the selected state. At a wider map view the river layer may be enabled but not visible."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Closing and reopening the panel or changing basemaps retains the river visibility setting during the session."
+            }
+          ]
+        }
+      ],
+      "stepIds": [
+        "watershed-panel-005-step-1",
+        "watershed-panel-005-step-2",
+        "watershed-panel-005-step-3"
+      ]
+    },
+    {
+      "id": "watershed-panel-006",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "2. Delineate and review a basin"
+        }
+      ]
+    },
+    {
+      "id": "watershed-panel-007",
+      "type": "list",
+      "content": [
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Zoom to at least level 12, then choose "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Select point on map"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": ". The cursor becomes a crosshair."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Click a river channel in the selected state. StreamStats snaps the point to its stream grid and computes the upstream basin."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Wait for the response. On success, the map zooms to the yellow basin and displays the returned pour point. The panel shows result details and the save controls."
+            }
+          ]
+        }
+      ],
+      "ordered": true,
+      "stepIds": [
+        "watershed-panel-007-step-1",
+        "watershed-panel-007-step-2",
+        "watershed-panel-007-step-3"
+      ]
+    },
+    {
+      "id": "watershed-panel-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Cancel point selection"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " exits picking mode. During a request,"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Cancel"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " stops waiting for the result. Requests may take up to two minutes before timing out. If a request fails or no watershed is returned, check the state, zoom in, and try a point closer to a stream channel."
+        }
+      ]
+    },
+    {
+      "id": "watershed-panel-009",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "3. Save as custom layer"
+        }
+      ]
+    },
+    {
+      "id": "watershed-panel-010",
+      "type": "list",
+      "content": [
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Log in and wait until the basin is displayed."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Enter a "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Basin name"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": ", then choose "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Save as custom layer"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Wait for the confirmation that the layer was saved to "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Custom Layers / Root"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Open Custom Layers, navigate to Root, and enable the saved layer to show it. You can manage it using the existing custom-layer controls."
+            }
+          ]
+        }
+      ],
+      "ordered": true,
+      "stepIds": [
+        "watershed-panel-010-step-1",
+        "watershed-panel-010-step-2",
+        "watershed-panel-010-step-3",
+        "watershed-panel-010-step-4"
+      ]
+    },
+    {
+      "id": "watershed-panel-011",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "This saves the complete basin GeoJSON, including separate polygon parts and interior holes, to your personal layer library. Root is used even if another folder is currently open. The list refreshes after a successful save. If saving fails, the basin remains available so you can retry. Saving a custom layer does not create a card."
+        }
+      ]
+    },
+    {
+      "id": "watershed-panel-012",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "4. Save as polygon for a card"
+        }
+      ]
+    },
+    {
+      "id": "watershed-panel-013",
+      "type": "list",
+      "content": [
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Log in and choose "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Save as polygon"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " after the basin is displayed."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Edit Polygon"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " opens with the basin boundary already loaded. Adjust its vertices and styling as needed."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Save the edited shape to continue to the existing card creation form, with the polygon representation prefilled."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Complete the required card fields and submit the form to save the card."
+            }
+          ]
+        }
+      ],
+      "ordered": true,
+      "stepIds": [
+        "watershed-panel-013-step-1",
+        "watershed-panel-013-step-2",
+        "watershed-panel-013-step-3",
+        "watershed-panel-013-step-4"
+      ]
+    },
+    {
+      "id": "watershed-panel-014",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Opening or cancelling Edit Polygon does not create a card. Separate polygon components are supported. The existing editor does "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "not support interior holes"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ": for a basin with holes, the panel asks you to use "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Save as custom layer"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " so the complete geometry is preserved."
+        }
+      ]
+    },
+    {
+      "id": "watershed-panel-015",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "5. Clear results and troubleshoot"
+        }
+      ]
+    },
+    {
+      "id": "watershed-panel-016",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Clear result from map"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " removes only the temporary basin and pour point. It does not hide the StreamStats rivers, delete a saved custom layer, or delete a card. Uncheck the river checkbox to hide rivers; manage saved layers and cards in their own panels."
+        }
+      ]
+    },
+    {
+      "id": "watershed-panel-017",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "If rivers fail to load, check the state and zoom level, then toggle rivers off and on. A service error can prevent the river image from loading even when a network request reports success. If it persists, try again later. River loading errors and basin delineation errors are shown separately. Both save options require login; signing in does not automatically save a basin."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": []
+}

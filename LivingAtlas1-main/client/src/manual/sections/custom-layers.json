@@ -1,0 +1,639 @@
+{
+  "schemaVersion": 1,
+  "id": "custom-layers",
+  "title": "Custom Layers Panel",
+  "navigationLabel": "Custom Layers Panel",
+  "summary": "Manage your personal saved layers with custom folders, drag-and-drop ordering, and pinned auto-load items.",
+  "manualPath": "/user-manual?section=custom-layers",
+  "blocks": [
+    {
+      "id": "custom-layers-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Custom Layers Panel"
+        }
+      ]
+    },
+    {
+      "id": "custom-layers-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The Custom Layers Panel is your personal library of saved map layers. Add ArcGIS services here from the ArcGIS Upload Panel, or upload your own GeoJSON, KML, and Shapefile (.zip) files directly. Organize layers into folders, reorder them by dragging, and pin items to auto-load every time you open the panel. Login is required to use this panel."
+        }
+      ]
+    },
+    {
+      "id": "custom-layers-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Check a saved service to display its layers, or expand it and select individual layers or groups. Unchecking a layer hides it without deleting it from your library; Clear removes the panel's displayed layers. Removing a service from Custom Layers deletes your saved entry and unloads it. Search follows the current folder scope; return to Root to search the entire library, then use Previous/Next for matches. Folder names can use paths such as Hydrology/Rivers for nested organization. Custom Layers auto-load pins are remembered in this browser. Your saved layer library and its folder/order changes are stored in your account; ArcGIS Upload pins use separate account preferences."
+        }
+      ]
+    },
+    {
+      "id": "custom-layers-004",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "You can also save a StreamStats basin from the "
+        },
+        {
+          "type": "chapter-link",
+          "sectionId": "watershed-panel",
+          "content": [
+            {
+              "type": "text",
+              "text": "Watershed Panel"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". Choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Save as custom layer"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " there to store the complete basin in"
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": " Root"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", regardless of the folder currently open here. The list refreshes after saving; expand the saved layer and enable it to display it on the map."
+        }
+      ]
+    },
+    {
+      "id": "custom-layers-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Opening the Panel"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "custom-layers-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Custom Layers"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button in the left sidebar to open or close the panel. You must be logged in; a login prompt appears otherwise. Opening it from the sidebar closes the ArcGIS Upload Panel. When Project Cards is docked on the left, it shares that side with Custom Layers vertically."
+        }
+      ]
+    },
+    {
+      "id": "custom-layers-007",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Panel Header"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "custom-layers-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The header shows the panel title plus "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Help"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Tutorial"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "×"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " close buttons. Help opens the manual, Tutorial starts the guided walkthrough, and closing the panel does not remove layers already added to the map."
+        }
+      ]
+    },
+    {
+      "id": "custom-layers-009",
+      "type": "note",
+      "content": [
+        {
+          "type": "text",
+          "text": "The compact "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Folder"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Upload"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " buttons sit below the opacity slider, beside "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Added"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Clear"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". Hover for full action labels."
+        }
+      ]
+    },
+    {
+      "id": "custom-layers-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Search Bar"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "custom-layers-011",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Search across all your custom folders, services, and layers within the current scope. Press "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Enter"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " or use the search button to run the query, and use the clear button to reset back to the full list. Navigation arrows appear when there are multiple matches."
+        }
+      ]
+    },
+    {
+      "id": "custom-layers-012",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Layer Opacity"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "custom-layers-013",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Drag the slider to adjust the transparency of all custom layers on the map simultaneously. The percentage updates live as you drag."
+        }
+      ]
+    },
+    {
+      "id": "custom-layers-014",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Folder, Upload, Added & Clear"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "custom-layers-015",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The compact action row groups "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Folder"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Upload"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ","
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Added"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", and "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Clear"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " in one place. Hover buttons for their full labels. Upload File imports a GeoJSON, KML, or Shapefile (.zip) file as a new layer. Show Added Only collapses the list to services with at least one active layer, while Clear All removes all checked layers from the map in one click."
+        }
+      ]
+    },
+    {
+      "id": "custom-layers-016",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Folder Structure"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "custom-layers-017",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Services are grouped inside user-created folders. Click a folder to navigate into it (file-explorer style). A breadcrumb bar at the top shows your current path and lets you navigate back. Folders can be nested inside other folders by dragging one folder onto another."
+        }
+      ]
+    },
+    {
+      "id": "custom-layers-018",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Drag-and-Drop Reordering"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "custom-layers-019",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Drag any service row to reorder it within its folder. Drag a service onto a folder header to move it into that folder. Drag a folder onto another folder to nest it. Drag a layer row (when a service is expanded) to reorder layers within that service. All changes are saved to the database automatically."
+        }
+      ]
+    },
+    {
+      "id": "custom-layers-020",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Right-Click Menu"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "custom-layers-021",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Right-click any row to open a context menu:"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Rename"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " — rename a service or folder"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Learn More"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " — view metadata from the ArcGIS REST endpoint"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Remove from Custom Layers"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " — permanently delete the service from your library and unload it from the map"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Delete Folder"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " — delete the folder (services inside are moved to Root)"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "text": "• "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Pin (Auto-load)"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " — auto-load the item every time the panel opens; right-click again to Unpin"
+        }
+      ]
+    },
+    {
+      "id": "custom-layers-022",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Adding Layers from the Upload Panel"
+        }
+      ],
+      "role": "feature-title"
+    },
+    {
+      "id": "custom-layers-023",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "In the ArcGIS Upload Panel, you can save content into Custom Layers either by right-clicking a service row or by using the "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Save"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " button at the bottom of the Service Info or Layer Info modal. This copies the service or layer into your Custom Layers library where you can organize it into folders and reorder it at will. The original item in the Upload Panel is unaffected."
+        }
+      ]
+    },
+    {
+      "id": "custom-layers-024",
+      "type": "note",
+      "content": [
+        {
+          "type": "text",
+          "text": "You must be logged in to save layers. A login prompt will appear if you are not."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": [
+    {
+      "id": "custom-layers-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    },
+    {
+      "id": "custom-layers-example-02",
+      "kind": "react-demo",
+      "caption": "Interactive example 2"
+    },
+    {
+      "id": "custom-layers-example-03",
+      "kind": "react-demo",
+      "caption": "Interactive example 3"
+    },
+    {
+      "id": "custom-layers-example-04",
+      "kind": "react-demo",
+      "caption": "Interactive example 4"
+    },
+    {
+      "id": "custom-layers-example-05",
+      "kind": "react-demo",
+      "caption": "Interactive example 5"
+    },
+    {
+      "id": "custom-layers-example-06",
+      "kind": "react-demo",
+      "caption": "Interactive example 6"
+    },
+    {
+      "id": "custom-layers-example-07",
+      "kind": "react-demo",
+      "caption": "Interactive example 7"
+    },
+    {
+      "id": "custom-layers-example-08",
+      "kind": "react-demo",
+      "caption": "Interactive example 8"
+    },
+    {
+      "id": "custom-layers-example-09",
+      "kind": "react-demo",
+      "caption": "Interactive example 9"
+    },
+    {
+      "id": "custom-layers-example-10",
+      "kind": "react-demo",
+      "caption": "Interactive example 10"
+    }
+  ]
+}

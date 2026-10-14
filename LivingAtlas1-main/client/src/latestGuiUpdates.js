@@ -75,15 +75,29 @@ export const previousGuiUpdates = [
     },
 ];
 
-export const latestGuiUpdateDate = '10/13/2026';
+export const contactGuiUpdateDate = '10/13/2026';
 
-export const latestGuiUpdates = [
+export const contactGuiUpdates = [
     {
         title: 'Contact and RWC Branding',
         items: [
             'Updated Contact to Paccar Room 360 and j.boll@wsu.edu; removed the phone number and renamed the section Email.',
             'Replaced CEREO display text with Rivers, Watersheds, Communities (RWC) across the app, onboarding and user manual.',
             'Temporarily hid the top navigation logo link and default card logos. Cards without uploaded images show "No image"; logo assets remain available for future replacement.',
+        ],
+    },
+];
+
+export const latestGuiUpdateDate = '10/14/2026';
+export const latestGuiUpdates = [
+    {
+        title: 'User Manual and Atlas Helper',
+        items: [
+            'Expanded the manual with navigation, account, profile, administration, tutorial and update guides while preserving existing interactive examples.',
+            'The manual and Atlas Helper now share the same chapter instructions. Published manual updates can refresh the helper automatically after validation.',
+            'Helper answers can show clickable User Manual references, so you can open the matching chapter and check the instructions.',
+            'When image understanding is available, the helper can consult current manual examples to explain icons, button positions and layouts; documented text remains available when images cannot be checked.',
+            'The manual gallery example now lets you preview Multiple images and Slideshow and try its navigation controls.',
         ],
     },
 ];

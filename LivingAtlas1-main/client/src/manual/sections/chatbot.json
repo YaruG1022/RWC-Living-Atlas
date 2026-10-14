@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "id": "chatbot",
+  "title": "RWC Living Atlas Helper",
+  "navigationLabel": "Atlas Helper",
+  "summary": "Ask app questions and switch between sidebar and floating chat.",
+  "manualPath": "/user-manual?section=chatbot",
+  "blocks": [
+    {
+      "id": "chatbot-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "RWC Living Atlas Helper"
+        }
+      ]
+    },
+    {
+      "id": "chatbot-002",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "In floating mode, open the helper handle. In sidebar mode, use the speech-bubble button in the left sidebar. Type a question and press the send button or Enter; Shift+Enter adds a new line. The circular two-arrow icon in the chat header switches between the sidebar and the floating window; hover it to see the destination."
+        }
+      ]
+    },
+    {
+      "id": "chatbot-003",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The floating window is 400 × 500 pixels on desktop and fits smaller screens. Use the floating helper handle to open or hide it and drag it to reposition. The header close button hides the conversation. Panel headers use compact question-mark, play, and close buttons where available: open the manual, start a guided tour, or close the panel."
+        }
+      ]
+    },
+    {
+      "id": "chatbot-004",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Ask about features or current public data"
+        }
+      ]
+    },
+    {
+      "id": "chatbot-005",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The helper uses this User Manual to explain how the app works. When an answer includes User Manual references, click a chapter title to open the matching guide and check its instructions. When its live data services are available, it can look up public card titles, categories, descriptions, organizations, funding, tags, links, locations, and dates, or browse the current state ArcGIS catalog. Ask, for example, how to create a card or which public cards concern water quality. Counts, categories, tags, and available services can change; request current data instead of treating manual examples as an inventory. Summary facts may be briefly cached, and search results may be limited."
+        },
+        {
+          "type": "text",
+          "text": " For questions about icons, button positions or layouts, the helper can consult the manual’s examples when image understanding is available. If images cannot be checked, it will use the documented text and say that visual details could not be verified. Manual examples illustrate the interface; use live-data questions for current public records."
+        }
+      ]
+    },
+    {
+      "id": "chatbot-006",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The helper's public-data tools exclude private cards and contributor account identities, emails, and credentials. They do not create, edit, or delete records. Close and reopen the helper to continue the current conversation; conversation history is not saved across page reloads."
+        }
+      ]
+    },
+    {
+      "id": "chatbot-007",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Waiting, errors, and quick actions"
+        }
+      ]
+    },
+    {
+      "id": "chatbot-008",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "A typing indicator appears while waiting; sending is disabled until the request completes. If the helper reports unavailable service or insufficient API credits, try again later or contact the team. When live data cannot be reached, it may still explain documented features, but cannot verify current inventory. ArcGIS answers may include Upload Panel quick-action links: click one to navigate to the relevant service and then choose which layers to display."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": [
+    {
+      "id": "chatbot-example-01",
+      "kind": "react-demo",
+      "caption": "Interactive example 1"
+    }
+  ]
+}

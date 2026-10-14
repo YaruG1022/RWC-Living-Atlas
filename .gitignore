@@ -75,3 +75,7 @@ documentation/CREDENTIALS_PROTECTION.md
 
 # Private security audit record
 /documentation/CREDENTIALS_PROTECTION.md
+
+# Generated from the same chapter JSON used by the React manual
+LivingAtlas1-main/client/public/manual/
+LivingAtlas1-main/client/build/

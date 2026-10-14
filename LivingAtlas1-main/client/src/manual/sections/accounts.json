@@ -1,0 +1,295 @@
+{
+  "schemaVersion": 1,
+  "id": "accounts",
+  "title": "Login, Registration & Passwords",
+  "navigationLabel": "Login, Registration & Passwords",
+  "summary": "Request access, log in, reset a forgotten password, and sign out.",
+  "manualPath": "/user-manual?section=accounts",
+  "blocks": [
+    {
+      "id": "accounts-001",
+      "type": "heading",
+      "level": 2,
+      "content": [
+        {
+          "type": "text",
+          "text": "Login, Registration & Passwords"
+        }
+      ]
+    },
+    {
+      "id": "accounts-002",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Request an account"
+        }
+      ]
+    },
+    {
+      "id": "accounts-003",
+      "type": "list",
+      "content": [
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Click "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Register"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " in the navigation bar."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Enter Username, Email, Password, and Sponsor/Message. Select the desired access level: Regular User or Admin."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Click "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Submit Request"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " and check the confirmation message."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Wait for an administrator to approve the request before logging in. Requesting Admin does not immediately grant that role."
+            }
+          ]
+        }
+      ],
+      "ordered": true,
+      "stepIds": [
+        "accounts-003-step-1",
+        "accounts-003-step-2",
+        "accounts-003-step-3",
+        "accounts-003-step-4"
+      ]
+    },
+    {
+      "id": "accounts-004",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Log in"
+        }
+      ]
+    },
+    {
+      "id": "accounts-005",
+      "type": "list",
+      "content": [
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Click "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Login"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": ", enter your email and password, and click"
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": " Login"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "After a successful login, the app returns to Home. If login fails, check your credentials and whether your account request was approved."
+            }
+          ]
+        }
+      ],
+      "ordered": true,
+      "stepIds": [
+        "accounts-005-step-1",
+        "accounts-005-step-2"
+      ]
+    },
+    {
+      "id": "accounts-006",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Reset a forgotten password"
+        }
+      ]
+    },
+    {
+      "id": "accounts-007",
+      "type": "list",
+      "content": [
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "On Login, click "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Forgot Password?"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Enter your registered email and submit the recovery request."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Open the reset link sent to your inbox. Enter a new password of at least six characters and enter it again to confirm."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
+              "text": "Click "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Reset Password"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": ", check the result, then log in with the new password. If recovery fails, retry later or contact the team."
+            }
+          ]
+        }
+      ],
+      "ordered": true,
+      "stepIds": [
+        "accounts-007-step-1",
+        "accounts-007-step-2",
+        "accounts-007-step-3",
+        "accounts-007-step-4"
+      ]
+    },
+    {
+      "id": "accounts-008",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Log out and permissions"
+        }
+      ]
+    },
+    {
+      "id": "accounts-009",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Click your username or avatar and choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Logout"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". Browsing remains available. Login is required for creating cards, favorites, card pins, and your Custom Layers library. Editing or deleting a card requires ownership or an administrator account. Administrator tools appear only for administrators."
+        }
+      ]
+    }
+  ],
+  "images": [],
+  "examples": []
+}

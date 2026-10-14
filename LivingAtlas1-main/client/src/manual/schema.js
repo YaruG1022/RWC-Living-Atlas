@@ -38,6 +38,7 @@ function validateManual(index, chapters) {
         if (node.type === 'text') { if (typeof node.text !== 'string' || !node.text) fail('text'); }
         else if (node.type !== 'break') {
           if (node.type === 'link' && !safeUrl(node.href)) fail(`unsafe link ${node.href}`);
+          if (node.type === 'link' && node.target && !['_blank', '_self'].includes(node.target)) fail('link target');
           if (node.type === 'chapter-link' && !ids.has(node.sectionId)) fail(`unknown chapter ${node.sectionId}`);
           walk(node.content);
         }

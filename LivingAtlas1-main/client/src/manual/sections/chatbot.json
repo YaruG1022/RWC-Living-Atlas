@@ -54,7 +54,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The helper uses feature documentation to explain how the app works. When its live data services are available, it can look up public card titles, categories, descriptions, organizations, funding, tags, links, locations, and dates, or browse the current state ArcGIS catalog. Ask, for example, how to create a card or which public cards concern water quality. Counts, categories, tags, and available services can change; request current data instead of treating manual examples as an inventory. Summary facts may be briefly cached, and search results may be limited."
+          "text": "The helper uses this User Manual to explain how the app works. When an answer includes User Manual references, click a chapter title to open the matching guide and check its instructions. When its live data services are available, it can look up public card titles, categories, descriptions, organizations, funding, tags, links, locations, and dates, or browse the current state ArcGIS catalog. Ask, for example, how to create a card or which public cards concern water quality. Counts, categories, tags, and available services can change; request current data instead of treating manual examples as an inventory. Summary facts may be briefly cached, and search results may be limited."
         }
       ]
     },

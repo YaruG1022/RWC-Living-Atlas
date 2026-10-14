@@ -12,7 +12,8 @@ export function renderContent(nodes, onNavigate) {
         onClick={() => onNavigate(node.sectionId)}>{children}</button>;
     }
     if (node.type === 'link') {
-      return <a key={index} href={node.href} target="_blank" rel="noopener noreferrer">{children}</a>;
+      return <a key={index} href={node.href} target={node.target}
+        rel={node.target === '_blank' ? 'noopener noreferrer' : undefined}>{children}</a>;
     }
     const tags = { strong: 'strong', em: 'em', code: 'code', span: 'span', li: 'li', ul: 'ul', ol: 'ol', kbd: 'kbd' };
     const tag = tags[node.type];

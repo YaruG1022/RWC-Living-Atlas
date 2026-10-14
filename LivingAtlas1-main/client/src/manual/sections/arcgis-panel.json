@@ -67,7 +67,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The panel normally loads its catalog from the backend and can fall back to bundled data if that catalog is unavailable. Its source status indicates which catalog you are browsing. Layer images and features are still requested from the upstream services. Search follows the current root, state, or folder; return to Root to search more broadly. Unloaded layer metadata may be fetched during search, so wait for the search indicator before judging the results."
+          "text": "The panel loads its catalog from the backend. If the catalog is unavailable, the panel shows an error instead of loading an older bundled catalog. Layer images and features are requested from the upstream services. Search follows the current root, state, or folder; return to Root to search more broadly. Unloaded layer metadata may be fetched during search, so wait for the search indicator before judging the results."
         }
       ]
     },
@@ -106,7 +106,8 @@
                   "text": " ArcGIS source"
                 }
               ],
-              "href": "https://gis.ecology.wa.gov/serverext/rest/services"
+              "href": "https://gis.ecology.wa.gov/serverext/rest/services",
+              "target": "_blank"
             },
             {
               "type": "text",
@@ -134,7 +135,8 @@
                   "text": " ArcGIS source"
                 }
               ],
-              "href": "https://gis.idwr.idaho.gov/hosting/rest/services"
+              "href": "https://gis.idwr.idaho.gov/hosting/rest/services",
+              "target": "_blank"
             },
             {
               "type": "text",
@@ -162,7 +164,8 @@
                   "text": " ArcGIS source"
                 }
               ],
-              "href": "https://navigator.state.or.us/arcgis/rest/services"
+              "href": "https://navigator.state.or.us/arcgis/rest/services",
+              "target": "_blank"
             },
             {
               "type": "text",

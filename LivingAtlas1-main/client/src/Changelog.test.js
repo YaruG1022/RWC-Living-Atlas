@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import Modal from 'react-modal';
 import ChangelogModal from './ChangelogModal';
 import ChangelogHistory from './ChangelogHistory';
-import { latestGuiUpdateDate, latestGuiUpdates, previousGuiUpdateDate, previousGuiUpdates } from './latestGuiUpdates';
+import { latestGuiUpdateDate, latestGuiUpdates, previousGuiUpdateDate, previousGuiUpdates, contactGuiUpdateDate, contactGuiUpdates } from './latestGuiUpdates';
 
 test('dialog and history display the same categorized release with earlier history preserved', () => {
     const appRoot = document.createElement('div');
@@ -13,6 +13,8 @@ test('dialog and history display the same categorized release with earlier histo
     expect(screen.getByText(`Update Date: ${latestGuiUpdateDate}`).closest('details').open).toBe(true);
     expect(screen.getByText('Update Date: 9/27/2026').closest('details').open).toBe(false);
     expect(screen.getByText(`Update Date: ${previousGuiUpdateDate}`).closest('details').open).toBe(false);
+    expect(screen.getByText(`Update Date: ${contactGuiUpdateDate}`).closest('details').open).toBe(false);
+    for (const group of contactGuiUpdates) for (const item of group.items) expect(screen.getByText(item)).toBeTruthy();
     for (const group of previousGuiUpdates) {
         for (const item of group.items) expect(screen.getByText(item)).toBeTruthy();
     }
@@ -26,6 +28,8 @@ test('dialog and history display the same categorized release with earlier histo
     expect(screen.getByText(`Update Date: ${latestGuiUpdateDate}`)).toBeTruthy();
     expect(screen.getByText('Update Date: 9/27/2026')).toBeTruthy();
     expect(screen.getByText(`Update Date: ${previousGuiUpdateDate}`)).toBeTruthy();
+    expect(screen.getByText(`Update Date: ${contactGuiUpdateDate}`)).toBeTruthy();
+    for (const group of contactGuiUpdates) for (const item of group.items) expect(screen.getByText(item)).toBeTruthy();
     for (const group of previousGuiUpdates) {
         for (const item of group.items) expect(screen.getByText(item)).toBeTruthy();
     }

@@ -4,6 +4,10 @@ import ManualText from './ManualText';
 import { chapters, chapterById } from './catalog';
 import index from './index.json';
 import { validateManual, contentText } from './schema';
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const { exportManual } = require('../../scripts/export-manual.cjs');
 
 test('chapter catalog rejects missing content, duplicate IDs, and invalid references', () => {
   expect(validateManual(index, chapters)).toBe(true);
@@ -21,12 +25,17 @@ test('chapter catalog rejects missing content, duplicate IDs, and invalid refere
 test('editing one prose block changes rendering and exported text together', () => {
   const block = chapterById['add-card'].blocks[1];
   const old = block.content;
+  const output = fs.mkdtempSync(path.join(os.tmpdir(), 'manual-shared-edit-'));
   try {
     block.content = [{ type: 'text', text: 'Updated card creation instruction.' }];
     render(<ManualText sectionId="add-card" blockId={block.id} />);
     expect(screen.getByText('Updated card creation instruction.')).toBeInTheDocument();
     expect(contentText(block.content)).toBe('Updated card creation instruction.');
-  } finally { block.content = old; }
+    const manifest = exportManual(output, 'a'.repeat(40), { index, chapters });
+    const bundle = JSON.parse(fs.readFileSync(path.join(output, 'releases', manifest.version, 'manual.json')));
+    expect(bundle.sections.find(section => section.id === 'add-card').blocks.find(item => item.id === block.id).text)
+      .toBe('Updated card creation instruction.');
+  } finally { block.content = old; fs.rmSync(output, { recursive: true }); }
 });
 
 test('chapter links keep their navigation action and ordered steps keep numbering', () => {

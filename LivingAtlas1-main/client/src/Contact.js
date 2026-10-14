@@ -38,8 +38,7 @@ function Contact(props) {
                 <p>Washington State</p>
                 <p>University</p>
                 <p>Pullman, WA 99164-5825</p>
-                <h2>Phone and email</h2>
-                <p>Phone:  509-335-5531</p>
+                <h2>Email</h2>
                 <p>Email:  <li><a href="mailto:j.boll@wsu.edu">j.boll@wsu.edu</a></li> <li><a href="mailto:wsu.cereoatlas25@gmail.com">wsu.cereoatlas25@gmail.com</a></li></p>
 
                 <h2>Send Us Feedback</h2>

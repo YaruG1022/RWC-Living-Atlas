@@ -51,6 +51,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as regularHeart, faFolder } from '@fortawesome/free-regular-svg-icons';
 import LearnMoreGallery from './LearnMoreGallery';
+import ManualGalleryDemo from './manual/ManualGalleryDemo';
 import RepresentationPreview from './RepresentationPreview';
 import './Card.css';
 import './Content2.css';
@@ -1502,7 +1503,7 @@ function UserManual() {
           <div className="um-feature-row">
             <div className="um-feature-demo" data-manual-example="detail-view-example-04">
               <div className="um-isolated-demo um-gallery-demo">
-                <LearnMoreGallery images={[1, 2, 3, 4, 5].map(id => ({ id, url: '/manual-sample-image.svg' }))} editing coverUrl="/manual-sample-image.svg" onOpen={() => {}} onReorder={() => {}} onDelete={() => {}} onLayoutChange={() => {}} onSeeAll={() => {}} />
+                <ManualGalleryDemo />
               </div>
             </div>
             <div className="um-feature-info">

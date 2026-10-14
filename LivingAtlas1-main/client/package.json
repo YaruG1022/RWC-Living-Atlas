@@ -46,7 +46,9 @@
     "test2": "mocha",
     "eject": "react-scripts eject",
     "prebuild": "node scripts/export-manual.cjs",
-    "manual:export": "node scripts/export-manual.cjs"
+    "manual:export": "node scripts/export-manual.cjs",
+    "postbuild": "node scripts/capture-manual.cjs",
+    "manual:capture": "node scripts/capture-manual.cjs"
   },
   "eslintConfig": {
     "extends": [
@@ -71,10 +73,12 @@
     ]
   },
   "devDependencies": {
+    "@sparticuz/chromium": "153.0.0",
     "@testing-library/react": "^14.0.0",
     "chai": "^4.3.10",
     "chromedriver": "^147.0.4",
     "mocha": "^10.2.0",
+    "playwright-core": "1.64.0",
     "react-scripts": "^5.0.1",
     "react-test-renderer": "^18.2.0"
   }

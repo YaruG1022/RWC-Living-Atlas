@@ -25,5 +25,5 @@ export function renderContent(nodes, onNavigate) {
 export default function ManualText({ sectionId, blockId, onNavigate }) {
   const block = chapterById[sectionId]?.blocks.find(item => item.id === blockId);
   if (!block) throw new Error(`Missing manual block: ${sectionId}/${blockId}`);
-  return <>{renderContent(block.content, onNavigate)}</>;
+  return <span data-manual-block={blockId} style={{ display: 'contents' }}>{renderContent(block.content, onNavigate)}</span>;
 }

@@ -42,3 +42,13 @@ test('unknown chapter URLs fall back to the overview and keep navigation usable'
   expect(screen.getByRole('link', { name: 'Card Creation Form' }))
     .toHaveAttribute('href', '/user-manual?section=add-card');
 });
+
+test('manual gallery demonstrates slideshow controls with isolated sample state', () => {
+  window.history.replaceState({}, '', '/user-manual?section=detail-view');
+  render(<UserManual />);
+  fireEvent.change(screen.getByRole('combobox', { name: 'Image layout' }), { target: { value: 'slideshow' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Next gallery image' }));
+  expect(screen.getByRole('button', { name: 'Show gallery image 2' })).toHaveAttribute('aria-pressed', 'true');
+  fireEvent.change(screen.getByRole('combobox', { name: 'Image layout' }), { target: { value: 'multi' } });
+  expect(screen.queryByRole('button', { name: 'Next gallery image' })).not.toBeInTheDocument();
+});

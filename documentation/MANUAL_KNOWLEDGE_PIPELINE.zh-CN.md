@@ -4,7 +4,7 @@
 
 ## 日常维护
 
-1. 在 `src/manual/sections/<chapter-id>.json` 修改对应正文、列表、说明或图片元数据。保持章节和 block ID 稳定。
+1. 在 `src/manual/sections/<chapter-id>.json` 修改对应正文、列表、说明或图片元数据。保持章节和 block ID 稳定。需要每个操作都保留的前提/警告，可用章节的 `contextBlockIds` 引用既有正文块；不要再复制一段文字。
 2. 布局、样式及演示仍在 `UserManual.js`；通过 `ManualText` 引用章节/block ID。若新增正文块，同时在页面引用它；不要在 JSX 重新写一份相同正文。新增章节需更新 `index.json`、`catalog.js` 和页面渲染分支。
 3. JSON 的 `heading` / `paragraph` / `list` / `note` 块支持文字、强调、链接、键盘提示和章节跳转。列表使用 `ordered` 保留顺序，`stepIds` 保留步骤身份，`feature-title` 标注操作边界。`examples` 标识 React 演示位置，`images` 记录已有示例图片与说明。构建后 Playwright 逐章节捕获实际页面与演示，图库另捕获 Slideshow 和下一张状态；静态示例中的已展开菜单仍按其实际渲染状态保存。
 4. 内容版本在导出时从章节 JSON 计算；发布版本由完整 Git SHA 和内容包校验和前缀组成。同一 SHA 的文字包重复构建结果一致。截图可能受浏览器/字体环境影响，因此图片与截图清单另用完整 SHA-256 寻址；不得用未校验的图片替换同一 URL。格式检查拒绝重复 ID、缺失正文、危险链接、不存在的章节，以及未在布局引用的正文或演示。
@@ -23,7 +23,7 @@ COMMIT_REF=$(git rev-parse HEAD) CI=false npm run build
 
 应用的 GitHub 工作流先验证内容、测试并构建，然后等待正式 app 的 `/manual/current.json` 的 Git SHA、文字清单、checksum 和截图数量与本次构建一致。图片清单校验实际部署生成的摘要，避免第二次渲染的像素差异误阻发布。失败或取消的 Netlify 部署不能触发导入。静态内容包由 Netlify 正常文件服务提供；保留原有 SPA fallback，current marker 禁止缓存，版本路径可长期缓存。
 
-配置 dispatch 凭据时，部署完成后发送 `atlas-manual-published`，只含 commit、version、checksum。没有跨仓库 token 时仍检查发布门槛；机器人每 15 分钟的串行同步计划提供独立补偿，同时在其 main 更新后同步。计划任务可能被 GitHub 延迟，没有 15 分钟时效保证。机器人只访问它自身配置的 app origin，不接受事件载荷指定的主机。机器人校验 current marker、版本 manifest、文件校验和、章节/正文数量、页面可访问性及正文和富文本的一致性；新记录写入独立命名空间，再验证每条记录、准确数量和逐章检索。启用前再次检查 app marker；切换一个持久化控制记录后，运行中的服务在后续请求读取新版本。每次回答的所有检索绑定同一版本。
+配置 dispatch 凭据时，部署完成后发送 `atlas-manual-published`，只含 commit、version、checksum。没有跨仓库 token 时仍检查发布门槛；机器人每 15 分钟的串行同步计划提供独立补偿，同时在其 main 更新后同步。计划任务可能被 GitHub 延迟，没有 15 分钟时效保证。机器人只访问它自身配置的 app origin，不接受事件载荷指定的主机。机器人校验 current marker、版本 manifest、文件校验和、章节/正文数量、页面可访问性及正文和富文本的一致性；新记录写入独立命名空间（当前抽取格式为 v2，仍接受 v1 的既有 pointer；格式升级也会重建同一个 app 版本），再验证每条记录、准确数量和逐章检索。启用前再次检查 app marker；切换一个持久化控制记录后，运行中的服务在后续请求读取新版本。每次回答的所有检索绑定同一版本。
 
 | 配置位置 | 名称 | 值 / 用途 |
 |---|---|---|
@@ -54,7 +54,7 @@ COMMIT_REF=$(git rev-parse HEAD) CI=false npm run build
 
 - 完整发布目录含 `manual.json`、`manifest.json`、content-addressed `visuals/<sha256>.json` 与 `images/<sha256>.png`。清单记录章节、block/step/example ID、界面状态、app SHA/版本、字节数、尺寸和校验和。导入验证逐章/逐示例覆盖；聊天下载选中 PNG 后再次校验大小、摘要与尺寸，拒绝 SPA fallback 和重定向。
 - 构建使用固定的 Playwright Core / Chromium npm 包，无浏览器外部下载；需要 Node 22.17+。捕获只打开本地构建、拦截外部请求、使用空账户状态；没有抓取真实卡片或私人账户。21 章节当前生成 146 张图，约 7.3 MB；generated 图不进 Git。
-- 文本问题继续 DeepSeek 路径。模型仅在图标、按钮位置、布局或图库状态问题调用 `inspect_manual_visuals`；先检索对应文字，再给单独的 OpenAI 兼容视觉接口。请求固定手册版本，每个问题最多一次视觉调用、两张图片，图片各不超过 2 MB。主模型不支持 tools 时的 eager fallback 不调用视觉服务。
+- 文本问题继续 DeepSeek 路径。明确的英文/中文图标、布局或控件位置问题强制首轮选择视觉工具，防止模型仅从文字直接回答；其他表述继续由模型选择工具。模型仅在视觉问题调用 `inspect_manual_visuals`；先检索对应文字，再给单独的 OpenAI 兼容视觉接口。请求固定手册版本，每个问题最多一次视觉调用、两张图片，图片各不超过 2 MB。主模型不支持 tools 时的 eager fallback 不调用视觉服务。
 - 图像、配置或提供商不可用时返回同章节文字与来源，并要求回答明确无法核实图像细节。截图只证明手册示例，不是当前公开数据。
 
 在 **Render 的 RWC-Living-Atlas-Chatbot** 配置，密钥不放前端、Git 或聊天：
@@ -69,7 +69,7 @@ COMMIT_REF=$(git rev-parse HEAD) CI=false npm run build
 
 ## 评估与发布复核
 
-机器人有 11 个发布评估场景，覆盖文字/中文/多步骤/图标与布局/手册未覆盖问题/实时查询。`Evaluate published manual answers` 为手动 Actions 工作流，默认 T01,T03,V01；视觉启用后选择 require_vision=true。每次都是真实模型调用，顺序执行，不做负载测试。artifact 保留回答、来源、版本、模型 usage、p50/p95/p99 和待人工复核项；结构检查不能替代正确性和引用支持度审查。
+机器人有 11 个发布评估场景，覆盖文字/中文/多步骤/图标与布局/手册未覆盖问题/实时查询。`Evaluate published manual answers` 为手动 Actions 工作流，手动运行默认 T01,T03,V01；服务 main 发布/操作员同步后也会执行全部 11 场景并要求实际视觉证据，定时同步不生成评估请求。每次都是真实模型调用，顺序执行，不做负载测试。artifact 保留回答、来源、版本、模型 usage、p50/p95/p99 和待人工复核项；结构检查不能替代正确性和引用支持度审查。
 
 ```bash
 python scripts/evaluate_manual.py --base-url https://rwc-living-atlas-chatbot.onrender.com --ids T01,T03,V01 --expected-version <published-version> --output /tmp/manual-evaluation.json

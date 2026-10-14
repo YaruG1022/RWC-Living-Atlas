@@ -70,7 +70,7 @@ flowchart TD
 
 ### 手册共享知识回归（2026-10-14）
 
-第 2～8 步已增加内容/引用验证、React 手册与来源组件测试、发布门槛 unittest、机器人导入/版本切换/故障/来源 API 测试。当前离线回归通过；Pinecone、模型和实时外部服务为替身，未进行生产索引切换、部署或真实模型评估。规模、命令、首次失败与限制见 [本轮报告](MANUAL_KNOWLEDGE_TEST_REPORT.zh-CN.md)。
+第 2～11 步已增加内容/引用验证、React 手册与来源组件测试、发布门槛 unittest、机器人导入/版本切换/故障/来源 API 测试。当前离线回归通过；Pinecone、模型和实时外部服务为替身，未进行生产索引切换、部署或真实模型评估。文字迁移历史见 [第 2～8 步报告](MANUAL_KNOWLEDGE_TEST_REPORT.zh-CN.md)。本轮增加真实 Playwright 截图与图库状态、图像版本/校验/缺失/模型失败回退、视觉调用预算、中文请求、成本未知判定和发布评估；实际部署状态见 [第 9～11 步报告](MANUAL_VISUAL_RELEASE_TEST_REPORT.zh-CN.md)。
 
 ## 5. 下一阶段测试矩阵
 

@@ -1,35 +1,9 @@
-# Workflows
+# Manual release workflows
 
-## `notify-chatbot-docs.yml`
+`notify-chatbot-docs.yml` validates the shared manual, component regressions and production build on PRs and main. The build captures versioned manual screenshots; artifacts contain both the release marker and full generated package.
 
-The RWC Living Atlas Helper Chatbot lives in its own repository and keeps a
-Markdown knowledge base describing how this app works. That knowledge base is a
-hand-written copy, so it drifts whenever this app's user-facing documentation
-changes and nobody remembers to update it.
+Only main/manual publication runs wait for the exact deployed app/text revision and matching screenshot inventory. The importer validates the deployed content-addressed image catalog, so browser/font differences between builds do not masquerade as an app revision mismatch. Failed/cancelled app deploys never dispatch.
 
-This workflow makes the drift visible. When a push to `main` touches
+`CHATBOT_DISPATCH_TOKEN` (target repository Contents write) enables immediate `atlas-manual-published` dispatch. Without that optional secret, publication is still verified and the chatbot’s serialized scheduled sync reconciles the published marker. Override `ATLAS_MANUAL_BASE_URL` / `CHATBOT_REPO` repository variables for forks. Do not put tokens in files or event payloads.
 
-- `LivingAtlas1-main/client/src/UserManual.js`
-- `LivingAtlas1-main/client/src/ChangelogHistory.js`
-- `LivingAtlas1-main/client/src/ChangelogModal.js`
-
-it sends a `repository_dispatch` event to the chatbot repo, which opens an issue
-there asking someone to review its docs. Nothing in this repository is changed
-and no build is blocked.
-
-### Configuration
-
-| Kind | Name | Value |
-|------|------|-------|
-| Secret | `CHATBOT_DISPATCH_TOKEN` | Fine-grained PAT scoped to the chatbot repo only, with **Contents: read and write** (the permission GitHub requires for the dispatches endpoint) |
-| Variable | `CHATBOT_REPO` | `YaruG1022/RWC-Living-Atlas-Chatbot` |
-
-Both live under *Settings → Secrets and variables → Actions*. If either is
-missing the workflow logs a warning and exits successfully, so an unconfigured
-fork is never blocked by it.
-
-### Adding another documentation source
-
-Add the path to the `on.push.paths` list **and** to the `git diff` pathspec in
-the "Collect what changed" step — the first decides whether the workflow runs,
-the second decides what the issue says changed.
+Legacy `atlas-docs-changed` notifications and handwritten-document drift issues are retired. Maintenance/configuration/recovery: [manual pipeline](../../documentation/MANUAL_KNOWLEDGE_PIPELINE.zh-CN.md).

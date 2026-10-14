@@ -278,6 +278,10 @@
         {
           "type": "text",
           "text": " In edit mode, the small arrows on each image move it earlier or later, the dotted grip marks its drag handle, and the × deletes that image. These editing controls are separate from the large previous/next slideshow arrows and numbered image buttons; the Detail View closes with its toolbar ×."
+        },
+        {
+          "type": "text",
+          "text": " To leave Slideshow layout, choose Multiple images in the Image layout dropdown. The per-image × deletes that image; the window toolbar × closes the entire Detail View."
         }
       ]
     },

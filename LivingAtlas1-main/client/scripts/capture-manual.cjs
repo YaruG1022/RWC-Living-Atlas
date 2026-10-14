@@ -54,10 +54,23 @@ async function captureManual({ root = build, sectionIds } = {}) {
       const imagePath = `images/${checksum}.png`;
       fs.writeFileSync(path.join(release, imagePath), bytes);
       const width = bytes.readUInt32BE(16), height = bytes.readUInt32BE(20);
+      const controls = await locator.evaluate((root, overview) => {
+        const area = overview ? { x: 0, y: 0, width: innerWidth, height: innerHeight } : root.getBoundingClientRect();
+        return [...root.querySelectorAll('button, select, [role="button"]')].flatMap(element => {
+          const rect = element.getBoundingClientRect();
+          if (!rect.width || !rect.height || rect.right <= area.x || rect.bottom <= area.y || rect.left >= area.x + area.width || rect.top >= area.y + area.height) return [];
+          const label = element.getAttribute('aria-label') || element.getAttribute('title') || element.textContent.trim();
+          if (!label) return [];
+          return [{ role: element.tagName === 'SELECT' ? 'combobox' : 'button', label: label.slice(0, 160),
+            icon: element.querySelector('svg[data-icon]')?.getAttribute('data-icon') || '',
+            bounds: [rect.x - area.x, rect.y - area.y, rect.width, rect.height].map(value => Math.round(value)),
+            disabled: Boolean(element.disabled) }];
+        }).slice(0, 120);
+      }, overview);
       entries.push({ id, sectionId: section.id, exampleId, state, version: marker.version,
         revision: marker.revision, blockIds, stepIds: blocks.flatMap(block => block.stepIds || []),
         caption: blocks.filter(block => block.type === 'heading' || block.role === 'feature-title').map(block => block.text).join(' / ') || section.title,
-        path: imagePath, sha256: checksum, bytes: bytes.length, width, height });
+        path: imagePath, sha256: checksum, bytes: bytes.length, width, height, controls });
     }
     for (const section of bundle.sections.filter(section => !sectionIds || sectionIds.includes(section.id))) {
       await page.goto(`${origin}${section.manualPath}`, { waitUntil: 'networkidle' });

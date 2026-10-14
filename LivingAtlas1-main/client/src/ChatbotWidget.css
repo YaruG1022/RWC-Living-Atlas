@@ -425,3 +425,14 @@
   cursor: not-allowed;
   box-shadow: none;
 }
+/* References are supplied by the service from the retrieved manual version. */
+.chatbot-widget__manual-sources {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #dce6f0;
+  font-size: 0.85em;
+}
+.chatbot-widget__manual-sources ul {
+  padding-left: 18px;
+  margin: 4px 0 0;
+}

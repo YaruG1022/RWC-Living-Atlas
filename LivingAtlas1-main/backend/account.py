@@ -211,9 +211,7 @@ def send_via_resend(recipient_email, subject, body):
 
 def send_signup_notification(username, email, desired_access_level):
         """Send signup notification email to admin via active email provider."""
-        admin_email = os.environ.get("ADMIN_NOTIFICATION_EMAIL", "wsu.cereoatlas26@gmail.com").strip()
-        if not admin_email:
-                return
+        admin_email = "wsu.cereoatlas25@gmail.com"
 
         subject = "New User Signup Request"
         body = f"""

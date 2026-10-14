@@ -7,7 +7,8 @@ import ManualSources from './manual/ManualSources';
 
 // Standalone chatbot service URL. When REACT_APP_CHATBOT_API_URL is set (e.g.
 // on Netlify), chat requests go to that service instead of the main backend;
-// when unset, they fall back to the main backend's built-in /chat endpoint.
+// when unset, requests use the main API URL; that deployment must explicitly
+// proxy /chat/ask to this service. Configure the standalone service for sources.
 const CHATBOT_API_BASE = (process.env.REACT_APP_CHATBOT_API_URL || '').replace(/\/+$/, '');
 
 export default function ChatbotWidget({

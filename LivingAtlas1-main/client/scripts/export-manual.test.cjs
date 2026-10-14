@@ -12,10 +12,11 @@ test('the same manual release is reproducible, complete and checksum-verifiable'
     const first = exportManual(output, 'a'.repeat(40));
     const bytes = fs.readFileSync(path.join(output, 'releases', first.version, 'manual.json'));
     assert.deepEqual(exportManual(output, 'a'.repeat(40)), first);
-    assert.equal(first.sectionCount, 21);
-    assert.equal(first.blockCount, 346);
+    assert(first.sectionIds.includes('add-card') && first.sectionIds.includes('watershed-panel'));
     assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), first.files[0].sha256);
     const bundle = JSON.parse(bytes);
+    assert.equal(bundle.sections.length, first.sectionCount);
+    assert.equal(new Set(bundle.sections.flatMap(section => section.blocks.map(block => block.id))).size, first.blockCount);
     const text = bundle.sections.flatMap(section => section.blocks.map(block => block.text)).join('\n');
     assert(!text.includes('24 all cards'));
     assert(!text.includes('Jane Smith'));

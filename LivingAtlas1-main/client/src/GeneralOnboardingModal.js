@@ -1,5 +1,6 @@
 import React from 'react';
 import Modal from 'react-modal';
+import { SHOW_LEGACY_ORGANIZATION_LOGO } from './branding';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faPlay,
@@ -81,7 +82,7 @@ function GeneralOnboardingModal({ isOpen, onClose, onPlay }) {
                 <GuideSection title="Navigate with the Top Bar">
                     <ul>
                         <li><strong>RWC Living Atlas / Home</strong>: return to the map workspace.</li>
-                        <li><strong>Rivers, Watersheds, Communities (RWC) logo</strong>: visit the Rivers, Watersheds, Communities (RWC) website.</li>
+                        {SHOW_LEGACY_ORGANIZATION_LOGO && <li><strong>Rivers, Watersheds, Communities (RWC) logo</strong>: visit the Rivers, Watersheds, Communities (RWC) website.</li>}
                         <li><strong>About</strong>: learn about the project and its background.</li>
                         <li><strong>Contact</strong>: find project contact information.</li>
                         <li><strong>Updates</strong>: browse the full update history.</li>

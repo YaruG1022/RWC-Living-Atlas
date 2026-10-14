@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import api from './api.js';
 import './Navbar.css';
+import { SHOW_LEGACY_ORGANIZATION_LOGO } from './branding';
 
 function Navbar({ isLoggedIn, isAdmin, username, email, onLogout }) {
   const location = useLocation();
@@ -82,9 +83,9 @@ function Navbar({ isLoggedIn, isAdmin, username, email, onLogout }) {
       <Link to="/" data-onboarding-target="navbar-brand">
         <h1>RWC Living Atlas</h1>
       </Link>
-      <a href="https://cereo.wsu.edu/" data-onboarding-target="navbar-cereo-link">
+      {SHOW_LEGACY_ORGANIZATION_LOGO && <a href="https://cereo.wsu.edu/" data-onboarding-target="navbar-cereo-link">
         <img src="/CEREO-logo.png" alt="Rivers, Watersheds, Communities (RWC) Logo" className="navbar-logo"></img>
-      </a>
+      </a>}
       <ul>
         <li>
           <Link to="/" data-onboarding-target="navbar-home-link" className={location.pathname === '/' ? 'active' : ''}>Home</Link>

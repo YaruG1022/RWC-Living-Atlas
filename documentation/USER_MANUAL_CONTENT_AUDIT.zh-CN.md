@@ -105,3 +105,7 @@
 - 初次依赖安装受沙箱网络限制；启用允许的网络权限后，chromedriver 安装脚本又因外部下载域名被拒而失败。改用 `npm ci --ignore-scripts --no-audit --no-fund --cache /tmp/rwc-npm-cache` 安装测试/构建所需依赖，未绕过域名策略或改动 package/lock 文件。浏览器驱动不属于本轮 Jest/React 构建需要的依赖。
 - 初次内容核对脚本把正文中的 basemap 示例 ID 也计为章节，导致检查断言失败；限定为导航常量后通过，属于核对脚本范围错误，没有因此修改页面章节。
 - 限制：未进行生产部署、线上账号操作、实时数据工具或 Pinecone 请求；未做浏览器截图/版式验收。组件测试验证渲染和交互入口，功能事实主要由当前源码核实。后续接入页面读取仍需测试逐章采集、过滤 demo 和版本同步。
+
+## 后续源码复核（第 2～8 步）
+
+第一步关于 ArcGIS catalog 的 bundled fallback 描述已在二次核对后撤回：当前 ArcgisUploadPanel 后端失败时清空列表并显示 Database unavailable，ArcGIS Picker 也没有旧 local catalog 回退。共享手册章节已按当前代码修正。后续读取统一内容包，不使用此历史核对报告或旧 chatbot docs 作为知识源。完整实现与证据见 [维护说明](MANUAL_KNOWLEDGE_PIPELINE.zh-CN.md) 和 [本轮测试报告](MANUAL_KNOWLEDGE_TEST_REPORT.zh-CN.md)。

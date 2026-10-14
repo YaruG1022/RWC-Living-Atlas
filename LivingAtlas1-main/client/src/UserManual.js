@@ -84,6 +84,10 @@ const SECTION_GROUPS = [
     label: 'Getting Started',
     sections: [
       { id: 'home', label: 'Overview' },
+      { id: 'navigation', label: 'Navigation & Preferences' },
+      { id: 'accounts', label: 'Login, Registration & Passwords' },
+      { id: 'profile-admin', label: 'Profile & Administration' },
+      { id: 'tutorials-updates', label: 'Tutorials & Updates' },
       { id: 'feature-search-panel', label: 'Feature Search Panel' },
       { id: 'chatbot', label: 'Atlas Helper' },
     ],
@@ -237,7 +241,18 @@ function UserManual() {
           This guide explains every interactive feature available in the RWC Living Atlas.
           Use the navigation on the left to browse each section — demos use the exact same
           styles and hover effects as the real application, so you can try them directly
-          on this page.
+          on this page. Examples illustrate controls and are not a live inventory of cards or layers.
+        </p>
+
+        <p className="um-section-desc">
+          RWC stands for <strong>Rivers, Watersheds, Communities</strong>. The atlas brings
+          environmental resources into a map workspace for tribal communities, academic
+          institutions, and government agencies. A <strong>card</strong> is a geographically
+          located resource with metadata, links, images, and files; it can appear as points,
+          a polygon, or an image overlay. You can browse the map, cards, and ArcGIS layers
+          without an account. Log in to create cards, favorite or pin them, and use Custom
+          Layers. Card owners can edit or delete their own cards; administrators can manage
+          any card and user accounts.
         </p>
 
         <div className="um-home-cards">
@@ -249,6 +264,10 @@ function UserManual() {
             >
               <span className="um-home-card-title">{s.label}</span>
               {{
+                'navigation': 'Find pages and panels, share a manual chapter, and understand saved display preferences.',
+                'accounts': 'Request access, log in, reset a forgotten password, and sign out.',
+                'profile-admin': 'Edit your profile, switch accounts, and manage users as an administrator.',
+                'tutorials-updates': 'Replay guided tutorials and read recent changes or full update history.',
                 'feature-search-panel': 'Use the left sidebar search panel to locate app features by keyword and launch them directly.',
                 'chatbot':        'Ask app questions and switch between sidebar and floating chat.',
                 'card-container': 'How cards are displayed, navigated, pinned, and favorited.',
@@ -269,6 +288,133 @@ function UserManual() {
             </button>
           ))}
         </div>
+      </section>
+      )}
+
+      {activeSection === 'navigation' && (
+      <section className="um-section">
+        <h2>Navigation &amp; Preferences</h2>
+        <h3>Pages and the user menu</h3>
+        <p>Click <strong>Home</strong> or the RWC Living Atlas title in the top navigation
+          bar to return to the map. <strong>About</strong> explains the project;
+          <strong> Contact</strong> provides the team's current contact details;
+          <strong> Updates</strong> opens release history; and <strong>User Manual</strong>
+          opens this guide. These pages are available without login.</p>
+        <p>When logged out, use <strong>Register</strong> to request access or
+          <strong> Login</strong> to sign in. After login, click your username or avatar to
+          open <strong>Profile</strong>, <strong>Switch Account</strong>, or
+          <strong> Logout</strong>. Administrators also see <strong>Administration</strong>.</p>
+        <h3>Map workspace panels</h3>
+        <p>The left sidebar opens Feature Search, ArcGIS Upload, Custom Layers, Basemap,
+          Watershed Delineation, tutorials, and What's new. Hover over an icon for its name.
+          Custom Layers requires login. Use the card panel's layout button to dock Project
+          Cards on either side, and its close button to collapse it. Closing a layer panel
+          leaves its displayed layers on the map; uncheck layers or use that panel's Clear
+          action to hide them. Opening ArcGIS Upload from the sidebar closes Custom Layers,
+          and opening Custom Layers closes ArcGIS Upload. A left-docked Project Cards panel
+          can share that side with the active layer panel.</p>
+        <h3>Saved display preferences</h3>
+        <p>Your basemap, card grid/list mode, card panel side, and helper sidebar/floating
+          mode are saved as display preferences. While logged out, pending preferences are
+          kept in this browser. After login they are merged into your account preferences
+          and synced when the preference service is available. These preferences do not
+          save every currently checked ArcGIS layer; pin items to auto-load them.</p>
+        <h3>Share a manual chapter</h3>
+        <p>Open a chapter directly with <code>/user-manual?section=chapter-id</code>, for
+          example <a href="/user-manual?section=add-card">Card Creation Form</a>.
+          Panel Help buttons open the corresponding chapter. Clicking a chapter in this
+          manual changes the displayed content; it does not change the URL automatically.</p>
+      </section>
+      )}
+
+      {activeSection === 'accounts' && (
+      <section className="um-section">
+        <h2>Login, Registration &amp; Passwords</h2>
+        <h3>Request an account</h3>
+        <ol>
+          <li>Click <strong>Register</strong> in the navigation bar.</li>
+          <li>Enter Username, Email, Password, and Sponsor/Message. Select the desired
+            access level: Regular User or Admin.</li>
+          <li>Click <strong>Submit Request</strong> and check the confirmation message.</li>
+          <li>Wait for an administrator to approve the request before logging in.
+            Requesting Admin does not immediately grant that role.</li>
+        </ol>
+        <h3>Log in</h3>
+        <ol>
+          <li>Click <strong>Login</strong>, enter your email and password, and click
+            <strong> Login</strong>.</li>
+          <li>After a successful login, the app returns to Home. If login fails, check
+            your credentials and whether your account request was approved.</li>
+        </ol>
+        <h3>Reset a forgotten password</h3>
+        <ol>
+          <li>On Login, click <strong>Forgot Password?</strong>.</li>
+          <li>Enter your registered email and submit the recovery request.</li>
+          <li>Open the reset link sent to your inbox. Enter a new password of at least
+            six characters and enter it again to confirm.</li>
+          <li>Click <strong>Reset Password</strong>, check the result, then log in with
+            the new password. If recovery fails, retry later or contact the team.</li>
+        </ol>
+        <h3>Log out and permissions</h3>
+        <p>Click your username or avatar and choose <strong>Logout</strong>. Browsing
+          remains available. Login is required for creating cards, favorites, card pins,
+          and your Custom Layers library. Editing or deleting a card requires ownership
+          or an administrator account. Administrator tools appear only for administrators.</p>
+      </section>
+      )}
+
+      {activeSection === 'profile-admin' && (
+      <section className="um-section">
+        <h2>Profile &amp; Administration</h2>
+        <h3>Edit your profile</h3>
+        <ol>
+          <li>Log in, open the avatar menu, and choose <strong>Profile</strong>.</li>
+          <li>Click <strong>Edit Profile</strong>. Change your username or bio (up to
+            300 characters). To change your avatar, click the image and select a file.</li>
+          <li>Click <strong>Save</strong> to apply the changes or <strong>Cancel</strong>
+            to discard them. Your email is displayed as account information.</li>
+        </ol>
+        <p>Use <strong>Change Password</strong> on Profile to enter and confirm a new
+          password, then submit with Change Password. <strong>Invite New User</strong>
+          opens a registration dialog with Name, Email, Password, and Confirm Password;
+          submit Register and check its result. This differs from the public Register
+          page's access-request form.</p>
+        <h3>Switch accounts</h3>
+        <p>Choose <strong>Switch Account</strong> in the avatar menu to see accounts
+          previously used in this browser. Select an account to sign in as that user.
+          If switching fails or credentials have changed, log in again. Use the page's
+          add-account option to open Login for another account.</p>
+        <h3>Administration (administrators only)</h3>
+        <p>Choose <strong>Administration</strong> in the avatar menu. In
+          <strong> Manage Users</strong>, review the users and use the Name or Date Joined
+          column header to sort. Choose <strong>Change Role</strong>, select Regular User
+          or Admin, type <strong>Confirm</strong> exactly, and apply the change.
+          To delete a non-admin user, choose <strong>Delete</strong>, type
+          <strong> Confirm</strong>, and confirm deletion. Admin rows do not offer Delete.</p>
+        <p>In <strong>Sign Up Requests</strong>, review each request and choose
+          <strong> Approve</strong> to create the account or <strong>Deny</strong> to reject
+          it. Card editing and deletion remain in the Card Detail View; ArcGIS management
+          remains in the ArcGIS panel.</p>
+      </section>
+      )}
+
+      {activeSection === 'tutorials-updates' && (
+      <section className="um-section">
+        <h2>Tutorials &amp; Updates</h2>
+        <h3>Start or replay a tutorial</h3>
+        <p>On Home, click the left sidebar's <strong>App onboarding</strong> info button,
+          then <strong>Start App Tour</strong> to start the guided tour. The
+          introduction can also appear on a first visit. Follow the highlighted steps;
+          use Previous/Next or the tour's keyboard controls, and exit when finished.</p>
+        <p>For a specific panel, use its <strong>Tutorial</strong> play button. Card,
+          ArcGIS Upload, Custom Layers, Basemap, Watershed, card creation, and detail
+          views provide their own guides where available. Help buttons open the manual.
+          Tutorials explain controls; complete and submit the actual form to save data.</p>
+        <h3>Read recent changes</h3>
+        <p>Click the sidebar <strong>What's new</strong> bell to open the latest update
+          popup; a dot marks an unseen update. Close it with its close button or backdrop.
+          Click <strong>Updates</strong> in the top navigation bar to read the full dated
+          release history. The manual and update history are available without login.</p>
       </section>
       )}
 
@@ -711,6 +857,8 @@ function UserManual() {
                 description, browse all images, view linked map layers, and access attached
                 files and links.
               </p>
+              <p className="um-feature-desc">You can also focus the card and press
+                <strong> Enter</strong> or <strong>Space</strong> to open its details.</p>
               <span className="um-feature-note">
                 Hover over the demo card to see the lift-and-shadow effect that indicates it is clickable.
               </span>
@@ -751,9 +899,28 @@ function UserManual() {
       {activeSection === 'chatbot' && (
         <section className="um-section">
           <h2>RWC Living Atlas Helper</h2>
-          <p className="um-section-desc">Open the speech-bubble button in the left sidebar to ask questions about the app. Type a question and press the send button. The circular two-arrow icon in the chat header switches between the sidebar and the floating window; hover it to see the destination.</p>
+          <p className="um-section-desc">In floating mode, open the helper handle. In sidebar mode, use the speech-bubble button in the left sidebar. Type a question and press the send button or Enter; Shift+Enter adds a new line. The circular two-arrow icon in the chat header switches between the sidebar and the floating window; hover it to see the destination.</p>
           <div className="um-isolated-demo"><FontAwesomeIcon icon={faRightLeft} /> Switch to sidebar panel / Switch to floating widget</div>
           <p>The floating window is 400 × 500 pixels on desktop and fits smaller screens. Use the floating helper handle to open or hide it and drag it to reposition. The header close button hides the conversation. Panel headers use compact question-mark, play, and close buttons where available: open the manual, start a guided tour, or close the panel.</p>
+          <h3>Ask about features or current public data</h3>
+          <p>The helper uses feature documentation to explain how the app works. When its
+            live data services are available, it can look up public card titles, categories,
+            descriptions, organizations, funding, tags, links, locations, and dates, or browse
+            the current state ArcGIS catalog. Ask, for example, how to create a card or which
+            public cards concern water quality. Counts, categories, tags, and available services
+            can change; request current data instead of treating manual examples as an inventory.
+            Summary facts may be briefly cached, and search results may be limited.</p>
+          <p>The helper's public-data tools exclude private cards and contributor account
+            identities, emails, and credentials. They do not create, edit, or delete records.
+            Close and reopen the helper to continue the current conversation; conversation
+            history is not saved across page reloads.</p>
+          <h3>Waiting, errors, and quick actions</h3>
+          <p>A typing indicator appears while waiting; sending is disabled until the request
+            completes. If the helper reports unavailable service or insufficient API credits,
+            try again later or contact the team. When live data cannot be reached, it may
+            still explain documented features, but cannot verify current inventory. ArcGIS
+            answers may include Upload Panel quick-action links: click one to navigate to the
+            relevant service and then choose which layers to display.</p>
         </section>
       )}
 
@@ -765,6 +932,11 @@ function UserManual() {
           sort order, filters, view modes, and docking side. Hover each element in the demo below to
           see its interactive state.
         </p>
+        <p className="um-feature-desc">Use the titlebar's Help button for the manual,
+          Tutorial to replay the card tour, and × to collapse the panel. Reopening it
+          retains the current search, filters, and view mode during the session.
+          Closest To Me sorting needs your current location; Closest To Pin needs a
+          location selected with the map search first.</p>
 
         {/* Full toolbar demo */}
         <div className="um-toolbar-demo-wrapper">
@@ -981,7 +1153,7 @@ function UserManual() {
               <p className="um-feature-title">Card Search Bar</p>
               <p className="um-feature-desc">
                 Type a keyword and press <strong>Enter</strong> or click the search button to
-                search for cards by title or description. Click the{' '}
+                search for cards by title. Click the{' '}
                 <strong>&times;</strong> button to clear the search and return to the normal
                 card listing. While a search is active the map viewport filter is
                 temporarily suspended.
@@ -1108,7 +1280,11 @@ function UserManual() {
                 <strong>Author Name</strong>, <strong>Email</strong>, and <strong>Title</strong>{' '}
                 are required. <strong>Category</strong> is optional and can be one of:
                 River, Watershed, Places, or Other. Validation runs on submit and
-                highlights any missing or invalid fields.
+                highlights any missing or invalid fields. Title, Organization, and Funding
+                have a 255-character limit; Description is limited to 2000 plain-text
+                characters. A point uses latitude/longitude with up to eight decimal places;
+                a polygon needs at least three vertices; an image needs valid placement
+                with four corners. If submission fails, review the form's validation message.
               </p>
             </div>
           </div>
@@ -2180,6 +2356,41 @@ function UserManual() {
           individual service and layer, with a built-in layers folder available alongside
           the state folders.
         </p>
+        <h3>Choose layers and wait for loading</h3>
+        <p>Check a service to select its leaf layers, expand it to choose individual
+          layers, or check a group to toggle its descendants together. Where a layer has
+          selectable legend entries, it remains checked while any entry is selected;
+          clearing every entry also unchecks the parent layer. Uncheck to hide layers,
+          or use Clear to remove this panel's selections. Loading messages and the map
+          spinner track pending layers; large or unavailable upstream datasets can take
+          longer to appear.</p>
+        <p>The panel normally loads its catalog from the backend and can fall back to
+          bundled data if that catalog is unavailable. Its source status indicates which
+          catalog you are browsing. Layer images and features are still requested from
+          the upstream services. Search follows the current root, state, or folder;
+          return to Root to search more broadly. Unloaded layer metadata may be fetched
+          during search, so wait for the search indicator before judging the results.</p>
+        <h3>State data sources and built-in layers</h3>
+        <ul>
+          <li><strong>Washington:</strong>
+            <a href="https://gis.ecology.wa.gov/serverext/rest/services" target="_blank" rel="noopener noreferrer"> ArcGIS source</a>.</li>
+          <li><strong>Idaho:</strong>
+            <a href="https://gis.idwr.idaho.gov/hosting/rest/services" target="_blank" rel="noopener noreferrer"> ArcGIS source</a>.</li>
+          <li><strong>Oregon:</strong>
+            <a href="https://navigator.state.or.us/arcgis/rest/services" target="_blank" rel="noopener noreferrer"> ArcGIS source</a>.</li>
+        </ul>
+        <p>Browse the current catalog for the folders and services available now. Use
+          Learn More and the service's source link to inspect metadata; manual examples
+          are not a list of current datasets.</p>
+        <p>A <strong>MapServer</strong> can provide rendered map images and queryable
+          layers; a <strong>FeatureServer</strong> provides individual vector features.
+          Available metadata and controls depend on the service. <strong>Built-in Layers</strong>
+          are separate from state services and your saved Custom Layers. Enable Hydrological
+          Boundaries or City Limits there, then click a visible feature to inspect its
+          name, identifiers, or area information.</p>
+        <p>Saving to Custom Layers and pinning for auto-load require login. Pinned items
+          are saved to your account preferences and restored when services become available;
+          unpinned checked selections are not all restored after a reload.</p>
 
         {/* ---- Panel shell demo ---- */}
         <div className="um-arcgis-panel-mock">
@@ -2443,7 +2654,6 @@ function UserManual() {
                 <div>
                   <p style={{ margin: '0 0 4px', fontSize: '11px', color: '#5c6f82', fontWeight: 600 }}>Right-click a service:</p>
                   <div className="layer-context-menu" style={{ position: 'static', boxShadow: 'none' }}>
-                    <button style={{ pointerEvents: 'none' }}>Rename</button>
                     <button style={{ pointerEvents: 'none' }}>Learn More</button>
                     <button style={{ pointerEvents: 'none' }}>Save to Custom Layers</button>
                     <button style={{ pointerEvents: 'none' }}>Pin (Auto-load)</button>
@@ -2464,7 +2674,6 @@ function UserManual() {
               <p className="um-feature-desc">
                 Each service or layer is shown as a row with a checkbox and name.
                 <strong> Right-click</strong> a service row to open a context menu:
-                <br />• <strong>Rename</strong> — rename the service (admin only)
                 <br />• <strong>Learn More</strong> — open the Service / Layer Info modal with ArcGIS REST metadata
                 <br />• <strong>Save to Custom Layers</strong> — copy the service into your Custom Layers library
                 <br />• <strong>Pin (Auto-load)</strong> — pin the item so it loads automatically every time the panel opens; right-click again and choose <strong>Unpin</strong> to remove it
@@ -2949,6 +3158,16 @@ function UserManual() {
           dragging, and pin items to auto-load every time you open the panel. Login is
           required to use this panel.
         </p>
+        <p>Check a saved service to display its layers, or expand it and select individual
+          layers or groups. Unchecking a layer hides it without deleting it from your
+          library; Clear removes the panel's displayed layers. Removing a service from
+          Custom Layers deletes your saved entry and unloads it. Search follows the
+          current folder scope; return to Root to search the entire library, then use
+          Previous/Next for matches.
+          Folder names can use paths such as Hydrology/Rivers for nested organization.
+          Custom Layers auto-load pins are remembered in this browser. Your saved layer
+          library and its folder/order changes are stored in your account; ArcGIS Upload
+          pins use separate account preferences.</p>
         <p className="um-section-desc">
           You can also save a StreamStats basin from the <button type="button" className="um-nav-item" onClick={() => navTo('watershed-panel')}>Watershed Panel</button>.
           Choose <strong>Save as custom layer</strong> there to store the complete basin in
@@ -3021,8 +3240,8 @@ function UserManual() {
               <p className="um-feature-desc">
                 Click the <strong>Custom Layers</strong> button in the left sidebar to open
                 or close the panel. You must be logged in; a login prompt appears otherwise.
-                When the ArcGIS Upload Panel is also open, the two panels share the left
-                side vertically.
+                Opening it from the sidebar closes the ArcGIS Upload Panel. When Project
+                Cards is docked on the left, it shares that side with Custom Layers vertically.
               </p>
             </div>
           </div>
@@ -3374,6 +3593,9 @@ function UserManual() {
           styles preserves all custom ArcGIS layers, the current camera position, zoom,
           bearing, and pitch. You can also search styles by label or description.
         </p>
+        <p>Your basemap choice is saved with your display preferences: in this browser
+          while logged out, and synced with your account after login when the preference
+          service is available.</p>
 
         {/* ---- Overview demo ---- */}
         <div className="um-basemap-demo-wrapper">
@@ -4391,8 +4613,10 @@ function UserManual() {
               <p className="um-feature-desc">
                 While drawing, <strong>Finish Drawing</strong> closes the polygon. After
                 finishing, <strong>Add More Points</strong> resumes vertex placement.{' '}
-                <strong>Save</strong> applies the polygon as a map filter (disabled until
-                3+ vertices). <strong>Cancel</strong> removes the polygon and closes the
+                <strong>Save</strong> transfers the polygon to the Card Creation form
+                (disabled until 3+ vertices). Complete and submit that form to create the
+                card; saving the shape alone does not create one. <strong>Cancel</strong>
+                leaves the editor without applying the new shape and closes the
                 panel. The trash icon clears all vertices at any time.
               </p>
             </div>

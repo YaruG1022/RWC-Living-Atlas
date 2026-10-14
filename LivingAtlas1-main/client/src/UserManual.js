@@ -1500,9 +1500,9 @@ function UserManual() {
           </div>
 
           {/* 3. Image Gallery */}
-          <div className="um-feature-row">
+          <div className="um-feature-row um-feature-row--gallery">
             <div className="um-feature-demo" data-manual-example="detail-view-example-04">
-              <div className="um-isolated-demo um-gallery-demo">
+              <div className="um-isolated-demo um-gallery-demo um-gallery-demo--interactive">
                 <ManualGalleryDemo />
               </div>
             </div>

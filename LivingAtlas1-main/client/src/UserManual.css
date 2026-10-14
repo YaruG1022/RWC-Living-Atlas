@@ -838,3 +838,9 @@ nav.um-nav-sidebar {
 .um-mapctrl-zaxis__value { min-width: 0; font-size: 10px; font-variant-numeric: tabular-nums; }
 .um-polydraw-demo-wrapper { max-width: 312px; border-radius: 8px; box-shadow: none; }
 .um-polydraw-demo-wrapper .polygon-draw-modal { max-width: none; box-sizing: border-box; border-radius: 8px; }
+
+/* Leave room for the real slideshow pagination and edit tools in this demo. */
+.um-feature-row--gallery { flex-direction: column; align-items: stretch; }
+.um-feature-row--gallery .um-feature-demo { flex-basis: auto; }
+.um-gallery-demo--interactive { width: min(100%, 540px); }
+.um-gallery-controls-preview { width: 100%; }

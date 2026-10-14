@@ -21,6 +21,8 @@ function validateManual(index, chapters) {
     if (section.schemaVersion !== 1 || !section.title?.trim() || !section.navigationLabel?.trim() || !section.summary?.trim()) fail(`missing metadata for ${section.id}`);
     if (section.manualPath !== `/user-manual?section=${section.id}`) fail(`chapter link for ${section.id}`);
     if (!Array.isArray(section.blocks) || !section.blocks.length) fail(`missing blocks for ${section.id}`);
+    const contextIds = section.contextBlockIds || [];
+    if (!Array.isArray(contextIds) || new Set(contextIds).size !== contextIds.length || contextIds.some(id => !section.blocks.some(block => block.id === id))) fail(`context references in ${section.id}`);
     const examples = new Set();
     for (const example of section.examples) {
       if (!ID.test(example.id) || examples.has(example.id) || example.kind !== 'react-demo' || !example.caption) fail(`example in ${section.id}`);

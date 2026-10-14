@@ -58,3 +58,13 @@ python scripts/evaluate_manual.py --base-url https://rwc-living-atlas-chatbot.on
 ```
 
 云端日志：`/tmp/rwc-visual-build-first.log`、`/tmp/rwc-capture-full-first.log`、`/tmp/rwc-visual-layout-build.log`、`/tmp/rwc-manual-visual-final-build.log`；回归 `/tmp/rwc-visual-guidance-tests.log`、`/tmp/rwc-vision-bot-tests-first.log`、`/tmp/rwc-visual-eval-tests.log`。这些日志和 generated 包是临时证据，未提交。PR 的 screenshot artifact 提供可下载的构建证据；实际发布按 PR/Actions 中记录的最终 SHA 验收。
+
+## 第一次正式发布与修正
+
+主项目 PR #5、机器人 PR #2 已合并。Netlify `6ae4725`、Render `4271ce7` 实际部署成功；Actions 38547543836 于 10:09:36 UTC 校验/启用了正式版本 `6ae4725417ed808c024d152291240648724f5bd1-9617b4e05df1`，156 条记录，未清空旧知识。
+
+第一次真实 T01/T03/V01 评估结构结果 2/3；客户端延迟分别 5954/5434/2442 ms（仅三次顺序请求，不代表容量）。文字模型 usage 已记录，供应商实际价格未提供，成本为 null。V01 仅根据 prose 回答而没有调用视觉工具；修正为明确英文/中文图标/布局/控件位置问题强制首轮视觉工具，其他文字保持原 auto 路径。
+
+人工复核发现 T03 错说全部图片网格可以拖动排序，且没有完整保留编辑权限。按当前 gallery 实现澄清手册：排序在主图库，全部图片网格选择图库槽位/删除选择；章节用 contextBlockIds 引用原有权限、Save/Cancel，以及卡片创建的登录/必填/位置前提，索引操作块保留这些条件。新抽取格式写独立 v2 namespace，避免已 active 的同 app 版本跳过新处理。原人工评估 T01 checklist 错写 Description 必填，按 FormModal/手册修正为 Author Name、Email、Title、有效地图位置；Description 可选。
+
+失败证据：Actions 38547543836 的 manual-answer-evaluation artifact；下载的原始 JSON 已人工复核。后续修正的 PR/完整 11 场景结果继续以 Actions 发布记录为准，不覆盖这次首次失败。

@@ -269,7 +269,7 @@
         },
         {
           "type": "text",
-          "text": " sits inside the gallery's bottom left corner in both viewing and editing modes and opens a grid of every uploaded image. In edit mode the Image layout dropdown sits inside the gallery's top right corner. Both controls are semi-transparent until hover or focus. Drag images or use the arrow icons to reorder; the first image becomes the card cover. Its neutral badge and selection border appear only in edit mode."
+          "text": " sits inside the gallery's bottom left corner in both viewing and editing modes and opens a grid of every uploaded image. In edit mode the Image layout dropdown sits inside the gallery's top right corner. Both controls are semi-transparent until hover or focus. Reorder in the main gallery using drag handles or arrow icons; the all-images grid does not support drag reordering; the first image becomes the card cover. Its neutral badge and selection border appear only in edit mode."
         },
         {
           "type": "text",
@@ -375,6 +375,10 @@
         {
           "type": "text",
           "text": " uploads an additional image, up to 30 total. Add New Image and Delete Selected sit beside Back to Learn More at the top. Save pending deletions before uploading if the stored card is at the limit. Save commits changes; Cancel discards them."
+        },
+        {
+          "type": "text",
+          "text": " To reorder, return to the main gallery. The all-images grid chooses gallery slots and deletion selections; it does not reorder images by dragging."
         }
       ]
     },
@@ -1181,5 +1185,9 @@
       "kind": "react-demo",
       "caption": "Interactive example 17"
     }
+  ],
+  "contextBlockIds": [
+    "detail-view-004",
+    "detail-view-006"
   ]
 }

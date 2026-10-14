@@ -274,6 +274,10 @@
         {
           "type": "text",
           "text": " Try the Image layout dropdown in this manual example to preview Multiple images and Slideshow, then use the slideshow arrows to move between sample images."
+        },
+        {
+          "type": "text",
+          "text": " In edit mode, the small arrows on each image move it earlier or later, the dotted grip marks its drag handle, and the × deletes that image. These editing controls are separate from the large previous/next slideshow arrows and numbered image buttons; the Detail View closes with its toolbar ×."
         }
       ]
     },

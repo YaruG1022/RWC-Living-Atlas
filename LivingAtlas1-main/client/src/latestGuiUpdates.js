@@ -91,28 +91,12 @@ export const contactGuiUpdates = [
 export const latestGuiUpdateDate = '10/14/2026';
 export const latestGuiUpdates = [
     {
-        title: 'Current Manual and Reliable Helper Instructions',
+        title: 'User Manual and Atlas Helper',
         items: [
-            'Expanded the manual with navigation, account, profile, administration, tutorial and update guides while preserving existing interactive examples.',
-            'The manual and Atlas Helper now share the same chapter instructions. Published manual updates refresh the helper automatically after validation; outdated chatbot documents no longer supply app instructions.',
-            'Helper answers can show clickable User Manual references, so you can open the matching chapter and check the instructions.',
-            'Multi-step instructions retain documented login, editing permissions, required fields and Save/Cancel guidance. Questions about current public Atlas data continue to use live data tools.',
-            'If a manual update cannot be validated or synchronized, the helper keeps the last verified manual. If no verified manual is available, it explains that instructions are unavailable.',
-        ],
-    },
-    {
-        title: 'Manual Image Understanding',
-        items: [
-            'When image understanding is available, the helper can consult current manual examples to explain icons, button positions and layouts; documented text remains available when images cannot be checked.',
-            'Visual answers use screenshots from the relevant manual chapter and the same manual version as their text references. Button labels help distinguish editing, deletion, navigation and window controls.',
-            'Plain-text questions about steps, required fields or counts avoid image-model calls; questions explicitly asking about icons, positions or layouts can use image understanding.',
-        ],
-    },
-    {
-        title: 'Interactive Gallery Guide',
-        items: [
-            'The manual gallery example now lets you preview Multiple images and Slideshow and try its navigation controls.',
-            'Clarified that image order changes in the main gallery; the all-images grid selects gallery slots and images for deletion. Gallery edit arrows, drag handles and image-delete controls are explained separately from slideshow navigation and the window close button.',
+            'Expanded manual guides and added interactive gallery layout previews, with clearer editing, deletion and slideshow instructions.',
+            'Atlas Helper now follows the published manual, refreshes automatically and links to relevant chapters. Failed updates retain the last verified instructions.',
+            'For icon, position and layout questions, the helper can consult matching manual screenshots when available, with text fallback. Plain-text questions avoid image calls.',
+            'Improved multi-step guidance for permissions, required fields and saving changes; questions about current public Atlas data still use live data.',
         ],
     },
 ];

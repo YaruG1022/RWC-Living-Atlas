@@ -52,7 +52,7 @@ COMMIT_REF=$(git rev-parse HEAD) CI=false npm run build
 
 ## 图文理解与预算
 
-- 完整发布目录含 `manual.json`、`manifest.json`、content-addressed `visuals/<sha256>.json` 与 `images/<sha256>.png`。清单记录章节、block/step/example ID、界面状态、app SHA/版本、字节数、尺寸和校验和。导入验证逐章/逐示例覆盖；聊天下载选中 PNG 后再次校验大小、摘要与尺寸，拒绝 SPA fallback 和重定向。
+- 完整发布目录含 `manual.json`、`manifest.json`、content-addressed `visuals/<sha256>.json` 与 `images/<sha256>.png`。清单记录章节、block/step/example ID、界面状态、app SHA/版本、字节数、尺寸和校验和，以及真实渲染的 button/select 标签、SVG 图标名和相对坐标；不采集 input 值。导入验证逐章/逐示例覆盖；聊天下载选中 PNG 后再次校验大小、摘要与尺寸，拒绝 SPA fallback 和重定向。
 - 构建使用固定的 Playwright Core / Chromium npm 包，无浏览器外部下载；需要 Node 22.17+。捕获只打开本地构建、拦截外部请求、使用空账户状态；没有抓取真实卡片或私人账户。21 章节当前生成 146 张图，约 7.3 MB；generated 图不进 Git。
 - 文本问题继续 DeepSeek 路径。明确的英文/中文图标、布局或控件位置问题强制首轮选择视觉工具，防止模型仅从文字直接回答；其他表述继续由模型选择工具。模型仅在视觉问题调用 `inspect_manual_visuals`；先检索对应文字，再给单独的 OpenAI 兼容视觉接口。截图按相关操作块、图片 ID 和手册 feature caption 与英文 query 的匹配选择；不因另一个章节先返回就优先取它的图，不用无关 overview 补足两图。保留 first-pass 和精化查询的正文。请求固定手册版本，每个问题最多一次视觉调用、两张图片，图片各不超过 2 MB。主模型不支持 tools 时的 eager fallback 不调用视觉服务。
 - 图像、配置或提供商不可用时返回同章节文字与来源，并要求回答明确无法核实图像细节。截图只证明手册示例，不是当前公开数据。

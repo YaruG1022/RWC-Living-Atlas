@@ -78,3 +78,9 @@ Actions 38549915016 重试后 11/11 结构检查通过，4 个场景实际使用
 修正：图片 relevance 优先相关操作的 feature caption 与 query，合并 first-pass/精化检索来源，筛选已关联的图片，只取目标章节的相关 crop，不用跨章节 overview 补数。V01–V04 自动检查必须包含相应 toolbar/gallery/helper/slideshow ID，且不含错误章节图片。手册根据实际 LearnMoreGallery 代码补充小箭头=排序、点状握柄=拖动、图库 ×=删除该图，与大 slideshow 箭头/页码/窗口 × 分开；模型要求保留这些具体含义与相对位置。
 
 此前样本客户端 p50/p95/p99 为 7.374/29.298/29.298 秒；VLM 时间三次约 2.7–3.3 秒，一次 24.87 秒。usage 已记录，缺少实际报价，USD 为 null。都是 11 次顺序低量请求，无容量/SLO 判定。后续严格截图检查及人工复核结果保存在最终 Actions/PR 发布记录。
+
+## 纯文字预算与已渲染控件证据
+
+严格截图评估通过后，运行 38553358816 捕获了纯文字 T03 自发调用 VLM，修正为依据原问题移除纯文字步骤/数量题的视觉工具，handler 也拒绝收费。运行 38554700251 的 11/11 结构结果和正确图库截图仍未掩盖人工发现的偶发错误：V04 将图片删除 × 再次说成退出 Slideshow。
+
+进一步从实际截图 DOM 自动提取 button/select 的 aria-label/title/text、SVG icon 名称和相对坐标，不采集输入框值。图库里该 × 的真实标签是 Delete image N；提供这些已校验观察给 VLM，并据真实删除/关闭标签过滤已发现的假退出说法。未来实际出现 Close 控件时不阻断它。手册说明退出 Slideshow 使用 Image layout→Multiple images，toolbar × 关闭整个详情窗口。新本地构建 146 图、目录校验通过；机器人39项回归通过。最终验收仍以最终 PR/Actions 与人工复核为准。

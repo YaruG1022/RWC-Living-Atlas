@@ -395,7 +395,7 @@ function UserManual() {
               {/* Thumbnail container with nav arrows + dots */}
               <div className="card-thumbnail-container">
                 <img
-                  src="/CEREO-logo.png"
+                  src="/manual-sample-image.svg"
                   alt="Demo thumbnail"
                   className="card-thumbnail"
                 />
@@ -448,15 +448,15 @@ function UserManual() {
           <div className="um-feature-row">
             <div className="um-feature-demo">
               <div className="card-thumbnail-container um-thumb-demo">
-                <img src="/CEREO-logo.png" alt="Demo thumbnail" className="card-thumbnail" />
+                <div className="card-thumbnail card-thumbnail--empty">No image</div>
               </div>
             </div>
             <div className="um-feature-info">
               <p className="um-feature-title">Card Image / Thumbnail</p>
               <p className="um-feature-desc">
-                A representative image sits at the top of every card. If no image has been
-                uploaded for a card, a neutral "No image" placeholder is shown. Hover over
-                the thumbnail area to see a subtle brightness/saturation effect.
+                Uploaded images appear at the top of each card. Cards without an uploaded
+                image show a neutral "No image" placeholder. The previous default logo is
+                temporarily hidden, and its file is kept for future replacement.
               </p>
             </div>
           </div>
@@ -465,7 +465,7 @@ function UserManual() {
           <div className="um-feature-row">
             <div className="um-feature-demo">
               <div className="card-thumbnail-container um-thumb-demo">
-                <img src="/CEREO-logo.png" alt="Demo thumbnail" className="card-thumbnail" />
+                <img src="/manual-sample-image.svg" alt="Demo thumbnail" className="card-thumbnail" />
                 <button
                   className="card-image-nav card-image-nav-prev"
                   aria-label="Previous image"
@@ -522,7 +522,7 @@ function UserManual() {
             <div className="um-feature-demo">
               <div className="card-thumbnail-container um-thumb-demo">
                 <img
-                  src="/CEREO-logo.png"
+                  src="/manual-sample-image.svg"
                   alt="Demo thumbnail"
                   className="card-thumbnail"
                   style={{ cursor: 'zoom-in' }}
@@ -692,7 +692,7 @@ function UserManual() {
               <div className="um-card-container">
                 <div className="card" style={{ cursor: 'pointer' }}>
                   <div className="card-thumbnail-container" style={{ aspectRatio: '280/100' }}>
-                    <img src="/CEREO-logo.png" alt="Demo thumbnail" className="card-thumbnail" />
+                    <img src="/manual-sample-image.svg" alt="Demo thumbnail" className="card-thumbnail" />
                   </div>
                   <div className="card-title-row">
                     <h2 className="card-title">Click anywhere to open</h2>
@@ -723,7 +723,7 @@ function UserManual() {
               <div className="um-card-container">
                 <div className="card card--map-selected" style={{ pointerEvents: 'none' }}>
                   <div className="card-thumbnail-container" style={{ aspectRatio: '280/100' }}>
-                    <img src="/CEREO-logo.png" alt="Demo thumbnail" className="card-thumbnail" />
+                    <img src="/manual-sample-image.svg" alt="Demo thumbnail" className="card-thumbnail" />
                   </div>
                   <div className="card-title-row">
                     <h2 className="card-title">Map-Selected Card</h2>
@@ -1600,7 +1600,7 @@ function UserManual() {
               </div>
             </div>
             <div className="learn-more-modal-body um-modal-body-preview">
-              <LearnMoreGallery images={[1, 2, 3, 4, 5].map(id => ({ id, url: '/CEREO-logo.png' }))} editing={false} onOpen={() => {}} onSeeAll={() => {}} />
+              <LearnMoreGallery images={[1, 2, 3, 4, 5].map(id => ({ id, url: '/manual-sample-image.svg' }))} editing={false} onOpen={() => {}} onSeeAll={() => {}} />
               <div className="learn-more-modal-title-section">
                 <h2>Yakima River Basin Watershed Study</h2>
                 <p className="learn-more-modal-subtitle">Watershed</p>
@@ -1752,7 +1752,7 @@ function UserManual() {
           <div className="um-feature-row">
             <div className="um-feature-demo">
               <div className="um-isolated-demo um-gallery-demo">
-                <LearnMoreGallery images={[1, 2, 3, 4, 5].map(id => ({ id, url: '/CEREO-logo.png' }))} editing coverUrl="/CEREO-logo.png" onOpen={() => {}} onReorder={() => {}} onDelete={() => {}} onLayoutChange={() => {}} onSeeAll={() => {}} />
+                <LearnMoreGallery images={[1, 2, 3, 4, 5].map(id => ({ id, url: '/manual-sample-image.svg' }))} editing coverUrl="/manual-sample-image.svg" onOpen={() => {}} onReorder={() => {}} onDelete={() => {}} onLayoutChange={() => {}} onSeeAll={() => {}} />
               </div>
             </div>
             <div className="um-feature-info">
@@ -1781,7 +1781,7 @@ function UserManual() {
                   <div className="learn-more-all-images-list">
                     <div className="learn-more-all-image-item is-main-selected">
                       <button type="button" className="learn-more-all-image-btn" style={{ pointerEvents: 'none' }}>
-                        <img className="learn-more-all-image" src="/CEREO-logo.png" alt="Image 1" />
+                        <img className="learn-more-all-image" src="/manual-sample-image.svg" alt="Image 1" />
                       </button>
                       <label className="learn-more-gallery-selection"><span className="learn-more-gallery-checkbox"><input type="checkbox" defaultChecked readOnly aria-label="Main gallery image 1" /><span className="learn-more-gallery-order">1</span></span></label>
                       <button type="button" className="learn-more-all-image-select is-selected" style={{ pointerEvents: 'none' }}>
@@ -2142,7 +2142,7 @@ function UserManual() {
             <div className="um-feature-demo">
               <div className="um-isolated-demo um-image-preview-demo">
                 <div style={{ position: 'relative', background: '#111', borderRadius: '6px', overflow: 'hidden', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <img src="/CEREO-logo.png" alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                  <img src="/manual-sample-image.svg" alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                   <span style={{ position: 'absolute', top: '6px', right: '8px', width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(0,0,0,0.5)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', lineHeight: 1 }}>×</span>
                   <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '36px', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '24px' }}>‹</span>
                   <span style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '36px', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '24px' }}>›</span>

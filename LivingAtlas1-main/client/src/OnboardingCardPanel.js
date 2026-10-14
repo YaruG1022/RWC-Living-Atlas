@@ -36,7 +36,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="onboarding-single-card"]',
         title: 'Single Card',
-        description: 'Hover a list row briefly to see its grid-card appearance beside the panel, toward the map. Move off the row to dismiss it. Click the title for details or the three-dot menu for actions.',
+        description: 'Hover a list row to preview its grid card beside the panel; move off the row to dismiss it. Cards without uploaded images show "No image". Click the title for details or the three-dot menu for actions.',
         placement: 'left',
         requiresCard: true,
     },

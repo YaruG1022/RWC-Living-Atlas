@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
+  <title>Sample uploaded image</title>
+  <rect width="320" height="180" fill="#eef2f7"/>
+  <path d="M0 135 70 75 125 120 195 55 270 130 320 90V180H0Z" fill="#cbd5e1"/>
+  <path d="M170 90C125 110 210 130 155 150S130 170 170 180" fill="none" stroke="#94b6cc" stroke-width="18"/>
+  <text x="160" y="32" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#475569">Sample uploaded image</text>
+</svg>

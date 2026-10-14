@@ -270,6 +270,10 @@
         {
           "type": "text",
           "text": " sits inside the gallery's bottom left corner in both viewing and editing modes and opens a grid of every uploaded image. In edit mode the Image layout dropdown sits inside the gallery's top right corner. Both controls are semi-transparent until hover or focus. Drag images or use the arrow icons to reorder; the first image becomes the card cover. Its neutral badge and selection border appear only in edit mode."
+        },
+        {
+          "type": "text",
+          "text": " Try the Image layout dropdown in this manual example to preview Multiple images and Slideshow, then use the slideshow arrows to move between sample images."
         }
       ]
     },

@@ -96,6 +96,8 @@ export const latestGuiUpdates = [
             'Expanded the manual with navigation, account, profile, administration, tutorial and update guides while preserving existing interactive examples.',
             'The manual and Atlas Helper now share the same chapter instructions. Published manual updates can refresh the helper automatically after validation.',
             'Helper answers can show clickable User Manual references, so you can open the matching chapter and check the instructions.',
+            'When image understanding is available, the helper can consult current manual examples to explain icons, button positions and layouts; documented text remains available when images cannot be checked.',
+            'The manual gallery example now lets you preview Multiple images and Slideshow and try its navigation controls.',
         ],
     },
 ];

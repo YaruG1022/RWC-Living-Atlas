@@ -14,6 +14,13 @@ function loadManual() {
   // Fail on leftover/unknown chapter files instead of silently indexing extra material.
   const files = fs.readdirSync(path.join(contentRoot, 'sections')).filter(file => file.endsWith('.json'));
   if (files.length !== ids.length || files.some(file => !ids.includes(file.slice(0, -5)))) throw new Error('Unlisted manual chapter file');
+  const layout = fs.readFileSync(path.resolve(contentRoot, '../UserManual.js'), 'utf8');
+  const references = [...layout.matchAll(/<ManualText sectionId="([^"]+)" blockId="([^"]+)"/g)].map(match => `${match[1]}/${match[2]}`);
+  const expected = chapters.flatMap(section => section.blocks.map(block => `${section.id}/${block.id}`));
+  if (references.length !== expected.length || new Set(references).size !== references.length || expected.some(id => !references.includes(id))) throw new Error('Manual layout block references are missing, duplicate or invalid');
+  const examples = [...layout.matchAll(/data-manual-example="([^"]+)"/g)].map(match => match[1]);
+  const expectedExamples = chapters.flatMap(section => section.examples.map(example => example.id));
+  if (examples.length !== expectedExamples.length || new Set(examples).size !== examples.length || expectedExamples.some(id => !examples.includes(id))) throw new Error('Invalid demonstration references');
   return { index, chapters };
 }
 

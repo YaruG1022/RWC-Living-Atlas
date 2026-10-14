@@ -455,7 +455,7 @@ function UserManual() {
               <p className="um-feature-title">Card Image / Thumbnail</p>
               <p className="um-feature-desc">
                 A representative image sits at the top of every card. If no image has been
-                uploaded for a card, the Rivers, Watersheds, Communities (RWC) logo is shown as a placeholder. Hover over
+                uploaded for a card, a neutral "No image" placeholder is shown. Hover over
                 the thumbnail area to see a subtle brightness/saturation effect.
               </p>
             </div>

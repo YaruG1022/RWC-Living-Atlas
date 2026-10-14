@@ -5,6 +5,7 @@ import Modal from 'react-modal';
 import api from './api.js';
 import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
+import { SHOW_LEGACY_ORGANIZATION_LOGO } from './branding';
 import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
 import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, toggleGallerySelection } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -89,6 +90,7 @@ function Card(props) {
     const [pendingImageSlotIndex, setPendingImageSlotIndex] = useState(null);
     const [sessionUploadedImageIDs, setSessionUploadedImageIDs] = useState([]);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [failedCardImageUrl, setFailedCardImageUrl] = useState(null);
     const [isEditingPolygon, setIsEditingPolygon] = useState(false);
     // True while converting a point/coordinate card to polygon or image (blank slate),
     // as opposed to editing an existing polygon/image card's own vertices.
@@ -1939,8 +1941,7 @@ function Card(props) {
     const isCardCurrentImageDefault = (() => {
         const url = cardCurrentImage?.url;
         if (!url || typeof url !== 'string') return true;
-        if (url === '/CEREO-logo.png' || url.endsWith('/CEREO-logo.png')) return true;
-        if (url.includes('default_cereo_thumbnail')) return true;
+        if (/(?:^|\/)(?:CEREO-logo|default_cereo_thumbnail)\.png(?:[?#].*)?$/i.test(url)) return true;
         return false;
     })();
     const totalIndicatorCount = cardImageList.length;
@@ -2031,12 +2032,12 @@ function Card(props) {
             </span>
 
             <div className="card-thumbnail-container">
-                {cardCurrentImage.url ? <img
+                {cardCurrentImage.url && (SHOW_LEGACY_ORGANIZATION_LOGO || !isCardCurrentImageDefault) && failedCardImageUrl !== cardCurrentImage.url ? <img
                     src={cardCurrentImage.url}
                     alt={cardCurrentImage.alt || "Card Thumbnail"}
                     className={`card-thumbnail${isCardCurrentImageDefault ? '' : ' card-thumbnail--cover'}`}
                     onClick={handleOpenImagePreview}
-                    onError={(e) => { e.target.onerror = null; e.target.src = '/CEREO-logo.png'; }}
+                    onError={() => setFailedCardImageUrl(cardCurrentImage.url)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOpenImagePreview(e); }}
                     role="button"
                     tabIndex={0}

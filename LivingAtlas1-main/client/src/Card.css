@@ -779,7 +779,7 @@
 .learn-more-gallery-checkbox input:disabled { cursor: default; }
 .learn-more-gallery-selection-hint { color: #64748b; font-size: .85rem; margin: 0 0 12px; }
 
-.card-thumbnail--empty {
+.card-thumbnail-container .card-thumbnail--empty {
   display: flex;
   align-items: center;
   justify-content: center;

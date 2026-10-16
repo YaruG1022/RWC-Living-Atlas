@@ -27,6 +27,8 @@
 
 RWC Living Atlas 将环境项目卡片和地理空间图层汇集在交互式地图中。访客可以浏览和筛选项目；贡献者可以提交项目卡片及相关文件；管理员可以管理账户和内容。本应用与华盛顿州立大学的环境研究、教育与推广中心（Center for Environmental Research, Education, and Outreach，CEREO）合作开发。
 
+项目目前由 [YaruG1022](https://github.com/YaruG1022) 独立维护。
+
 ## 功能
 
 | 探索 | 贡献 | 管理 |
@@ -140,7 +142,7 @@ npm start
 │   ├── backend/                # FastAPI 应用、路由与依赖
 │   │   └── endpoint_files/     # 按功能组织的 API 路由
 │   └── database/               # 基础表结构、示例数据与迁移
-├── documentation/              # 项目报告与文档
+├── documentation/              # 开发指南与测试报告
 ├── netlify.toml                # 前端构建配置
 └── LICENSE.txt
 ```
@@ -149,7 +151,7 @@ npm start
 
 - 前端命令：在 [`LivingAtlas1-main/client`](LivingAtlas1-main/client) 中运行 `npm test` 或 `npm run build`。默认情况下，测试命令会启动 Create React App 的交互式测试运行器。
 - API 参考：启动后端后访问 <http://localhost:8000/docs>。
-- 项目背景：参阅 [`documentation/`](documentation/) 目录和[应用内用户手册](LivingAtlas1-main/client/src/UserManual.js)。
+- 使用与开发文档：参阅[开发指南与测试报告](documentation/)和[应用内用户手册](LivingAtlas1-main/client/src/UserManual.js)。
 - 发现问题或希望新增功能时，请通过 [GitHub Issues](https://github.com/YaruG1022/RWC-Living-Atlas/issues) 反馈，附上复现步骤以及相关的前端或后端日志。分享日志前请移除凭据和个人信息。
 
 ## 参与贡献

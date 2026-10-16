@@ -27,6 +27,8 @@
 
 RWC Living Atlas reúne fichas de proyectos ambientales y capas geoespaciales en un mapa interactivo. Quienes visitan el sitio pueden explorar y filtrar proyectos; quienes contribuyen pueden enviar fichas y archivos relacionados; y quienes administran la aplicación pueden gestionar cuentas y contenido. La aplicación se desarrolló en colaboración con el Center for Environmental Research, Education, and Outreach (CEREO) de Washington State University.
 
+Actualmente, [YaruG1022](https://github.com/YaruG1022) mantiene el proyecto de forma independiente.
+
 ## Funciones
 
 | Explorar | Contribuir | Administrar |
@@ -140,7 +142,7 @@ Algunas funciones necesitan servicios externos: las teselas de mapas y las capas
 │   ├── backend/                # Aplicación FastAPI, rutas y dependencias
 │   │   └── endpoint_files/     # Rutas de API por función
 │   └── database/               # Esquema base, datos de ejemplo y migraciones
-├── documentation/              # Informes y documentación del proyecto
+├── documentation/              # Guías de desarrollo e informes de pruebas
 ├── netlify.toml                # Configuración de compilación del frontend
 └── LICENSE.txt
 ```
@@ -149,7 +151,7 @@ Algunas funciones necesitan servicios externos: las teselas de mapas y las capas
 
 - Scripts del frontend: ejecuta `npm test` o `npm run build` desde [`LivingAtlas1-main/client`](LivingAtlas1-main/client). De forma predeterminada, el comando de pruebas inicia el ejecutor interactivo de Create React App.
 - Referencia de la API: inicia el backend y abre <http://localhost:8000/docs>.
-- Contexto del proyecto: consulta la carpeta [`documentation/`](documentation/) y el [manual de usuario integrado](LivingAtlas1-main/client/src/UserManual.js).
+- Documentación: consulta las [guías de desarrollo e informes de pruebas](documentation/) y el [manual de usuario integrado](LivingAtlas1-main/client/src/UserManual.js).
 - Informa de errores o solicita funciones mediante [GitHub Issues](https://github.com/YaruG1022/RWC-Living-Atlas/issues). Incluye los pasos para reproducir el problema y los registros pertinentes del frontend o backend. Elimina credenciales y datos personales antes de compartir registros.
 
 ## Contribuciones

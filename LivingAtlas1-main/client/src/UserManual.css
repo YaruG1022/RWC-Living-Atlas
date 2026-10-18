@@ -1,50 +1,71 @@
 /* ========================================
-   User Manual - page and guide text styles.
-   Embedded examples retain their component styles.
+   User Manual — page & layout styles only.
+   Card element styles come from Card.css.
    ======================================== */
 
-.info-page.user-manual {
-  /* Center the guide in the space beside the fixed chapter navigation. */
-  width: calc(100% - var(--app-user-manual-nav-width));
-  margin-left: max(var(--app-user-manual-nav-width), calc((100% + var(--app-user-manual-nav-width) - 860px) / 2));
-  margin-right: 0;
+.user-manual {
+  font-family: 'Roboto', sans-serif;
+  /* Sidebar width is responsive; center the remaining space */
+  margin-left: calc(var(--app-user-manual-nav-width) + (100vw - var(--app-user-manual-nav-width)) / 2 - 460px);
+  width: min(900px, calc(100vw - var(--app-user-manual-nav-width) - 48px));
+  padding: 40px 24px 60px;
+  color: #333;
+}
+
+.user-manual h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a3a5c;
+  margin-bottom: 8px;
+}
+
+.user-manual-intro {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.7;
+  margin-bottom: 28px;
+  border-bottom: 1px solid #e0e8f0;
+  padding-bottom: 20px;
 }
 
 /* ---- Home landing cards ---- */
 .um-home-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 20px;
-  margin-top: 24px;
+  margin-top: 32px;
 }
 
 .um-home-card {
+  /* reset button */
   appearance: none;
   -webkit-appearance: none;
   box-sizing: border-box;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 20px;
-  background: #fafafa;
+  border: 1.5px solid #dce6f0;
+  border-radius: 10px;
+  padding: 24px 20px;
+  background: #f8fafc;
   text-align: left;
   cursor: pointer;
-  font-family: inherit;
-  font-size: 14px;
-  color: #333;
-  line-height: 1.65;
-  transition: background 0.15s, border-color 0.15s;
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.88rem;
+  color: #4b5563;
+  line-height: 1.55;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.12s;
 }
 
 .um-home-card:hover {
-  background: #f5f5f5;
-  border-color: #999;
+  background: #eaf1fb;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 14px rgba(59,130,246,0.12);
+  transform: translateY(-2px);
 }
 
 .um-home-card-title {
   display: block;
-  font-size: 15px;
+  font-size: 1rem;
   font-weight: 700;
-  color: #555;
+  color: #1a3a5c;
   margin-bottom: 8px;
 }
 
@@ -53,13 +74,16 @@
   display: block;
 }
 
+/* Override global `nav { background: #333 }` from About.css */
 nav.um-nav-sidebar {
+  /* Fixed to the left edge of the viewport, below the navbar */
   position: fixed;
   top: var(--app-navbar-height);
   left: 0;
   bottom: 0;
   width: var(--app-user-manual-nav-width);
   z-index: 100;
+  /* layout */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -67,25 +91,31 @@ nav.um-nav-sidebar {
   gap: 2px;
   padding: 16px 0 24px;
   overflow-y: auto;
-  background: #fafafa;
-  border-right: 1px solid #ddd;
-  color: #333;
+  /* visuals */
+  background: #f8fafc;
+  border-right: 1px solid #dce6f0;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.06);
+  /* reset About.css global nav styles */
+  color: inherit;
 }
 
+/* Use high-specificity to beat any global button/a resets */
 .um-nav-sidebar .um-nav-heading {
   display: block;
   padding: 0 14px 10px;
-  font-family: inherit;
-  font-size: 12px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #666;
-  border-bottom: 1px solid #e8e8e8;
+  color: #94a3b8;
+  border-bottom: 1px solid #e5edf5;
   margin-bottom: 6px;
 }
 
+/* Use high-specificity to beat any global button/a resets */
 .um-nav-sidebar .um-nav-item {
+  /* reset browser + any global button styles */
   appearance: none;
   -webkit-appearance: none;
   box-sizing: border-box;
@@ -94,122 +124,135 @@ nav.um-nav-sidebar {
   text-align: left;
   padding: 9px 16px 9px 14px;
   margin: 0;
+  /* borders */
   border-top: none;
   border-right: none;
   border-bottom: none;
   border-left: 3px solid transparent;
   border-radius: 0;
+  outline: none;
+  /* colours */
   background: transparent;
-  color: #555;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.65;
+  color: #4b5563;
+  /* typography */
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.4;
   letter-spacing: 0;
   text-decoration: none;
+  /* interaction */
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .um-nav-sidebar .um-nav-item:hover {
-  background: #f0f0f0;
-  color: #333;
+  background: #f0f5fb;
+  color: #1a3a5c;
 }
 
 .um-nav-sidebar .um-nav-item.active {
-  background: #eee;
-  color: #333;
+  background: #eaf1fb;
+  color: #1a3a5c;
   font-weight: 700;
-  border-left-color: #2c3e50;
+  border-left-color: #3b82f6;
 }
 
-.um-nav-sidebar .um-nav-item:focus-visible,
-.um-home-card:focus-visible {
-  outline: 2px solid #666;
-  outline-offset: -2px;
-}
-
-.um-nav-sidebar .um-nav-item--group,
-.um-nav-sidebar .um-nav-item--subgroup {
+.um-nav-sidebar .um-nav-item--group {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.um-nav-sidebar .um-nav-item--group svg,
-.um-nav-sidebar .um-nav-item--subgroup svg {
-  font-size: 11px;
-  color: #666;
+.um-nav-sidebar .um-nav-item--group svg {
+  font-size: 0.72rem;
+  color: #7b8ca1;
 }
 
-.um-nav-sidebar .um-nav-item--child,
-.um-nav-sidebar .um-nav-item--subgroup {
+.um-nav-sidebar .um-nav-item--child {
   padding-left: 30px;
-  font-size: 13px;
+  font-size: 0.84rem;
+}
+
+.um-nav-sidebar .um-nav-item--subgroup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 30px;
+  font-size: 0.82rem;
+}
+
+.um-nav-sidebar .um-nav-item--subgroup svg {
+  font-size: 0.7rem;
+  color: #7b8ca1;
 }
 
 .um-nav-sidebar .um-nav-item--grandchild {
   padding-left: 46px;
-  font-size: 13px;
+  font-size: 0.8rem;
 }
 
 .um-content-area {
   width: 100%;
-  min-width: 0;
 }
 
-@media (max-width: 760px) {
-  .info-page.user-manual {
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  /* Keep the full chapter list available without covering the guide. */
+@media (max-width: 640px) {
   nav.um-nav-sidebar {
-    position: static;
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: 100%;
-    max-height: min(280px, 40vh);
-    margin-bottom: 28px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 12px 0;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-right: none;
+    border-top: 1px solid #dce6f0;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.07);
+    padding: 6px 4px;
+  }
+  .um-layout {
+    margin-left: 0;
+    margin-bottom: 60px; /* clear bottom nav */
+  }
+  .user-manual {
+    margin: 16px 16px 60px;
+    width: auto;
+  }
+  .um-nav-sidebar .um-nav-item {
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    border-bottom: 3px solid transparent;
+    padding: 7px 12px;
+    font-size: 0.82rem;
+  }
+  .um-nav-sidebar .um-nav-item.active {
+    border-bottom-color: #3b82f6;
+    border-left-color: transparent;
   }
 }
 
-/* ---- Guide text: direct children only, so demo headings stay unchanged. ---- */
+/* ---- Section ---- */
 .um-section {
-  margin-bottom: 40px;
+  margin-bottom: 52px;
 }
 
-.um-section > p,
-.um-section > ol,
-.um-section > ul {
-  font-size: 14px;
-  color: #333;
-  line-height: 1.65;
-  margin: 0 0 12px;
+.um-section > h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1a3a5c;
+  margin: 0 0 4px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #dce6f0;
 }
 
-.um-section > ol,
-.um-section > ul {
-  padding-left: 24px;
-}
-
-.um-section > ol > li,
-.um-section > ul > li {
-  margin: 6px 0;
-}
-
-.um-section > .um-section-desc {
-  margin-bottom: 24px;
-}
-
-/* Preserve the inherited typography used by existing component examples. */
-.user-manual [data-manual-example] {
-  font-family: 'Roboto', sans-serif;
-  font-size: 16px;
-  line-height: normal;
+.um-section-desc {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.6;
+  margin: 10px 0 28px;
 }
 
 /* ---- Full card demo ---- */
@@ -245,7 +288,7 @@ nav.um-nav-sidebar {
   align-items: center;
   gap: 28px;
   padding: 22px 0;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid #f0f4f8;
 }
 
 .um-feature-row:last-child {
@@ -267,25 +310,25 @@ nav.um-nav-sidebar {
 }
 
 .um-feature-title {
-  font-size: 13px;
+  font-size: 1rem;
   font-weight: 700;
-  color: #666;
-  margin: 0 0 8px;
+  color: #1a3a5c;
+  margin: 0 0 6px;
 }
 
 .um-feature-desc {
-  font-size: 14px;
-  color: #333;
+  font-size: 0.9rem;
+  color: #555;
   line-height: 1.65;
   margin: 0;
 }
 
 .um-feature-note {
   display: block;
-  font-size: 13px;
-  color: #666;
+  font-size: 0.82rem;
+  color: #94a3b8;
   font-style: italic;
-  margin-top: 8px;
+  margin-top: 7px;
 }
 
 /* ---- Isolated demo helpers ---- */

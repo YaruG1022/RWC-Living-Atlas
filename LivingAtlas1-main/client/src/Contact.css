@@ -1,6 +1,13 @@
+.contact > section {
+    margin-bottom: 32px;
+}
+
 .contact-address {
     margin: 0;
     font-style: normal;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #555;
 }
 
 .contact-address p {
@@ -14,6 +21,8 @@
     margin: 0;
     padding: 0;
     list-style: none;
+    font-size: 0.95rem;
+    line-height: 1.6;
 }
 
 .contact-emails li + li {
@@ -44,11 +53,11 @@
     box-sizing: border-box;
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: 1px solid #dce6f0;
+    border-radius: 6px;
     font: inherit;
     color: #333;
-    background: #fff;
+    background: #f8fafc;
 }
 
 .contact .feedback-field textarea {
@@ -59,25 +68,25 @@
 .contact .feedback-field input:focus-visible,
 .contact .feedback-field textarea:focus-visible,
 .contact .feedback-submit:focus-visible {
-    outline: 2px solid #2c3e50;
+    outline: 2px solid #3b82f6;
     outline-offset: 2px;
 }
 
 .contact .feedback-submit {
     align-self: flex-start;
     padding: 10px 20px;
-    border: 1px solid #2c3e50;
-    border-radius: 4px;
+    border: 1px solid #1a3a5c;
+    border-radius: 6px;
     font: inherit;
     font-weight: 600;
     color: #fff;
-    background: #2c3e50;
+    background: #1a3a5c;
     cursor: pointer;
 }
 
 .contact .feedback-submit:hover:not(:disabled) {
-    background: #1f2e3d;
-    border-color: #1f2e3d;
+    background: #244f7d;
+    border-color: #244f7d;
 }
 
 .contact .feedback-submit:disabled {

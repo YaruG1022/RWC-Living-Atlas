@@ -106,8 +106,8 @@ export const latestGuiUpdates = [
     {
         title: 'Consistent Information Pages',
         items: [
-            'Unified About, Contact, Update History and User Manual with matching headings, typography, dividers and content spacing.',
-            'Refined Contact form styling and keyboard focus states, and made the manual section navigator scroll within the page on smaller screens.',
+            'Unified About, Contact and Update History using the original User Manual typography, blue headings, light blue dividers and link styles.',
+            'Restored the complete original User Manual styling, including its title, navigation and examples.',
         ],
     },
 ];

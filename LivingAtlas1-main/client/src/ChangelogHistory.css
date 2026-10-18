@@ -1,6 +1,6 @@
 .changelog-history-tabs {
     display: flex;
-    border-bottom: 2px solid #ddd;
+    border-bottom: 2px solid #dce6f0;
     margin-bottom: 24px;
     gap: 0;
 }
@@ -10,23 +10,26 @@
     border: none;
     padding: 12px 20px;
     font-family: inherit;
-    font-size: 14px;
-    font-weight: 600;
-    color: #666;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #4b5563;
     cursor: pointer;
     border-bottom: 3px solid transparent;
-    transition: all 0.2s ease;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
     text-transform: none;
 }
 
 .changelog-history-tab:hover {
-    color: #333;
-    background: #f5f5f5;
+    color: #1a3a5c;
+    background: #f0f5fb;
 }
 
 .changelog-history-tab.active {
-    color: #2c3e50;
-    border-bottom-color: #2c3e50;
+    color: #1a3a5c;
+    background: #eaf1fb;
+    font-weight: 700;
+    border-bottom-color: #3b82f6;
 }
 
 .changelog-list {
@@ -42,20 +45,24 @@
     color: #333;
 }
 
+.changelog-history-body .changelog-list li,
 .changelog-history-body p {
-    font-size: 14px;
-    line-height: 1.65;
-    margin: 0 0 8px;
-    color: #333;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #555;
+}
+
+.changelog-history-body p {
+    margin: 10px 0 16px;
 }
 
 .changelog-history-body hr {
     border: none;
-    border-top: 1px solid #e8e8e8;
-    margin: 20px 0;
+    border-top: 1px solid #dce6f0;
+    margin: 28px 0;
 }
 
 .changelog-history-tab:focus-visible {
-    outline: 2px solid #2c3e50;
+    outline: 2px solid #3b82f6;
     outline-offset: -2px;
 }

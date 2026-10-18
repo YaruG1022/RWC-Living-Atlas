@@ -1,395 +1,257 @@
 .admin-page {
-  --admin-bg: #f6f8fb;
-  --admin-card: #ffffff;
-  --admin-border: #e3e8ef;
-  --admin-text: #17212f;
-  --admin-subtext: #5b697b;
-  --admin-accent: #2457d6;
-  --admin-danger: #c72b38;
-  --admin-success: #187a52;
-
-  padding: 1.5rem;
-  background: linear-gradient(180deg, #f9fbfd 0%, var(--admin-bg) 100%);
-  min-height: calc(100vh - 120px);
-  color: var(--admin-text);
+    --admin-border: var(--account-border);
+    --admin-subtext: var(--account-text);
+    --admin-accent: var(--account-accent);
+    --admin-danger: var(--account-danger);
 }
 
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+.admin-page .admin-stats-placeholder,
+.admin-page .admin-empty-state {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--account-text);
 }
 
-.admin-title {
-  margin: 0;
-  font-size: 1.75rem;
-  letter-spacing: 0.01em;
+.admin-page .admin-error {
+    margin: 0 0 12px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--account-danger);
 }
 
-.admin-page .admin-nav-tabs {
-  display: flex;
-  justify-content: flex-start;
-  gap: 0.4rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-  background-color: transparent;
-  border: none;
-  padding: 0;
-  color: inherit;
+.admin-page .admin-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
-.admin-page .admin-nav-tab {
-  border: 1px solid #c8d5e5;
-  background: #f6f8fb;
-  color: #5b697b;
-  border-radius: 999px;
-  padding: 0.45rem 1.1rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.admin-page .admin-table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    color: #333;
 }
 
-.admin-page .admin-nav-tab:hover {
-  border-color: #aabdd6;
-  color: #17212f;
-  background: #edf1f7;
-  box-shadow: 0 4px 12px rgba(17, 35, 70, 0.07);
+.admin-page .admin-table th,
+.admin-page .admin-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--account-border);
+    text-align: left;
+    vertical-align: middle;
+    overflow-wrap: anywhere;
 }
 
-.admin-page .admin-nav-tab.active {
-  background: #dde6f7;
-  border-color: #adc4ee;
-  color: #1a3d9e;
+.admin-page .admin-table thead th {
+    overflow-wrap: normal;
+    white-space: nowrap;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--account-heading);
+    background: #eaf1fb;
 }
 
-.admin-stats-placeholder,
-.admin-empty-state {
-  color: var(--admin-subtext);
-  font-size: 0.95rem;
-  margin: 0;
+.admin-page .admin-table tbody tr:hover {
+    background: #edf4fd;
 }
 
-.admin-card {
-  background: var(--admin-card);
-  border: 1px solid var(--admin-border);
-  border-radius: 14px;
-  padding: 1rem;
-  box-shadow: 0 10px 26px rgba(15, 38, 86, 0.06);
+.admin-page .admin-table .account-button {
+    min-height: 32px;
+    margin: 3px 0;
+    padding: 6px 12px;
+    font-size: 0.875rem;
 }
 
-.admin-section-title {
-  margin: 0 0 0.85rem;
-  font-size: 1.1rem;
+.admin-page .admin-badge {
+    display: inline-flex;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
-.admin-error {
-  margin: 0 0 0.75rem;
-  color: var(--admin-danger);
-  font-size: 0.95rem;
+.admin-page .admin-badge-admin {
+    color: var(--account-heading);
+    background: #eaf1fb;
 }
 
-.admin-table-wrap {
-  overflow-x: auto;
+.admin-page .admin-badge-user {
+    color: #4b5563;
+    background: #edf1f5;
 }
 
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95rem;
+.admin-page .admin-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
-.admin-table th,
-.admin-table td {
-  text-align: left;
-  padding: 0.75rem 0.65rem;
-  border-bottom: 1px solid #edf1f6;
-  vertical-align: middle;
+.admin-page .admin-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: currentColor;
 }
 
-.admin-table thead th {
-  color: var(--admin-subtext);
-  font-size: 0.82rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.admin-page .admin-status-online {
+    color: #247344;
 }
 
-.admin-table tbody tr:hover {
-  background: #f9fbff;
+.admin-page .admin-status-offline,
+.admin-page .admin-muted {
+    color: #6b7280;
 }
 
-.admin-badge {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.18rem 0.5rem;
+.admin-page .admin-actions-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
-.admin-badge-admin {
-  color: #1f4cbb;
-  background: #e8efff;
+.admin-page .admin-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(26, 58, 92, 0.4);
 }
 
-.admin-badge-user {
-  color: #4d5b71;
-  background: #edf1f7;
+.admin-page .admin-modal {
+    box-sizing: border-box;
+    width: min(460px, 100%);
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    padding: 24px;
+    border: 1px solid var(--account-border);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(26, 58, 92, 0.12);
 }
 
-.admin-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.42rem;
-  font-size: 0.82rem;
-  font-weight: 600;
+.admin-page .admin-modal-title {
+    margin: 0 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--account-border);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--account-heading);
 }
 
-.admin-status-dot {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 999px;
-  flex-shrink: 0;
+.admin-page .admin-modal-subtitle {
+    margin: 0 0 20px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--account-text);
+    overflow-wrap: anywhere;
 }
 
-.admin-status-online {
-  color: #1b7f3a;
+.admin-page .admin-role-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
-.admin-status-online .admin-status-dot {
-  background: #2bb24c;
-  box-shadow: 0 0 0 2px rgba(43, 178, 76, 0.16);
+.admin-page .admin-role-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 8px 12px;
+    border: 1px solid var(--account-border);
+    border-radius: 6px;
+    background: var(--account-surface);
+    cursor: pointer;
 }
 
-.admin-status-offline {
-  color: #6a7485;
+.admin-page .admin-role-option input {
+    accent-color: var(--account-accent);
 }
 
-.admin-status-offline .admin-status-dot {
-  background: #9ca4b3;
+.admin-page .admin-confirm-label {
+    display: block;
+    margin-bottom: 6px;
 }
 
-.admin-actions-inline {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+.admin-page .admin-modal-error {
+    margin: 8px 0 0;
 }
 
-.admin-muted {
-  color: #98a3b3;
+.admin-page .admin-modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
 }
 
-.admin-action-btn {
-  border: 1px solid #d8e2f1;
-  background: #ffffff;
-  color: var(--admin-accent);
-  border-radius: 8px;
-  padding: 0.35rem 0.65rem;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.admin-page .admin-table-header-sortable {
+    cursor: pointer;
+    user-select: none;
 }
 
-.admin-action-btn:hover {
-  background: #f3f7ff;
-  border-color: #c4d6ff;
+.admin-page .admin-table-header-sortable:hover {
+    color: #1d4ed8;
+    background: #dce9fa;
 }
 
-.admin-action-btn-approve {
-  color: var(--admin-success);
-  border-color: #c8e8db;
+.admin-page .admin-sort-header-content,
+.admin-page .admin-sort-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
 }
 
-.admin-action-btn-approve:hover {
-  background: #eefaf5;
-  border-color: #acd9c7;
+.admin-page .admin-sort-indicator {
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    width: 14px;
+    height: 15px;
 }
 
-.admin-action-btn-danger {
-  color: var(--admin-danger);
-  border-color: #f1c9ce;
+.admin-page .admin-sort-triangle {
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
 }
 
-.admin-action-btn-danger:hover {
-  background: #fff3f4;
-  border-color: #e8aab2;
+.admin-page .admin-sort-triangle-up {
+    border-bottom: 5px solid #a9b8c8;
 }
 
-.admin-modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1200;
-  background: rgba(12, 23, 44, 0.48);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
+.admin-page .admin-sort-triangle-down {
+    border-top: 5px solid #a9b8c8;
 }
 
-.admin-modal {
-  width: min(460px, 100%);
-  background: #ffffff;
-  border: 1px solid var(--admin-border);
-  border-radius: 14px;
-  box-shadow: 0 18px 46px rgba(11, 26, 55, 0.22);
-  padding: 1rem;
+.admin-page .admin-sort-triangle.is-active.admin-sort-triangle-up {
+    border-bottom-color: var(--account-heading);
 }
 
-.admin-modal-title {
-  margin: 0;
-  font-size: 1.05rem;
+.admin-page .admin-sort-triangle.is-active.admin-sort-triangle-down {
+    border-top-color: var(--account-heading);
 }
 
-.admin-modal-subtitle {
-  margin: 0.35rem 0 0.95rem;
-  color: var(--admin-subtext);
-  font-size: 0.9rem;
-}
+@media (max-width: 640px) {
+    .admin-page .account-tab {
+        padding: 10px 12px;
+    }
 
-.admin-role-options {
-  display: flex;
-  gap: 0.65rem;
-  margin-bottom: 0.9rem;
-  flex-wrap: wrap;
-}
+    .admin-page .admin-modal {
+        padding: 20px 16px;
+    }
 
-.admin-role-option {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  border: 1px solid #dce4ef;
-  border-radius: 8px;
-  padding: 0.4rem 0.6rem;
-  font-size: 0.88rem;
-  background: #f9fbff;
-}
-
-.admin-confirm-label {
-  display: block;
-  font-size: 0.85rem;
-  color: var(--admin-subtext);
-  margin-bottom: 0.35rem;
-}
-
-.admin-confirm-input {
-  width: 100%;
-  border: 1px solid #d2dce9;
-  border-radius: 8px;
-  padding: 0.48rem 0.6rem;
-  font-size: 0.92rem;
-}
-
-.admin-confirm-input:focus {
-  outline: none;
-  border-color: #7ea4ff;
-  box-shadow: 0 0 0 3px rgba(36, 87, 214, 0.12);
-}
-
-.admin-modal-error {
-  margin-top: 0.55rem;
-  margin-bottom: 0;
-}
-
-.admin-modal-actions {
-  margin-top: 0.95rem;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.55rem;
-}
-
-.admin-action-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-@media (max-width: 768px) {
-  .admin-page {
-    padding: 1rem;
-  }
-
-  .admin-page .admin-nav-tabs {
-    gap: 0.3rem;
-  }
-
-  .admin-page .admin-nav-tab {
-    flex: 1;
-    text-align: center;
-  }
-
-  .admin-table th,
-  .admin-table td {
-    padding: 0.62rem 0.5rem;
-    font-size: 0.88rem;
-  }
-
-  .admin-modal-actions {
-    justify-content: stretch;
-  }
-
-  .admin-modal-actions .admin-action-btn {
-    flex: 1;
-  }
-}
-/* Sortable table header styles */
-.admin-table-header-sortable {
-  cursor: pointer;
-  user-select: none;
-  transition: color 0.2s ease, background-color 0.2s ease;
-}
-
-.admin-table-header-sortable:hover {
-  color: var(--admin-accent);
-  background-color: rgba(25, 118, 210, 0.05);
-}
-
-.admin-sort-header-content {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.32rem;
-}
-
-.admin-sort-indicator {
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 2px;
-  width: 0.85rem;
-  height: 0.95rem;
-}
-
-.admin-sort-triangle {
-  width: 0;
-  height: 0;
-  border-left: 0.25rem solid transparent;
-  border-right: 0.25rem solid transparent;
-  transition: border-color 0.2s ease;
-}
-
-.admin-sort-triangle-up {
-  border-bottom: 0.34rem solid #bcc6d4;
-}
-
-.admin-sort-triangle-down {
-  border-top: 0.34rem solid #bcc6d4;
-}
-
-.admin-sort-triangle.is-active.admin-sort-triangle-up {
-  border-bottom-color: #223244;
-}
-
-.admin-sort-triangle.is-active.admin-sort-triangle-down {
-  border-top-color: #223244;
-}
-
-.admin-sort-triangle.is-inactive.admin-sort-triangle-up {
-  border-bottom-color: #cfd7e3;
-}
-
-.admin-sort-triangle.is-inactive.admin-sort-triangle-down {
-  border-top-color: #cfd7e3;
+    .admin-page .admin-modal-actions .account-button {
+        flex: 1;
+    }
 }

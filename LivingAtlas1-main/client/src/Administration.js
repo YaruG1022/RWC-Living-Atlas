@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from './api.js';
 import './Administration.css';
+import InfoPage from './InfoPage';
+import './AccountPage.css';
 
 function Administration() {
     const [users, setUsers] = useState([]);
@@ -254,26 +256,23 @@ function Administration() {
     
 
     return (
-        <div className="admin-page">
-            <div className="admin-header">
-                <h2 className="admin-title">Administration</h2>
-            </div>
+        <InfoPage title="Administration" className="admin-page account-page">
 
-            <nav className="admin-nav-tabs">
+            <nav className="admin-nav-tabs account-tabs" aria-label="Administration sections">
                 <button
-                    className={`admin-nav-tab${activeTab === 'statistics' ? ' active' : ''}`}
+                    className={`admin-nav-tab account-tab${activeTab === 'statistics' ? ' active' : ''}`}
                     onClick={() => setActiveTab('statistics')}
                 >
                     Statistics
                 </button>
                 <button
-                    className={`admin-nav-tab${activeTab === 'manage-users' ? ' active' : ''}`}
+                    className={`admin-nav-tab account-tab${activeTab === 'manage-users' ? ' active' : ''}`}
                     onClick={() => setActiveTab('manage-users')}
                 >
                     Manage Users
                 </button>
                 <button
-                    className={`admin-nav-tab${activeTab === 'sign-up-requests' ? ' active' : ''}`}
+                    className={`admin-nav-tab account-tab${activeTab === 'sign-up-requests' ? ' active' : ''}`}
                     onClick={() => setActiveTab('sign-up-requests')}
                 >
                     Sign Up Requests
@@ -281,15 +280,15 @@ function Administration() {
             </nav>
 
             {activeTab === 'statistics' && (
-                <section className="admin-card">
-                    <h3 className="admin-section-title">Statistics</h3>
+                <section className="admin-card account-panel">
+                    <h2 className="admin-section-title account-section-title">Statistics</h2>
                     <p className="admin-stats-placeholder">Statistics will be available here in a future update.</p>
                 </section>
             )}
 
             {activeTab === 'manage-users' && (
-                <section className="admin-card">
-                    <h3 className="admin-section-title">User Management</h3>
+                <section className="admin-card account-panel">
+                    <h2 className="admin-section-title account-section-title">User Management</h2>
                     {error && <p className="admin-error">Error: {error}</p>}
                     <div className="admin-table-wrap">
                     <table className="admin-table">
@@ -342,13 +341,13 @@ function Administration() {
                                         </span>
                                     </td>
                                     <td>
-                                        <button className="admin-action-btn" onClick={() => handleOpenRoleModal(user)}>
+                                        <button className="admin-action-btn account-button account-button--secondary" onClick={() => handleOpenRoleModal(user)}>
                                             Change Role
                                         </button>
                                     </td>
                                     {!user.is_admin ? (
                                         <td>
-                                            <button className="admin-action-btn admin-action-btn-danger" onClick={() => handleOpenDeleteModal(user)}>
+                                            <button className="admin-action-btn admin-action-btn-danger account-button account-button--danger" onClick={() => handleOpenDeleteModal(user)}>
                                                 Delete
                                             </button>
                                         </td>
@@ -364,8 +363,8 @@ function Administration() {
             )}
 
             {activeTab === 'sign-up-requests' && (
-                <section className="admin-card">
-                    <h3 className="admin-section-title">Sign Up Requests</h3>
+                <section className="admin-card account-panel">
+                    <h2 className="admin-section-title account-section-title">Sign Up Requests</h2>
                     {error && <p className="admin-error">Error: {error}</p>}
                     {signUpRequests.length === 0 ? (
                         <p className="admin-empty-state">No sign-up requests.</p>
@@ -394,10 +393,10 @@ function Administration() {
                                     </td>
                                     <td>
                                         <div className="admin-actions-inline">
-                                            <button className="admin-action-btn admin-action-btn-approve" onClick={() => handleApproveRequest(request)}>
+                                            <button className="admin-action-btn admin-action-btn-approve account-button" onClick={() => handleApproveRequest(request)}>
                                                 Approve
                                             </button>
-                                            <button className="admin-action-btn admin-action-btn-danger" onClick={() => handleDenyRequest(request)}>
+                                            <button className="admin-action-btn admin-action-btn-danger account-button account-button--danger" onClick={() => handleDenyRequest(request)}>
                                                 Deny
                                             </button>
                                         </div>
@@ -413,8 +412,8 @@ function Administration() {
 
             {roleModalUser && (
                 <div className="admin-modal-overlay" onClick={handleCloseRoleModal}>
-                    <div className="admin-modal" onClick={(event) => event.stopPropagation()}>
-                        <h4 className="admin-modal-title">Change User Role</h4>
+                    <div className="admin-modal account-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-role-title" onClick={(event) => event.stopPropagation()}>
+                        <h2 id="admin-role-title" className="admin-modal-title">Change User Role</h2>
                         <p className="admin-modal-subtitle">
                             {roleModalUser.name} ({roleModalUser.email})
                         </p>
@@ -447,7 +446,7 @@ function Administration() {
                         </label>
                         <input
                             id="admin-role-confirm-input"
-                            className="admin-confirm-input"
+                            className="admin-confirm-input account-control"
                             type="text"
                             value={roleConfirmText}
                             onChange={(event) => setRoleConfirmText(event.target.value)}
@@ -457,11 +456,11 @@ function Administration() {
                         {roleModalError && <p className="admin-error admin-modal-error">{roleModalError}</p>}
 
                         <div className="admin-modal-actions">
-                            <button className="admin-action-btn" onClick={handleCloseRoleModal}>
+                            <button className="admin-action-btn account-button account-button--secondary" onClick={handleCloseRoleModal}>
                                 Cancel
                             </button>
                             <button
-                                className="admin-action-btn admin-action-btn-approve"
+                                className="admin-action-btn admin-action-btn-approve account-button"
                                 onClick={handleEditUserRole}
                                 disabled={isRoleUpdating}
                             >
@@ -474,8 +473,8 @@ function Administration() {
 
             {deleteModalUser && (
                 <div className="admin-modal-overlay" onClick={handleCloseDeleteModal}>
-                    <div className="admin-modal" onClick={(event) => event.stopPropagation()}>
-                        <h4 className="admin-modal-title">Delete User</h4>
+                    <div className="admin-modal account-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-delete-title" onClick={(event) => event.stopPropagation()}>
+                        <h2 id="admin-delete-title" className="admin-modal-title">Delete User</h2>
                         <p className="admin-modal-subtitle">
                             {deleteModalUser.name} ({deleteModalUser.email})
                         </p>
@@ -485,7 +484,7 @@ function Administration() {
                         </label>
                         <input
                             id="admin-delete-confirm-input"
-                            className="admin-confirm-input"
+                            className="admin-confirm-input account-control"
                             type="text"
                             value={deleteConfirmText}
                             onChange={(event) => setDeleteConfirmText(event.target.value)}
@@ -495,11 +494,11 @@ function Administration() {
                         {deleteModalError && <p className="admin-error admin-modal-error">{deleteModalError}</p>}
 
                         <div className="admin-modal-actions">
-                            <button className="admin-action-btn" onClick={handleCloseDeleteModal}>
+                            <button className="admin-action-btn account-button account-button--secondary" onClick={handleCloseDeleteModal}>
                                 Cancel
                             </button>
                             <button
-                                className="admin-action-btn admin-action-btn-danger"
+                                className="admin-action-btn admin-action-btn-danger account-button account-button--danger"
                                 onClick={handleDeleteUser}
                                 disabled={isDeletingUser}
                             >
@@ -509,7 +508,7 @@ function Administration() {
                     </div>
                 </div>
             )}
-        </div>
+        </InfoPage>
     );
 }
 

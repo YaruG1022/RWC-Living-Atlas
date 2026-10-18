@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import './Content2.css';
+import InfoPage from './InfoPage';
+import './AccountPage.css';
 import './Profile.css';
 import api from './api.js';
 import Register from './Register';
@@ -216,227 +217,227 @@ function Profile(props) {
     };
 
     return (
-        <div className="profile-container">
-            {/* LEFT SIDE */}
-            <div className="profile-left expanded">
-            <div className="about">
-                <h1 className="profile-page-title">Profile</h1>
+        <InfoPage title="Profile" className="profile-page account-page">
 
-                <div className="profile-edit-bar">
-                  <div className="profile-edit-bar-text">
-                    <span className="profile-edit-bar-title">Profile Details</span>
-                    <span className="profile-edit-bar-subtitle">Manage your account information, bio, and profile image.</span>
-                  </div>
-                  <div className="profile-edit-bar-actions">
-                    {isEditing ? (
-                      <>
-                        <button className="profile-bar-btn profile-bar-btn--save" onClick={handleSaveAll}>Save</button>
-                        <button className="profile-bar-btn profile-bar-btn--cancel" onClick={handleCancelEdit}>Cancel</button>
-                      </>
-                    ) : (
-                      <button className="profile-bar-btn profile-bar-btn--edit" onClick={handleEditClick}>
-                        <FontAwesomeIcon icon={faEdit} /> Edit Profile
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="profile-image-section">
-                  {isEditing ? (
-                    <label className="profile-avatar-label">
-                      {(imagePreview || profileImage) ? (
-                        <img
-                          src={imagePreview || profileImage}
-                          alt="Profile"
-                          className="profile-avatar-img"
-                        />
-                      ) : (
-                        <FontAwesomeIcon icon={faCircleUser} className="profile-avatar-icon" />
-                      )}
-                      <p className="profile-avatar-hint">Click to change</p>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            setSelectedImageFile(file);
-                            setImagePreview(URL.createObjectURL(file));
-                          }
-                        }}
-                      />
-                    </label>
-                  ) : (
-                    profileImage ? (
-                      <img
-                        src={profileImage}
-                        alt="Profile"
-                        className="profile-avatar-img"
-                      />
-                    ) : (
-                      <FontAwesomeIcon icon={faCircleUser} className="profile-avatar-icon" />
-                    )
-                  )}
-                </div>
-
-                <div className="profile-info-section">
-                  <div className="profile-info-row">
-                    <span className="profile-info-label">Username</span>
-                    {isEditing ? (
-                      <input
-                        className="profile-field-input"
-                        type="text"
-                        value={editedUsername}
-                        onChange={(e) => setEditedUsername(e.target.value)}
-                      />
-                    ) : (
-                      <span className="profile-info-value">{props.username}</span>
-                    )}
-                  </div>
-                  <div className="profile-info-row">
-                    <span className="profile-info-label">Email</span>
-                    <span className="profile-info-value">{props.email}</span>
-                  </div>
-                </div>
-
-                <div className="profile-bio-section">
-                  <h3 className="profile-section-heading">Bio</h3>
-                  {isEditing ? (
-                    <>
-                      <textarea
-                        className="profile-bio-textarea"
-                        value={editedBio}
-                        onChange={(e) => {
-                          if (e.target.value.length <= BIO_MAX_LENGTH) {
-                            setEditedBio(e.target.value);
-                          }
-                        }}
-                        maxLength={BIO_MAX_LENGTH}
-                        rows={4}
-                      />
-                      <p className="profile-char-count">
-                        {editedBio.length}/{BIO_MAX_LENGTH}
-                      </p>
-                    </>
-                  ) : (
-                    <p className="profile-bio-text">{bio || 'No bio yet.'}</p>
-                  )}
-                </div>
-
-                <div className="profile-action-row">
-                  <button className="profile-btn profile-btn-invite" onClick={handleOpenRegister}>
-                    <FontAwesomeIcon icon={faUserFriends} /> Invite New User
+            <div className="profile-edit-bar">
+              <div className="profile-edit-bar-text">
+                <h2 className="info-page__section-title profile-edit-bar-title">Profile Details</h2>
+                <span className="profile-edit-bar-subtitle">Manage your account information, bio, and profile image.</span>
+              </div>
+              <div className="profile-edit-bar-actions">
+                {isEditing ? (
+                  <>
+                    <button className="account-button" onClick={handleSaveAll}>Save</button>
+                    <button className="account-button account-button--secondary" onClick={handleCancelEdit}>Cancel</button>
+                  </>
+                ) : (
+                  <button className="account-button" onClick={handleEditClick}>
+                    <FontAwesomeIcon icon={faEdit} /> Edit Profile
                   </button>
-                  <button
-                    className="profile-btn profile-btn-password"
-                    onClick={() => setShowChangePasswordForm(!showChangePasswordForm)}
-                  >
-                    <FontAwesomeIcon icon={faKey} /> Change Password
-                  </button>
-                </div>
-
-                {showRegister && <Register closeRegister={handleCloseRegister} />}
-
-                {showForgotPasswordForm && (
-                  <form className="profile-form" onSubmit={handleForgotPasswordSubmit}>
-                    <div className="profile-form-field">
-                      <label className="profile-form-label">Email for password reset</label>
-                      <input
-                        className="profile-form-input"
-                        type="email"
-                        value={forgotPasswordEmail}
-                        onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <button className="profile-btn profile-btn-save" type="submit">Submit</button>
-                  </form>
                 )}
-
-                {showChangePasswordForm && (
-                  <form className="profile-form" onSubmit={handleChangePasswordSubmit}>
-                    <div className="profile-form-field">
-                      <label className="profile-form-label">New Password</label>
-                      <input
-                        className="profile-form-input"
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="profile-form-field">
-                      <label className="profile-form-label">Confirm New Password</label>
-                      <input
-                        className="profile-form-input"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <button className="profile-btn profile-btn-save" type="submit">Change Password</button>
-                  </form>
-                )}
-
-                {message && <p className="profile-message">{message}</p>}
-
-                {/* Delete account section */}
-                <div className="profile-danger-zone">
-                  <div className="profile-danger-zone-header">
-                    <span className="profile-danger-zone-title">Danger Zone</span>
-                    <span className="profile-danger-zone-desc">Permanently delete your account and all associated data.</span>
-                  </div>
-                  <button
-                    className="profile-delete-account-btn"
-                    onClick={handleOpenDeleteModal}
-                  >
-                    <FontAwesomeIcon icon={faTrash} /> Delete Account
-                  </button>
-                </div>
-
-                {/* Delete account modal */}
-                {showDeleteModal && (
-                  <div className="profile-delete-modal-overlay" onClick={handleCloseDeleteModal}>
-                    <div className="profile-delete-modal" onClick={(e) => e.stopPropagation()}>
-                      <h4 className="profile-delete-modal-title">Delete Account</h4>
-                      <p className="profile-delete-modal-subtitle">
-                        This will permanently delete your account and all associated data. This action <strong>cannot be undone</strong>.
-                      </p>
-                      <label className="profile-delete-modal-label" htmlFor="profile-delete-confirm-input">
-                        Type <strong>{DELETE_PHRASE}</strong> to confirm
-                      </label>
-                      <input
-                        id="profile-delete-confirm-input"
-                        className="profile-delete-modal-input"
-                        type="text"
-                        value={deleteConfirmText}
-                        onChange={(e) => { setDeleteConfirmText(e.target.value); setDeleteModalError(''); }}
-                        placeholder={DELETE_PHRASE}
-                        autoFocus
-                      />
-                      {deleteModalError && (
-                        <p className="profile-delete-modal-error">{deleteModalError}</p>
-                      )}
-                      <div className="profile-delete-modal-actions">
-                        <button className="profile-bar-btn profile-bar-btn--cancel" onClick={handleCloseDeleteModal}>
-                          Cancel
-                        </button>
-                        <button
-                          className="profile-delete-account-btn"
-                          onClick={handleDeleteAccount}
-                          disabled={isDeletingAccount}
-                        >
-                          {isDeletingAccount ? 'Deleting...' : 'Confirm Delete'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
+              </div>
             </div>
+
+            <div className="profile-image-section">
+              {isEditing ? (
+                <label className="profile-avatar-label">
+                  {(imagePreview || profileImage) ? (
+                    <img
+                      src={imagePreview || profileImage}
+                      alt="Profile"
+                      className="profile-avatar-img"
+                    />
+                  ) : (
+                    <FontAwesomeIcon icon={faCircleUser} className="profile-avatar-icon" />
+                  )}
+                  <p className="profile-avatar-hint">Click to change</p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        setSelectedImageFile(file);
+                        setImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
+                </label>
+              ) : (
+                profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt="Profile"
+                    className="profile-avatar-img"
+                  />
+                ) : (
+                  <FontAwesomeIcon icon={faCircleUser} className="profile-avatar-icon" />
+                )
+              )}
             </div>
-        </div>
+
+            <div className="profile-info-section">
+              <div className="profile-info-row">
+                <span className="profile-info-label">Username</span>
+                {isEditing ? (
+                  <input
+                    id="profile-username"
+                    aria-label="Username"
+                    className="account-control profile-field-input"
+                    type="text"
+                    value={editedUsername}
+                    onChange={(e) => setEditedUsername(e.target.value)}
+                  />
+                ) : (
+                  <span className="profile-info-value">{props.username}</span>
+                )}
+              </div>
+              <div className="profile-info-row">
+                <span className="profile-info-label">Email</span>
+                <span className="profile-info-value">{props.email}</span>
+              </div>
+            </div>
+
+            <div className="profile-bio-section">
+              <h3 id="profile-bio-heading" className="info-page__subheading">Bio</h3>
+              {isEditing ? (
+                <>
+                  <textarea
+                    aria-labelledby="profile-bio-heading"
+                    className="account-control profile-bio-textarea"
+                    value={editedBio}
+                    onChange={(e) => {
+                      if (e.target.value.length <= BIO_MAX_LENGTH) {
+                        setEditedBio(e.target.value);
+                      }
+                    }}
+                    maxLength={BIO_MAX_LENGTH}
+                    rows={4}
+                  />
+                  <p className="profile-char-count">
+                    {editedBio.length}/{BIO_MAX_LENGTH}
+                  </p>
+                </>
+              ) : (
+                <p className="profile-bio-text">{bio || 'No bio yet.'}</p>
+              )}
+            </div>
+
+            <div className="profile-action-row">
+              <button className="account-button" onClick={handleOpenRegister}>
+                <FontAwesomeIcon icon={faUserFriends} /> Invite New User
+              </button>
+              <button
+                className="account-button account-button--secondary"
+                onClick={() => setShowChangePasswordForm(!showChangePasswordForm)}
+              >
+                <FontAwesomeIcon icon={faKey} /> Change Password
+              </button>
+            </div>
+
+            {showRegister && <Register closeRegister={handleCloseRegister} />}
+
+            {showForgotPasswordForm && (
+              <form className="account-panel profile-form" onSubmit={handleForgotPasswordSubmit}>
+                <div className="profile-form-field">
+                  <label className="profile-form-label" htmlFor="profile-reset-email">Email for password reset</label>
+                  <input
+                    className="account-control"
+                    id="profile-reset-email"
+                    type="email"
+                    value={forgotPasswordEmail}
+                    onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <button className="account-button" type="submit">Submit</button>
+              </form>
+            )}
+
+            {showChangePasswordForm && (
+              <form className="account-panel profile-form" onSubmit={handleChangePasswordSubmit}>
+                <div className="profile-form-field">
+                  <label className="profile-form-label" htmlFor="profile-new-password">New Password</label>
+                  <input
+                    className="account-control"
+                    id="profile-new-password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="profile-form-field">
+                  <label className="profile-form-label" htmlFor="profile-confirm-password">Confirm New Password</label>
+                  <input
+                    className="account-control"
+                    id="profile-confirm-password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <button className="account-button" type="submit">Change Password</button>
+              </form>
+            )}
+
+            {message && <p className="profile-message" role="status">{message}</p>}
+
+            {/* Delete account section */}
+            <div className="account-panel profile-danger-zone">
+              <div className="profile-danger-zone-header">
+                <h2 className="profile-danger-zone-title">Danger Zone</h2>
+                <span className="profile-danger-zone-desc">Permanently delete your account and all associated data.</span>
+              </div>
+              <button
+                className="account-button account-button--danger"
+                onClick={handleOpenDeleteModal}
+              >
+                <FontAwesomeIcon icon={faTrash} /> Delete Account
+              </button>
+            </div>
+
+            {/* Delete account modal */}
+            {showDeleteModal && (
+              <div className="profile-delete-modal-overlay" onClick={handleCloseDeleteModal}>
+                <div className="account-panel profile-delete-modal" role="dialog" aria-modal="true" aria-labelledby="profile-delete-modal-title" onClick={(e) => e.stopPropagation()}>
+                  <h2 id="profile-delete-modal-title" className="profile-delete-modal-title">Delete Account</h2>
+                  <p className="profile-delete-modal-subtitle">
+                    This will permanently delete your account and all associated data. This action <strong>cannot be undone</strong>.
+                  </p>
+                  <label className="profile-delete-modal-label" htmlFor="profile-delete-confirm-input">
+                    Type <strong>{DELETE_PHRASE}</strong> to confirm
+                  </label>
+                  <input
+                    id="profile-delete-confirm-input"
+                    className="account-control"
+                    type="text"
+                    value={deleteConfirmText}
+                    onChange={(e) => { setDeleteConfirmText(e.target.value); setDeleteModalError(''); }}
+                    placeholder={DELETE_PHRASE}
+                    autoFocus
+                  />
+                  {deleteModalError && (
+                    <p className="profile-delete-modal-error" role="alert">{deleteModalError}</p>
+                  )}
+                  <div className="profile-delete-modal-actions">
+                    <button className="account-button account-button--secondary" onClick={handleCloseDeleteModal}>
+                      Cancel
+                    </button>
+                    <button
+                      className="account-button account-button--danger"
+                      onClick={handleDeleteAccount}
+                      disabled={isDeletingAccount}
+                    >
+                      {isDeletingAccount ? 'Deleting...' : 'Confirm Delete'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+        </InfoPage>
         );
 }
 

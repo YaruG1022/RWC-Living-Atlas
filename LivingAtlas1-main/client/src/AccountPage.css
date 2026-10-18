@@ -1,0 +1,227 @@
+.account-page,
+.account-dialog {
+    --account-heading: #1a3a5c;
+    --account-text: #555;
+    --account-border: #dce6f0;
+    --account-surface: #f8fafc;
+    --account-accent: #3b82f6;
+    --account-link: #1d4ed8;
+    --account-danger: #b42318;
+}
+
+.account-dialog {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #333;
+}
+
+.account-page .account-panel {
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 24px;
+    border: 1px solid var(--account-border);
+    border-radius: 10px;
+    background: var(--account-surface);
+    box-shadow: none;
+}
+
+.account-page .account-section-title {
+    margin: 0 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--account-border);
+    font-family: inherit;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--account-heading);
+}
+
+.account-page label,
+.account-dialog label {
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #374957;
+}
+
+.account-page .account-control,
+.account-dialog .account-control {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--account-border);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #374957;
+    background: #f9fafb;
+    box-shadow: none;
+}
+
+.account-page textarea.account-control,
+.account-dialog textarea.account-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.account-page .account-button,
+.account-dialog .account-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    margin: 0;
+    padding: 10px 16px;
+    border: 1px solid var(--account-heading);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #fff;
+    background: var(--account-heading);
+    box-shadow: none;
+    cursor: pointer;
+    text-transform: none;
+    transform: none;
+}
+
+.account-page .account-button:hover:not(:disabled),
+.account-dialog .account-button:hover:not(:disabled) {
+    border-color: #244f7d;
+    background: #244f7d;
+    box-shadow: none;
+    transform: none;
+}
+
+.account-page .account-button--secondary,
+.account-dialog .account-button--secondary {
+    border-color: var(--account-border);
+    color: var(--account-heading);
+    background: #eaf1fb;
+}
+
+.account-page .account-button--secondary:hover:not(:disabled),
+.account-dialog .account-button--secondary:hover:not(:disabled) {
+    border-color: var(--account-accent);
+    color: var(--account-heading);
+    background: #dce9fa;
+}
+
+.account-page .account-button--danger,
+.account-dialog .account-button--danger {
+    border-color: var(--account-danger);
+    color: #fff;
+    background: var(--account-danger);
+}
+
+.account-page .account-button--danger:hover:not(:disabled),
+.account-dialog .account-button--danger:hover:not(:disabled) {
+    border-color: #912018;
+    background: #912018;
+}
+
+.account-page .account-button--small,
+.account-dialog .account-button--small {
+    min-height: 32px;
+    padding: 6px 12px;
+    font-size: 0.875rem;
+}
+
+.account-page .account-button:disabled,
+.account-dialog .account-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.account-page .account-link,
+.account-dialog .account-link {
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: inherit;
+    color: var(--account-link);
+    background: transparent;
+    box-shadow: none;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.account-page .account-link:hover,
+.account-dialog .account-link:hover {
+    color: #1e40af;
+    background: transparent;
+}
+
+.account-page .account-control:focus-visible,
+.account-page .account-button:focus-visible,
+.account-page .account-link:focus-visible,
+.account-dialog .account-control:focus-visible,
+.account-dialog .account-button:focus-visible,
+.account-dialog .account-link:focus-visible {
+    outline: 2px solid var(--account-accent);
+    outline-offset: 3px;
+}
+
+.account-page .account-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0;
+    margin: 24px 0;
+    padding: 0;
+    border: none;
+    border-bottom: 2px solid var(--account-border);
+    color: inherit;
+    background: transparent;
+}
+
+.account-page .account-tab {
+    margin: 0;
+    padding: 12px 16px;
+    border: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #4b5563;
+    background: transparent;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.account-page .account-tab:hover,
+.account-page .account-tab.active {
+    color: var(--account-heading);
+    background: #eaf1fb;
+}
+
+.account-page .account-tab.active {
+    border-bottom-color: var(--account-accent);
+    font-weight: 700;
+}
+
+.account-page .account-tab:focus-visible {
+    outline: 2px solid var(--account-accent);
+    outline-offset: -2px;
+}
+
+@media (max-width: 640px) {
+    .account-page .account-panel {
+        padding: 20px 16px;
+    }
+
+    .account-page .account-button {
+        max-width: 100%;
+    }
+}

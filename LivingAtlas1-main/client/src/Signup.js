@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from './api.js'; // Import your API module
+import InfoPage from './InfoPage';
+import './AccountPage.css';
 import './Signup.css';
 
 function Signup() {
@@ -62,52 +64,51 @@ function Signup() {
   
 
   return (
-    <div className="signup-page">
-      <div className="signup-card">
-        <h2 className="signup-title">Request Access</h2>
+    <InfoPage title="Request Access" className="signup-page account-page">
+      <div className="signup-card account-panel">
         <p className="signup-subtitle">Request access to the Living Atlas platform</p>
 
         <form className="signup-form" onSubmit={handleSubmit}>
           <div className="signup-field">
             <label htmlFor="username">Username</label>
-            <input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} required />
+            <input className="account-control" type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} required />
           </div>
 
           <div className="signup-field">
             <label htmlFor="email">Email</label>
-            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <input className="account-control" type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
 
           <div className="signup-field">
             <label htmlFor="password">Password</label>
-            <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <input className="account-control" type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
 
           <div className="signup-field">
             <label htmlFor="sponsorMessage">Sponsor/Message</label>
-            <textarea id="sponsorMessage" value={sponsorMessage} onChange={(e) => setSponsorMessage(e.target.value)} required />
+            <textarea className="account-control" id="sponsorMessage" value={sponsorMessage} onChange={(e) => setSponsorMessage(e.target.value)} required />
           </div>
 
           <div className="signup-field">
             <label htmlFor="desiredAccessLevel">Desired Access Level</label>
-            <select id="desiredAccessLevel" value={desiredAccessLevel} onChange={(e) => setDesiredAccessLevel(e.target.value)}>
+            <select className="account-control" id="desiredAccessLevel" value={desiredAccessLevel} onChange={(e) => setDesiredAccessLevel(e.target.value)}>
               <option value="regular">Regular User</option>
               <option value="admin">Admin</option>
             </select>
           </div>
 
-          <button className="signup-primary-btn" type="submit">Submit Request</button>
+          <button className="signup-primary-btn account-button" type="submit">Submit Request</button>
           {message && <p className="signup-message">{message}</p>}
         </form>
 
         <p className="signup-login-row">
           Already have an account?{' '}
-          <Link className="signup-login-link" to="/login">
+          <Link className="signup-login-link account-link" to="/login">
             Login
           </Link>
         </p>
       </div>
-    </div>
+    </InfoPage>
   );
 }
 

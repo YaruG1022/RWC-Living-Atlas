@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useHistory } from 'react-router-dom';
+import InfoPage from './InfoPage';
+import './AccountPage.css';
 import './Login.css';
 import api from './api.js';
 
@@ -150,15 +152,16 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
     };
 
     return (
-        <div className="login-page">
-            <div className="login-card">
-                <h1 className="login-title">Login</h1>
+        <InfoPage title="Login" className="login-page account-page">
+            <div className="login-card account-panel">
                 <p className="login-welcome">Welcome {username} {email}</p>
 
                 <form className="login-form" onSubmit={handleLogin}>
                     <div className="login-field">
-                        <label>Email</label>
+                        <label htmlFor="login-email">Email</label>
                         <input
+                            className="account-control"
+                            id="login-email"
                             type="email"
                             value={submitemail}
                             onChange={(e) => setsubmitEmail(e.target.value)}
@@ -167,8 +170,10 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
                     </div>
 
                     <div className="login-field">
-                        <label>Password</label>
+                        <label htmlFor="login-password">Password</label>
                         <input
+                            className="account-control"
+                            id="login-password"
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -176,11 +181,11 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
                         />
                     </div>
 
-                    <button className="login-primary-btn" type="submit">Login</button>
+                    <button className="login-primary-btn account-button" type="submit">Login</button>
                 </form>
 
                 <div className="login-inline-action">
-                    <button className="login-link-btn" onClick={() => setShowForgotPasswordForm(!showForgotPasswordForm)}>
+                    <button className="login-link-btn account-link" onClick={() => setShowForgotPasswordForm(!showForgotPasswordForm)}>
                         {isLoggedIn ? 'Change Password?' : 'Forgot Password?'}
                     </button>
                 </div>
@@ -188,21 +193,23 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
                 {showForgotPasswordForm && (
                     <form className="login-forgot-form" onSubmit={handleForgotPasswordSubmit}>
                         <div className="login-field">
-                            <label>Enter your email to reset password</label>
+                            <label htmlFor="login-recovery-email">Enter your email to reset password</label>
                             <input
+                                className="account-control"
+                                id="login-recovery-email"
                                 type="email"
                                 value={forgotPasswordEmail}
                                 onChange={(e) => setForgotPasswordEmail(e.target.value)}
                                 required
                             />
                         </div>
-                        <button className="login-primary-btn" type="submit">Submit</button>
+                        <button className="login-primary-btn account-button" type="submit">Submit</button>
                     </form>
                 )}
 
                 <p className="login-register-row">
                     Don't have an account?{' '}
-                    <Link className="login-register-link" to="/signup">
+                    <Link className="login-register-link account-link" to="/signup">
                         Register
                     </Link>
                 </p>
@@ -216,7 +223,7 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
                     </p>
                 )}
             </div>
-        </div>
+        </InfoPage>
     );
 }
 

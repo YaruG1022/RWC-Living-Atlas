@@ -104,6 +104,13 @@ export const manualGuiUpdates = [
 export const latestGuiUpdateDate = '10/18/2026';
 export const latestGuiUpdates = [
     {
+        title: 'Consistent Account Pages',
+        items: [
+            'Matched Login, Request Access, Switch Accounts, Profile and Administration to the User Manual typography, blue headings, light panels and form controls.',
+            'Unified account dialogs, editing actions and management tables while preserving account workflows and confirmation checks.',
+        ],
+    },
+    {
         title: 'Consistent Information Pages',
         items: [
             'Unified About, Contact and Update History using the original User Manual typography, blue headings, light blue dividers and link styles.',

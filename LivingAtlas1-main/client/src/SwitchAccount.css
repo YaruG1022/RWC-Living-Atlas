@@ -1,153 +1,129 @@
-.switch-account-container {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: calc(100vh - 80px);
-  padding: 60px 20px;
-  background-color: #f5f5f5;
-}
-
 .switch-account-card {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 460px;
-  padding: 30px 0 10px 0;
-  overflow: hidden;
+  max-width: 560px;
+  margin-top: 24px;
 }
 
 .switch-account-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 30px 20px 30px;
-  border-bottom: 1px solid #e8e8e8;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.switch-account-header h1 {
-  font-size: 22px;
-  font-weight: 600;
-  color: #222;
-  margin: 0;
-}
-
-.sign-out-link {
-  background: none;
-  border: none;
-  color: #007BFF;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.sign-out-link:hover {
-  background-color: #e8f0fe;
-  color: #0056b3;
-}
-
-.account-item {
+.switch-account-container .account-item {
   display: flex;
   align-items: center;
-  padding: 16px 30px;
-  cursor: default;
-  transition: background-color 0.2s;
+  justify-content: flex-start;
+  gap: 0;
+  width: 100%;
+  padding: 16px 12px;
 }
 
-.account-item.other-account {
-  cursor: pointer;
+.switch-account-container button.account-item {
+  appearance: none;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
 }
 
-.account-item.other-account:hover {
-  background-color: #f0f4ff;
+.switch-account-container .current-account {
+  border: 1px solid var(--account-border);
+  border-radius: 6px;
+  background: #f0f5fb;
 }
 
-.account-item.other-account.disabled {
+.switch-account-container button.account-item:hover {
+  background: #eaf1fb;
+}
+
+.switch-account-container button.account-item:focus-visible {
+  outline: 2px solid var(--account-accent);
+  outline-offset: 2px;
+}
+
+.switch-account-container .other-account.disabled {
   opacity: 0.5;
   pointer-events: none;
 }
 
-.account-item.add-account {
-  cursor: pointer;
-  border-top: 1px solid #e8e8e8;
+.switch-account-container .add-account {
   margin-top: 8px;
-  padding-top: 20px;
-  padding-bottom: 20px;
 }
 
-.account-item.add-account:hover {
-  background-color: #f0f4ff;
-}
-
-.account-check {
-  width: 24px;
+.switch-account-container .account-check {
+  width: 20px;
   flex-shrink: 0;
   margin-right: 8px;
 }
 
-.check-icon {
-  color: #4a4a4a;
+.switch-account-container .check-icon {
+  color: var(--account-heading);
   font-size: 18px;
 }
 
-.account-avatar {
+.switch-account-container .account-avatar {
+  display: flex;
   flex-shrink: 0;
   margin-right: 16px;
 }
 
-.avatar-icon {
-  font-size: 48px;
-  color: #9e9e9e;
+.switch-account-container .avatar-icon {
+  font-size: 40px;
+  color: #7b8ca1;
 }
 
-.add-icon-circle {
-  width: 48px;
-  height: 48px;
+.switch-account-container .add-icon-circle {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background-color: #e8e8e8;
+  background: #eaf1fb;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.add-icon {
-  font-size: 20px;
-  color: #666;
+.switch-account-container .add-icon {
+  font-size: 18px;
+  color: var(--account-heading);
 }
 
-.account-info {
+.switch-account-container .account-info {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-.account-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: #222;
+.switch-account-container .account-name {
+  color: var(--account-heading);
+  font-size: 16px;
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.account-label {
+.switch-account-container .account-label {
+  color: var(--account-text);
   font-size: 13px;
   font-weight: 600;
-  color: #007BFF;
 }
 
-.account-email {
-  font-size: 13px;
-  color: #666;
+.switch-account-container .account-email {
+  color: var(--account-text);
+  font-size: 14px;
+  font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.add-account-text {
+.switch-account-container .add-account-text {
+  color: var(--account-link);
   font-size: 15px;
-  font-weight: 500;
-  color: #007BFF;
+  font-weight: 600;
 }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './AccountPage.css';
 import './Register.css';
 import api from './api.js';
 function Register({ closeRegister }) {
@@ -53,38 +54,39 @@ function Register({ closeRegister }) {
 
     return (
         <div className="register-backdrop" onClick={closeRegister}>
-            <div className="register-modal" onClick={(e) => e.stopPropagation()}>
-                <h2>Register</h2>
+            <div className="register-modal account-dialog" role="dialog" aria-modal="true" aria-labelledby="register-title" onClick={(e) => e.stopPropagation()}>
+                <h2 id="register-title" className="register-title">Register</h2>
                 <form onSubmit={handleRegister}>
-                    <div className="form-group">
-                        <label htmlFor="username">Name:</label>
-                        <input type="text" id="username" name="username" value={name} onChange={handleNameChange} required />
+                    <div className="register-form-group">
+                        <label htmlFor="register-name">Name:</label>
+                        <input className="account-control" type="text" id="register-name" name="username" value={name} onChange={handleNameChange} required />
                     </div>
-                    <div className="form-group">
-                        <label htmlFor="email">Email:</label>
-                        <input type="email" id="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <div className="register-form-group">
+                        <label htmlFor="register-email">Email:</label>
+                        <input className="account-control" type="email" id="register-email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                     </div>
-                    <div className="form-group">
-                        <label htmlFor="password">Password:</label>
-                        <input type="password" id="password" name="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <div className="register-form-group">
+                        <label htmlFor="register-password">Password:</label>
+                        <input className="account-control" type="password" id="register-password" name="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                     </div>
-                    <div className="form-group">
-                        <label htmlFor="confirmPassword">Confirm Password:</label>
+                    <div className="register-form-group">
+                        <label htmlFor="register-confirm-password">Confirm Password:</label>
                         <input
+                            className="account-control"
                             type="password"
-                            id="confirmPassword"
+                            id="register-confirm-password"
                             name="confirmPassword"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
                         />
                     </div>
-                    <div className="form-actions">
-                        <button type="submit" className="action-button">Register</button>
-                        <button type="button" onClick={closeRegister} className="action-button" style={{ backgroundColor: 'red' }}>Cancel</button>
+                    <div className="register-form-actions">
+                        <button type="submit" className="account-button">Register</button>
+                        <button type="button" onClick={closeRegister} className="account-button account-button--secondary">Cancel</button>
                     </div>
 
-                    {message && <p className="message">{message}</p>}
+                    {message && <p className="register-message">{message}</p>}
                 </form>
             </div >
         </div >

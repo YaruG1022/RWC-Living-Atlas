@@ -2,6 +2,11 @@
 command = "CI=false npm run build"
 publish = "build"
 
+[context.production]
+# Keep this base-directory configuration consistent with the root configuration.
+# Every production commit needs a new manual marker for its full repository SHA.
+ignore = "exit 1"
+
 [build.environment]
 NODE_VERSION = "22.17.0"
 NPM_FLAGS = "--ignore-scripts --no-audit --no-fund"

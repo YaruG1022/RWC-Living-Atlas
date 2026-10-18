@@ -23,6 +23,8 @@ COMMIT_REF=$(git rev-parse HEAD) CI=false npm run build
 
 应用的 GitHub 工作流先验证内容、测试并构建，然后等待正式 app 的 `/manual/current.json` 的 Git SHA、文字清单、checksum 和截图数量与本次构建一致。图片清单校验实际部署生成的摘要，避免第二次渲染的像素差异误阻发布。失败或取消的 Netlify 部署不能触发导入。静态内容包由 Netlify 正常文件服务提供；保留原有 SPA fallback，current marker 禁止缓存，版本路径可长期缓存。
 
+手册版本包含整个仓库的提交 SHA，因此仅修改文档、后端或维护脚本的 main 提交也需要新的生产构建。根目录和 client 目录的两个 `netlify.toml` 都在 `[context.production]` 设置 `ignore = "exit 1"`，覆盖 Netlify 只检查前端 base 目录的默认跳过逻辑。在 Netlify 的 ignore hook 中，退出码 1 表示继续构建，0 才表示跳过；Deploy Preview 保留默认优化。生产环境会因此为每个 main 提交构建。验证超时、站点不可达、无效 JSON 或旧 marker 仍必须以非零状态失败，不能仅打印警告并返回成功；`--verify-only` 同样如此。旧工作流被新 main 提交取代时由现有 concurrency 配置取消。
+
 配置 dispatch 凭据时，部署完成后发送 `atlas-manual-published`，只含 commit、version、checksum。没有跨仓库 token 时仍检查发布门槛；机器人每 15 分钟的串行同步计划提供独立补偿，同时在其 main 更新后同步。计划任务可能被 GitHub 延迟，没有 15 分钟时效保证。机器人只访问它自身配置的 app origin，不接受事件载荷指定的主机。机器人校验 current marker、版本 manifest、文件校验和、章节/正文数量、页面可访问性及正文和富文本的一致性；新记录写入独立命名空间（当前抽取格式为 v2，仍接受 v1 的既有 pointer；格式升级也会重建同一个 app 版本），再验证每条记录、准确数量和逐章检索。启用前再次检查 app marker；切换一个持久化控制记录后，运行中的服务在后续请求读取新版本。每次回答的所有检索绑定同一版本。
 
 | 配置位置 | 名称 | 值 / 用途 |

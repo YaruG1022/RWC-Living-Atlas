@@ -33,6 +33,19 @@ GitHub only discovers workflows in the repository-root `.github/workflows`.
 
 ## Manual publication
 
+The manual version includes the full repository commit SHA. Production builds
+therefore override Netlify's default base-directory change check with
+`ignore = "exit 1"` in both the root and client `netlify.toml` production contexts.
+In Netlify's ignore hook, exit 1 continues the build and exit 0 skips it. A docs,
+backend, or maintenance-only main commit must still publish its own marker;
+otherwise CI waits for a SHA Netlify never built. Deploy previews retain the
+default change check. This intentionally builds production for every main commit.
+
+Publication verification failures remain nonzero, including `--verify-only`.
+Persistent network errors, invalid JSON, or a stale marker must fail visibly and
+must not dispatch. The existing concurrency group cancels older main workflows
+when a newer push supersedes them; a timeout alone is not proof of supersession.
+
 `notify-chatbot-docs.yml` validates the shared manual, component regressions and production build on PRs and main. The build captures versioned manual screenshots; artifacts contain both the release marker and full generated package.
 
 Only main/manual publication runs wait for the exact deployed app/text revision and matching screenshot inventory. The importer validates the deployed content-addressed image catalog, so browser/font differences between builds do not masquerade as an app revision mismatch. Failed/cancelled app deploys never dispatch.

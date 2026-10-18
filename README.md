@@ -27,6 +27,8 @@
 
 RWC Living Atlas brings environmental project cards and geospatial layers into an interactive map. Visitors can explore and filter projects; contributors can submit cards and related files; administrators can manage accounts and content. The application was developed in collaboration with Washington State University's Center for Environmental Research, Education, and Outreach (CEREO).
 
+The project is currently maintained independently by [YaruG1022](https://github.com/YaruG1022).
+
 ## Features
 
 | Explore | Contribute | Manage |
@@ -125,7 +127,7 @@ npm install
 npm start
 ```
 
-Open <http://localhost:3000>. **Current configuration:** [`client/src/api.js`](LivingAtlas1-main/client/src/api.js) points to the hosted backend by default. Starting a local backend alone does not redirect frontend requests to it. For full local development, configure that Axios `baseURL` for `http://localhost:8000` in your local checkout and review the change before committing. The optional chatbot can use `REACT_APP_CHATBOT_API_URL` to reach a separate service.
+Open <http://localhost:3000>. [`client/src/api.js`](LivingAtlas1-main/client/src/api.js) uses `REACT_APP_API_URL` and falls back to the hosted backend when it is unset. For full local development, copy [`client/.env.development.local.example`](LivingAtlas1-main/client/.env.development.local.example) to `client/.env.development.local` if that local file does not already exist, and set `REACT_APP_API_URL=http://localhost:8000`. Restart the frontend after changing environment settings. The optional chatbot can use `REACT_APP_CHATBOT_API_URL` to reach a separate service.
 
 Some features need external services: map tiles and ArcGIS layers need network access, while image/file uploads may need Azure Blob Storage credentials. Basic browsing depends on the database being populated.
 
@@ -140,7 +142,7 @@ Some features need external services: map tiles and ArcGIS layers need network a
 │   ├── backend/                # FastAPI app, routers, and dependencies
 │   │   └── endpoint_files/     # Feature-specific API routes
 │   └── database/               # Base schema, sample data, and migrations
-├── documentation/              # Reports and project documents
+├── documentation/              # Development guides and test reports
 ├── netlify.toml                # Frontend build configuration
 └── LICENSE.txt
 ```
@@ -149,12 +151,14 @@ Some features need external services: map tiles and ArcGIS layers need network a
 
 - Frontend scripts: run `npm test` or `npm run build` from [`LivingAtlas1-main/client`](LivingAtlas1-main/client). The test command starts Create React App's interactive runner by default.
 - API reference: run the backend and open <http://localhost:8000/docs>.
-- Project background: see the [`documentation/`](documentation/) folder and the [in-app user manual](LivingAtlas1-main/client/src/UserManual.js).
+- Documentation: see the [development guides and test reports](documentation/) and the [in-app user manual](LivingAtlas1-main/client/src/UserManual.js).
 - Report a bug or request a feature through [GitHub Issues](https://github.com/YaruG1022/RWC-Living-Atlas/issues), including reproduction steps and the relevant frontend or backend logs. Remove credentials and personal data before sharing logs.
 
 ## Contributing
 
 Open an issue to discuss substantial changes, then submit a focused pull request. Include a short description of the behavior, how you checked it, and screenshots for visible UI changes. Keep local environment files, database files, and service credentials out of commits.
+
+Maintainer guides: [contribution workflow](CONTRIBUTING.md), [roadmap](ROADMAP.md), [security policy](SECURITY.md), [operations and releases](documentation/OPERATIONS.md), and [GitHub repository setup](documentation/REPOSITORY_SETUP.md).
 
 ## License
 

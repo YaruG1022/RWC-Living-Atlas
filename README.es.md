@@ -27,6 +27,8 @@
 
 RWC Living Atlas reúne fichas de proyectos ambientales y capas geoespaciales en un mapa interactivo. Quienes visitan el sitio pueden explorar y filtrar proyectos; quienes contribuyen pueden enviar fichas y archivos relacionados; y quienes administran la aplicación pueden gestionar cuentas y contenido. La aplicación se desarrolló en colaboración con el Center for Environmental Research, Education, and Outreach (CEREO) de Washington State University.
 
+Actualmente, [YaruG1022](https://github.com/YaruG1022) mantiene el proyecto de forma independiente.
+
 ## Funciones
 
 | Explorar | Contribuir | Administrar |
@@ -125,7 +127,7 @@ npm install
 npm start
 ```
 
-Abre <http://localhost:3000>. **Configuración actual:** [`client/src/api.js`](LivingAtlas1-main/client/src/api.js) apunta de forma predeterminada al backend alojado. Iniciar un backend local no redirige automáticamente las solicitudes del frontend. Para desarrollar todo el sistema en local, configura el `baseURL` de Axios como `http://localhost:8000` en tu copia local y revisa el cambio antes de incluirlo en un commit. El asistente opcional puede usar `REACT_APP_CHATBOT_API_URL` para acceder a un servicio independiente.
+Abre <http://localhost:3000>. [`client/src/api.js`](LivingAtlas1-main/client/src/api.js) usa `REACT_APP_API_URL` y, si no está definida, utiliza el backend alojado. Para desarrollar todo el sistema en local, copia [`client/.env.development.local.example`](LivingAtlas1-main/client/.env.development.local.example) a `client/.env.development.local` si este archivo local aún no existe y establece `REACT_APP_API_URL=http://localhost:8000`. Reinicia el frontend después de cambiar las variables del entorno. El asistente opcional puede usar `REACT_APP_CHATBOT_API_URL` para acceder a un servicio independiente.
 
 Algunas funciones necesitan servicios externos: las teselas de mapas y las capas de ArcGIS requieren acceso a la red; la carga de imágenes y archivos puede necesitar credenciales de Azure Blob Storage. La navegación básica depende de que la base de datos contenga datos.
 
@@ -140,7 +142,7 @@ Algunas funciones necesitan servicios externos: las teselas de mapas y las capas
 │   ├── backend/                # Aplicación FastAPI, rutas y dependencias
 │   │   └── endpoint_files/     # Rutas de API por función
 │   └── database/               # Esquema base, datos de ejemplo y migraciones
-├── documentation/              # Informes y documentación del proyecto
+├── documentation/              # Guías de desarrollo e informes de pruebas
 ├── netlify.toml                # Configuración de compilación del frontend
 └── LICENSE.txt
 ```
@@ -149,12 +151,14 @@ Algunas funciones necesitan servicios externos: las teselas de mapas y las capas
 
 - Scripts del frontend: ejecuta `npm test` o `npm run build` desde [`LivingAtlas1-main/client`](LivingAtlas1-main/client). De forma predeterminada, el comando de pruebas inicia el ejecutor interactivo de Create React App.
 - Referencia de la API: inicia el backend y abre <http://localhost:8000/docs>.
-- Contexto del proyecto: consulta la carpeta [`documentation/`](documentation/) y el [manual de usuario integrado](LivingAtlas1-main/client/src/UserManual.js).
+- Documentación: consulta las [guías de desarrollo e informes de pruebas](documentation/) y el [manual de usuario integrado](LivingAtlas1-main/client/src/UserManual.js).
 - Informa de errores o solicita funciones mediante [GitHub Issues](https://github.com/YaruG1022/RWC-Living-Atlas/issues). Incluye los pasos para reproducir el problema y los registros pertinentes del frontend o backend. Elimina credenciales y datos personales antes de compartir registros.
 
 ## Contribuciones
 
 Abre un issue para comentar los cambios importantes y después envía un pull request centrado en ellos. Incluye una breve descripción del comportamiento, cómo lo comprobaste y capturas de pantalla si cambió la interfaz. No incluyas en los commits archivos del entorno local, archivos de la base de datos ni credenciales de servicios.
+
+Guías de mantenimiento (en inglés): [flujo de contribución](CONTRIBUTING.md), [hoja de ruta](ROADMAP.md), [política de seguridad](SECURITY.md), [operaciones y versiones](documentation/OPERATIONS.md) y [configuración del repositorio en GitHub](documentation/REPOSITORY_SETUP.md).
 
 ## Licencia
 

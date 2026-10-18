@@ -27,6 +27,8 @@
 
 RWC Living Atlas 将环境项目卡片和地理空间图层汇集在交互式地图中。访客可以浏览和筛选项目；贡献者可以提交项目卡片及相关文件；管理员可以管理账户和内容。本应用与华盛顿州立大学的环境研究、教育与推广中心（Center for Environmental Research, Education, and Outreach，CEREO）合作开发。
 
+项目目前由 [YaruG1022](https://github.com/YaruG1022) 独立维护。
+
 ## 功能
 
 | 探索 | 贡献 | 管理 |
@@ -125,7 +127,7 @@ npm install
 npm start
 ```
 
-浏览器访问 <http://localhost:3000>。**当前配置：**[`client/src/api.js`](LivingAtlas1-main/client/src/api.js) 默认指向托管后端，仅启动本地后端不会自动切换前端请求。若要进行完整的本地开发，需要在本地检出中将 Axios 的 `baseURL` 配置为 `http://localhost:8000`，并在提交前检查该改动。可选的聊天机器人可以通过 `REACT_APP_CHATBOT_API_URL` 连接独立服务。
+浏览器访问 <http://localhost:3000>。[`client/src/api.js`](LivingAtlas1-main/client/src/api.js) 使用 `REACT_APP_API_URL`，未设置时会回退到托管后端。完整本地开发时，如尚无 `client/.env.development.local`，请复制 [`client/.env.development.local.example`](LivingAtlas1-main/client/.env.development.local.example) 创建该文件，并设置 `REACT_APP_API_URL=http://localhost:8000`。修改环境配置后需重启前端。可选的聊天机器人可以通过 `REACT_APP_CHATBOT_API_URL` 连接独立服务。
 
 部分功能依赖外部服务：地图瓦片和 ArcGIS 图层需要网络连接；图片或文件上传可能需要 Azure Blob Storage 凭据。基础浏览功能需要数据库中已有数据。
 
@@ -140,7 +142,7 @@ npm start
 │   ├── backend/                # FastAPI 应用、路由与依赖
 │   │   └── endpoint_files/     # 按功能组织的 API 路由
 │   └── database/               # 基础表结构、示例数据与迁移
-├── documentation/              # 项目报告与文档
+├── documentation/              # 开发指南与测试报告
 ├── netlify.toml                # 前端构建配置
 └── LICENSE.txt
 ```
@@ -149,12 +151,14 @@ npm start
 
 - 前端命令：在 [`LivingAtlas1-main/client`](LivingAtlas1-main/client) 中运行 `npm test` 或 `npm run build`。默认情况下，测试命令会启动 Create React App 的交互式测试运行器。
 - API 参考：启动后端后访问 <http://localhost:8000/docs>。
-- 项目背景：参阅 [`documentation/`](documentation/) 目录和[应用内用户手册](LivingAtlas1-main/client/src/UserManual.js)。
+- 使用与开发文档：参阅[开发指南与测试报告](documentation/)和[应用内用户手册](LivingAtlas1-main/client/src/UserManual.js)。
 - 发现问题或希望新增功能时，请通过 [GitHub Issues](https://github.com/YaruG1022/RWC-Living-Atlas/issues) 反馈，附上复现步骤以及相关的前端或后端日志。分享日志前请移除凭据和个人信息。
 
 ## 参与贡献
 
 较大的改动请先通过 issue 讨论，再提交聚焦单一主题的 pull request。请简述改动后的行为、验证方式；涉及界面变化时附上截图。不要提交本地环境文件、数据库文件或服务凭据。
+
+维护指南（英文）：[贡献流程](CONTRIBUTING.md)、[路线图](ROADMAP.md)、[安全政策](SECURITY.md)、[运维与版本发布](documentation/OPERATIONS.md)、[GitHub 仓库配置](documentation/REPOSITORY_SETUP.md)。
 
 ## 许可证
 

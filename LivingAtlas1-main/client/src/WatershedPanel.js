@@ -247,10 +247,18 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
         content.append(title, value);
 
         if (!pointPopupRef.current) {
-            pointPopupRef.current = new mapboxgl.Popup({
+            const popup = new mapboxgl.Popup({
                 className: 'watershed-point-popup', closeOnClick: false,
                 focusAfterOpen: false, offset: 12, maxWidth: '240px',
             });
+            const syncExpanded = expanded => {
+                // Events from a removed popup must not update a replacement marker.
+                if (pointPopupRef.current !== popup) return;
+                pointMarkerRef.current?.getElement().setAttribute('aria-expanded', String(expanded));
+            };
+            popup.on('open', () => syncExpanded(true));
+            popup.on('close', () => syncExpanded(false));
+            pointPopupRef.current = popup;
         }
         pointPopupRef.current.setLngLat([point.lng, point.lat]).setDOMContent(content);
         if (!pointMarkerRef.current) {

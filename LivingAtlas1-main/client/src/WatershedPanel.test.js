@@ -24,7 +24,11 @@ function mockMarker(options = {}) {
             this.popup?.setLngLat(coordinates);
             return this;
         }),
-        setPopup: jest.fn(function (popup) { this.popup = popup; return this; }),
+        setPopup: jest.fn(function (popup) {
+            this.popup = popup;
+            element.setAttribute('aria-expanded', 'false');
+            return this;
+        }),
         addTo: jest.fn(function (map) { map.__container.appendChild(element); return this; }),
         getElement: jest.fn(() => element),
         remove: jest.fn(function () { element.remove(); this.popup?.remove(); return this; }),
@@ -33,9 +37,14 @@ function mockMarker(options = {}) {
 
 function mockPopup(options = {}) {
     const element = document.createElement('div');
+    const listeners = {};
     element.className = options.className || '';
     return {
         element,
+        on: jest.fn(function (event, listener) {
+            (listeners[event] ||= new Set()).add(listener);
+            return this;
+        }),
         setLngLat: jest.fn(function (coordinates) { this.coordinates = coordinates; return this; }),
         setDOMContent: jest.fn(function (content) {
             this.content = content;
@@ -43,8 +52,16 @@ function mockPopup(options = {}) {
             element.appendChild(content);
             return this;
         }),
-        addTo: jest.fn(function (map) { map.__container.appendChild(element); return this; }),
-        remove: jest.fn(() => { element.remove(); }),
+        addTo: jest.fn(function (map) {
+            map.__container.appendChild(element);
+            listeners.open?.forEach(listener => listener());
+            return this;
+        }),
+        remove: jest.fn(function () {
+            element.remove();
+            listeners.close?.forEach(listener => listener());
+            return this;
+        }),
     };
 }
 
@@ -490,5 +507,31 @@ test('a cancelled request settling during its replacement cannot clear the new l
     expect(marker.setLngLat).toHaveBeenLastCalledWith([-116.4, 47.2]);
     expect(map.getSource('streamstats-basin')).toBeDefined();
     expect(map.fitBounds).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Save watershed' })).toBeEnabled();
+});
+
+
+test('pour point expanded state follows automatic opening, user dismissal and reopening', async () => {
+    const request = deferred();
+    global.fetch.mockReturnValue(request.promise);
+    const map = createMap();
+    render(<WatershedPanel isOpen mapInstance={map} />);
+    selectPoint(map);
+    const marker = mapboxgl.Marker.mock.results[0].value;
+    const popup = mapboxgl.Popup.mock.results[0].value;
+    const trigger = marker.getElement();
+
+    expect(document.body).toContainElement(popup.element);
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    act(() => popup.remove());
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    act(() => popup.addTo(map));
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    act(() => popup.remove());
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+
+    await resolveDelineation(request);
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(document.body).not.toContainElement(popup.element);
     expect(screen.getByRole('button', { name: 'Save watershed' })).toBeEnabled();
 });

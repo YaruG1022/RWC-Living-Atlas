@@ -1346,26 +1346,28 @@ function UserManual() {
         {/* Full static mock of the modal shell */}
         <div className="um-modal-demo-wrapper" data-manual-example="detail-view-example-01">
           <div className="learn-more-modal-shell" style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.12)' }}>
-            <div className="learn-more-modal-toolbar">
-              <div className="learn-more-modal-toolbar-left">
-                <button className="learn-more-modal-edit-btn learn-more-modal-icon-btn" title="Edit" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faPenToSquare} />
-                </button>
-                <button className="learn-more-modal-download-btn learn-more-modal-icon-btn" title="Download as PDF" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faDownload} />
-                </button>
-                <button className="learn-more-modal-delete-btn learn-more-modal-icon-btn" title="Delete project" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faTrashCan} />
-                </button>
-              </div>
-              <div className="learn-more-modal-toolbar-right">
-                <button className="learn-more-modal-help-btn learn-more-modal-icon-btn" title="Help" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faQuestion} />
-                </button>
-                <button className="learn-more-modal-onboarding-btn learn-more-modal-icon-btn" title="Onboarding" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faPlay} />
-                </button>
-                <button className="learn-more-modal-close learn-more-modal-icon-btn" title="Close" style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={faTimes} /></button>
+            <div className="Modal--learn-more" style={{ position: 'static', inset: 'auto', transform: 'none', width: '100%', height: 'auto', minWidth: 0, overflow: 'visible', background: 'transparent', boxShadow: 'none', display: 'block' }}>
+              <div className="learn-more-modal-toolbar">
+                <div className="learn-more-modal-toolbar-left">
+                  <button className="learn-more-modal-edit-btn learn-more-modal-icon-btn" title="Edit" style={{ pointerEvents: 'none' }}>
+                    <FontAwesomeIcon icon={faPenToSquare} />
+                  </button>
+                  <button className="learn-more-modal-download-btn learn-more-modal-icon-btn" title="Download as PDF" style={{ pointerEvents: 'none' }}>
+                    <FontAwesomeIcon icon={faDownload} />
+                  </button>
+                  <button className="learn-more-modal-delete-btn learn-more-modal-icon-btn" title="Delete project" style={{ pointerEvents: 'none' }}>
+                    <FontAwesomeIcon icon={faTrashCan} />
+                  </button>
+                </div>
+                <div className="learn-more-modal-toolbar-right">
+                  <button className="learn-more-modal-help-btn learn-more-modal-icon-btn" title="Help" style={{ pointerEvents: 'none' }}>
+                    <FontAwesomeIcon icon={faQuestion} />
+                  </button>
+                  <button className="learn-more-modal-onboarding-btn learn-more-modal-icon-btn" title="Onboarding" style={{ pointerEvents: 'none' }}>
+                    <FontAwesomeIcon icon={faPlay} />
+                  </button>
+                  <button className="learn-more-modal-close learn-more-modal-icon-btn" title="Close" style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={faTimes} /></button>
+                </div>
               </div>
             </div>
             <div className="learn-more-modal-body um-modal-body-preview">
@@ -1457,28 +1459,30 @@ function UserManual() {
         <div className="um-feature-list">
 
           {/* 1. Toolbar — view mode */}
-          <div className="um-feature-row">
+          <div className="um-feature-row um-feature-row--gallery">
             <div className="um-feature-demo" data-manual-example="detail-view-example-02">
-              <div className="um-isolated-demo" style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'space-between', minWidth: '220px' }}>
-                <div className="learn-more-modal-toolbar-left">
-                  <button className="learn-more-modal-edit-btn learn-more-modal-icon-btn" title="Edit" style={{ pointerEvents: 'none' }}>
-                    <FontAwesomeIcon icon={faPenToSquare} />
-                  </button>
-                  <button className="learn-more-modal-download-btn learn-more-modal-icon-btn" title="Download as PDF" style={{ pointerEvents: 'none' }}>
-                    <FontAwesomeIcon icon={faDownload} />
-                  </button>
-                  <button className="learn-more-modal-delete-btn learn-more-modal-icon-btn" title="Delete project" style={{ pointerEvents: 'none' }}>
-                    <FontAwesomeIcon icon={faTrashCan} />
-                  </button>
-                </div>
-                <div className="learn-more-modal-toolbar-right">
-                  <button className="learn-more-modal-help-btn learn-more-modal-icon-btn" title="Help" style={{ pointerEvents: 'none' }}>
-                    <FontAwesomeIcon icon={faQuestion} />
-                  </button>
-                  <button className="learn-more-modal-onboarding-btn learn-more-modal-icon-btn" title="Onboarding" style={{ pointerEvents: 'none' }}>
-                    <FontAwesomeIcon icon={faPlay} />
-                  </button>
-                  <button className="learn-more-modal-close learn-more-modal-icon-btn" title="Close" style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={faTimes} /></button>
+              <div className="Modal--learn-more" style={{ position: 'static', inset: 'auto', transform: 'none', width: '100%', height: 'auto', minWidth: 0, overflow: 'visible', background: 'transparent', boxShadow: 'none', display: 'block' }}>
+                <div className="um-isolated-demo learn-more-modal-toolbar" style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+                  <div className="learn-more-modal-toolbar-left" style={{ flex: '1 1 124px' }}>
+                    <button className="learn-more-modal-edit-btn learn-more-modal-icon-btn" title="Edit" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faPenToSquare} />
+                    </button>
+                    <button className="learn-more-modal-download-btn learn-more-modal-icon-btn" title="Download as PDF" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faDownload} />
+                    </button>
+                    <button className="learn-more-modal-delete-btn learn-more-modal-icon-btn" title="Delete project" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faTrashCan} />
+                    </button>
+                  </div>
+                  <div className="learn-more-modal-toolbar-right">
+                    <button className="learn-more-modal-help-btn learn-more-modal-icon-btn" title="Help" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faQuestion} />
+                    </button>
+                    <button className="learn-more-modal-onboarding-btn learn-more-modal-icon-btn" title="Onboarding" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faPlay} />
+                    </button>
+                    <button className="learn-more-modal-close learn-more-modal-icon-btn" title="Close" style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={faTimes} /></button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1489,30 +1493,32 @@ function UserManual() {
           </div>
 
           {/* 2. Toolbar — edit mode */}
-          <div className="um-feature-row">
+          <div className="um-feature-row um-feature-row--gallery">
             <div className="um-feature-demo" data-manual-example="detail-view-example-03">
-              <div className="um-isolated-demo" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <div className="learn-more-modal-toolbar-left">
-                  <div className="learn-more-modal-toolbar-actions">
-                    <button className="learn-more-modal-toolbar-btn save" style={{ pointerEvents: 'none' }}>Save</button>
-                    <button className="learn-more-modal-toolbar-btn cancel" style={{ pointerEvents: 'none' }}>Cancel</button>
+              <div className="Modal--learn-more" style={{ position: 'static', inset: 'auto', transform: 'none', width: '100%', height: 'auto', minWidth: 0, overflow: 'visible', background: 'transparent', boxShadow: 'none', display: 'block' }}>
+                <div className="um-isolated-demo learn-more-modal-toolbar" style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+                  <div className="learn-more-modal-toolbar-left" style={{ flex: '1 1 320px' }}>
+                    <div className="learn-more-modal-toolbar-actions">
+                      <button className="learn-more-modal-toolbar-btn save" style={{ pointerEvents: 'none' }}>Save</button>
+                      <button className="learn-more-modal-toolbar-btn cancel" style={{ pointerEvents: 'none' }}>Cancel</button>
+                    </div>
+                    <button className="learn-more-modal-download-btn learn-more-modal-icon-btn" title="Download as PDF" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faDownload} />
+                    </button>
+                    <button className="learn-more-modal-delete-btn learn-more-modal-icon-btn" title="Delete project" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faTrashCan} />
+                    </button>
+                    <span className="learn-more-unsaved-badge">You have unsaved changes</span>
                   </div>
-                  <button className="learn-more-modal-download-btn learn-more-modal-icon-btn" title="Download as PDF" style={{ pointerEvents: 'none' }}>
-                    <FontAwesomeIcon icon={faDownload} />
-                  </button>
-                  <button className="learn-more-modal-delete-btn learn-more-modal-icon-btn" title="Delete project" style={{ pointerEvents: 'none' }}>
-                    <FontAwesomeIcon icon={faTrashCan} />
-                  </button>
-                  <span className="learn-more-unsaved-badge">You have unsaved changes</span>
-                </div>
-                <div className="learn-more-modal-toolbar-right">
-                  <button className="learn-more-modal-help-btn learn-more-modal-icon-btn" title="Help" style={{ pointerEvents: 'none' }}>
-                    <FontAwesomeIcon icon={faQuestion} />
-                  </button>
-                  <button className="learn-more-modal-onboarding-btn learn-more-modal-icon-btn" title="Onboarding" style={{ pointerEvents: 'none' }}>
-                    <FontAwesomeIcon icon={faPlay} />
-                  </button>
-                  <button className="learn-more-modal-close learn-more-modal-icon-btn" title="Close" style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={faTimes} /></button>
+                  <div className="learn-more-modal-toolbar-right">
+                    <button className="learn-more-modal-help-btn learn-more-modal-icon-btn" title="Help" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faQuestion} />
+                    </button>
+                    <button className="learn-more-modal-onboarding-btn learn-more-modal-icon-btn" title="Onboarding" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faPlay} />
+                    </button>
+                    <button className="learn-more-modal-close learn-more-modal-icon-btn" title="Close" style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={faTimes} /></button>
+                  </div>
                 </div>
               </div>
             </div>

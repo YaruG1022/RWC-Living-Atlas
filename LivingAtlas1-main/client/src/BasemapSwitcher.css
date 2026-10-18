@@ -102,8 +102,6 @@
     background: #ffffff;
     border: 1px solid #d8e1ea;
     border-radius: 8px;
-    scrollbar-width: thin;
-    scrollbar-color: #9ab2cb #dce6f0;
 }
 
 .basemap-switcher-item {

@@ -24,9 +24,23 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Shared panel scrollbars retain the cards panel's neutral gray appearance. */
+:is(.card-container, .basemap-switcher-list, .upload-panel-folder-area, .watershed-panel-body) {
+  scrollbar-width: thin;
+  scrollbar-color: #8b8b8b #fcfcfc;
+}
 
+/* Fallback for browsers without the standard scrollbar properties. */
+:is(.card-container, .basemap-switcher-list, .upload-panel-folder-area, .watershed-panel-body)::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
+:is(.card-container, .basemap-switcher-list, .upload-panel-folder-area, .watershed-panel-body)::-webkit-scrollbar-track {
+  background: #fcfcfc;
+}
 
-
-
-
+:is(.card-container, .basemap-switcher-list, .upload-panel-folder-area, .watershed-panel-body)::-webkit-scrollbar-thumb {
+  background: #8b8b8b;
+  border-radius: 4px;
+}

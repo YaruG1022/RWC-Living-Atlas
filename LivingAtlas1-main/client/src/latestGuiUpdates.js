@@ -88,8 +88,8 @@ export const contactGuiUpdates = [
     },
 ];
 
-export const latestGuiUpdateDate = '10/14/2026';
-export const latestGuiUpdates = [
+export const manualGuiUpdateDate = '10/14/2026';
+export const manualGuiUpdates = [
     {
         title: 'User Manual and Atlas Helper',
         items: [
@@ -97,6 +97,55 @@ export const latestGuiUpdates = [
             'Atlas Helper now follows the published manual, refreshes automatically and links to relevant chapters. Failed updates retain the last verified instructions.',
             'For icon, position and layout questions, the helper can consult matching manual screenshots when available, with text fallback. Plain-text questions avoid image calls.',
             'Improved multi-step guidance for permissions, required fields and saving changes; questions about current public Atlas data still use live data.',
+        ],
+    },
+];
+
+export const latestGuiUpdateDate = '10/18/2026';
+export const latestGuiUpdates = [
+    {
+        title: 'Project Detail Toolbar',
+        items: [
+            'Moved the unsaved-changes notice beside Delete with a subtle gray-blue background, and matched Help, Tutorial and Close icons and buttons to the rest of the interface.',
+        ],
+    },
+    {
+        title: 'Watershed Panel Improvements',
+        items: [
+            'Show the selected pour point immediately while StreamStats runs, with coordinates in a small map popup and safe cancellation and clearing.',
+            'Matched the watershed panel controls to the other map panels and grouped custom-layer and polygon saving under one compact Save menu.',
+        ],
+    },
+    {
+        title: 'Project Terminology',
+        items: [
+            'Renamed the browsing panel and its controls, project details, creation dialog and guided tours to use Project instead of Card.',
+        ],
+    },
+    {
+        title: 'Card Filter Menu',
+        items: [
+            'Kept the Filter menu fully visible beyond narrow card panels, with screen-aware placement and scrolling on shorter screens.',
+        ],
+    },
+    {
+        title: 'Consistent Panel Scrollbars',
+        items: [
+            'Made the Project Cards scrollbar slimmer and matched the Basemaps and ArcGIS panel scrollbars to its neutral gray appearance.',
+        ],
+    },
+    {
+        title: 'Consistent Account Pages',
+        items: [
+            'Matched Login, Request Access, Switch Accounts, Profile and Administration to the User Manual typography, blue headings, light panels and form controls.',
+            'Unified account dialogs, editing actions and management tables while preserving account workflows and confirmation checks.',
+        ],
+    },
+    {
+        title: 'Consistent Information Pages',
+        items: [
+            'Unified About, Contact and Update History using the original User Manual typography, blue headings, light blue dividers and link styles.',
+            'Restored the complete original User Manual styling, including its title, navigation and examples.',
         ],
     },
 ];

@@ -332,7 +332,7 @@
     margin: 5px 0;
 }
 
-.card button:not(.card-meta-zoom-btn):not(.favorite-icon):not(.card-image-nav):not(.card-image-dot) {
+.card button:not(.card-meta-zoom-btn):not(.favorite-icon):not(.card-image-nav):not(.card-image-dot):not(.learn-more-modal-icon-btn) {
     padding: 10px 20px;
     background-color: #0077cc;
     color: #fff;
@@ -343,7 +343,7 @@
     cursor: pointer;
 }
 
-.card button:not(.card-meta-zoom-btn):not(.favorite-icon):not(.card-image-nav):not(.card-image-dot):hover {
+.card button:not(.card-meta-zoom-btn):not(.favorite-icon):not(.card-image-nav):not(.card-image-dot):not(.learn-more-modal-icon-btn):hover {
     background-color: #005fa3;
 }
 
@@ -539,7 +539,7 @@
   min-height: 60px;
 }
 
-.Modal button:not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]) {
+.Modal button:not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]):not(.learn-more-modal-icon-btn) {
   margin-top: 5px;
   padding: 7px 14px;
   font-size: 0.9em;
@@ -549,22 +549,22 @@
   transition: background-color 0.2s;
 }
 
-.Modal button[type="submit"]:not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]) {
+.Modal button[type="submit"]:not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]):not(.learn-more-modal-icon-btn) {
   background-color: #007bff;
   color: #fff;
 }
 
-.Modal button[type="submit"]:not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]):hover {
+.Modal button[type="submit"]:not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]):not(.learn-more-modal-icon-btn):hover {
   background-color: #0069d9;
 }
 
-.Modal button:not([type="submit"]):not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]) {
+.Modal button:not([type="submit"]):not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]):not(.learn-more-modal-icon-btn) {
   background-color: #f2f2f2;
   color: #333;
   border: 1px solid #ccc;
 }
 
-.Modal button:not([type="submit"]):not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]):hover {
+.Modal button:not([type="submit"]):not(.learn-more-see-all-images-btn):not(.learn-more-all-images-back-link):not(.learn-more-all-image-btn):not(.learn-more-all-image-delete-btn):not([data-gallery-control]):not(.learn-more-modal-icon-btn):hover {
   background-color: #e6e6e6;
 }
 
@@ -646,6 +646,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 10px;
   padding: 10px 14px;
   border-bottom: 1px solid #e5e7eb;
@@ -655,14 +656,75 @@
 
 .learn-more-modal-toolbar-left {
   display: inline-flex;
+  flex: 1;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .learn-more-modal-toolbar-right {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
+  align-self: flex-start;
   gap: 8px;
+  margin-left: auto;
+}
+
+/* Shared toolbar icon controls; legacy classes remain for manual examples. */
+.Modal--learn-more .learn-more-modal-toolbar .learn-more-modal-icon-btn {
+  position: static;
+  display: inline-flex;
+  flex: 0 0 36px;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #f2f2f2;
+  color: #333;
+  font-family: inherit;
+  font-size: 0.9em;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: none;
+  transform: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.Modal--learn-more .learn-more-modal-toolbar .learn-more-modal-icon-btn:hover:not(:disabled) {
+  background: #e6e6e6;
+  border-color: #ccc;
+  transform: none;
+}
+
+.Modal--learn-more .learn-more-modal-toolbar .learn-more-modal-icon-btn:focus-visible {
+  outline: 2px solid #8eabc8;
+  outline-offset: 2px;
+}
+
+.Modal--learn-more .learn-more-modal-toolbar .learn-more-modal-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.Modal--learn-more .learn-more-modal-toolbar .learn-more-modal-icon-btn svg {
+  width: 1em;
+  height: 1em;
+}
+
+@media (max-width: 360px) {
+  .learn-more-modal-toolbar-left {
+    flex-basis: 100%;
+  }
 }
 
 .learn-more-modal-download-btn {
@@ -707,8 +769,10 @@
 
 .learn-more-modal-toolbar-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .learn-more-modal-edit-btn {
@@ -760,14 +824,20 @@
 }
 
 .learn-more-unsaved-badge {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   font-size: 0.78rem;
   font-weight: 600;
-  color: #92400e;
-  background: #fef3c7;
-  border: 1px solid #fcd34d;
+  line-height: 1.4;
+  color: #38516b;
+  background: #eef2f7;
+  border: 1px solid #d8e1ea;
   border-radius: 6px;
   padding: 3px 10px;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .Modal--learn-more .learn-more-gallery-selection { position: absolute; left: 12px; bottom: 12px; z-index: 1; display: flex; flex-direction: row; align-items: center; gap: 8px; margin: 0; padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 7px; background: rgba(248,250,252,.92); color: #334155; font-size: .85rem; cursor: pointer; }

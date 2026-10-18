@@ -3,6 +3,8 @@ import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserCircle, faCheckCircle, faPlus, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import api from './api';
+import InfoPage from './InfoPage';
+import './AccountPage.css';
 import './SwitchAccount.css';
 
 function SwitchAccount({ email, setEmail, setPassword, setMessage, setIsLoggedIn, setUsername, setIsAdmin }) {
@@ -86,11 +88,10 @@ function SwitchAccount({ email, setEmail, setPassword, setMessage, setIsLoggedIn
   const otherAccounts = savedAccounts.filter(a => a.email !== currentEmail);
 
   return (
-    <div className="switch-account-container">
-      <div className="switch-account-card">
+    <InfoPage title="Switch Accounts" className="switch-account-container account-page">
+      <div className="switch-account-card account-panel">
         <div className="switch-account-header">
-          <h1>Switch Accounts</h1>
-          <button className="sign-out-link" onClick={handleSignOut}>
+          <button type="button" className="sign-out-link account-button account-button--secondary account-button--small" onClick={handleSignOut}>
             <FontAwesomeIcon icon={faSignOutAlt} /> Sign out
           </button>
         </div>
@@ -112,35 +113,37 @@ function SwitchAccount({ email, setEmail, setPassword, setMessage, setIsLoggedIn
         )}
 
         {otherAccounts.map((account) => (
-          <div
+          <button
+            type="button"
             key={account.email}
-            className={`account-item other-account ${switching ? 'disabled' : ''}`}
+            className={`account-item other-account account-button account-button--secondary ${switching ? 'disabled' : ''}`}
             onClick={() => handleSwitchTo(account)}
+            disabled={switching}
           >
-            <div className="account-check" />
-            <div className="account-avatar">
+            <span className="account-check" />
+            <span className="account-avatar">
               <FontAwesomeIcon icon={faUserCircle} className="avatar-icon" />
-            </div>
-            <div className="account-info">
+            </span>
+            <span className="account-info">
               <span className="account-name">{account.username}</span>
               <span className="account-email">{account.email}</span>
-            </div>
-          </div>
+            </span>
+          </button>
         ))}
 
-        <div className="account-item add-account" onClick={handleAddAccount}>
-          <div className="account-check" />
-          <div className="account-avatar">
-            <div className="add-icon-circle">
+        <button type="button" className="account-item add-account account-button account-button--secondary" onClick={handleAddAccount}>
+          <span className="account-check" />
+          <span className="account-avatar">
+            <span className="add-icon-circle">
               <FontAwesomeIcon icon={faPlus} className="add-icon" />
-            </div>
-          </div>
-          <div className="account-info">
+            </span>
+          </span>
+          <span className="account-info">
             <span className="add-account-text">Add account</span>
-          </div>
-        </div>
+          </span>
+        </button>
       </div>
-    </div>
+    </InfoPage>
   );
 }
 

@@ -42,7 +42,7 @@ async function editCard() {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Open image 1' })).toBeTruthy());
     fireEvent.click(screen.getByRole('button', { name: /Edit/i }));
     await waitFor(() => expect(screen.getByLabelText('Image layout').value).toBe('multi'));
-    return screen.getByRole('region', { name: 'Card image gallery' });
+    return screen.getByRole('region', { name: 'Project image gallery' });
 }
 
 test('location preview closes details and uses the existing locate callback', async () => {
@@ -92,7 +92,7 @@ test('a failed attachment save preserves the batch for retry and cancel clears t
     expect(screen.getByRole('status').textContent).toContain('2 files ready');
     await waitFor(() => expect(screen.getByRole('button', { name: 'Cancel', exact: true }).disabled).toBe(false));
     fireEvent.click(screen.getByRole('button', { name: 'Cancel', exact: true }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Edit card in Learn More modal', exact: true }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit project in Learn More modal', exact: true }));
     await waitFor(() => expect(screen.getByLabelText('Add files')).toBeTruthy());
     expect(screen.queryByRole('status')).toBeNull();
 });
@@ -115,14 +115,14 @@ test('selected numbers and cover follow main-page dragging; all-images has no so
     fireEvent.click(screen.getByRole('button', { name: 'See all 3 images' }));
     const label = index => screen.getByRole('checkbox', { name: `Show image ${index} on main page` }).closest('label');
     expect(within(label(1)).getByLabelText('Display order 1')).toBeTruthy();
-    expect(label(1).title).toBe('Card cover');
+    expect(label(1).title).toBe('Project cover');
     fireEvent.click(screen.getByRole('checkbox', { name: 'Show image 1 on main page' }));
     expect(within(label(2)).getByLabelText('Display order 2')).toBeTruthy();
-    expect(label(2).title).not.toBe('Card cover');
+    expect(label(2).title).not.toBe('Project cover');
     expect(label(1).querySelector('.learn-more-gallery-order').textContent).toBe('');
     expect(label(2).querySelector('input').nextElementSibling.getAttribute('aria-label')).toBe('Display order 2');
     fireEvent.click(screen.getByRole('button', { name: 'Back to Learn More', exact: true }));
-    const returnedGallery = screen.getByRole('region', { name: 'Card image gallery' });
+    const returnedGallery = screen.getByRole('region', { name: 'Project image gallery' });
     const dataTransfer = { setData: jest.fn() };
     fireEvent.dragStart(within(returnedGallery).getByRole('button', { name: 'Open image 2' }).parentElement, { dataTransfer });
     const target = within(returnedGallery).getByRole('button', { name: 'Open image 1' }).parentElement;
@@ -133,7 +133,7 @@ test('selected numbers and cover follow main-page dragging; all-images has no so
     expect(within(returnedGallery).getByRole('img').getAttribute('src')).toBe('/fixture-3.jpg');
     fireEvent.click(screen.getByRole('button', { name: 'See all 3 images' }));
     expect(within(label(2)).getByLabelText('Display order 1')).toBeTruthy();
-    expect(label(2).title).toBe('Card cover');
+    expect(label(2).title).toBe('Project cover');
     expect(within(label(3)).getByLabelText('Display order 2')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Move image up' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Move image down' })).toBeNull();
@@ -207,7 +207,7 @@ test('clearing number five preserves six and assigns five to the next selected i
     expect(within(label(7)).getByLabelText('Display order 5')).toBeTruthy();
     expect(within(label(6)).getByLabelText('Display order 6')).toBeTruthy();
     fireEvent.click(back);
-    expect(within(screen.getByRole('region', { name: 'Card image gallery' })).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual([1,2,3,4,7,6].map(id => `/vacancy-${id}.jpg`));
+    expect(within(screen.getByRole('region', { name: 'Project image gallery' })).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual([1,2,3,4,7,6].map(id => `/vacancy-${id}.jpg`));
     fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
     await waitFor(() => expect(screen.queryByLabelText('Image layout')).toBeNull());
     expect(api.post.mock.calls[0][1].get('gallery_image_ids')).toBe('[1,2,3,4,7,6]');
@@ -222,7 +222,7 @@ test('main-page selection caps at six and applies to both modes; cancel restores
     fireEvent.click(screen.getByRole('checkbox', { name: 'Show image 1 on main page' }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Show image 7 on main page' }));
     fireEvent.click(screen.getByRole('button', { name: 'Back to Learn More', exact: true }));
-    const mainGallery = screen.getByRole('region', { name: 'Card image gallery' });
+    const mainGallery = screen.getByRole('region', { name: 'Project image gallery' });
     expect(within(mainGallery).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual([7,2,3,4,5,6].map(id => `/selection-${id}.jpg`));
     fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'slideshow' } });
     expect(within(mainGallery).getAllByRole('button', { name: /^Show gallery image/ })).toHaveLength(6);
@@ -230,7 +230,7 @@ test('main-page selection caps at six and applies to both modes; cancel restores
     expect(within(mainGallery).getByRole('img').getAttribute('src')).toBe('/selection-6.jpg');
     fireEvent.click(screen.getByRole('button', { name: 'Cancel', exact: true }));
     await waitFor(() => expect(screen.queryByLabelText('Image layout')).toBeNull());
-    expect(within(screen.getByRole('region', { name: 'Card image gallery' })).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual([1,2,3,4,5,6].map(id => `/selection-${id}.jpg`));
+    expect(within(screen.getByRole('region', { name: 'Project image gallery' })).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual([1,2,3,4,5,6].map(id => `/selection-${id}.jpg`));
     expect(api.post).not.toHaveBeenCalled();
     expect(api.delete).not.toHaveBeenCalled();
 });
@@ -249,7 +249,7 @@ test('selection saves as JSON and remains visible after refreshing the saved car
     expect(document.querySelector('.learn-more-all-image-item.is-main-selected')).toBeNull();
     expect(api.post.mock.calls[0][1].get('gallery_image_ids')).toBe('[2,3]');
     fireEvent.click(screen.getByRole('button', { name: 'Back to Learn More', exact: true }));
-    expect(within(screen.getByRole('region', { name: 'Card image gallery' })).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual(['/fixture-2.jpg','/fixture-3.jpg']);
+    expect(within(screen.getByRole('region', { name: 'Project image gallery' })).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual(['/fixture-2.jpg','/fixture-3.jpg']);
 });
 
 test('cancel restores layout, image order and staged deletion without database writes', async () => {
@@ -318,7 +318,7 @@ test('failed order save keeps the draft open and allows retry', async () => {
 });
 
 test('upload appends after the default cover, and the cover can be deleted and restored by cancel', async () => {
-    const defaultCover = { imageID: 61, url: '/CEREO-logo.png', alt: 'Card cover' };
+    const defaultCover = { imageID: 61, url: '/CEREO-logo.png', alt: 'Project cover' };
     savedCard = { ...savedCard, images: [defaultCover], thumbnail_link: defaultCover.url };
     const gallery = await editCard();
     api.post.mockImplementation(() => {

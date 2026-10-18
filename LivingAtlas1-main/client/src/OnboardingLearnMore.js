@@ -9,7 +9,7 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-text-area"]',
         title: 'Text and Data Area',
-        description: 'Browse metadata, description, tags, files, and linked layers. Map location shows the actual markers, polygon or image footprint. Click its preview to close details and locate the card on the map; unsaved edits may require confirmation.',
+        description: 'Browse metadata, description, tags, files, and linked layers. Map location shows the actual markers, polygon or image footprint. Click its preview to close details and locate the project on the map; unsaved edits may require confirmation.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-text-area"]',
     },
@@ -30,21 +30,21 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-toolbar"]',
         title: 'Edit Mode - Enter',
-        description: 'Click the Edit button to enter edit mode. This allows you to make changes to the card details. Edit mode will now be entered for the following demonstration steps.',
+        description: 'Click the Edit button to enter edit mode. This allows you to make changes to the project details. Edit mode will now be entered for the following demonstration steps.',
         placement: 'bottom',
         scrollTo: '[data-onboarding-target="learn-more-toolbar"]',
     },
     {
         selector: '[data-onboarding-target="learn-more-image-area"]',
         title: 'Edit Mode - Image Layout and Order',
-        description: 'Image layout appears only in edit mode, inside the top-right gallery corner; hover or focus makes it opaque. Drag images or use arrows to reorder. The first selected image is the card cover.',
+        description: 'Image layout appears only in edit mode, inside the top-right gallery corner; hover or focus makes it opaque. Drag images or use arrows to reorder. The first selected image is the project cover.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-image-area"]',
     },
     {
         selector: '[data-onboarding-target="learn-more-image-area"]',
         title: 'Edit Mode - See All Images',
-        description: 'Open See all N images. Numbered checkboxes choose up to six main images; a new selection fills the lowest vacant number. The separate top-right circles select images for Delete Selected. Add New Image is at the top; a card holds up to 30 images.',
+        description: 'Open See all N images. Numbered checkboxes choose up to six main images; a new selection fills the lowest vacant number. The separate top-right circles select images for Delete Selected. Add New Image is at the top; a project holds up to 30 images.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-image-area"]',
     },
@@ -72,7 +72,7 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-arcgis-section"]',
         title: 'Edit Mode - ArcGIS & Custom Layers',
-        description: 'Link your card to ArcGIS services/layers or custom layers. Each linked item has a visibility checkbox, a jump-to-panel button, and a remove button in edit mode.',
+        description: 'Link your project to ArcGIS services/layers or custom layers. Each linked item has a visibility checkbox, a jump-to-panel button, and a remove button in edit mode.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-arcgis-section"]',
     },

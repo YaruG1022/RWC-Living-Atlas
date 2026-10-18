@@ -1,116 +1,110 @@
-.contact {
-    font-family: 'Roboto', sans-serif;
-    /* Using Roboto font as an example, ensure it's imported or available in your project */
-    background-color: #f9f9f9;
-    /* Light gray background */
-    border-radius: 8px;
-    /* Rounded corners */
-    padding: 30px;
-    /* Space around the content inside the .about container */
-    max-width: 600px;
-    /* Setting a maximum width */
-    margin: 50px auto;
-    /* Vertically spaced with 50px and horizontally centered */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    /* A subtle shadow to lift the card visually */
+.contact > section {
+    margin-bottom: 32px;
 }
 
-.contact h1 {
-    color: #333;
-    /* Dark gray for the heading */
-    font-size: 2rem;
-    /* Font size for the heading */
-    margin-bottom: 20px;
-    /* Spacing below the heading */
-}
-
-.contact p {
-    color: #666;
-    /* A slightly lighter gray for the paragraph text */
+.contact-address {
+    margin: 0;
+    font-style: normal;
+    font-size: 0.95rem;
     line-height: 1.6;
-    /* Spaced out line-height for better readability */
+    color: #555;
+}
+
+.contact-address p {
+    margin: 0;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+}
+
+.contact-emails {
     margin: 0;
     padding: 0;
+    list-style: none;
+    font-size: 0.95rem;
+    line-height: 1.6;
 }
 
-nav {
-    background-color: #333;
-    color: #fff;
-    padding: 10px;
+.contact-emails li + li {
+    margin-top: 4px;
 }
 
-
-a:hover {
-    background-color: #007BFF;
-}
-
-.feedback-form {
+.contact .feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
     margin-top: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
 }
 
-.feedback-field {
+.contact .feedback-field {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
 }
 
-.feedback-field label {
+.contact .feedback-field label {
+    font-size: inherit;
     font-weight: 600;
-    color: #444;
-    font-size: 0.95rem;
+    color: #555;
 }
 
-.feedback-field input,
-.feedback-field textarea {
-    padding: 8px 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 0.95rem;
-    font-family: inherit;
+.contact .feedback-field input,
+.contact .feedback-field textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #dce6f0;
+    border-radius: 6px;
+    font: inherit;
+    color: #333;
+    background: #f8fafc;
+}
+
+.contact .feedback-field textarea {
+    min-height: 140px;
     resize: vertical;
-    transition: border-color 0.2s;
 }
 
-.feedback-field input:focus,
-.feedback-field textarea:focus {
-    outline: none;
-    border-color: #007BFF;
+.contact .feedback-field input:focus-visible,
+.contact .feedback-field textarea:focus-visible,
+.contact .feedback-submit:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
 }
 
-.feedback-submit {
+.contact .feedback-submit {
     align-self: flex-start;
-    padding: 9px 22px;
-    background-color: #007BFF;
+    padding: 10px 20px;
+    border: 1px solid #1a3a5c;
+    border-radius: 6px;
+    font: inherit;
+    font-weight: 600;
     color: #fff;
-    border: none;
-    border-radius: 5px;
-    font-size: 0.95rem;
+    background: #1a3a5c;
     cursor: pointer;
-    transition: background-color 0.2s;
 }
 
-.feedback-submit:hover:not(:disabled) {
-    background-color: #0056b3;
+.contact .feedback-submit:hover:not(:disabled) {
+    background: #244f7d;
+    border-color: #244f7d;
 }
 
-.feedback-submit:disabled {
+.contact .feedback-submit:disabled {
     opacity: 0.65;
     cursor: not-allowed;
 }
 
-.feedback-msg {
+.contact .feedback-msg {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: inherit;
     font-weight: 500;
+    line-height: inherit;
 }
 
-.feedback-success {
+.contact .feedback-success {
     color: #2e7d32;
 }
 
-.feedback-error {
+.contact .feedback-error {
     color: #c62828;
 }

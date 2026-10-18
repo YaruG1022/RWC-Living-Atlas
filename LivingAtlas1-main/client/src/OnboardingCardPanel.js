@@ -5,52 +5,52 @@ import './OnboardingCardPanel.css';
 const ONBOARDING_STEPS = [
     {
         selector: '#content-2',
-        title: 'Project Cards Panel',
-        description: 'Project Cards is the workspace for browsing, filtering, searching, and switching between grid cards and compact list rows.',
+        title: 'Projects',
+        description: 'Browse, filter, and search projects, or switch between project tiles and compact list rows.',
         placement: 'left',
     },
     {
         selector: '[data-onboarding-target="card-help-button"]',
         title: 'Help Button',
-        description: 'Click here to open the Card Container section in the user manual.',
+        description: 'Click here to open the project browsing guide in the user manual.',
         placement: 'left',
     },
     {
         selector: '[data-onboarding-target="card-toolbar"]',
         title: 'Toolbar',
-        description: 'Use the compact Add, Sort, and Filter buttons. Favorites is inside Filter: check Show only favorited cards, then Apply. Clear resets filters. The remaining icons switch views and docking side.',
+        description: 'Use the compact Add, Sort, and Filter buttons. Favorites is inside Filter: check Show only favorited projects, then Apply. Clear resets filters. The remaining icons switch views and docking side.',
         placement: 'left',
     },
     {
         selector: '[data-onboarding-target="card-searchbar"]',
         title: 'Search Area',
-        description: 'Enter keywords to search cards. The buttons on the right run search or clear the input.',
+        description: 'Enter keywords to search projects. The buttons on the right run the search or clear the input.',
         placement: 'left',
     },
     {
         selector: '[data-onboarding-target="card-list-area"]',
-        title: 'Card Results Area',
-        description: 'Grid view allows resizing; list view uses a fixed 310-pixel panel. Its bordered results area joins the toolbar and keeps rows inside the panel. When Project Cards and GIS share the left side, list view is automatic.',
+        title: 'Project Results Area',
+        description: 'Grid view allows resizing; list view uses a fixed 310-pixel panel. Its bordered results area joins the toolbar and keeps rows inside the panel. When Projects and GIS share the left side, list view is automatic.',
         placement: 'left',
     },
     {
         selector: '[data-onboarding-target="onboarding-single-card"]',
-        title: 'Single Card',
-        description: 'Hover a list row to preview its grid card beside the panel; move off the row to dismiss it. Cards without uploaded images show "No image". Click the title for details or the three-dot menu for actions.',
+        title: 'Single Project',
+        description: 'Hover a list row to preview its project tile beside the panel; move off the row to dismiss it. Projects without uploaded images show "No image". Click the title for details or the three-dot menu for actions.',
         placement: 'left',
         requiresCard: true,
     },
     {
         selector: '[data-onboarding-target="onboarding-single-card-actions"]',
-        title: 'Card Buttons and Actions',
-        description: 'Use favorite, locate-on-map, and pin controls. Pinned cards appear first in the order they were pinned: later pins follow earlier pins. Unpinning and pinning again moves a card to the end of the pinned group.',
+        title: 'Project Actions',
+        description: 'Use favorite, locate-on-map, and pin controls. Pinned projects appear first in the order they were pinned: later pins follow earlier pins. Unpinning and pinning again moves a project to the end of the pinned group.',
         placement: 'left',
         requiresCard: true,
     },
     {
         selector: '[data-onboarding-target="onboarding-single-card"]',
         title: 'Learn More Modal',
-        description: 'Clicking the card text area will open the Learn More modal with detailed information and management options.',
+        description: 'Clicking the project text area will open the Learn More modal with detailed information and management options.',
         placement: 'left',
         requiresCard: true,
     },
@@ -124,7 +124,7 @@ function CardPanelOnboarding({
         if (step.requiresCard && !firstCardId) {
             return {
                 ...step,
-                description: 'No visible cards are available right now. Clear filters or search to show cards, then run onboarding again for this step.',
+                description: 'No visible projects are available right now. Clear filters or search to show projects, then run onboarding again for this step.',
             };
         }
         return step;

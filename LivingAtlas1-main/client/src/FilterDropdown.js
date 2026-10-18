@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback, useId } from 'react';
+import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFilter, faPlus } from '@fortawesome/free-solid-svg-icons';
 import './FilterDropdown.css';
@@ -25,6 +26,76 @@ function FilterDropdown({
   const [pendingFavorites, setPendingFavorites] = useState(favoritesOnly);
   const [tagInput, setTagInput] = useState('');
   const dropdownRef = useRef(null);
+  const triggerRef = useRef(null);
+  const menuRef = useRef(null);
+  const menuId = useId();
+
+  const closeMenu = () => {
+    setIsOpen(false);
+    triggerRef.current?.focus({ preventScroll: true });
+  };
+
+  const updateMenuPosition = useCallback(() => {
+    const trigger = triggerRef.current;
+    const menu = menuRef.current;
+    if (!trigger || !menu) return;
+
+    const anchor = trigger.getBoundingClientRect();
+    const menuRect = menu.getBoundingClientRect();
+    const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const edge = 8;
+    const gap = 6;
+    const availableHeight = Math.max(0, viewportHeight - edge * 2);
+    const width = Math.min(menuRect.width, Math.max(0, viewportWidth - edge * 2));
+    const height = Math.max(menu.scrollHeight + menu.offsetHeight - menu.clientHeight, menuRect.height);
+    const below = Math.min(availableHeight, Math.max(0, viewportHeight - edge - anchor.bottom - gap));
+    const above = Math.min(availableHeight, Math.max(0, anchor.top - gap - edge));
+    const openBelow = height <= below || below >= above;
+    const maxHeight = openBelow ? below : above;
+    const visibleHeight = Math.min(height, maxHeight);
+    const left = Math.max(edge, Math.min(anchor.right - width, viewportWidth - edge - width));
+    const top = Math.max(edge, Math.min(
+      openBelow ? anchor.bottom + gap : anchor.top - gap - visibleHeight,
+      viewportHeight - edge - visibleHeight,
+    ));
+
+    // A collapsed panel can move the still-mounted trigger outside the viewport.
+    if (anchor.width > 0 && anchor.height > 0 && (
+      anchor.right <= 0 || anchor.left >= viewportWidth || anchor.bottom <= 0 || anchor.top >= viewportHeight
+    )) {
+      setIsOpen(false);
+      return;
+    }
+
+    Object.assign(menu.style, {
+      left: `${left}px`,
+      top: `${top}px`,
+      maxHeight: `${maxHeight}px`,
+      visibility: 'visible',
+    });
+  }, []);
+
+  // Remeasure on parent renders too, including panel side/view-mode changes.
+  useLayoutEffect(() => {
+    if (isOpen) updateMenuPosition();
+  });
+
+  useLayoutEffect(() => {
+    if (!isOpen) return undefined;
+    menuRef.current?.querySelector('input:not([disabled]), button:not([disabled])')?.focus({ preventScroll: true });
+    window.addEventListener('resize', updateMenuPosition);
+    window.addEventListener('scroll', updateMenuPosition, true);
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateMenuPosition) : null;
+    [triggerRef.current, menuRef.current, dropdownRef.current?.closest('#content-2')].forEach(element => {
+      if (element) observer?.observe(element);
+    });
+    return () => {
+      window.removeEventListener('resize', updateMenuPosition);
+      window.removeEventListener('scroll', updateMenuPosition, true);
+      observer?.disconnect();
+    };
+  }, [isOpen, updateMenuPosition]);
 
   // Sync pending state when props change while closed
   useEffect(() => {
@@ -35,17 +106,28 @@ function FilterDropdown({
     }
   }, [categoryValue, activeTagFilters, favoritesOnly, isOpen]);
 
-  // Close on outside click
+  // The menu lives outside the panel, so both surfaces count as inside.
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+    if (!isOpen) return undefined;
+    const handleClickOutside = (event) => {
+      if (!dropdownRef.current?.contains(event.target) && !menuRef.current?.contains(event.target)) {
         setIsOpen(false);
       }
     };
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsOpen(false);
+        triggerRef.current?.focus({ preventScroll: true });
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen]);
 
   const handleToggleCategory = (val) => {
@@ -67,7 +149,7 @@ function FilterDropdown({
     onCategoryChange(pendingCategory);
     onTagFiltersChange(pendingTags);
     onFavoritesChange?.(canUseFavorites && pendingFavorites);
-    setIsOpen(false);
+    closeMenu();
   };
 
   const handleClear = () => {
@@ -78,7 +160,7 @@ function FilterDropdown({
     onCategoryChange('');
     onTagFiltersChange([]);
     onFavoritesChange?.(false);
-    setIsOpen(false);
+    closeMenu();
   };
 
   const activeCount =
@@ -88,18 +170,23 @@ function FilterDropdown({
     <div className="filter-dropdown" ref={dropdownRef}>
       <button
         type="button"
+        ref={triggerRef}
+        aria-expanded={isOpen}
+        aria-controls={menuId}
+        aria-haspopup="dialog"
         className={`filter-dropdown-trigger${activeCount > 0 ? ' active' : ''}`}
         onClick={() => setIsOpen(v => !v)}
-        title="Filter cards"
-        aria-label="Filter cards"
+        title="Filter projects"
+        aria-label="Filter projects"
       >
         <FontAwesomeIcon icon={faFilter} />
         <span>Filter</span>
         {activeCount > 0 && <span className="filter-dropdown-badge">{activeCount}</span>}
       </button>
 
-      {isOpen && (
-        <div className="filter-dropdown-menu">
+      {isOpen && createPortal(
+        <div className="filter-dropdown-menu" ref={menuRef} id={menuId}
+          role="dialog" aria-label="Filter projects">
           {/* Category section */}
           <div className="filter-dropdown-section">
             <div className="filter-dropdown-section-title">Category</div>
@@ -152,7 +239,7 @@ function FilterDropdown({
               <input type="checkbox" className="filter-dropdown-checkbox"
                 checked={pendingFavorites} disabled={!canUseFavorites}
                 onChange={event => setPendingFavorites(event.target.checked)} />
-              <span className="filter-dropdown-label">Show only favorited cards</span>
+              <span className="filter-dropdown-label">Show only favorited projects</span>
             </label>
             {!canUseFavorites && <p className="filter-dropdown-note">Log in to use favorites filter.</p>}
           </div>
@@ -162,7 +249,8 @@ function FilterDropdown({
             <button className="filter-dropdown-btn clear" onClick={handleClear}>Clear</button>
             <button className="filter-dropdown-btn apply" onClick={handleApply}>Apply</button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

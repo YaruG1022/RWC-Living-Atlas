@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import './ChangelogHistory.css';
-import { latestGuiUpdateDate, latestGuiUpdates, previousGuiUpdateDate, previousGuiUpdates, earlierGuiUpdateDate, earlierGuiUpdates, contactGuiUpdateDate, contactGuiUpdates } from './latestGuiUpdates';
+import InfoPage from './InfoPage';
+import { latestGuiUpdateDate, latestGuiUpdates, previousGuiUpdateDate, previousGuiUpdates, earlierGuiUpdateDate, earlierGuiUpdates, contactGuiUpdateDate, contactGuiUpdates, manualGuiUpdateDate, manualGuiUpdates } from './latestGuiUpdates';
 
 function ChangelogHistory() {
     const [activeTab, setActiveTab] = useState('latest');
 
     return (
-        <div className="changelog-history-page">
-            <h1>Update History</h1>
+        <InfoPage title="Update History" className="changelog-history-page">
             
             <div className="changelog-history-tabs">
                 <button 
@@ -27,163 +27,171 @@ function ChangelogHistory() {
             <div className="changelog-history-body">
                 {activeTab === 'latest' && (
                     <>
-                        <h3>Update Date: {latestGuiUpdateDate}</h3>
+                        <h2 className="info-page__section-title">Update Date: {latestGuiUpdateDate}</h2>
                         {latestGuiUpdates.map(group => <React.Fragment key={group.title}>
-                            <h4>{group.title}</h4>
+                            <h3 className="info-page__subheading">{group.title}</h3>
                             <ul className="changelog-list">
                                 {group.items.map(item => <li key={item}>{item}</li>)}
                             </ul>
                         </React.Fragment>)}
                         <hr />
-                        <h3>Update Date: {contactGuiUpdateDate}</h3>
+                        <h2 className="info-page__section-title">Update Date: {manualGuiUpdateDate}</h2>
+                        {manualGuiUpdates.map(group => <React.Fragment key={group.title}>
+                            <h3 className="info-page__subheading">{group.title}</h3>
+                            <ul className="changelog-list">
+                                {group.items.map(item => <li key={item}>{item}</li>)}
+                            </ul>
+                        </React.Fragment>)}
+                        <hr />
+                        <h2 className="info-page__section-title">Update Date: {contactGuiUpdateDate}</h2>
                         {contactGuiUpdates.map(group => <React.Fragment key={group.title}>
-                            <h4>{group.title}</h4>
+                            <h3 className="info-page__subheading">{group.title}</h3>
                             <ul className="changelog-list">
                                 {group.items.map(item => <li key={item}>{item}</li>)}
                             </ul>
                         </React.Fragment>)}
                         <hr />
-                        <h3>Update Date: {previousGuiUpdateDate}</h3>
+                        <h2 className="info-page__section-title">Update Date: {previousGuiUpdateDate}</h2>
                         {previousGuiUpdates.map(group => <React.Fragment key={group.title}>
-                            <h4>{group.title}</h4>
+                            <h3 className="info-page__subheading">{group.title}</h3>
                             <ul className="changelog-list">
                                 {group.items.map(item => <li key={item}>{item}</li>)}
                             </ul>
                         </React.Fragment>)}
                         <hr />
-                        <h3>Update Date: {earlierGuiUpdateDate}</h3>
+                        <h2 className="info-page__section-title">Update Date: {earlierGuiUpdateDate}</h2>
                         {earlierGuiUpdates.map(group => <React.Fragment key={group.title}>
-                            <h4>{group.title}</h4>
+                            <h3 className="info-page__subheading">{group.title}</h3>
                             <ul className="changelog-list">
                                 {group.items.map(item => <li key={item}>{item}</li>)}
                             </ul>
                         </React.Fragment>)}
                         <hr />
-                        <h3>Update Date: 9/27/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 9/27/2026</h2>
 
-                        <h4>Registration Reliability</h4>
+                        <h3 className="info-page__subheading">Registration Reliability</h3>
                         <p>Signup IDs now come from the database to avoid collisions during simultaneous registration.</p>
 
-                        <h4>Card Loading and Database Recovery</h4>
+                        <h3 className="info-page__subheading">Card Loading and Database Recovery</h3>
                         <p>Card APIs now support optional pagination, card lists remove duplicates more efficiently, and key requests recover from dropped database connections.</p>
 
-                        <h4>Testing and Documentation</h4>
+                        <h3 className="info-page__subheading">Testing and Documentation</h3>
                         <p>Added an isolated local test setup, automated load and recovery checks, and testing guides in English, Spanish, and Chinese.</p>
 
-                        <h4>Project README</h4>
+                        <h3 className="info-page__subheading">Project README</h3>
                         <p>Refreshed the project README with setup steps and an architecture diagram; added Spanish and Chinese versions with language links.</p>
                         <hr />
 
-                        <h3>Update Date: 9/25/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 9/25/2026</h2>
 
-                        <h4>Azure Storage Cleanup</h4>
+                        <h3 className="info-page__subheading">Azure Storage Cleanup</h3>
                         <p>Removed retired Google Cloud Storage code and dependencies after the move to Azure Blob Storage.</p>
 
-                        <h4>ArcGIS Service Catalog</h4>
+                        <h3 className="info-page__subheading">ArcGIS Service Catalog</h3>
                         <p>WA, ID, and OR service lists now come from the database in the GIS panel, service picker, and card details. An unavailable catalog shows a message instead of loading stale local data.</p>
 
-                        <h4>Project Cleanup</h4>
+                        <h3 className="info-page__subheading">Project Cleanup</h3>
                         <p>Removed generated dependencies, editor files, pre-fetched ArcGIS data, and a local Netlify configuration from the repository.</p>
                         <hr />
 
-                        <h3>Update Date: 9/19/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 9/19/2026</h2>
 
-                        <h4>General Onboarding Improvements</h4>
+                        <h3 className="info-page__subheading">General Onboarding Improvements</h3>
                         <p>Updated the welcome guide and app tour to match the current sidebar icons, chatbot modes, watershed tools, and top navigation. Sections can now be expanded or collapsed, with only the introduction open by default. Refined spacing, colors, and smaller corner radii; matched example buttons to the real controls, including their sizes and hover effects. Renamed the tour button to Start App Tour and preserved the What is the Living Atlas? introduction.</p>
 
-                        <h4>Changelog Modal Improvements</h4>
+                        <h3 className="info-page__subheading">Changelog Modal Improvements</h3>
                         <p>Refreshed the update dialog to match the welcome guide, with consistent colors, spacing, smaller corner radii, and button hover effects. Updates are grouped into collapsible date sections, with the latest release open by default. The header and footer remain visible while the update content scrolls.</p>
 
-                        <h4>Instant Panel and Map Resizing</h4>
+                        <h3 className="info-page__subheading">Instant Panel and Map Resizing</h3>
                         <p>Removed panel slide-in and map-shifting animations so layout changes happen immediately. Map dimensions now update with panel opening, closing, switching sides, and stacking, including Basemap changes. Container size changes are also tracked, eliminating the previous delayed resize.</p>
 
-                        <h4>Homepage Navigation Fix</h4>
+                        <h3 className="info-page__subheading">Homepage Navigation Fix</h3>
                         <p>Fixed a blank screen when returning to Home after visiting User Manual. Leaving the homepage now clears the old map reference so panels no longer try to access a map that has already been removed.</p>
                         <hr />
 
-                        <h3>Update Date: 9/1 - 9/15/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 9/1 - 9/15/2026</h2>
 
-                        <h4>Watershed Delineation (New)</h4>
+                        <h3 className="info-page__subheading">Watershed Delineation (New)</h3>
                         <p>Added a Watershed Delineation panel to the left sidebar (water-waves icon), powered by the USGS StreamStats delineation service. Pick a state (WA/ID/OR), press Select point on map, and click a stream — the upstream drainage basin is computed by USGS, drawn on the map together with the snapped pour point, and the view zooms to the basin. A Clear result from map button removes the result. Like the other sidebar panels, opening it shifts the map view aside.</p>
                         <p>While picking a point the cursor becomes a crosshair, and the panel asks you to zoom in further when the map is below zoom level 12 so the point snaps to the correct stream. Delineation usually takes a few seconds; the request can be cancelled, and a clear message is shown when it fails (for example when clicking far from any stream).</p>
 
-                        <h4>StreamStats Rivers</h4>
+                        <h3 className="info-page__subheading">StreamStats Rivers</h3>
                         <p>Added Show StreamStats rivers to display or hide the selected state's river channels. Rivers are hidden by default and appear at zoom level 12 or closer for WA/OR, or 13 for ID. The visibility setting is retained when closing the panel or switching basemaps. Updated river requests to use the current state-specific StreamStats services, fixing the old service's error-page responses.</p>
 
-                        <h4>Save Watershed Basins</h4>
+                        <h3 className="info-page__subheading">Save Watershed Basins</h3>
                         <p>After a basin is displayed, logged-in users can name it and choose Save as custom layer to save the complete GeoJSON to Custom Layers / Root, with the list refreshed after saving. Save as polygon opens Edit Polygon with the basin boundary loaded, then continues through the existing card creation form to save a polygon representation. Basins with interior holes must use the custom-layer option because the polygon editor does not support holes. Clearing the temporary result does not delete saved layers or cards.</p>
 
-                        <h4>Sidebar Icons</h4>
+                        <h3 className="info-page__subheading">Sidebar Icons</h3>
                         <p>Refreshed two left-sidebar icons: the GIS Services panel button now uses a globe icon, and the sidebar chatbot button now uses a chat-bubble icon.</p>
 
-                        <h4>User Manual &amp; Onboarding</h4>
+                        <h3 className="info-page__subheading">User Manual &amp; Onboarding</h3>
                         <p>Updated the user manual and onboarding for the Card Container, ArcGIS Upload Panel, Custom Layers Panel, and Card Detail View (Learn More modal) to match the current app features.</p>
                         <p>Added Help and Tutorial buttons to the Watershed panel, a nine-step walkthrough, and a dedicated Watershed Panel chapter in the User Manual. Updated the general onboarding and related Custom Layers and Polygon Tools documentation to cover river visibility, zoom requirements, basin delineation, both save workflows, and the interior-hole limitation.</p>
 
-                        <h4>Design System Foundation</h4>
+                        <h3 className="info-page__subheading">Design System Foundation</h3>
                         <p>Added a shared design token file that defines the app's colors, text sizes, spacing, corner radii, shadows and animation timing in one central place. Panels can now pull from one agreed set of values instead of each screen hardcoding its own, which is groundwork for a more consistent look as panels are updated over time. Nothing in the existing screens changed except the font below.</p>
                         <p>The app now uses your operating system's interface font (Segoe UI on Windows, San Francisco on macOS) instead of Arial. Text reads a little crisper and matches the rest of your system; no layout or spacing has changed.</p>
                         <hr />
 
-                        <h3>Update Date: 8/15 - 8/30/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 8/15 - 8/30/2026</h2>
 
-                        <h4>Rich Text Descriptions</h4>
+                        <h3 className="info-page__subheading">Rich Text Descriptions</h3>
                         <p>Added Word-style rich text editing to the card's Description field in edit mode, powered by the TipTap editor. The new toolbar supports bold, italic, underline, strikethrough, bulleted and numbered lists, undo/redo, and a heading dropdown with Paragraph and Heading 1–6 options. Descriptions are now stored as formatted HTML, shown with their formatting in the Learn More modal, and converted to plain text for PDF export. Pasting multi-line text now keeps it in a single paragraph instead of splitting it into separate lines.</p>
 
-                        <h4>Tags</h4>
+                        <h3 className="info-page__subheading">Tags</h3>
                         <p>Improved the tag display in the Learn More modal: each tag is now a small pill with its own remove button, and an inline input lets you add tags by pressing Enter or a comma. The small text at the bottom of each card in the card container now shows the card's tags (with an ellipsis when they overflow) instead of its category.</p>
 
-                        <h4>Card Representation</h4>
+                        <h3 className="info-page__subheading">Card Representation</h3>
                         <p>Added a new Representation section to the Learn More modal that previews how a card is represented — as a point, multiple points, a polygon, or an image overlay — and moved the Edit Coordinate / Edit Polygon / Edit Image and Change Location Type buttons into it. The preview is visible in both view and edit modes, while the buttons appear only when editing.</p>
 
-                        <h4>Chatbot Standalone Service</h4>
+                        <h3 className="info-page__subheading">Chatbot Standalone Service</h3>
                         <p>The RWC Living Atlas Helper chatbot now runs as a standalone microservice in its own repository, deployed independently from the main backend — chatbot updates no longer require redeploying the Living Atlas backend, and the frontend routes chat requests to the new service through a configurable URL.</p>
                         <p>The chatbot now reads live card data through a new backend <code>/cards/summary</code> endpoint (public, non-sensitive fields only) instead of connecting to the database directly, so no database credentials are stored in the chatbot service.</p>
                         <p>Removed the legacy in-app chat endpoints, chatbot knowledge base files, and indexing scripts from the main backend, trimming its dependencies.</p>
 
-                        <h4>Chatbot RAG Upgrade – Pinecone Hosted Embeddings</h4>
+                        <h3 className="info-page__subheading">Chatbot RAG Upgrade – Pinecone Hosted Embeddings</h3>
                         <p>Completed the migration of the chatbot's knowledge retrieval to Pinecone (started 5/25): knowledge base documents are now embedded server-side by Pinecone's hosted multilingual-e5-large model, removing the local embedding model from the pipeline and adding multilingual retrieval support.</p>
 
-                        <h4>Chatbot Answer Quality</h4>
+                        <h3 className="info-page__subheading">Chatbot Answer Quality</h3>
                         <p>Fixed chatbot answers that were sometimes cut off mid-sentence or came back empty: the generation model's hidden reasoning could consume the entire response token budget. Reasoning mode is now disabled for the chatbot's context-grounded answers and the token budget was raised — responses are also noticeably faster as a result.</p>
                         <p>Fixed irrelevant Quick Action navigation links in chatbot answers: short words such as "is" no longer accidentally match folder names like "GIS", while short folder codes (WQ, AQ, WR) still match exactly.</p>
 
-                        <h4>Bug Fixes</h4>
+                        <h3 className="info-page__subheading">Bug Fixes</h3>
                         <p>Fixed an issue where changing a card's title in edit mode and saving had no effect — the new title wasn't being written to the database. Titles now save correctly.</p>
                         <hr />
 
-                        <h3>Update Date: 8/1 - 8/15/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 8/1 - 8/15/2026</h2>
 
-                        <h4>Card Linking – User-Uploaded Services</h4>
+                        <h3 className="info-page__subheading">Card Linking – User-Uploaded Services</h3>
                         <p>Added a Link to Card option to the Service Info modal for user-uploaded services: it opens a Select Card dialog listing all cards with checkboxes, lets you link a service to one or more cards at once, and shows each linked card as a clickable link that opens that card's Learn More modal. Linked services appear in the card's Linked Custom Layers section, just like custom layers linked from the card itself.</p>
 
-                        <h4>Card Linking – Visibility Sync</h4>
+                        <h3 className="info-page__subheading">Card Linking – Visibility Sync</h3>
                         <p>Kept the display state of user-uploaded services in sync between the Custom Layers panel and the Linked Custom Layers section of the Learn More modal: toggling a service's checkbox in either place now updates the other automatically, and the choice is saved to your account.</p>
 
-                        <h4>Coordinate Editing – Auto-Correction</h4>
+                        <h3 className="info-page__subheading">Coordinate Editing – Auto-Correction</h3>
                         <p>When editing a card's coordinates, if an uploaded service on the map contains a point (for example, the point included in an uploaded GeoJSON file), a bubble now appears at that point asking whether to auto-correct the card's coordinate to it. Accepting snaps the card into place, and the bubble is skipped whenever the card is already positioned correctly.</p>
 
-                        <h4>Image Storage Migration to Azure</h4>
+                        <h3 className="info-page__subheading">Image Storage Migration to Azure</h3>
                         <p>Migrated the storage of all card images and thumbnails from Google Cloud Storage to Azure Blob Storage: the full image library (card gallery images, thumbnails, and the default image) was copied to the Azure storage account, and every image URL in the database was rewritten to point to the new Azure locations.</p>
                         <p>The backend's image and thumbnail upload and delete logic now uses the Azure Blob SDK, so any images uploaded after the migration are stored directly on Azure.</p>
                         <p>This also fixed the issue where card images failed to load in the app and fell back to the default image.</p>
                         <hr />
 
-                        <h3>Update Date: 7/15 - 7/30/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 7/15 - 7/30/2026</h2>
 
-                        <h4>Custom Layers Panel</h4>
+                        <h3 className="info-page__subheading">Custom Layers Panel</h3>
                         <p>Added an upload button to the Custom Layers Panel for importing GeoJSON, Shapefile (zip), and KML files — such as drainage basin shapes exported from StreamStats — as layers; uploaded layers can be renamed or deleted from the same right-click menu as other custom layers.</p>
                         <p>Uploaded layers are now saved to your account instead of your browser's local storage, so they stay with you across devices and browsers and survive clearing your browsing data; layers uploaded in earlier sessions are moved over automatically the first time you open the panel.</p>
                         <p>Uploaded layers are now clickable on the map: hovering highlights the feature under the cursor, and clicking it opens an embedded popup listing that feature's attributes — the same interaction and appearance as ArcGIS layers.</p>
 
-                        <h4>Card Linking – Custom Layers</h4>
+                        <h3 className="info-page__subheading">Card Linking – Custom Layers</h3>
                         <p>Added an Add Custom Layer option to both the Learn More modal and the Create Card modal, letting users link a card to one or more custom layers.</p>
 
-                        <h4>Layer Info Modal</h4>
+                        <h3 className="info-page__subheading">Layer Info Modal</h3>
                         <p>Improved the Layer Info modal's Download Image button (available in both the GIS Services panel and the Custom Layers panel): clicking it now opens a small menu next to the button instead of downloading immediately.</p>
                         <p>The Layer Info modal's download menu now supports four formats: Image (PNG, previously the only option), GeoJSON, Shapefile, and KML.</p>
 
-                        <h4>Bug Fixes</h4>
+                        <h3 className="info-page__subheading">Bug Fixes</h3>
                         <p>Fixed an issue where the Linked Custom Layers checkbox state in the Learn More modal wasn't saved, so it reset after closing the modal or refreshing the page.</p>
                         <p>Fixed an issue where checked layers in the Linked ArcGIS Services/Layers section didn't automatically load on the map when revisiting the page.</p>
                         <p>Updated the Learn More modal's coordinate card editing flow: replaced the outdated Select Location flow with Edit Coordinate (opens the same Add Points tool used elsewhere in the app) and Change Location Type (switch between Point, Polygon, and Image), removing the old flow that no longer matched the current Add Points modal.</p>
@@ -192,42 +200,42 @@ function ChangelogHistory() {
                         <p>Fixed an issue where changes saved from the Learn More modal — coordinate points, polygons, and image overlays included — did not appear on the map until the page was refreshed.</p>
                         <hr />
 
-                        <h3>Update Date: 7/1 - 7/15/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 7/1 - 7/15/2026</h2>
 
-                        <h4>Onboarding & What's New</h4>
+                        <h3 className="info-page__subheading">Onboarding & What's New</h3>
                         <p>The Welcome to Living Atlas onboarding modal now opens automatically when you visit the homepage, and now includes an introduction to the app and an overview of its major features.</p>
                         <p>The What's New changelog modal no longer opens automatically on page visit; instead, a notification dot now appears on the bell icon when new updates are available, and clears once the changelog has been viewed.</p>
 
-                        <h4>Map Interactions</h4>
+                        <h3 className="info-page__subheading">Map Interactions</h3>
                         <p>Added a hover effect to user-added polygons and image overlays on the map, styled after the card marker hover shadow; the effect stays on while a shape's embedded popup is open.</p>
 
-                        <h4>Add Points & Draw Polygon Panels</h4>
+                        <h3 className="info-page__subheading">Add Points & Draw Polygon Panels</h3>
                         <p>Added an editing toolbar to the Add Points panel, styled after the Draw Polygon modal, with tools for adding new points, marker color, opacity, move, rotate, scale, undo/redo, and Clear All.</p>
                         <p>Moved the Draw Polygon modal's Add New Polygon action from the bottom button row to the first position in the editing toolbar.</p>
 
-                        <h4>Chatbot Agent Skill Upgrade</h4>
+                        <h3 className="info-page__subheading">Chatbot Agent Skill Upgrade</h3>
                         <p>Added a modular chatbot agent skill framework to the backend chat pipeline, enabling tool-style live data retrieval before response generation.</p>
                         <p>Added an ArcGIS live catalog skill that queries <code>https://gis.ecology.wa.gov/serverext/rest/services</code> and supports folder-level drill-down queries (for example, AQ/WQ/WR).</p>
                         <p>Enhanced explainability by appending structured source snippets in chatbot answers (e.g., <code>[ArcGIS live catalog]</code> entries in a Sources section).</p>
                         <p>Improved reliability for ArcGIS live fetches with 403 mitigation logic, including request-header profiles, endpoint fallback attempts, and clearer diagnostics.</p>
 
-                        <h4>Chatbot Navigation Links</h4>
+                        <h3 className="info-page__subheading">Chatbot Navigation Links</h3>
                         <p>Chatbot answers can now include quick navigation links that take you straight to the matching item in the GIS Services panel — clicking a link opens the panel and highlights the referenced folder, service, or layer.</p>
 
-                        <h4>Add Points Panel</h4>
+                        <h3 className="info-page__subheading">Add Points Panel</h3>
                         <p>Expanded the marker icon menu with 30 additional Font Awesome options covering nature, wildlife, weather, activity, and monitoring themes.</p>
 
-                        <h4>Card Learn More – Pinned ArcGIS Layers</h4>
+                        <h3 className="info-page__subheading">Card Learn More – Pinned ArcGIS Layers</h3>
                         <p>Added a pin button to the Linked ArcGIS Services/Layers section: pinned services/layers always stay open on the map, and pin choices are saved to your account so they load automatically on future visits.</p>
 
-                        <h4>Service & Layer Info Modals</h4>
+                        <h3 className="info-page__subheading">Service & Layer Info Modals</h3>
                         <p>Added a Layer Opacity slider to the Layer Info modal (same control as the Service Info modal) that adjusts only the selected layer.</p>
                         <p>Added a Download Image button to the Layer Info modal that saves the layer's raster image for the current map view as a PNG.</p>
                         <p>Added a dual-handle Zoom Range slider to the Layer Info modal, with two draggable points controlling the minimum and maximum zoom levels at which the layer is displayed.</p>
                         <p>Improved the Filter by Field feature: filters now also apply to the raster tiles server-side, so non-matching areas are removed from the raster image instead of only from the clickable vector overlay.</p>
                         <p>Unified the Service Info and Layer Info modals of the GIS Services panel and the Custom Layers panel into one shared implementation, bringing the Custom Layers panel up to date with all recent additions (Historical View time filter, layer opacity, zoom range, image download, and raster-aware filtering).</p>
 
-                        <h4>Bug Fixes</h4>
+                        <h3 className="info-page__subheading">Bug Fixes</h3>
                         <p>Fixed the misaligned update notification dot that appeared at the top of the left sidebar instead of on the corner of the bell icon.</p>
                         <p>Fixed an issue in the Draw Polygon modal where clicking Clear All or Delete This Polygon could not clear the polygon borders from the map.</p>
                         <p>Fixed an issue in the Draw Polygon modal where polygons were not displayed correctly after clicking Clear All and then Undo; all polygons are now fully restored.</p>
@@ -235,24 +243,24 @@ function ChangelogHistory() {
                         <p>Fixed an issue where, immediately after saving changes to a card with multiple polygons, the map rendered all polygons with the same color and opacity until the page was refreshed.</p>
                         <hr />
 
-                        <h3>Update Date: 6/16 - 6/30/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 6/16 - 6/30/2026</h2>
 
-                        <h4>Chatbot Knowledge Base Expansion</h4>
+                        <h3 className="info-page__subheading">Chatbot Knowledge Base Expansion</h3>
                         <p>Added knowledge about the Living Atlas application itself to the chatbot.</p>
                         <p>Added knowledge base content covering the Washington State ArcGIS, Idaho ArcGIS, and Oregon ArcGIS data sources (sourced from the state Department of Ecology and related agencies), as well as the map's built-in layers.</p>
                         <p>Added knowledge base content for all cards currently in the database, letting the chatbot query card data — while keeping sensitive information (such as usernames and passwords) out of its responses.</p>
 
-                        <h4>Search Panel Improvements</h4>
+                        <h3 className="info-page__subheading">Search Panel Improvements</h3>
                         <p>Raised the Search panel (the first button in the left sidebar) above the other panels in stacking order.</p>
                         <p>Added placeholder hint text in the results area when no results are shown (e.g. "Search features by keywords").</p>
                         <p>Added a Recently Used section below the results area that lists options the user has searched and used; each option can be removed from the list or pinned to the top.</p>
 
-                        <h4>Add Card from Map – Coordinates</h4>
+                        <h3 className="info-page__subheading">Add Card from Map – Coordinates</h3>
                         <p>Streamlined the point-adding workflow with a new Add Points panel for the Coordinates option.</p>
                         <p>Points can now be repositioned by typing X/Y coordinate values while adding, and each coordinate point can use a different icon shape.</p>
                         <p>Added support for multiple points to represent a single card, shown together in the panel's point display area.</p>
 
-                        <h4>Bug Fixes</h4>
+                        <h3 className="info-page__subheading">Bug Fixes</h3>
                         <p>Fixed the Add Points panel position offset, and fixed the mismatch between the shapes shown on the map and the preview after adding a card with multiple points.</p>
                         <p>Changed the default appearance of the coordinate preview in the Add Points panel, and added the original three default markers to the icon menu.</p>
                         <p>Fixed an issue where clicking any shape of a multi-polygon card failed to open its embedded map popup.</p>
@@ -262,13 +270,13 @@ function ChangelogHistory() {
                         <p>Fixed duplicate vertex list display in the Draw Polygon modal: clicking a polygon to edit it no longer shows its points a second time below the polygon list.</p>
                         <p>Fixed polygon color display: a card represented by multiple polygons with different colors now keeps each polygon's own color after saving, instead of all polygons collapsing to a single color.</p>
 
-                        <h4>Other Improvements</h4>
+                        <h3 className="info-page__subheading">Other Improvements</h3>
                         <p>Removed the zoom-to-location behavior when selecting a polygon while editing; the selected polygon now shows a soft drop-shadow highlight instead.</p>
                         <p>Added an RGB color picker to the color options in the Draw Polygon modal, letting users pick custom colors in addition to the preset quick-select swatches.</p>
                         <p>Added a Public / Private visibility option to the Add Card modal, matching the existing setting in the Learn More edit modal.</p>
                         <hr />
 
-                        <h3>Update Date: 6/12/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 6/12/2026</h2>
                         <p>Added card visibility settings (public or uploader-only) in both the Add Card modal and the Learn More modal.</p>
                         <p>Added a user feedback input box on the Contact page.</p>
                         <p>Added support for multiple polygons to represent a single card.</p>
@@ -277,7 +285,7 @@ function ChangelogHistory() {
                         <p>Fixed missing database column; added rollback for /allCards API failures.</p>
                         <hr />
 
-                        <h3>Update Date: 6/6/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 6/6/2026</h2>
                         <p>Made the RWC Living Atlas Helper chatbot floating widget freely draggable; snapping to the left or right screen edge collapses it.</p>
                         <p>Overhauled the Add Card from Map – Image workflow: clicking Image now opens the placement modal directly; the sidebar lists each uploaded image with individual remove buttons and an Add Image button to browse local files; a single card can be represented by multiple images.</p>
                         <p>Hidden the center-point marker during image overlay placement and editing; all center-point–dependent operations (move, rotate, resize) are unaffected.</p>
@@ -285,27 +293,27 @@ function ChangelogHistory() {
                         <p>Added login prompts for the Polygon and Image options in Add Card from Map, consistent with the existing Coordinate prompt.</p>
                         <hr />
 
-                        <h3>Update Date: 5/31/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 5/31/2026</h2>
                         <p>Migrated backend database connection credentials to Render environment variables; removed all hardcoded secrets from source code.</p>
                         <p>Improved database connection handling, configuration validation, and endpoint error messaging.</p>
                         <p>Updated backend dependencies to resolve compatibility issues.</p>
                         <p>[Notice] The RWC Living Atlas database is currently out of service. Cards and user data are temporarily unavailable and will be restored as soon as possible.</p>
                         <hr />
 
-                        <h3>Update Date: 5/29/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 5/29/2026</h2>
                         <p>Improved the visual appearance of the chatbot floating window for a more consistent and polished look.</p>
                         <p>Refined the Learn More modal image display area by locking image frame dimensions, so uploaded image aspect ratios no longer affect the container size.</p>
                         <p>Enhanced the avatar menu by adding user avatar, username, and email display.</p>
                         <p>Refactored profile page layout and added an account deletion button with a dedicated confirmation modal flow.</p>
                         <hr />
 
-                        <h3>Update Date: 5/25/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 5/25/2026</h2>
                         <p>Started integrating Pinecone Nexus as the next-generation RAG backend for the Living Atlas Helper Chatbot, replacing the previous local-embedding pipeline. (In progress)</p>
                         <p>Implemented fullscreen map mode with hover-reveal top navbar and left sidebar — hovering near the top or left edge slides the corresponding UI element into view, with full panel support.</p>
                         <p>Redesigned the chatbot floating widget and sidebar panel to match the visual style of other panels (Upload Panel, Custom Layers, Basemap) — consistent background, header, buttons, and color scheme.</p>
                         <hr />
 
-                        <h3>Update Date: 5/16/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 5/16/2026</h2>
                         <p>Enhanced Service/Layer Info Modal with improved display of child layers, legends, positioning, and active state indicators.</p>
                         <p>Added field-based filtering for ArcGIS layers within the Layer Info Modal.</p>
                         <p>Aligned rendering z-index for clickable vectors with raster image overlays.</p>
@@ -318,24 +326,24 @@ function ChangelogHistory() {
                         <p>Updated User Manual, onboarding tutorials, and chatbot knowledge base for all new features and changes.</p>
                         <hr />
 
-                        <h3>Update Date: 5/15/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 5/15/2026</h2>
                         <p>Improved chatbot response formatting and style, making answers cleaner, more structured, and easier to read.</p>
                         <p>Refactored the left sidebar Search Panel to support searching across homepage features and jumping directly to trigger matching functions.</p>
                         <p>Fixed an issue where user preferences could reset after backend restart; preferences are now persisted in the database reliably.</p>
                         <hr />
 
-                        <h3>Update Date: 5/14/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 5/14/2026</h2>
                         <p>Fixed the Living Atlas Helper Chatbot API issues so the chatbot is now operational.</p>
                         <p>Improved the chatbot knowledge base content to provide better user-facing answers.</p>
                         <p>Added a chatbot display mode switch between floating widget and left sidebar panel.</p>
                         <hr />
 
-                        <h3>Update Date: 5/13/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 5/13/2026</h2>
                         <p>Completed a full RAG pipeline for the Living Atlas Helper Chatbot, using a local embedding model and DeepSeek as the generation model. Due to an ongoing AI service connection issue, the chatbot is temporarily unavailable.</p>
                         <p>Added a map zoom level (Z) axis control to the Mapbox native control group, displaying the user's current zoom level in real time.</p>
                         <hr />
 
-                        <h3>Update Date: 5/11/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 5/11/2026</h2>
                         <p>Added the AI chatbot hidden floating UI window and backend wiring. Full features (RAG and conversation memory) are still under development and currently unavailable.</p>
                         <p>Added a new onboarding button under the left sidebar changelog button for general app onboarding, with a brief walkthrough of each panel and guidance that each panel has its own onboarding.</p>
                         <p>Expanded the User Manual with detailed Service/Layer Info modal documentation.</p>
@@ -344,7 +352,7 @@ function ChangelogHistory() {
                         <p>Added top-right Help and Onboarding buttons to the Create Card modal, matching the Card Container style, with Help redirecting to the relevant User Manual section.</p>
                         <hr />
 
-                        <h3>Update Date: 5/10/2026</h3>
+                        <h2 className="info-page__section-title">Update Date: 5/10/2026</h2>
                         <p>Added onboarding tours for the ArcGIS Upload Panel, Custom Layers Panel, and Basemap Panel.</p>
                         <p>Cards and card titles now adapt to different screen sizes automatically.</p>
                         <p>Updated the Custom Layers Panel search and navigate-to-result functionality to match the behavior of the Upload Panel.</p>
@@ -355,8 +363,8 @@ function ChangelogHistory() {
 
                 {activeTab === 'future' && (
                     <>
-                        <h3>Future Works</h3>
-                        <h4>Chatbot (Production Release)</h4>
+                        <h2 className="info-page__section-title">Future Works</h2>
+                        <h3 className="info-page__subheading">Chatbot (Production Release)</h3>
                         <ul className="changelog-list">
                           <li>Integrate ArcGIS knowledge base: Query ArcGIS services database to retrieve REST endpoint information and provide answers to ArcGIS-related questions.</li>
                           <li>Integrate card knowledge base: Access card data in the database to extract and share relevant information in chatbot responses.</li>
@@ -365,24 +373,24 @@ function ChangelogHistory() {
                           <li>Performance improvements: Reduce response latency and improve answer accuracy.</li>
                         </ul>
 
-                        <h4>ArcGIS Upload Panel</h4>
+                        <h3 className="info-page__subheading">ArcGIS Upload Panel</h3>
                         <ul className="changelog-list">
                           <li>Support for additional ArcGIS database content and services.</li>
                         </ul>
 
-                        <h4>Custom Layer Panel</h4>
+                        <h3 className="info-page__subheading">Custom Layer Panel</h3>
                         <ul className="changelog-list">
                           <li>Add more user-customization options for modifying panel content and behavior.</li>
                         </ul>
 
-                        <h4>Left Sidebar</h4>
+                        <h3 className="info-page__subheading">Left Sidebar</h3>
                         <ul className="changelog-list">
                           <li>Expand app settings with global configuration options (e.g., theme style preferences).</li>
                         </ul>
                     </>
                 )}
             </div>
-        </div>
+        </InfoPage>
     );
 }
 

@@ -9,9 +9,9 @@ import { SHOW_LEGACY_ORGANIZATION_LOGO } from './branding';
 import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
 import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, toggleGallerySelection } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faArrowLeft, faCheck, faUpload, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faArrowLeft, faCheck, faUpload, faXmark, faQuestion, faPlay, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
-import { faHeart as regularHeart, faQuestionCircle, faCirclePlay } from '@fortawesome/free-regular-svg-icons';
+import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
 import { fetchUserPreferences } from './userPreferencesApi';
 import RichTextEditor from './RichTextEditor';
 import RepresentationPreview from './RepresentationPreview';
@@ -455,7 +455,7 @@ function Card(props) {
         }
 
         if (!formData.username || !formData.title) {
-            alert("Missing username or title — cannot delete card.");
+            alert("Missing username or title — cannot delete project.");
             return;
         }
 
@@ -463,11 +463,11 @@ function Card(props) {
         const cardOwnerEmail = formData.email || '';
         const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('isAdmin')); } catch { return false; } })();
         if (!isAdmin && viewerEmail && cardOwnerEmail && viewerEmail !== cardOwnerEmail) {
-            alert("You don't have permission to delete this card. Only the card's creator or an admin can delete it.");
+            alert("You don't have permission to delete this project. Only the project's creator or an admin can delete it.");
             return;
         }
 
-        if (!window.confirm("Are you sure you want to delete this card?")) return;
+        if (!window.confirm("Are you sure you want to delete this project?")) return;
 
         api.delete(`/deleteCard`, {
             params: {
@@ -477,7 +477,7 @@ function Card(props) {
             }
         })
         .then(() => {
-            alert("Card deleted successfully.");
+            alert("Project deleted successfully.");
             if (typeof props.onCardDelete === "function") {
                 props.onCardDelete(true);
             } else {
@@ -486,7 +486,7 @@ function Card(props) {
         })
         .catch((error) => {
             console.error("Delete failed:", error);
-            alert("Failed to delete the card.");
+            alert("Failed to delete the project.");
         });
     };
 
@@ -683,7 +683,7 @@ function Card(props) {
             }
         }
 
-        const safeName = (formData.title || 'card').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const safeName = (formData.title || 'project').replace(/[^a-z0-9]/gi, '_').toLowerCase();
         doc.save(`${safeName}.pdf`);
     };
 
@@ -703,13 +703,13 @@ function Card(props) {
 
         if (!cardID) {
             console.error("Missing cardID");
-            alert("Error: Cannot favorite this card — missing card ID.");
+            alert("Error: Cannot favorite this project — missing project ID.");
             return;
         }
 
         if (!username) {
             console.error("Missing username");
-            alert("Error: Cannot favorite this card — missing username.");
+            alert("Error: Cannot favorite this project — missing username.");
             return;
         }
 
@@ -768,11 +768,11 @@ function Card(props) {
             }
         }
         if (isPolygonCard && (!Array.isArray(formData.polygon_vertices) || formData.polygon_vertices.length < 3)) {
-            alert('Polygon cards must keep at least 3 points.');
+            alert('Polygon projects must keep at least 3 points.');
             return false;
         }
         if (isImageCard && (!Array.isArray(formData.polygon_vertices) || formData.polygon_vertices.length < 4)) {
-            alert('Image cards must keep 4 corner points.');
+            alert('Image projects must keep 4 corner points.');
             return false;
         }
         return true;
@@ -794,7 +794,7 @@ function Card(props) {
             await api.get(`/profileAccount?username=${encodeURIComponent(formData.username)}`);
         } catch (error) {
             if (error.response?.status === 404) {
-                alert(`Card Creator "${formData.username}" does not exist. Please use a valid username.`);
+                alert(`Project Creator "${formData.username}" does not exist. Please use a valid username.`);
                 return;
             }
         }
@@ -949,7 +949,7 @@ function Card(props) {
     setLoading(true);
     try {
         await api.post("/uploadForm", formDataToSend);
-        alert("Card Information Saved.");
+        alert("Project Information Saved.");
         isEditingRef.current = !closeEditModal; // Keep learn-more drafts protected through image saves.
         if (closeEditModal) {
             setIsEditModalOpen(false);
@@ -965,20 +965,20 @@ function Card(props) {
         console.error("Failed to save the card:", error);
         
         // Extract detailed error message from backend response
-        let errorMessage = "Failed to save the card. Please try again.";
+        let errorMessage = "Failed to save the project. Please try again.";
         const detail = error.response?.data?.detail;
         const detailText = typeof detail === "string" ? detail : "";
 
         if (detailText.includes("Card Creator username does not exist")) {
-            errorMessage = "Card Creator does not exist. Please enter an existing username.";
+            errorMessage = "Project Creator does not exist. Please enter an existing username.";
         } else if (detailText.includes("Card not found for update")) {
-            errorMessage = "Could not save because the original card was not found. If you changed the Title, close and reopen Edit, then try again.";
+            errorMessage = "Could not save because the original project was not found. If you changed the Title, close and reopen Edit, then try again.";
         } else if (detailText) {
             errorMessage = `Error: ${detailText}`;
         } else if (error.response?.data?.message) {
             errorMessage = `Error: ${error.response.data.message}`;
         } else if (error.response?.status === 404) {
-            errorMessage = "Unable to save: card or card creator was not found.";
+            errorMessage = "Unable to save: project or project creator was not found.";
         } else if (error.message) {
             errorMessage = `Error: ${error.message}`;
         }
@@ -1372,7 +1372,7 @@ function Card(props) {
         const _cardOwnerEmail = formData.email || '';
         const _isAdmin = (() => { try { return JSON.parse(localStorage.getItem('isAdmin')); } catch { return false; } })();
         if (!_isAdmin && _viewerEmail && _cardOwnerEmail && _viewerEmail !== _cardOwnerEmail) {
-            alert("You don't have permission to edit this card. Only the card's creator or an admin can edit it.");
+            alert("You don't have permission to edit this project. Only the project's creator or an admin can edit it.");
             return false;
         }
         setLearnMoreBackup({ ...formData });
@@ -1756,7 +1756,7 @@ function Card(props) {
 
         if (!isLearnMoreEditMode || isImageMutationLoading) return;
         if ((formData.images || []).length >= MAX_CARD_IMAGES) {
-            alert(`A card can have at most ${MAX_CARD_IMAGES} images.`);
+            alert(`A project can have at most ${MAX_CARD_IMAGES} images.`);
             return;
         }
 
@@ -1775,7 +1775,7 @@ function Card(props) {
 
         const cardID = formData.cardID || props.cardID;
         if (!cardID) {
-            alert('Unable to add images because card ID is missing.');
+            alert('Unable to add images because project ID is missing.');
             return;
         }
 
@@ -1783,7 +1783,7 @@ function Card(props) {
         try {
             const uploadFormData = new FormData();
             uploadFormData.append('cardID', cardID);
-            uploadFormData.append('altText', file.name || `Card image ${(pendingImageSlotIndex ?? 0) + 1}`);
+            uploadFormData.append('altText', file.name || `Project image ${(pendingImageSlotIndex ?? 0) + 1}`);
             uploadFormData.append('image', file);
             const uploadResponse = await api.post('/uploadCardImage', uploadFormData);
             const uploadedImageID = uploadResponse?.data?.imageID;
@@ -1821,7 +1821,7 @@ function Card(props) {
             }
         }
         if (!imageID) {
-            alert('This image is no longer available. Please reopen the card.');
+            alert('This image is no longer available. Please reopen the project.');
             return;
         }
         setPendingDeletedImageIDs(prev => [...new Set([...prev, imageID])]);
@@ -1871,7 +1871,7 @@ function Card(props) {
     );
 
     const cardImageList = isImageCard
-        ? [{ url: cardThumbnailSrc, id: 'card-representation', imageID: null, alt: 'Card representation' }]
+        ? [{ url: cardThumbnailSrc, id: 'card-representation', imageID: null, alt: 'Project representation' }]
         : displayCardData.images && Array.isArray(displayCardData.images) && displayCardData.images.length > 0
         ? (() => {
             const images = displayCardData.images.map((img, idx) => normalizeImageRecord(img, idx));
@@ -1935,8 +1935,8 @@ function Card(props) {
         setSelectedAllImageIDs([]);
     };
 
-    const currentImage = imageList[currentImageIndex] || imageList[0] || { url: cardThumbnailSrc, id: 'fallback-preview', alt: 'Card preview' };
-    const cardCurrentImage = cardImageList[currentImageIndex] || cardImageList[0] || { url: cardThumbnailSrc, id: 'fallback-card', alt: 'Card thumbnail' };
+    const currentImage = imageList[currentImageIndex] || imageList[0] || { url: cardThumbnailSrc, id: 'fallback-preview', alt: 'Project preview' };
+    const cardCurrentImage = cardImageList[currentImageIndex] || cardImageList[0] || { url: cardThumbnailSrc, id: 'fallback-card', alt: 'Project thumbnail' };
     const hasMultipleImages = cardImageList.length > 1;
     const isCardCurrentImageDefault = (() => {
         const url = cardCurrentImage?.url;
@@ -2034,7 +2034,7 @@ function Card(props) {
             <div className="card-thumbnail-container">
                 {cardCurrentImage.url && (SHOW_LEGACY_ORGANIZATION_LOGO || !isCardCurrentImageDefault) && failedCardImageUrl !== cardCurrentImage.url ? <img
                     src={cardCurrentImage.url}
-                    alt={cardCurrentImage.alt || "Card Thumbnail"}
+                    alt={cardCurrentImage.alt || "Project Thumbnail"}
                     className={`card-thumbnail${isCardCurrentImageDefault ? '' : ' card-thumbnail--cover'}`}
                     onClick={handleOpenImagePreview}
                     onError={() => setFailedCardImageUrl(cardCurrentImage.url)}
@@ -2135,15 +2135,12 @@ function Card(props) {
                                 >
                                     Cancel
                                 </button>
-                                {hasUnsavedChanges && (
-                                    <span className="learn-more-unsaved-badge">You have unsaved changes</span>
-                                )}
                             </div>
                         ) : (
                             <button
-                                className="learn-more-modal-edit-btn"
+                                className="learn-more-modal-edit-btn learn-more-modal-icon-btn"
                                 onClick={handleLearnMoreEditStart}
-                                aria-label="Edit card in Learn More modal"
+                                aria-label="Edit project in Learn More modal"
                                 title="Edit"
                             >
                                 <FontAwesomeIcon icon={faPenToSquare} />
@@ -2151,47 +2148,50 @@ function Card(props) {
                         )}
 
                         <button
-                            className="learn-more-modal-download-btn"
+                            className="learn-more-modal-download-btn learn-more-modal-icon-btn"
                             onClick={handleDownloadPdf}
-                            aria-label="Download card as PDF"
+                            aria-label="Download project as PDF"
                             title="Download as PDF"
                         >
                             <FontAwesomeIcon icon={faDownload} />
                         </button>
 
                         <button
-                            className="learn-more-modal-delete-btn"
+                            className="learn-more-modal-delete-btn learn-more-modal-icon-btn"
                             onClick={handleDelete}
-                            aria-label="Delete card"
-                            title="Delete card"
+                            aria-label="Delete project"
+                            title="Delete project"
                         >
                             <FontAwesomeIcon icon={faTrashCan} />
                         </button>
+                        {isLearnMoreEditMode && hasUnsavedChanges && (
+                            <span className="learn-more-unsaved-badge">You have unsaved changes</span>
+                        )}
                     </div>
 
                     <div className="learn-more-modal-toolbar-right">
                         <button
-                            className="learn-more-modal-help-btn"
+                            className="learn-more-modal-help-btn learn-more-modal-icon-btn"
                             onClick={() => window.open('/user-manual?section=detail-view', '_blank')}
-                            aria-label="Open card detail help"
+                            aria-label="Open project detail help"
                             title="Help"
                         >
-                            <FontAwesomeIcon icon={faQuestionCircle} />
+                            <FontAwesomeIcon icon={faQuestion} />
                         </button>
                         <button
-                            className="learn-more-modal-onboarding-btn"
+                            className="learn-more-modal-onboarding-btn learn-more-modal-icon-btn"
                             onClick={() => setIsLearnMoreOnboardingOpen(true)}
                             aria-label="Start detail view onboarding"
                             title="Onboarding"
                         >
-                            <FontAwesomeIcon icon={faCirclePlay} />
+                            <FontAwesomeIcon icon={faPlay} />
                         </button>
                         <button
-                            className="learn-more-modal-close"
+                            className="learn-more-modal-close learn-more-modal-icon-btn"
                             onClick={handleLearnMoreClose}
                             aria-label="Close learn more modal"
                         >
-                            ×
+                            <FontAwesomeIcon icon={faTimes} />
                         </button>
                     </div>
                 </div>
@@ -2247,12 +2247,12 @@ function Card(props) {
                                 </p>
                             </div>
 
-                            <p className="learn-more-gallery-selection-hint">{`${learnMoreGalleryImages.length} / 6 images selected. Choose up to 6 images here for Multiple images and Slideshow; number 1 is the card cover. Drag images on the main page to change their order. Up to ${MAX_CARD_IMAGES} images total.`}</p>
+                            <p className="learn-more-gallery-selection-hint">{`${learnMoreGalleryImages.length} / 6 images selected. Choose up to 6 images here for Multiple images and Slideshow; number 1 is the project cover. Drag images on the main page to change their order. Up to ${MAX_CARD_IMAGES} images total.`}</p>
                             <div className="learn-more-all-images-list">
                                 {allImagesList.map((image, index) => (
                                     <div className={`learn-more-all-image-item ${isLearnMoreEditMode && visibleGalleryIDs.includes(galleryImageID(image)) ? 'is-main-selected' : ''}`} key={`all-image-${image.imageID || image.id || index}`}>
                                         {isLearnMoreEditMode && (
-                                            <label className="learn-more-gallery-selection" title={gallerySelectionSlots[0] === galleryImageID(image) ? 'Card cover' : 'Show on main page'} onClick={e => e.stopPropagation()}>
+                                            <label className="learn-more-gallery-selection" title={gallerySelectionSlots[0] === galleryImageID(image) ? 'Project cover' : 'Show on main page'} onClick={e => e.stopPropagation()}>
                                                 <span className="learn-more-gallery-checkbox">
                                                     <input type="checkbox" aria-label={`Show image ${index + 1} on main page`}
                                                         checked={visibleGalleryIDs.includes(galleryImageID(image))}
@@ -2273,7 +2273,7 @@ function Card(props) {
                                             <img
                                                 className="learn-more-all-image"
                                                 src={image.url}
-                                                alt={image.alt || `Card image ${index + 1}`}
+                                                alt={image.alt || `Project image ${index + 1}`}
                                             />
                                         </button>
 
@@ -2357,8 +2357,8 @@ function Card(props) {
                                     <input className="learn-more-inline-input" type="text" name="name" value={formData.name || ''} onChange={handleInputChange} />
                                 </div>
                                 <div className="learn-more-field-cell">
-                                    <p><strong>Card Creator:</strong></p>
-                                    <input className="learn-more-inline-input learn-more-inline-readonly" type="text" name="username" value={formData.username || ''} readOnly disabled title="Card Creator cannot be edited" />
+                                    <p><strong>Project Creator:</strong></p>
+                                    <input className="learn-more-inline-input learn-more-inline-readonly" type="text" name="username" value={formData.username || ''} readOnly disabled title="Project Creator cannot be edited" />
                                 </div>
                                 <div className="learn-more-field-cell">
                                     <p><strong>Email:</strong></p>
@@ -2506,7 +2506,7 @@ function Card(props) {
                         <>
                             <div className="learn-more-fields-grid">
                                 <p><strong>Author:</strong> {formData.name}</p>
-                                <p><strong>Card Creator:</strong> {formData.username}</p>
+                                <p><strong>Project Creator:</strong> {formData.username}</p>
                                 <p><strong>Email:</strong> {formData.email}</p>
                                 <p><strong>Funding:</strong> {formData.funding || 'N/A'}</p>
                                 <p><strong>Organization:</strong> {formData.org || 'N/A'}</p>
@@ -2933,7 +2933,7 @@ function Card(props) {
                 {imageList.length > 1 && (
                     <button className="image-preview-nav image-preview-nav-prev" onClick={goToPrevImage} aria-label="Previous image">&#8249;</button>
                 )}
-                <img src={currentImage.url} alt="Card enlarged preview" className="image-preview-content" onError={(e) => { e.target.onerror = null; e.target.src = '/CEREO-logo.png'; }} />
+                <img src={currentImage.url} alt="Project enlarged preview" className="image-preview-content" onError={(e) => { e.target.onerror = null; e.target.src = '/CEREO-logo.png'; }} />
                 {imageList.length > 1 && (
                     <button className="image-preview-nav image-preview-nav-next" onClick={goToNextImage} aria-label="Next image">&#8250;</button>
                 )}
@@ -2960,15 +2960,15 @@ function Card(props) {
                 shouldCloseOnEsc={false}
                 className="Modal"
             >
-                <h2>{formData.cardID ? "Edit Card" : "Create Card"}</h2>
+                <h2>{formData.cardID ? "Edit Project" : "Create Project"}</h2>
                 <form onSubmit={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     const serializedLink = serializeLinks(editFormLinks);
                     saveEdits({ linkOverride: { link: serializedLink, link_text: '' } });
                 }}>
-                    <label>Card Creator:
-                        <input type="text" name="username" value={formData.username || ''} readOnly required title="Card Creator cannot be edited" />
+                    <label>Project Creator:
+                        <input type="text" name="username" value={formData.username || ''} readOnly required title="Project Creator cannot be edited" />
                     </label>
                     <label>Author:
                         <input type="text" name="name" value={formData.name || ''} onChange={handleInputChange} required />

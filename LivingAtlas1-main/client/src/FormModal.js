@@ -599,7 +599,7 @@ const FormModal = (props) => {
                     &times;
                 </button>
                 <div data-onboarding-target="create-card-modal-root">
-                <h2 data-onboarding-target="create-card-title">Create Card</h2>
+                <h2 data-onboarding-target="create-card-title">Create Project</h2>
                 <form onSubmit={handleSubmit}>
                     <label>Author Name <span className="form-modal-required-star">*</span>:</label>
                     <input 
@@ -701,7 +701,7 @@ const FormModal = (props) => {
 
                     {locationType === 'point' && (
                         <div className="form-modal-location-content form-modal-location-content--point">
-                            <p className="form-modal-location-description">Pin this card at one or more coordinate points. Add points on the map, fine-tune each by latitude/longitude, and choose an icon per point.</p>
+                            <p className="form-modal-location-description">Pin this project at one or more coordinate points. Add points on the map, fine-tune each by latitude/longitude, and choose an icon per point.</p>
                             <button type="button" className="location_button" onClick={handleStartMultipointPlacement}>
                                 {multiPoints.length > 0 ? 'Edit Points on Map' : 'Add Points on Map'}
                             </button>
@@ -805,7 +805,7 @@ const FormModal = (props) => {
                         data-onboarding-target="create-card-image-upload"
                         onClick={() => imageInputRef.current?.click()}
                     >
-                        <p>{locationType === 'image' ? 'Click or drag to add optional gallery images for the card details view' : 'Click or drag to add images (PNG, JPG, GIF, WebP)'}</p>
+                        <p>{locationType === 'image' ? 'Click or drag to add optional gallery images for the project details view' : 'Click or drag to add images (PNG, JPG, GIF, WebP)'}</p>
                         <span className="form-modal-image-upload-btn">Choose Images</span>
                         <input
                             ref={imageInputRef}

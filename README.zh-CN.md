@@ -127,7 +127,7 @@ npm install
 npm start
 ```
 
-浏览器访问 <http://localhost:3000>。**当前配置：**[`client/src/api.js`](LivingAtlas1-main/client/src/api.js) 默认指向托管后端，仅启动本地后端不会自动切换前端请求。若要进行完整的本地开发，需要在本地检出中将 Axios 的 `baseURL` 配置为 `http://localhost:8000`，并在提交前检查该改动。可选的聊天机器人可以通过 `REACT_APP_CHATBOT_API_URL` 连接独立服务。
+浏览器访问 <http://localhost:3000>。[`client/src/api.js`](LivingAtlas1-main/client/src/api.js) 使用 `REACT_APP_API_URL`，未设置时会回退到托管后端。完整本地开发时，如尚无 `client/.env.development.local`，请复制 [`client/.env.development.local.example`](LivingAtlas1-main/client/.env.development.local.example) 创建该文件，并设置 `REACT_APP_API_URL=http://localhost:8000`。修改环境配置后需重启前端。可选的聊天机器人可以通过 `REACT_APP_CHATBOT_API_URL` 连接独立服务。
 
 部分功能依赖外部服务：地图瓦片和 ArcGIS 图层需要网络连接；图片或文件上传可能需要 Azure Blob Storage 凭据。基础浏览功能需要数据库中已有数据。
 
@@ -157,6 +157,8 @@ npm start
 ## 参与贡献
 
 较大的改动请先通过 issue 讨论，再提交聚焦单一主题的 pull request。请简述改动后的行为、验证方式；涉及界面变化时附上截图。不要提交本地环境文件、数据库文件或服务凭据。
+
+维护指南（英文）：[贡献流程](CONTRIBUTING.md)、[路线图](ROADMAP.md)、[安全政策](SECURITY.md)、[运维与版本发布](documentation/OPERATIONS.md)、[GitHub 仓库配置](documentation/REPOSITORY_SETUP.md)。
 
 ## 许可证
 

@@ -127,7 +127,7 @@ npm install
 npm start
 ```
 
-Abre <http://localhost:3000>. **Configuración actual:** [`client/src/api.js`](LivingAtlas1-main/client/src/api.js) apunta de forma predeterminada al backend alojado. Iniciar un backend local no redirige automáticamente las solicitudes del frontend. Para desarrollar todo el sistema en local, configura el `baseURL` de Axios como `http://localhost:8000` en tu copia local y revisa el cambio antes de incluirlo en un commit. El asistente opcional puede usar `REACT_APP_CHATBOT_API_URL` para acceder a un servicio independiente.
+Abre <http://localhost:3000>. [`client/src/api.js`](LivingAtlas1-main/client/src/api.js) usa `REACT_APP_API_URL` y, si no está definida, utiliza el backend alojado. Para desarrollar todo el sistema en local, copia [`client/.env.development.local.example`](LivingAtlas1-main/client/.env.development.local.example) a `client/.env.development.local` si este archivo local aún no existe y establece `REACT_APP_API_URL=http://localhost:8000`. Reinicia el frontend después de cambiar las variables del entorno. El asistente opcional puede usar `REACT_APP_CHATBOT_API_URL` para acceder a un servicio independiente.
 
 Algunas funciones necesitan servicios externos: las teselas de mapas y las capas de ArcGIS requieren acceso a la red; la carga de imágenes y archivos puede necesitar credenciales de Azure Blob Storage. La navegación básica depende de que la base de datos contenga datos.
 
@@ -157,6 +157,8 @@ Algunas funciones necesitan servicios externos: las teselas de mapas y las capas
 ## Contribuciones
 
 Abre un issue para comentar los cambios importantes y después envía un pull request centrado en ellos. Incluye una breve descripción del comportamiento, cómo lo comprobaste y capturas de pantalla si cambió la interfaz. No incluyas en los commits archivos del entorno local, archivos de la base de datos ni credenciales de servicios.
+
+Guías de mantenimiento (en inglés): [flujo de contribución](CONTRIBUTING.md), [hoja de ruta](ROADMAP.md), [política de seguridad](SECURITY.md), [operaciones y versiones](documentation/OPERATIONS.md) y [configuración del repositorio en GitHub](documentation/REPOSITORY_SETUP.md).
 
 ## Licencia
 

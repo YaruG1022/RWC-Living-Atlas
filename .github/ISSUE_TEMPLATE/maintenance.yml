@@ -1,0 +1,33 @@
+name: Maintenance task
+description: Plan testing, documentation, dependency, or operational work.
+title: "[Maintenance]: "
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Reason for the work
+      description: Describe the maintenance need and link any evidence or related issue.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and proposed work
+      description: Identify affected components and any dependencies or operational risks.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria and verification
+      description: List the deliverables and the evidence needed to close this task.
+      placeholder: |
+        - [ ] ...
+        Verification: ...
+    validations:
+      required: true
+  - type: textarea
+    id: owner
+    attributes:
+      label: Suggested owner and release
+      description: Optional. A maintainer will set the assignee, priority, milestone, and board status during triage.

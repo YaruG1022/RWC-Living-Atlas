@@ -1,0 +1,112 @@
+name: Engineering CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: LivingAtlas1-main/client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: LivingAtlas1-main/client/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Run all component and utility regressions
+        run: npm test -- --watchAll=false --runInBand
+        env:
+          CI: 'true'
+      - name: Check manual export contracts
+        run: node --test scripts/export-manual.test.cjs
+      - name: Build production client and capture offline manual examples
+        run: npm run build
+        env:
+          # CRA currently reports existing lint warnings; compilation still fails on errors.
+          CI: 'false'
+
+  backend:
+    name: Backend offline regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: LivingAtlas1-main/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: LivingAtlas1-main/backend/requirements.txt
+      - run: python -m pip install -r requirements.txt
+      - run: python -m pip check
+      - name: Run storage, attachment and gallery regressions without cloud services
+        # Explicit modules exclude historical tests that use a live database or Azure.
+        run: >-
+          python -m unittest -v
+          tests.test_local_storage
+          tests.test_attachment_download
+          tests.test_description_attachments
+          tests.test_gallery_layout
+      - name: Check repository administration and publication helpers offline
+        run: python -m unittest discover -s ../../scripts -p 'test_*.py'
+
+  postgres:
+    name: PostgreSQL integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: livingatlas_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-local-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d livingatlas_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CI_POSTGRES_TEST: '1'
+      LOCAL_TEST_MODE: '1'
+      DATABASE_URL: ''
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_NAME: livingatlas_test
+      DB_USER: postgres
+      DB_PASSWORD: ci-local-only
+      DB_SSLMODE: disable
+      DB_REQUEST_POOL_SIZE: '4'
+    defaults:
+      run:
+        working-directory: LivingAtlas1-main/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: LivingAtlas1-main/backend/requirements.txt
+      - run: python -m pip install -r requirements.txt
+      - name: Initialize an empty test database and verify migrations, reads and signup uniqueness
+        run: python scripts/check_ci_postgres.py

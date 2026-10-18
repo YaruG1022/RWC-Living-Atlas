@@ -1,0 +1,53 @@
+name: Bug report
+description: Report behavior that does not work as expected.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For vulnerabilities, follow [the security policy](https://github.com/YaruG1022/RWC-Living-Atlas/blob/main/SECURITY.md).
+        Remove credentials and personal data from reports, logs, and screenshots.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Problem and impact
+      description: What is broken, and which users or tasks are affected?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include the smallest reproducible example using synthetic data.
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and evidence
+      description: Include redacted logs or screenshots and whether the problem is intermittent.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include the release or commit, local or hosted environment, browser/OS, and relevant component. Do not include secrets.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Suggested acceptance criteria
+      description: How should a fix be verified? A maintainer can refine this during triage.

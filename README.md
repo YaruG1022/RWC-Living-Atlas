@@ -127,7 +127,7 @@ npm install
 npm start
 ```
 
-Open <http://localhost:3000>. **Current configuration:** [`client/src/api.js`](LivingAtlas1-main/client/src/api.js) points to the hosted backend by default. Starting a local backend alone does not redirect frontend requests to it. For full local development, configure that Axios `baseURL` for `http://localhost:8000` in your local checkout and review the change before committing. The optional chatbot can use `REACT_APP_CHATBOT_API_URL` to reach a separate service.
+Open <http://localhost:3000>. [`client/src/api.js`](LivingAtlas1-main/client/src/api.js) uses `REACT_APP_API_URL` and falls back to the hosted backend when it is unset. For full local development, copy [`client/.env.development.local.example`](LivingAtlas1-main/client/.env.development.local.example) to `client/.env.development.local` if that local file does not already exist, and set `REACT_APP_API_URL=http://localhost:8000`. Restart the frontend after changing environment settings. The optional chatbot can use `REACT_APP_CHATBOT_API_URL` to reach a separate service.
 
 Some features need external services: map tiles and ArcGIS layers need network access, while image/file uploads may need Azure Blob Storage credentials. Basic browsing depends on the database being populated.
 
@@ -157,6 +157,8 @@ Some features need external services: map tiles and ArcGIS layers need network a
 ## Contributing
 
 Open an issue to discuss substantial changes, then submit a focused pull request. Include a short description of the behavior, how you checked it, and screenshots for visible UI changes. Keep local environment files, database files, and service credentials out of commits.
+
+Maintainer guides: [contribution workflow](CONTRIBUTING.md), [roadmap](ROADMAP.md), [security policy](SECURITY.md), [operations and releases](documentation/OPERATIONS.md), and [GitHub repository setup](documentation/REPOSITORY_SETUP.md).
 
 ## License
 

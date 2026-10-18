@@ -104,6 +104,12 @@ export const manualGuiUpdates = [
 export const latestGuiUpdateDate = '10/18/2026';
 export const latestGuiUpdates = [
     {
+        title: 'Card Filter Menu',
+        items: [
+            'Kept the Filter menu fully visible beyond narrow card panels, with screen-aware placement and scrolling on shorter screens.',
+        ],
+    },
+    {
         title: 'Consistent Panel Scrollbars',
         items: [
             'Made the Project Cards scrollbar slimmer and matched the Basemaps and ArcGIS panel scrollbars to its neutral gray appearance.',

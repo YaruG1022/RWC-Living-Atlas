@@ -53,16 +53,27 @@
 
 /* Menu panel */
 .filter-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
+  position: fixed;
+  visibility: hidden;
+  width: 280px;
+  max-width: calc(100vw - 16px);
+  box-sizing: border-box;
+  font-family: var(--font-sans, Arial, sans-serif);
+  font-size: 13px;
+  line-height: 1.4;
   background-color: #fff;
   border: 1px solid #cdd5e0;
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
-  z-index: 1000;
-  min-width: 240px;
-  overflow: hidden;
+  z-index: 2000;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Keep portal controls independent of the toolbar's inherited button spacing. */
+.filter-dropdown-menu button {
+  margin: 0;
 }
 
 /* Sections */
@@ -163,6 +174,7 @@
 
 .filter-dropdown-tag-input input {
   flex: 1;
+  min-width: 0;
   border: 1px solid #ced4da;
   border-radius: 4px;
   padding: 5px 8px;
@@ -176,6 +188,7 @@
 }
 
 .filter-dropdown-tag-add {
+  flex-shrink: 0;
   background: #28a745;
   color: #fff;
   border: none;
@@ -199,6 +212,8 @@
 }
 
 .filter-dropdown-tag {
+  max-width: 100%;
+  overflow-wrap: anywhere;
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -210,6 +225,7 @@
 }
 
 .filter-dropdown-tag button {
+  flex-shrink: 0;
   background: none;
   border: none;
   color: #0c5460;
@@ -225,6 +241,8 @@
 
 /* Footer */
 .filter-dropdown-footer {
+  position: sticky;
+  bottom: 0;
   display: flex;
   gap: 8px;
   padding: 10px 12px;

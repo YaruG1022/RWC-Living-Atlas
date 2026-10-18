@@ -3,6 +3,11 @@ base = "LivingAtlas1-main/client"
 command = "CI=false npm run build"
 publish = "build"
 
+[context.production]
+# The published manual identifies the full repository SHA, including docs/backend changes.
+# Netlify's ignore command must exit 1 to build rather than skip an unchanged client.
+ignore = "exit 1"
+
 [build.environment]
 NODE_VERSION = "22.17.0"
 NPM_FLAGS = "--ignore-scripts --no-audit --no-fund"

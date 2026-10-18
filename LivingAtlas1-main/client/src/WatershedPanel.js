@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useId } from 'react';
+import mapboxgl from 'mapbox-gl';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faLocationCrosshairs, faTrash, faSpinner, faQuestion, faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faTimes, faLocationCrosshairs, faTrash, faSpinner, faQuestion, faPlay, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import './WatershedPanel.css';
 import PolygonDrawingModal from './PolygonDrawingModal';
 import { saveCustomLayer } from './arcgisServicesDb';
@@ -51,12 +52,21 @@ function geojsonBounds(geojson) {
     return Number.isFinite(bounds[0]) ? bounds : null;
 }
 
+function pourPointCoordinates(geojson) {
+    const feature = geojson?.type === 'FeatureCollection'
+        ? geojson.features?.find(item => item?.geometry?.type === 'Point')
+        : geojson;
+    const geometry = feature?.type === 'Feature' ? feature.geometry : feature;
+    const coordinates = geometry?.type === 'Point' ? geometry.coordinates : null;
+    return coordinates && Number.isFinite(coordinates[0]) && Number.isFinite(coordinates[1])
+        ? { lng: coordinates[0], lat: coordinates[1] } : null;
+}
+
 export default function WatershedPanel({ isOpen, onClose, splitBottom = false, mapInstance, isLoggedIn, userEmail, onCustomLayerSaved }) {
     const [stateCode, setStateCode] = useState('WA');
     const [isArmed, setIsArmed] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [clickedPoint, setClickedPoint] = useState(null);
-    const [workspaceId, setWorkspaceId] = useState('');
     const [error, setError] = useState('');
     const [zoomHint, setZoomHint] = useState(false);
     const [hasResult, setHasResult] = useState(false);
@@ -69,13 +79,53 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
     const [saveError, setSaveError] = useState('');
     const [polygonVertices, setPolygonVertices] = useState(null);
     const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+    const [isSaveMenuOpen, setIsSaveMenuOpen] = useState(false);
+    const saveMenuId = useId();
+    const saveDropdownRef = useRef(null);
+    const saveTriggerRef = useRef(null);
+    const saveMenuRef = useRef(null);
+    const focusLastSaveOptionRef = useRef(false);
+    const pointMarkerRef = useRef(null);
+    const pointPopupRef = useRef(null);
+    const timeoutRef = useRef(null);
     const savingRef = useRef(false);
     const abortRef = useRef(null);
     const selectedState = STATES.find(s => s.code === stateCode);
 
     useEffect(() => {
-        if (!isOpen) setIsOnboardingOpen(false);
+        if (!isOpen) {
+            setIsOnboardingOpen(false);
+            setIsArmed(false);
+            setIsSaveMenuOpen(false);
+        }
     }, [isOpen]);
+
+    useEffect(() => {
+        if (!isOpen || isLoading || isSaving || polygonVertices || !hasResult) setIsSaveMenuOpen(false);
+    }, [isOpen, isLoading, isSaving, polygonVertices, hasResult]);
+
+    useEffect(() => {
+        if (!isSaveMenuOpen) return undefined;
+        const options = saveMenuRef.current?.querySelectorAll('[role="menuitem"]:not(:disabled)');
+        const option = focusLastSaveOptionRef.current ? options?.[options.length - 1] : options?.[0];
+        option?.focus();
+        const onOutside = event => {
+            if (!saveDropdownRef.current?.contains(event.target)) setIsSaveMenuOpen(false);
+        };
+        const onEscape = event => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                setIsSaveMenuOpen(false);
+                saveTriggerRef.current?.focus();
+            }
+        };
+        document.addEventListener('mousedown', onOutside);
+        document.addEventListener('keydown', onEscape);
+        return () => {
+            document.removeEventListener('mousedown', onOutside);
+            document.removeEventListener('keydown', onEscape);
+        };
+    }, [isSaveMenuOpen]);
 
     // Keep the overlay when the panel closes; basemap changes also restore it.
     useEffect(() => {
@@ -143,15 +193,23 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
             setHasResult(true);
             setBasinData(map.getStyle?.()?.sources?.[BASIN_SOURCE]?.data || null);
         }
+        const point = pourPointCoordinates(map?.getStyle?.()?.sources?.[POINT_SOURCE]?.data);
+        if (map && point) {
+            showPourPoint(map, point, false);
+            setClickedPoint(point);
+            if (map.getLayer(POINT_LAYER)) map.removeLayer(POINT_LAYER);
+            if (map.getSource(POINT_SOURCE)) map.removeSource(POINT_SOURCE);
+        }
         return () => {
-            abortRef.current?.abort();
+            invalidateRequest();
+            removePourPoint();
         };
         // eslint-disable-next-line
     }, []);
 
     // While armed: crosshair cursor + one delineation per map click
     useEffect(() => {
-        if (!isArmed) return;
+        if (!isArmed || !isOpen) return;
         const map = getMap();
         if (!map) {
             setIsArmed(false);
@@ -176,40 +234,66 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
             map.getCanvas().style.cursor = '';
         };
         // eslint-disable-next-line
-    }, [isArmed, stateCode]);
+    }, [isArmed, stateCode, isOpen]);
 
-    const renderResult = (map, basin, point) => {
+    const showPourPoint = (map, point, openPopup = true) => {
+        const coordinates = `${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}`;
+        const content = document.createElement('div');
+        const title = document.createElement('strong');
+        title.textContent = 'Pour point';
+        const value = document.createElement('div');
+        value.className = 'watershed-point-popup__coordinates';
+        value.textContent = coordinates;
+        content.append(title, value);
+
+        if (!pointPopupRef.current) {
+            pointPopupRef.current = new mapboxgl.Popup({
+                className: 'watershed-point-popup', closeOnClick: false,
+                focusAfterOpen: false, offset: 12, maxWidth: '240px',
+            });
+        }
+        pointPopupRef.current.setLngLat([point.lng, point.lat]).setDOMContent(content);
+        if (!pointMarkerRef.current) {
+            const element = document.createElement('div');
+            element.className = 'watershed-point-marker';
+            element.setAttribute('role', 'button');
+            element.title = 'Show pour point coordinates';
+            pointMarkerRef.current = new mapboxgl.Marker({ element }).setPopup(pointPopupRef.current);
+        }
+        pointMarkerRef.current.getElement().setAttribute('aria-label', `Pour point: ${coordinates}`);
+        pointMarkerRef.current.setLngLat([point.lng, point.lat]).addTo(map);
+        if (openPopup) pointPopupRef.current.addTo(map);
+    };
+
+    const removePourPoint = () => {
+        pointMarkerRef.current?.remove();
+        pointMarkerRef.current = null;
+        pointPopupRef.current?.remove();
+        pointPopupRef.current = null;
+    };
+
+    const invalidateRequest = () => {
+        const controller = abortRef.current;
+        abortRef.current = null;
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+        controller?.abort();
+    };
+
+    const renderResult = (map, basin, point, originalPoint) => {
         clearResultLayers(map);
-
         map.addSource(BASIN_SOURCE, { type: 'geojson', data: basin });
         map.addLayer({
-            id: BASIN_FILL_LAYER,
-            type: 'fill',
-            source: BASIN_SOURCE,
+            id: BASIN_FILL_LAYER, type: 'fill', source: BASIN_SOURCE,
             paint: { 'fill-color': '#f5c542', 'fill-opacity': 0.3 },
         });
         map.addLayer({
-            id: BASIN_OUTLINE_LAYER,
-            type: 'line',
-            source: BASIN_SOURCE,
+            id: BASIN_OUTLINE_LAYER, type: 'line', source: BASIN_SOURCE,
             paint: { 'line-color': '#b8860b', 'line-width': 2.5 },
         });
-
-        if (point) {
-            map.addSource(POINT_SOURCE, { type: 'geojson', data: point });
-            map.addLayer({
-                id: POINT_LAYER,
-                type: 'circle',
-                source: POINT_SOURCE,
-                paint: {
-                    'circle-radius': 6,
-                    'circle-color': '#d32f2f',
-                    'circle-stroke-color': '#ffffff',
-                    'circle-stroke-width': 2,
-                },
-            });
-        }
-
+        const position = pourPointCoordinates(point) || originalPoint;
+        showPourPoint(map, position, false);
+        setClickedPoint(position);
         const bounds = geojsonBounds(basin);
         if (bounds) {
             map.fitBounds([[bounds[0], bounds[1]], [bounds[2], bounds[3]]], { padding: 60 });
@@ -231,61 +315,77 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
     };
 
     const delineate = async ({ lng, lat }) => {
+        invalidateRequest();
         setError('');
-        setWorkspaceId('');
+        setSaveMessage('');
+        setSaveError('');
+        setHasResult(false);
+        setBasinData(null);
+        setIsSaveMenuOpen(false);
         setClickedPoint({ lng, lat });
         setIsLoading(true);
-
         const controller = new AbortController();
         abortRef.current = controller;
         const timeoutTimer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+        timeoutRef.current = timeoutTimer;
+        const isCurrent = () => abortRef.current === controller;
 
         try {
+            const map = getMap();
+            if (!map) throw new Error('Map is not ready yet. Please try again.');
+            clearResultLayers(map);
+            map.stop?.();
+            // DOM markers appear before the request and survive basemap style changes.
+            showPourPoint(map, { lng, lat });
             const params = new URLSearchParams({ lat: lat.toFixed(6), lon: lng.toFixed(6) });
             const res = await fetch(`${SS_DELINEATE_URL}/${stateCode}?${params}`, { signal: controller.signal });
+            if (!isCurrent() || controller.signal.aborted) return;
             if (!res.ok) throw new Error(`StreamStats returned HTTP ${res.status}. Please try again later.`);
             const data = await res.json();
-
-            // featurecollection nests entry lists one level deep
+            if (!isCurrent() || controller.signal.aborted) return;
             const entries = (data?.bcrequest?.wsresp?.featurecollection || []).flat(2);
             const basin = entries.find(f => f?.name === 'globalwatershed')?.feature;
             const point = entries.find(f => f?.name === 'globalwatershedpoint')?.feature;
-            if (!basin) {
-                throw new Error('No watershed was returned. Try clicking closer to a stream channel.');
-            }
-
-            const map = getMap();
-            if (map) renderResult(map, basin, point);
-            setWorkspaceId(data?.bcrequest?.wsresp?.workspace_id || '');
+            if (!basin) throw new Error('No watershed was returned. Try clicking closer to a stream channel.');
+            renderResult(map, basin, point, { lng, lat });
         } catch (err) {
-            if (err.name === 'AbortError') {
-                setError('The request timed out or was cancelled. StreamStats can be slow — please try again.');
-            } else {
-                setError(err.message || 'Delineation failed.');
-            }
+            if (!isCurrent()) return;
+            setError(err.name === 'AbortError'
+                ? 'The request timed out. StreamStats can be slow — please try again.'
+                : err.message || 'Delineation failed.');
         } finally {
             clearTimeout(timeoutTimer);
-            setIsLoading(false);
-            abortRef.current = null;
+            if (isCurrent()) {
+                timeoutRef.current = null;
+                abortRef.current = null;
+                setIsLoading(false);
+            }
         }
     };
 
     const handleArmToggle = () => {
         setError('');
         setZoomHint(false);
+        setIsSaveMenuOpen(false);
         setIsArmed(v => !v);
     };
 
     const handleCancel = () => {
-        abortRef.current?.abort();
+        invalidateRequest();
+        setIsLoading(false);
+        setError('');
     };
 
     const handleClear = () => {
+        invalidateRequest();
+        setIsLoading(false);
+        setIsArmed(false);
+        setIsSaveMenuOpen(false);
         const map = getMap();
         if (map) clearResultLayers(map);
+        removePourPoint();
         setHasResult(false);
         setClickedPoint(null);
-        setWorkspaceId('');
         setError('');
         setBasinData(null);
         setSaveMessage('');
@@ -348,6 +448,35 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
             detail: { vertices, centroid, fillColor: style?.fillColor, fillOpacity: style?.fillOpacity, lineStyle: style?.lineStyle },
         }));
     };
+
+    const chooseSaveOption = action => {
+        setIsSaveMenuOpen(false);
+        saveTriggerRef.current?.focus();
+        action();
+    };
+
+    const handleSaveMenuKeyDown = event => {
+        const options = Array.from(saveMenuRef.current?.querySelectorAll('[role="menuitem"]:not(:disabled)') || []);
+        const index = options.indexOf(document.activeElement);
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1
+            : event.key === 'ArrowDown' ? (index + 1) % options.length
+            : event.key === 'ArrowUp' ? (index - 1 + options.length) % options.length : null;
+        if (next !== null && options.length) {
+            event.preventDefault();
+            options[next].focus();
+        }
+        if (event.key === 'Tab') {
+            setIsSaveMenuOpen(false);
+            saveTriggerRef.current?.focus();
+        }
+    };
+
+    const clearButton = (
+        <button className="watershed-panel-clear-btn" title="Clear result from map" aria-label="Clear result from map"
+            data-onboarding-target="watershed-clear" onClick={handleClear} disabled={isSaving}>
+            <FontAwesomeIcon icon={faTrash} /> Clear
+        </button>
+    );
 
     if (!isOpen) return null;
 
@@ -432,43 +561,58 @@ export default function WatershedPanel({ isOpen, onClose, splitBottom = false, m
                 {isLoading && (
                     <div className="watershed-panel-loading">
                         <FontAwesomeIcon icon={faSpinner} spin />
-                        <span>Delineating watershed… this can take up to 30 seconds.</span>
+                        <span>Delineating watershed… this can take up to 2 minutes.</span>
                         <button className="watershed-panel-cancel-btn" onClick={handleCancel}>Cancel</button>
                     </div>
                 )}
 
                 {error && <div className="watershed-panel-error">{error}</div>}
 
-                {clickedPoint && !isLoading && !error && hasResult && (
-                    <div className="watershed-panel-result" data-onboarding-target="watershed-results">
-                        <div><strong>Pour point:</strong> {clickedPoint.lat.toFixed(5)}, {clickedPoint.lng.toFixed(5)}</div>
-                        {workspaceId && (
-                            <div className="watershed-panel-result-workspace"><strong>Workspace:</strong> {workspaceId}</div>
-                        )}
-                    </div>
-                )}
-
                 {hasResult && !isLoading && (
-                    <>
-                    <label className="watershed-panel-field">
-                        <span>Basin name</span>
-                        <input value={basinName} onChange={e => setBasinName(e.target.value)} disabled={isSaving} />
-                    </label>
-                    <div className="watershed-panel-result-actions">
-                    <button className="watershed-panel-arm-btn" title="Save as custom layer" aria-label="Save as custom layer" data-onboarding-target="watershed-save-layer" onClick={handleSaveCustomLayer} disabled={isSaving || !basinData}>
-                        {isSaving ? 'Saving…' : 'Save layer'}
-                    </button>
-                    <button className="watershed-panel-arm-btn" title="Save as polygon" aria-label="Save as polygon" data-onboarding-target="watershed-save-polygon" onClick={handleSavePolygon} disabled={isSaving || !basinData}>
-                        Save polygon
-                    </button>
-                    {saveMessage && <div role="status" className="watershed-panel-result">{saveMessage}</div>}
-                    {saveError && <div role="alert" className="watershed-panel-error">{saveError}</div>}
-                    <button className="watershed-panel-clear-btn" title="Clear result from map" aria-label="Clear result from map" data-onboarding-target="watershed-clear" onClick={handleClear} disabled={isSaving}>
-                        <FontAwesomeIcon icon={faTrash} /> Clear
-                    </button>
+                    <div data-onboarding-target="watershed-results">
+                        <div className="watershed-panel-save" ref={saveDropdownRef} data-onboarding-target="watershed-save">
+                            <label className="watershed-panel-field">
+                                <span>Basin name</span>
+                                <input value={basinName} onChange={e => setBasinName(e.target.value)} disabled={isSaving} />
+                            </label>
+                            <div className="watershed-panel-result-actions">
+                                <button ref={saveTriggerRef} className="watershed-panel-arm-btn watershed-panel-save-trigger"
+                                    title="Save watershed" aria-label="Save watershed" aria-haspopup="menu"
+                                    aria-expanded={isSaveMenuOpen} aria-controls={saveMenuId}
+                                    onClick={() => { focusLastSaveOptionRef.current = false; setIsArmed(false); setIsSaveMenuOpen(value => !value); }}
+                                    onKeyDown={event => {
+                                        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                                            event.preventDefault();
+                                            focusLastSaveOptionRef.current = event.key === 'ArrowUp';
+                                            setIsSaveMenuOpen(true);
+                                        }
+                                    }}
+                                    disabled={isSaving || !basinData}>
+                                    {isSaving ? 'Saving…' : 'Save'} <FontAwesomeIcon icon={faChevronDown} />
+                                </button>
+                                {clearButton}
+                            </div>
+                            {isSaveMenuOpen && (
+                                <div id={saveMenuId} className="watershed-panel-save-menu" role="menu" aria-label="Save watershed"
+                                    ref={saveMenuRef} onKeyDown={handleSaveMenuKeyDown}>
+                                    <button className="watershed-panel-save-option" role="menuitem" title="Save as custom layer"
+                                        aria-label="Save as custom layer" data-onboarding-target="watershed-save-layer"
+                                        onClick={() => chooseSaveOption(handleSaveCustomLayer)} disabled={isSaving || !basinData}>
+                                        Save as custom layer
+                                    </button>
+                                    <button className="watershed-panel-save-option" role="menuitem" title="Save as polygon"
+                                        aria-label="Save as polygon" data-onboarding-target="watershed-save-polygon"
+                                        onClick={() => chooseSaveOption(handleSavePolygon)} disabled={isSaving || !basinData}>
+                                        Save as polygon
+                                    </button>
+                                </div>
+                            )}
+                            {saveMessage && <div role="status" className="watershed-panel-result">{saveMessage}</div>}
+                            {saveError && <div role="alert" className="watershed-panel-error">{saveError}</div>}
+                        </div>
                     </div>
-                    </>
                 )}
+                {clickedPoint && (!hasResult || isLoading) && clearButton}
             </div>
             <WatershedPanelOnboarding isOpen={isOnboardingOpen} onClose={() => setIsOnboardingOpen(false)} isPanelCollapsed={!isOpen} />
             {polygonVertices && (

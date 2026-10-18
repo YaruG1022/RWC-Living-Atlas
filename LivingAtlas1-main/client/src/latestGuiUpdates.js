@@ -104,6 +104,13 @@ export const manualGuiUpdates = [
 export const latestGuiUpdateDate = '10/18/2026';
 export const latestGuiUpdates = [
     {
+        title: 'Watershed Panel Improvements',
+        items: [
+            'Show the selected pour point immediately while StreamStats runs, with coordinates in a small map popup and safe cancellation and clearing.',
+            'Matched the watershed panel controls to the other map panels and grouped custom-layer and polygon saving under one Save menu.',
+        ],
+    },
+    {
         title: 'Project Terminology',
         items: [
             'Renamed the browsing panel and its controls, project details, creation dialog and guided tours to use Project instead of Card.',

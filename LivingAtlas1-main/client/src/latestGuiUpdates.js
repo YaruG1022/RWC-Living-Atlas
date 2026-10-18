@@ -104,6 +104,12 @@ export const manualGuiUpdates = [
 export const latestGuiUpdateDate = '10/18/2026';
 export const latestGuiUpdates = [
     {
+        title: 'Project Detail Toolbar',
+        items: [
+            'Moved the unsaved-changes notice beside Delete with a subtle gray-blue background, and matched Help, Tutorial and Close icons and buttons to the rest of the interface.',
+        ],
+    },
+    {
         title: 'Watershed Panel Improvements',
         items: [
             'Show the selected pour point immediately while StreamStats runs, with coordinates in a small map popup and safe cancellation and clearing.',

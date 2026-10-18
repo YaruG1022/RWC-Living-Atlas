@@ -9,9 +9,9 @@ import { SHOW_LEGACY_ORGANIZATION_LOGO } from './branding';
 import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
 import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, toggleGallerySelection } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faArrowLeft, faCheck, faUpload, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faArrowLeft, faCheck, faUpload, faXmark, faQuestion, faPlay, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
-import { faHeart as regularHeart, faQuestionCircle, faCirclePlay } from '@fortawesome/free-regular-svg-icons';
+import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
 import { fetchUserPreferences } from './userPreferencesApi';
 import RichTextEditor from './RichTextEditor';
 import RepresentationPreview from './RepresentationPreview';
@@ -2135,13 +2135,10 @@ function Card(props) {
                                 >
                                     Cancel
                                 </button>
-                                {hasUnsavedChanges && (
-                                    <span className="learn-more-unsaved-badge">You have unsaved changes</span>
-                                )}
                             </div>
                         ) : (
                             <button
-                                className="learn-more-modal-edit-btn"
+                                className="learn-more-modal-edit-btn learn-more-modal-icon-btn"
                                 onClick={handleLearnMoreEditStart}
                                 aria-label="Edit project in Learn More modal"
                                 title="Edit"
@@ -2151,7 +2148,7 @@ function Card(props) {
                         )}
 
                         <button
-                            className="learn-more-modal-download-btn"
+                            className="learn-more-modal-download-btn learn-more-modal-icon-btn"
                             onClick={handleDownloadPdf}
                             aria-label="Download project as PDF"
                             title="Download as PDF"
@@ -2160,38 +2157,41 @@ function Card(props) {
                         </button>
 
                         <button
-                            className="learn-more-modal-delete-btn"
+                            className="learn-more-modal-delete-btn learn-more-modal-icon-btn"
                             onClick={handleDelete}
                             aria-label="Delete project"
                             title="Delete project"
                         >
                             <FontAwesomeIcon icon={faTrashCan} />
                         </button>
+                        {isLearnMoreEditMode && hasUnsavedChanges && (
+                            <span className="learn-more-unsaved-badge">You have unsaved changes</span>
+                        )}
                     </div>
 
                     <div className="learn-more-modal-toolbar-right">
                         <button
-                            className="learn-more-modal-help-btn"
+                            className="learn-more-modal-help-btn learn-more-modal-icon-btn"
                             onClick={() => window.open('/user-manual?section=detail-view', '_blank')}
                             aria-label="Open project detail help"
                             title="Help"
                         >
-                            <FontAwesomeIcon icon={faQuestionCircle} />
+                            <FontAwesomeIcon icon={faQuestion} />
                         </button>
                         <button
-                            className="learn-more-modal-onboarding-btn"
+                            className="learn-more-modal-onboarding-btn learn-more-modal-icon-btn"
                             onClick={() => setIsLearnMoreOnboardingOpen(true)}
                             aria-label="Start detail view onboarding"
                             title="Onboarding"
                         >
-                            <FontAwesomeIcon icon={faCirclePlay} />
+                            <FontAwesomeIcon icon={faPlay} />
                         </button>
                         <button
-                            className="learn-more-modal-close"
+                            className="learn-more-modal-close learn-more-modal-icon-btn"
                             onClick={handleLearnMoreClose}
                             aria-label="Close learn more modal"
                         >
-                            ×
+                            <FontAwesomeIcon icon={faTimes} />
                         </button>
                     </div>
                 </div>

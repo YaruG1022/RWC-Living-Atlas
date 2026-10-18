@@ -88,8 +88,8 @@ export const contactGuiUpdates = [
     },
 ];
 
-export const latestGuiUpdateDate = '10/14/2026';
-export const latestGuiUpdates = [
+export const manualGuiUpdateDate = '10/14/2026';
+export const manualGuiUpdates = [
     {
         title: 'User Manual and Atlas Helper',
         items: [
@@ -97,6 +97,17 @@ export const latestGuiUpdates = [
             'Atlas Helper now follows the published manual, refreshes automatically and links to relevant chapters. Failed updates retain the last verified instructions.',
             'For icon, position and layout questions, the helper can consult matching manual screenshots when available, with text fallback. Plain-text questions avoid image calls.',
             'Improved multi-step guidance for permissions, required fields and saving changes; questions about current public Atlas data still use live data.',
+        ],
+    },
+];
+
+export const latestGuiUpdateDate = '10/18/2026';
+export const latestGuiUpdates = [
+    {
+        title: 'Consistent Information Pages',
+        items: [
+            'Unified About, Contact, Update History and User Manual with matching headings, typography, dividers and content spacing.',
+            'Refined Contact form styling and keyboard focus states, and made the manual section navigator scroll within the page on smaller screens.',
         ],
     },
 ];

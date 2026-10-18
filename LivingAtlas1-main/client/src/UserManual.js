@@ -53,6 +53,7 @@ import { faHeart as regularHeart, faFolder } from '@fortawesome/free-regular-svg
 import LearnMoreGallery from './LearnMoreGallery';
 import ManualGalleryDemo from './manual/ManualGalleryDemo';
 import RepresentationPreview from './RepresentationPreview';
+import InfoPage from './InfoPage';
 import './Card.css';
 import './Content2.css';
 import './SortDropdown.css';
@@ -122,11 +123,10 @@ function UserManual() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   return (
-    <div className="user-manual">
-      <h1>User Manual</h1>
+    <InfoPage title="User Manual" className="user-manual">
 
       <div className="um-layout">
-        <nav className="um-nav-sidebar">
+        <nav className="um-nav-sidebar" aria-label="User manual sections">
           <span className="um-nav-heading">Sections</span>
           {SECTION_GROUPS.map((group) => {
             const isGroupActive = group.sections.some((section) => {
@@ -186,7 +186,7 @@ function UserManual() {
 
       {activeSection === 'home' && (
       <section className="um-section">
-        <h2><ManualText sectionId="home" blockId="home-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="home" blockId="home-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="home" blockId="home-002" onNavigate={navTo} /></p>
 
         <p className="um-section-desc"><ManualText sectionId="home" blockId="home-003" onNavigate={navTo} /></p>
@@ -208,42 +208,42 @@ function UserManual() {
 
       {activeSection === 'navigation' && (
       <section className="um-section">
-        <h2><ManualText sectionId="navigation" blockId="navigation-001" onNavigate={navTo} /></h2>
-        <h3><ManualText sectionId="navigation" blockId="navigation-002" onNavigate={navTo} /></h3>
+        <h2 className="info-page__section-title"><ManualText sectionId="navigation" blockId="navigation-001" onNavigate={navTo} /></h2>
+        <h3 className="info-page__subheading"><ManualText sectionId="navigation" blockId="navigation-002" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="navigation" blockId="navigation-003" onNavigate={navTo} /></p>
         <p><ManualText sectionId="navigation" blockId="navigation-004" onNavigate={navTo} /></p>
-        <h3><ManualText sectionId="navigation" blockId="navigation-005" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="navigation" blockId="navigation-005" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="navigation" blockId="navigation-006" onNavigate={navTo} /></p>
-        <h3><ManualText sectionId="navigation" blockId="navigation-007" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="navigation" blockId="navigation-007" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="navigation" blockId="navigation-008" onNavigate={navTo} /></p>
-        <h3><ManualText sectionId="navigation" blockId="navigation-009" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="navigation" blockId="navigation-009" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="navigation" blockId="navigation-010" onNavigate={navTo} /></p>
       </section>
       )}
 
       {activeSection === 'accounts' && (
       <section className="um-section">
-        <h2><ManualText sectionId="accounts" blockId="accounts-001" onNavigate={navTo} /></h2>
-        <h3><ManualText sectionId="accounts" blockId="accounts-002" onNavigate={navTo} /></h3>
+        <h2 className="info-page__section-title"><ManualText sectionId="accounts" blockId="accounts-001" onNavigate={navTo} /></h2>
+        <h3 className="info-page__subheading"><ManualText sectionId="accounts" blockId="accounts-002" onNavigate={navTo} /></h3>
         <ol><ManualText sectionId="accounts" blockId="accounts-003" onNavigate={navTo} /></ol>
-        <h3><ManualText sectionId="accounts" blockId="accounts-004" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="accounts" blockId="accounts-004" onNavigate={navTo} /></h3>
         <ol><ManualText sectionId="accounts" blockId="accounts-005" onNavigate={navTo} /></ol>
-        <h3><ManualText sectionId="accounts" blockId="accounts-006" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="accounts" blockId="accounts-006" onNavigate={navTo} /></h3>
         <ol><ManualText sectionId="accounts" blockId="accounts-007" onNavigate={navTo} /></ol>
-        <h3><ManualText sectionId="accounts" blockId="accounts-008" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="accounts" blockId="accounts-008" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="accounts" blockId="accounts-009" onNavigate={navTo} /></p>
       </section>
       )}
 
       {activeSection === 'profile-admin' && (
       <section className="um-section">
-        <h2><ManualText sectionId="profile-admin" blockId="profile-admin-001" onNavigate={navTo} /></h2>
-        <h3><ManualText sectionId="profile-admin" blockId="profile-admin-002" onNavigate={navTo} /></h3>
+        <h2 className="info-page__section-title"><ManualText sectionId="profile-admin" blockId="profile-admin-001" onNavigate={navTo} /></h2>
+        <h3 className="info-page__subheading"><ManualText sectionId="profile-admin" blockId="profile-admin-002" onNavigate={navTo} /></h3>
         <ol><ManualText sectionId="profile-admin" blockId="profile-admin-003" onNavigate={navTo} /></ol>
         <p><ManualText sectionId="profile-admin" blockId="profile-admin-004" onNavigate={navTo} /></p>
-        <h3><ManualText sectionId="profile-admin" blockId="profile-admin-005" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="profile-admin" blockId="profile-admin-005" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="profile-admin" blockId="profile-admin-006" onNavigate={navTo} /></p>
-        <h3><ManualText sectionId="profile-admin" blockId="profile-admin-007" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="profile-admin" blockId="profile-admin-007" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="profile-admin" blockId="profile-admin-008" onNavigate={navTo} /></p>
         <p><ManualText sectionId="profile-admin" blockId="profile-admin-009" onNavigate={navTo} /></p>
       </section>
@@ -251,18 +251,18 @@ function UserManual() {
 
       {activeSection === 'tutorials-updates' && (
       <section className="um-section">
-        <h2><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-001" onNavigate={navTo} /></h2>
-        <h3><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-002" onNavigate={navTo} /></h3>
+        <h2 className="info-page__section-title"><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-001" onNavigate={navTo} /></h2>
+        <h3 className="info-page__subheading"><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-002" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-003" onNavigate={navTo} /></p>
         <p><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-004" onNavigate={navTo} /></p>
-        <h3><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-005" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-005" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="tutorials-updates" blockId="tutorials-updates-006" onNavigate={navTo} /></p>
       </section>
       )}
 
       {activeSection === 'feature-search-panel' && (
       <section className="um-section">
-        <h2><ManualText sectionId="feature-search-panel" blockId="feature-search-panel-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="feature-search-panel" blockId="feature-search-panel-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="feature-search-panel" blockId="feature-search-panel-002" onNavigate={navTo} /></p>
 
         <div className="um-feature-list">
@@ -340,7 +340,7 @@ function UserManual() {
 
       {activeSection === 'card-container' && (
       <section className="um-section">
-        <h2><ManualText sectionId="card-container" blockId="card-container-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="card-container" blockId="card-container-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="card-container" blockId="card-container-002" onNavigate={navTo} /></p>
 
         {/* ---- Full annotated demo card ---- */}
@@ -660,21 +660,21 @@ function UserManual() {
 
       {activeSection === 'chatbot' && (
         <section className="um-section">
-          <h2><ManualText sectionId="chatbot" blockId="chatbot-001" onNavigate={navTo} /></h2>
+          <h2 className="info-page__section-title"><ManualText sectionId="chatbot" blockId="chatbot-001" onNavigate={navTo} /></h2>
           <p className="um-section-desc"><ManualText sectionId="chatbot" blockId="chatbot-002" onNavigate={navTo} /></p>
           <div className="um-isolated-demo" data-manual-example="chatbot-example-01"><FontAwesomeIcon icon={faRightLeft} /> Switch to sidebar panel / Switch to floating widget</div>
           <p><ManualText sectionId="chatbot" blockId="chatbot-003" onNavigate={navTo} /></p>
-          <h3><ManualText sectionId="chatbot" blockId="chatbot-004" onNavigate={navTo} /></h3>
+          <h3 className="info-page__subheading"><ManualText sectionId="chatbot" blockId="chatbot-004" onNavigate={navTo} /></h3>
           <p><ManualText sectionId="chatbot" blockId="chatbot-005" onNavigate={navTo} /></p>
           <p><ManualText sectionId="chatbot" blockId="chatbot-006" onNavigate={navTo} /></p>
-          <h3><ManualText sectionId="chatbot" blockId="chatbot-007" onNavigate={navTo} /></h3>
+          <h3 className="info-page__subheading"><ManualText sectionId="chatbot" blockId="chatbot-007" onNavigate={navTo} /></h3>
           <p><ManualText sectionId="chatbot" blockId="chatbot-008" onNavigate={navTo} /></p>
         </section>
       )}
 
       {activeSection === 'toolbar' && (
       <section className="um-section">
-        <h2><ManualText sectionId="toolbar" blockId="toolbar-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="toolbar" blockId="toolbar-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="toolbar" blockId="toolbar-002" onNavigate={navTo} /></p>
         <p className="um-feature-desc"><ManualText sectionId="toolbar" blockId="toolbar-003" onNavigate={navTo} /></p>
 
@@ -888,7 +888,7 @@ function UserManual() {
 
       {activeSection === 'add-card' && (
       <section className="um-section">
-        <h2><ManualText sectionId="add-card" blockId="add-card-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="add-card" blockId="add-card-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="add-card" blockId="add-card-002" onNavigate={navTo} /></p>
 
         {/* ---- Overview demo: compact scrollable form ---- */}
@@ -1163,7 +1163,7 @@ function UserManual() {
 
       {activeSection === 'arcgis-picker' && (
       <section className="um-section">
-        <h2><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="arcgis-picker" blockId="arcgis-picker-002" onNavigate={navTo} /></p>
 
         {/* ---- Overview demo ---- */}
@@ -1342,7 +1342,7 @@ function UserManual() {
 
       {activeSection === 'detail-view' && (
       <section className="um-section">
-        <h2><ManualText sectionId="detail-view" blockId="detail-view-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="detail-view" blockId="detail-view-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="detail-view" blockId="detail-view-002" onNavigate={navTo} /></p>
 
         {/* Full static mock of the modal shell */}
@@ -1831,12 +1831,12 @@ function UserManual() {
 
       {activeSection === 'arcgis-panel' && (
       <section className="um-section">
-        <h2><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-002" onNavigate={navTo} /></p>
-        <h3><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-003" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-003" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-004" onNavigate={navTo} /></p>
         <p><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-005" onNavigate={navTo} /></p>
-        <h3><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-006" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-006" onNavigate={navTo} /></h3>
         <ul><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-007" onNavigate={navTo} /></ul>
         <p><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-008" onNavigate={navTo} /></p>
         <p><ManualText sectionId="arcgis-panel" blockId="arcgis-panel-009" onNavigate={navTo} /></p>
@@ -2199,7 +2199,7 @@ function UserManual() {
 
       {activeSection === 'service-layer-info' && (
       <section className="um-section um-section--service-layer-info">
-        <h2><ManualText sectionId="service-layer-info" blockId="service-layer-info-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="service-layer-info" blockId="service-layer-info-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="service-layer-info" blockId="service-layer-info-002" onNavigate={navTo} /></p>
 
         <div className="um-feature-list">
@@ -2469,7 +2469,7 @@ function UserManual() {
 
       {activeSection === 'custom-layers' && (
       <section className="um-section">
-        <h2><ManualText sectionId="custom-layers" blockId="custom-layers-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="custom-layers" blockId="custom-layers-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="custom-layers" blockId="custom-layers-002" onNavigate={navTo} /></p>
         <p><ManualText sectionId="custom-layers" blockId="custom-layers-003" onNavigate={navTo} /></p>
         <p className="um-section-desc"><ManualText sectionId="custom-layers" blockId="custom-layers-004" onNavigate={navTo} /></p>
@@ -2751,28 +2751,28 @@ function UserManual() {
 
       {activeSection === 'watershed-panel' && (
       <section className="um-section">
-        <h2><ManualText sectionId="watershed-panel" blockId="watershed-panel-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="watershed-panel" blockId="watershed-panel-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="watershed-panel" blockId="watershed-panel-002" onNavigate={navTo} /></p>
 
-        <h3><ManualText sectionId="watershed-panel" blockId="watershed-panel-003" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="watershed-panel" blockId="watershed-panel-003" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="watershed-panel" blockId="watershed-panel-004" onNavigate={navTo} /></p>
         <ul><ManualText sectionId="watershed-panel" blockId="watershed-panel-005" onNavigate={navTo} /></ul>
 
-        <h3><ManualText sectionId="watershed-panel" blockId="watershed-panel-006" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="watershed-panel" blockId="watershed-panel-006" onNavigate={navTo} /></h3>
         <ol><ManualText sectionId="watershed-panel" blockId="watershed-panel-007" onNavigate={navTo} /></ol>
         <p><ManualText sectionId="watershed-panel" blockId="watershed-panel-008" onNavigate={navTo} /></p>
 
-        <h3><ManualText sectionId="watershed-panel" blockId="watershed-panel-009" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="watershed-panel" blockId="watershed-panel-009" onNavigate={navTo} /></h3>
         <ol><ManualText sectionId="watershed-panel" blockId="watershed-panel-010" onNavigate={navTo} /></ol>
         <p><ManualText sectionId="watershed-panel" blockId="watershed-panel-011" onNavigate={navTo} /></p>
         <button type="button" className="um-nav-item" onClick={() => navTo('custom-layers')}>Read about Custom Layers</button>
 
-        <h3><ManualText sectionId="watershed-panel" blockId="watershed-panel-012" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="watershed-panel" blockId="watershed-panel-012" onNavigate={navTo} /></h3>
         <ol><ManualText sectionId="watershed-panel" blockId="watershed-panel-013" onNavigate={navTo} /></ol>
         <p><ManualText sectionId="watershed-panel" blockId="watershed-panel-014" onNavigate={navTo} /></p>
         <button type="button" className="um-nav-item" onClick={() => navTo('add-card')}>Read about the Card Creation Form</button>
 
-        <h3><ManualText sectionId="watershed-panel" blockId="watershed-panel-015" onNavigate={navTo} /></h3>
+        <h3 className="info-page__subheading"><ManualText sectionId="watershed-panel" blockId="watershed-panel-015" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="watershed-panel" blockId="watershed-panel-016" onNavigate={navTo} /></p>
         <p><ManualText sectionId="watershed-panel" blockId="watershed-panel-017" onNavigate={navTo} /></p>
       </section>
@@ -2780,7 +2780,7 @@ function UserManual() {
 
       {activeSection === 'basemap-panel' && (
       <section className="um-section">
-        <h2><ManualText sectionId="basemap-panel" blockId="basemap-panel-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="basemap-panel" blockId="basemap-panel-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="basemap-panel" blockId="basemap-panel-002" onNavigate={navTo} /></p>
         <p><ManualText sectionId="basemap-panel" blockId="basemap-panel-003" onNavigate={navTo} /></p>
 
@@ -2942,7 +2942,7 @@ function UserManual() {
 
       {activeSection === 'map-controls' && (
       <section className="um-section">
-        <h2><ManualText sectionId="map-controls" blockId="map-controls-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="map-controls" blockId="map-controls-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="map-controls" blockId="map-controls-002" onNavigate={navTo} /></p>
 
         {/* ---- overview layout ---- */}
@@ -3166,7 +3166,7 @@ function UserManual() {
 
       {activeSection === 'add-single-point' && (
       <section className="um-section">
-        <h2><ManualText sectionId="add-single-point" blockId="add-single-point-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="add-single-point" blockId="add-single-point-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="add-single-point" blockId="add-single-point-002" onNavigate={navTo} /></p>
 
         <div className="um-feature-list">
@@ -3219,7 +3219,7 @@ function UserManual() {
 
       {activeSection === 'add-png' && (
       <section className="um-section">
-        <h2><ManualText sectionId="add-png" blockId="add-png-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="add-png" blockId="add-png-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="add-png" blockId="add-png-002" onNavigate={navTo} /></p>
 
         <div className="um-feature-list">
@@ -3335,7 +3335,7 @@ function UserManual() {
 
       {activeSection === 'polygon-tools' && (
       <section className="um-section">
-        <h2><ManualText sectionId="polygon-tools" blockId="polygon-tools-001" onNavigate={navTo} /></h2>
+        <h2 className="info-page__section-title"><ManualText sectionId="polygon-tools" blockId="polygon-tools-001" onNavigate={navTo} /></h2>
         <p className="um-section-desc"><ManualText sectionId="polygon-tools" blockId="polygon-tools-002" onNavigate={navTo} /></p>
         <p className="um-section-desc"><ManualText sectionId="polygon-tools" blockId="polygon-tools-003" onNavigate={navTo} /></p>
 
@@ -3641,7 +3641,7 @@ function UserManual() {
 
         </div>{/* um-content-area */}
       </div>{/* um-layout */}
-    </div>
+    </InfoPage>
   );
 }
 

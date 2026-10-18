@@ -129,7 +129,7 @@ class GitHub:
         try:
             result = self.runner(
                 command, input=None if payload is None else json.dumps(payload),
-                text=True, capture_output=True, check=False,
+                text=True, encoding="utf-8", capture_output=True, check=False,
             )
         except FileNotFoundError as exc:
             raise SetupError("Install GitHub CLI (gh) and authenticate before --apply.") from exc

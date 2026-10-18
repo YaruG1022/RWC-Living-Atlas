@@ -104,6 +104,12 @@ export const manualGuiUpdates = [
 export const latestGuiUpdateDate = '10/18/2026';
 export const latestGuiUpdates = [
     {
+        title: 'Consistent Panel Scrollbars',
+        items: [
+            'Made the Project Cards scrollbar slimmer and matched the Basemaps and ArcGIS panel scrollbars to its neutral gray appearance.',
+        ],
+    },
+    {
         title: 'Consistent Account Pages',
         items: [
             'Matched Login, Request Access, Switch Accounts, Profile and Administration to the User Manual typography, blue headings, light panels and form controls.',

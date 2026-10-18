@@ -4,6 +4,8 @@ import contextlib
 import copy
 import io
 import json
+import subprocess
+import sys
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -37,7 +39,7 @@ class FakeCLI:
             for name in setup.REQUIRED_CHECKS
         ]
 
-    def __call__(self, command, *, input, text, capture_output, check):
+    def __call__(self, command, *, input, text, encoding, capture_output, check):
         assert command[:2] == ["gh", "api"]
         payload = json.loads(input) if input else None
         args = command[2:]
@@ -142,6 +144,17 @@ class FakeCLI:
 
 
 class SetupTests(unittest.TestCase):
+    def test_unicode_api_json_survives_a_non_utf8_system_locale(self):
+        payload = json.dumps({"title": "\u6d4b\u8bd5 \u2014 caf\u00e9"}, ensure_ascii=False).encode("utf-8")
+        def utf8_cli(command, **kwargs):
+            return subprocess.run(
+                [sys.executable, "-c", f"import sys; sys.stdout.buffer.write({payload!r})"],
+                **kwargs,
+            )
+        with patch("subprocess._text_encoding", return_value="gbk"):
+            result = setup.GitHub(runner=utf8_cli).rest("GET", "repos/example/atlas")
+        self.assertEqual(result["title"], "\u6d4b\u8bd5 \u2014 caf\u00e9")
+
     def configure(self, cli):
         output = []
         config = setup.RepositorySetup(setup.GitHub(runner=cli), emit=output.append)

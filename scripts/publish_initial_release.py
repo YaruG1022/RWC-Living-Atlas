@@ -24,7 +24,7 @@ def github(method, endpoint, payload=None):
         command += ["--input", "-"]
     result = subprocess.run(
         command, input=json.dumps(payload) if payload is not None else None,
-        capture_output=True, text=True, check=False,
+        capture_output=True, text=True, encoding="utf-8", check=False,
     )
     if result.returncode:
         raise GitHubError(result.stderr.strip())
@@ -95,7 +95,7 @@ def main():
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
     notes = Path(__file__).resolve().parents[1] / "documentation/releases/v0.1.0.md"
-    print(publish(args.repository, args.sha, notes.read_text(), apply=args.apply))
+    print(publish(args.repository, args.sha, notes.read_text(encoding="utf-8"), apply=args.apply))
 
 
 if __name__ == "__main__":

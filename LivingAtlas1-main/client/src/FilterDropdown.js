@@ -176,8 +176,8 @@ function FilterDropdown({
         aria-haspopup="dialog"
         className={`filter-dropdown-trigger${activeCount > 0 ? ' active' : ''}`}
         onClick={() => setIsOpen(v => !v)}
-        title="Filter cards"
-        aria-label="Filter cards"
+        title="Filter projects"
+        aria-label="Filter projects"
       >
         <FontAwesomeIcon icon={faFilter} />
         <span>Filter</span>
@@ -186,7 +186,7 @@ function FilterDropdown({
 
       {isOpen && createPortal(
         <div className="filter-dropdown-menu" ref={menuRef} id={menuId}
-          role="dialog" aria-label="Filter cards">
+          role="dialog" aria-label="Filter projects">
           {/* Category section */}
           <div className="filter-dropdown-section">
             <div className="filter-dropdown-section-title">Category</div>
@@ -239,7 +239,7 @@ function FilterDropdown({
               <input type="checkbox" className="filter-dropdown-checkbox"
                 checked={pendingFavorites} disabled={!canUseFavorites}
                 onChange={event => setPendingFavorites(event.target.checked)} />
-              <span className="filter-dropdown-label">Show only favorited cards</span>
+              <span className="filter-dropdown-label">Show only favorited projects</span>
             </label>
             {!canUseFavorites && <p className="filter-dropdown-note">Log in to use favorites filter.</p>}
           </div>

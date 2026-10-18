@@ -5,38 +5,38 @@ import './OnboardingCardPanel.css';
 const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="create-card-modal-root"]',
-        title: 'Create Card Modal',
-        description: 'This modal is where you create a new card with metadata, location, media, and optional links.',
+        title: 'Create Project Modal',
+        description: 'This modal is where you create a new project with metadata, location, media, and optional links.',
         placement: 'left',
     },
     {
         selector: '[data-onboarding-target="create-card-top-actions"]',
         title: 'Top-Right Actions',
-        description: 'Use Help to open the Add Card section in the user manual, and Play to replay this onboarding.',
+        description: 'Use Help to open the project creation guide in the user manual, and Play to replay this onboarding.',
         placement: 'left',
     },
     {
         selector: '[data-onboarding-target="create-card-location-tabs"]',
         title: 'Location Type Tabs',
-        description: 'Choose between Single Point, Polygon Area, and Image Overlay to define card location behavior.',
+        description: 'Choose between Single Point, Polygon Area, and Image Overlay to define project location behavior.',
         placement: 'left',
     },
     {
         selector: '[data-onboarding-target="create-card-image-upload"]',
         title: 'Image Upload Area',
-        description: 'Upload gallery images used by the card detail view. For image overlay cards, these are optional Learn More images.',
+        description: 'Upload gallery images used by the project detail view. For image overlay projects, these are optional Learn More images.',
         placement: 'left',
     },
     {
         selector: '[data-onboarding-target="create-card-file-upload"]',
         title: 'File Upload Area',
-        description: 'Attach supporting files (for example PDFs, datasets, or documents) to this card.',
+        description: 'Attach supporting files (for example PDFs, datasets, or documents) to this project.',
         placement: 'left',
     },
     {
         selector: '[data-onboarding-target="create-card-submit-actions"]',
         title: 'Submit and Cancel',
-        description: 'Use Submit to create the card after required fields are complete, or Cancel to close without saving.',
+        description: 'Use Submit to create the project after required fields are complete, or Cancel to close without saving.',
         placement: 'left',
     },
 ];

@@ -104,6 +104,12 @@ export const manualGuiUpdates = [
 export const latestGuiUpdateDate = '10/18/2026';
 export const latestGuiUpdates = [
     {
+        title: 'Project Terminology',
+        items: [
+            'Renamed the browsing panel and its controls, project details, creation dialog and guided tours to use Project instead of Card.',
+        ],
+    },
+    {
         title: 'Card Filter Menu',
         items: [
             'Kept the Filter menu fully visible beyond narrow card panels, with screen-aware placement and scrolling on shorter screens.',

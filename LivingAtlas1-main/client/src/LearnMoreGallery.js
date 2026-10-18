@@ -58,10 +58,10 @@ export default function LearnMoreGallery({ images: allImages, totalImageCount = 
                 <button type="button" data-gallery-control className="lm-gallery-image-button" disabled={!image && !canAdd}
                     onClick={(event) => image ? onOpen(event, index) : onAdd(event, index)}
                     aria-label={image ? `Open image ${index + 1}` : `Add image ${index + 1}`}>
-                    {image ? <img src={image.url} alt={image.alt || `Card image ${index + 1}`} draggable={false} />
+                    {image ? <img src={image.url} alt={image.alt || `Project image ${index + 1}`} draggable={false} />
                         : <span className="lm-gallery-empty">{totalImageCount > 0 ? 'No images selected' : editing && canAdd ? '+ Add image' : 'No image'}</span>}
                 </button>
-                {isCover && <span className="lm-gallery-cover">Card cover</span>}
+                {isCover && <span className="lm-gallery-cover">Project cover</span>}
                 {editing && image && <div className="lm-gallery-tile-tools">
                     <button type="button" data-gallery-control disabled={busy || index === 0} onClick={() => reorder(index, index - 1)} aria-label={`Move image ${index + 1} earlier`}><FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" /></button>
                     <span aria-hidden="true"><FontAwesomeIcon icon={faGripVertical} /></span>
@@ -72,7 +72,7 @@ export default function LearnMoreGallery({ images: allImages, totalImageCount = 
         );
     };
 
-    return <section className={`lm-gallery-section${onSeeAll ? ' lm-gallery-section--has-see-all' : ''}`} aria-label="Card image gallery">
+    return <section className={`lm-gallery-section${onSeeAll ? ' lm-gallery-section--has-see-all' : ''}`} aria-label="Project image gallery">
         {editing && onLayoutChange && <div className="lm-gallery-layout-overlay">
             <GalleryLayoutSelector layout={layout} busy={busy} onChange={onLayoutChange} />
         </div>}

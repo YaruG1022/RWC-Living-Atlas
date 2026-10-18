@@ -798,11 +798,11 @@ function Content2(props) {
         return card.category === props.CategoryCondition;
     });
 
-    const scopeSubtitle = isViewportFilteringActive ? 'in view' : 'all cards';
-    const scopeButtonLabel = isViewportFilteringActive ? 'In View' : 'All Cards';
+    const scopeSubtitle = isViewportFilteringActive ? 'in view' : 'all projects';
+    const scopeButtonLabel = isViewportFilteringActive ? 'In View' : 'All Projects';
     const scopeButtonTitle = isViewportFilteringActive
-        ? 'Currently showing cards inside the map viewport. Click to show all cards.'
-        : 'Currently showing all cards. Click to show only cards in the map viewport.';
+        ? 'Currently showing projects inside the map viewport. Click to show all projects.'
+        : 'Currently showing all projects. Click to show only projects in the map viewport.';
 
     const cardsFilteredByTag = cardsInViewByType.filter((card) => {
         if (activeTagFilters.length === 0) return true;
@@ -946,7 +946,7 @@ function Content2(props) {
                 <div className="card-panel-top">
                     <div className="card-panel-titlebar" data-onboarding-target="card-titlebar">
                         <div className="card-panel-titlebar-text-group">
-                            <span className="card-panel-titlebar-text">Project Cards</span>
+                            <span className="card-panel-titlebar-text">Projects</span>
                             <span className="card-panel-titlebar-subtitle">{cardsInViewByType.length} {scopeSubtitle}</span>
                         </div>
                         <div className="card-panel-titlebar-actions">
@@ -979,8 +979,8 @@ function Content2(props) {
                             <button
                                 type="button"
                                 className="card-toolbar-button"
-                                aria-label="Add Card"
-                                title={props.isLoggedIn ? 'Add Card' : 'Log in to add a card'}
+                                aria-label="Add Project"
+                                title={props.isLoggedIn ? 'Add Project' : 'Log in to add a project'}
                                 onClick={() => {
                                     if (!props.isLoggedIn) {
                                         setShowLoginPrompt(true);
@@ -1053,7 +1053,7 @@ function Content2(props) {
                             type="text"
                             value={cardSearchKeyword}
                             onChange={(e) => setCardSearchKeyword(e.target.value)}
-                            placeholder="Search cards..."
+                            placeholder="Search projects..."
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     handleCardSearch();
@@ -1245,7 +1245,7 @@ function Content2(props) {
                                                 if (!props.isLoggedIn) { setShowLoginPrompt(true); return; }
                                                 togglePin(card.cardID);
                                             }}
-                                            title={pinnedCardIDs.has(card.cardID) ? 'Unpin card' : 'Pin to top'}
+                                            title={pinnedCardIDs.has(card.cardID) ? 'Unpin project' : 'Pin to top'}
                                         >
                                             <FontAwesomeIcon icon={faThumbtack} />
                                         </button>
@@ -1255,7 +1255,7 @@ function Content2(props) {
                         })()}
                     </div>
                 ) : (
-                    <p className="card-container-loading" data-onboarding-target="card-list-area">Loading Cards...</p>
+                    <p className="card-container-loading" data-onboarding-target="card-list-area">Loading Projects...</p>
                 )}
             </section>
 

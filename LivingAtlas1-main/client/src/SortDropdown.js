@@ -52,8 +52,8 @@ function SortDropdown({ value, onChange }) {
         type="button"
         className="sort-dropdown-trigger"
         onClick={() => setIsOpen((prev) => !prev)}
-        title="Sort cards"
-        aria-label="Sort cards"
+        title="Sort projects"
+        aria-label="Sort projects"
       >
         <FontAwesomeIcon icon={faSort} />
         <span title={displayText}>Sort</span>

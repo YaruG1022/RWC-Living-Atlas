@@ -438,8 +438,8 @@ function Home(props) {
         // Global / left sidebar functions
         {
             id: 'add-card',
-            label: 'Add Card',
-            keywords: ['add', 'add card', 'create card', 'new card', 'create card modal', 'card form'],
+            label: 'Add Project',
+            keywords: ['add', 'add card', 'create card', 'new card', 'create card modal', 'card form', "add project", "create project", "new project", "create project modal", "project form"],
             action: () => {
                 ensureCardPanelOpen();
                 window.dispatchEvent(new CustomEvent('atlas:open-create-card-modal'));
@@ -447,14 +447,14 @@ function Home(props) {
         },
         {
             id: 'view-all-cards',
-            label: 'View All Cards',
-            keywords: ['view', 'view all cards', 'show cards', 'open cards', 'card container', 'cards panel', 'card list'],
+            label: 'View All Projects',
+            keywords: ['view', 'view all cards', 'show cards', 'open cards', 'card container', 'cards panel', 'card list', "view all projects", "show projects", "open projects", "project container", "projects panel", "project list"],
             action: () => ensureCardPanelOpen(),
         },
         {
             id: 'hide-cards',
-            label: 'Hide Cards',
-            keywords: ['hide cards', 'close cards', 'collapse cards', 'close card panel'],
+            label: 'Hide Projects',
+            keywords: ['hide cards', 'close cards', 'collapse cards', 'close card panel', "hide projects", "close projects", "collapse projects", "close project panel"],
             action: () => setIsCollapsed(true),
         },
         {
@@ -509,74 +509,74 @@ function Home(props) {
         // Card container functions
         {
             id: 'card-help',
-            label: 'Card Panel Help',
-            keywords: ['card help', 'card panel help', 'cards help', 'manual card container'],
+            label: 'Project Panel Help',
+            keywords: ['card help', 'card panel help', 'cards help', 'manual card container', "project help", "project panel help", "projects help", "manual project container"],
             action: () => clickElementByTitle({ titles: 'Help', rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
         },
         {
             id: 'card-onboarding',
-            label: 'Card Panel Onboarding',
-            keywords: ['card onboarding', 'card tutorial', 'start onboarding cards'],
+            label: 'Project Panel Onboarding',
+            keywords: ['card onboarding', 'card tutorial', 'start onboarding cards', "project onboarding", "project tutorial", "start onboarding projects"],
             action: () => clickElementByTitle({ titles: 'Start onboarding', rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
         },
         {
             id: 'card-close-panel',
-            label: 'Close Card Panel',
-            keywords: ['close card panel', 'collapse card panel', 'hide card container'],
+            label: 'Close Project Panel',
+            keywords: ['close card panel', 'collapse card panel', 'hide card container', "close project panel", "collapse project panel", "hide project container"],
             action: () => clickElementByTitle({ titles: 'Close panel', rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
         },
         {
             id: 'card-toggle-markers',
             label: 'Toggle Markers',
-            keywords: ['markers', 'toggle markers', 'hide markers', 'show markers', 'card markers'],
+            keywords: ['markers', 'toggle markers', 'hide markers', 'show markers', 'card markers', "project markers"],
             action: () => clickElementByTitle({ titles: ['Toggle markers & polygons visibility', 'Hide markers & polygons', 'Show markers & polygons'] }),
         },
         {
             id: 'card-favorites-filter',
             label: 'Favorites Filter',
-            keywords: ['favorites', 'favorite cards', 'bookmark filter', 'show favorited cards'],
-            action: () => clickElementByTitle({ titles: 'Filter cards', rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
+            keywords: ['favorites', 'favorite cards', 'bookmark filter', 'show favorited cards', "favorite projects", "show favorited projects"],
+            action: () => clickElementByTitle({ titles: 'Filter projects', rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
         },
         {
             id: 'card-scope-toggle',
             label: 'Scope Toggle',
-            keywords: ['scope', 'in view', 'all cards', 'view scope', 'filter by map view'],
+            keywords: ['scope', 'in view', 'all cards', 'view scope', 'filter by map view', "all projects"],
             action: () => clickElementBySelector({ selector: '#content-2 .card-toolbar-button--scope', ensureOpen: ensureCardPanelOpen }),
         },
         {
             id: 'card-view-mode',
             label: 'Grid/List View Toggle',
-            keywords: ['grid view', 'list view', 'view mode', 'card layout', 'toggle list grid'],
+            keywords: ['grid view', 'list view', 'view mode', 'card layout', 'toggle list grid', "project layout"],
             action: () => clickElementByTitle({ titles: ['Grid View', 'List View'], rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
         },
         {
             id: 'card-sort',
-            label: 'Sort Cards',
-            keywords: ['sort cards', 'card sorting', 'order cards', 'sort dropdown'],
-            action: () => clickElementByTitle({ titles: 'Sort cards', rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
+            label: 'Sort Projects',
+            keywords: ['sort cards', 'card sorting', 'order cards', 'sort dropdown', "sort projects", "project sorting", "order projects"],
+            action: () => clickElementByTitle({ titles: 'Sort projects', rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
         },
         {
             id: 'card-filter',
-            label: 'Filter Cards',
-            keywords: ['filter cards', 'card filter', 'tag filter', 'category filter'],
-            action: () => clickElementByTitle({ titles: 'Filter cards', rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
+            label: 'Filter Projects',
+            keywords: ['filter cards', 'card filter', 'tag filter', 'category filter', "filter projects", "project filter"],
+            action: () => clickElementByTitle({ titles: 'Filter projects', rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
         },
         {
             id: 'card-move-side',
-            label: 'Move Card Panel Side',
-            keywords: ['move panel left', 'move panel right', 'swap card panel side', 'card panel side'],
+            label: 'Move Project Panel Side',
+            keywords: ['move panel left', 'move panel right', 'swap card panel side', 'card panel side', "swap project panel side", "project panel side"],
             action: () => clickElementByTitle({ titles: ['Move panel to right', 'Move panel to left'], rootSelector: '#content-2', ensureOpen: ensureCardPanelOpen }),
         },
         {
             id: 'card-search',
-            label: 'Card Search',
-            keywords: ['card search', 'search cards', 'find cards', 'search in card container'],
+            label: 'Project Search',
+            keywords: ['card search', 'search cards', 'find cards', 'search in card container', "project search", "search projects", "find projects", "search in project container"],
             action: () => clickElementByTitle({ titles: 'Search', rootSelector: '#content-2 .card-panel-searchbar', ensureOpen: ensureCardPanelOpen }),
         },
         {
             id: 'card-clear-search',
-            label: 'Clear Card Search',
-            keywords: ['clear card search', 'reset card search', 'remove card keyword'],
+            label: 'Clear Project Search',
+            keywords: ['clear card search', 'reset card search', 'remove card keyword', "clear project search", "reset project search", "remove project keyword"],
             action: () => clickElementByTitle({ titles: 'Clear Search', rootSelector: '#content-2 .card-panel-searchbar', ensureOpen: ensureCardPanelOpen }),
         },
 
@@ -1126,7 +1126,7 @@ function Home(props) {
                     className={`left-sidebar-cards-button${!isCollapsed ? ' active' : ''}`}
                     data-onboarding-target="left-sidebar-cards"
                     onClick={toggleCardContainer}
-                    title={isCollapsed ? "Show Cards" : "Hide Cards"}
+                    title={isCollapsed ? "Show Projects" : "Hide Projects"}
                 >
                     <FontAwesomeIcon icon={faClone} />
                 </button>

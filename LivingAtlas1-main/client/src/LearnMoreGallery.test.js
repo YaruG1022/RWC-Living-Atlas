@@ -9,18 +9,18 @@ test.each(['multi', 'slideshow'])('%s marks the cover only while editing', layou
     const callbacks = props();
     const { container, rerender } = render(<LearnMoreGallery {...callbacks} layout={layout} editing={false} />);
     expect(container.querySelector('.is-cover')).toBeNull();
-    expect(screen.queryByText('Card cover')).toBeNull();
+    expect(screen.queryByText('Project cover')).toBeNull();
     expect(screen.queryByLabelText('Image layout')).toBeNull();
     rerender(<LearnMoreGallery {...callbacks} layout={layout} editing />);
     expect(container.querySelector('.is-cover')).toBeTruthy();
-    expect(screen.getByText('Card cover')).toBeTruthy();
+    expect(screen.getByText('Project cover')).toBeTruthy();
     expect(screen.getByLabelText('Image layout').closest('.lm-gallery-section')).toBeTruthy();
 });
 
 test.each([1, 2, 3, 4, 5, 6])('grid-%i shows the requested number of slots and marks the cover', count => {
     render(<LearnMoreGallery {...props()} images={images.slice(0, count)} layout="multi" />);
     expect(screen.getAllByRole('button', { name: /^Open image/ })).toHaveLength(count);
-    expect(screen.getByText('Card cover').parentElement.classList.contains('is-cover')).toBe(true);
+    expect(screen.getByText('Project cover').parentElement.classList.contains('is-cover')).toBe(true);
 });
 
 test.each(['grid-7', 'grid-8'])('legacy %s displays six images without removing the remaining images', layout => {
@@ -90,7 +90,7 @@ test('busy editor blocks mutations; cover marking follows its image rather than 
     fireEvent.click(screen.getByRole('button', { name: 'Move image 2 earlier' }));
     expect(callbacks.onDelete).not.toHaveBeenCalled();
     expect(callbacks.onReorder).not.toHaveBeenCalled();
-    expect(screen.getByText('Card cover').parentElement.querySelector('img').getAttribute('src')).toBe(images[1].url);
+    expect(screen.getByText('Project cover').parentElement.querySelector('img').getAttribute('src')).toBe(images[1].url);
 });
 
 test('eight-image cards display six slides while the selector offers only two modes', () => {

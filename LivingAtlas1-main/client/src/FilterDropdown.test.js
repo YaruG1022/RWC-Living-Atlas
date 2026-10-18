@@ -14,32 +14,32 @@ function Harness({ loggedIn = true }) {
 
 test('favorites is staged, applied, counted and reset by Clear', () => {
   render(<Harness />);
-  fireEvent.click(screen.getByTitle('Filter cards'));
-  fireEvent.click(screen.getByLabelText('Show only favorited cards'));
+  fireEvent.click(screen.getByTitle('Filter projects'));
+  fireEvent.click(screen.getByLabelText('Show only favorited projects'));
   expect(screen.getByTestId('favorites').textContent).toBe('false');
   fireEvent.click(screen.getByText('Apply'));
   expect(screen.getByTestId('favorites').textContent).toBe('true');
-  expect(screen.getByTitle('Filter cards').textContent).toContain('1');
-  fireEvent.click(screen.getByTitle('Filter cards'));
-  expect(screen.getByLabelText('Show only favorited cards').checked).toBe(true);
+  expect(screen.getByTitle('Filter projects').textContent).toContain('1');
+  fireEvent.click(screen.getByTitle('Filter projects'));
+  expect(screen.getByLabelText('Show only favorited projects').checked).toBe(true);
   fireEvent.click(screen.getByText('Clear'));
   expect(screen.getByTestId('favorites').textContent).toBe('false');
 });
 
 test('dismissed pending favorites does not apply', () => {
   render(<Harness />);
-  fireEvent.click(screen.getByTitle('Filter cards'));
-  fireEvent.click(screen.getByLabelText('Show only favorited cards'));
+  fireEvent.click(screen.getByTitle('Filter projects'));
+  fireEvent.click(screen.getByLabelText('Show only favorited projects'));
   fireEvent.mouseDown(document.body);
-  fireEvent.click(screen.getByTitle('Filter cards'));
-  expect(screen.getByLabelText('Show only favorited cards').checked).toBe(false);
+  fireEvent.click(screen.getByTitle('Filter projects'));
+  expect(screen.getByLabelText('Show only favorited projects').checked).toBe(false);
   expect(screen.getByTestId('favorites').textContent).toBe('false');
 });
 
 test('signed-out visitors cannot enable favorites', () => {
   render(<Harness loggedIn={false} />);
-  fireEvent.click(screen.getByTitle('Filter cards'));
-  expect(screen.getByLabelText('Show only favorited cards').disabled).toBe(true);
+  fireEvent.click(screen.getByTitle('Filter projects'));
+  expect(screen.getByLabelText('Show only favorited projects').disabled).toBe(true);
   expect(screen.getByText('Log in to use favorites filter.')).toBeTruthy();
   fireEvent.click(screen.getByText('Apply'));
   expect(screen.getByTestId('favorites').textContent).toBe('false');
@@ -100,11 +100,11 @@ test('opens outside an overflow-clipped panel and distinguishes menu clicks from
   const { container } = render(
     <div style={{ overflow: 'hidden', height: 32 }}><Harness /></div>
   );
-  const trigger = screen.getByRole('button', { name: 'Filter cards' });
+  const trigger = screen.getByRole('button', { name: 'Filter projects' });
   expect(trigger).toHaveAttribute('aria-expanded', 'false');
 
   fireEvent.click(trigger);
-  const menu = screen.getByRole('dialog', { name: 'Filter cards' });
+  const menu = screen.getByRole('dialog', { name: 'Filter projects' });
   expect(document.body).toContainElement(menu);
   expect(container).not.toContainElement(menu);
   expect(trigger).toHaveAttribute('aria-expanded', 'true');
@@ -117,11 +117,11 @@ test('opens outside an overflow-clipped panel and distinguishes menu clicks from
   const addTag = screen.getByRole('button', { name: 'Add Tag' });
   fireEvent.mouseDown(addTag);
   fireEvent.click(addTag);
-  expect(screen.getByRole('dialog', { name: 'Filter cards' })).toBe(menu);
+  expect(screen.getByRole('dialog', { name: 'Filter projects' })).toBe(menu);
   expect(screen.getByText('river')).toBeInTheDocument();
 
   fireEvent.mouseDown(document.body);
-  expect(screen.queryByRole('dialog', { name: 'Filter cards' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('dialog', { name: 'Filter projects' })).not.toBeInTheDocument();
   expect(trigger).toHaveAttribute('aria-expanded', 'false');
 });
 
@@ -130,9 +130,9 @@ test('keeps the menu within a narrow viewport while anchored below the trigger',
   const menuWidth = 224;
   mockPlacement({ viewportWidth: 240, viewportHeight: 640, trigger: triggerBounds, menuWidth });
   render(<Harness />);
-  fireEvent.click(screen.getByRole('button', { name: 'Filter cards' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Filter projects' }));
 
-  const position = menuPosition(screen.getByRole('dialog', { name: 'Filter cards' }));
+  const position = menuPosition(screen.getByRole('dialog', { name: 'Filter projects' }));
   expect(position.left).toBeGreaterThanOrEqual(8);
   expect(position.left + menuWidth).toBeLessThanOrEqual(window.innerWidth - 8);
   expect(position.top).toBe(triggerBounds.bottom + 6);
@@ -147,9 +147,9 @@ test('constrains a tall menu to the available height in a short viewport', () =>
     menuHeight,
   });
   render(<Harness />);
-  fireEvent.click(screen.getByRole('button', { name: 'Filter cards' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Filter projects' }));
 
-  const position = menuPosition(screen.getByRole('dialog', { name: 'Filter cards' }));
+  const position = menuPosition(screen.getByRole('dialog', { name: 'Filter projects' }));
   expect(position.top).toBeGreaterThanOrEqual(8);
   expect(position.maxHeight).toBeGreaterThan(0);
   expect(position.top + Math.min(menuHeight, position.maxHeight))
@@ -160,8 +160,8 @@ test('repositions an open menu when the viewport resizes or an ancestor scrolls'
   const menuWidth = 260;
   const moveTrigger = mockPlacement({ menuWidth });
   render(<div data-testid="scroll-panel" style={{ overflow: 'auto' }}><Harness /></div>);
-  fireEvent.click(screen.getByRole('button', { name: 'Filter cards' }));
-  const menu = screen.getByRole('dialog', { name: 'Filter cards' });
+  fireEvent.click(screen.getByRole('button', { name: 'Filter projects' }));
+  const menu = screen.getByRole('dialog', { name: 'Filter projects' });
   const initialPosition = menuPosition(menu);
 
   const resizedBounds = bounds(600, 240, 80, 36);
@@ -178,24 +178,24 @@ test('repositions an open menu when the viewport resizes or an ancestor scrolls'
   const scrolledPosition = menuPosition(menu);
   expect(scrolledPosition.left + menuWidth).toBe(scrolledBounds.right);
   expect(scrolledPosition.top).toBe(scrolledBounds.bottom + 6);
-  expect(screen.getByRole('dialog', { name: 'Filter cards' })).toBe(menu);
+  expect(screen.getByRole('dialog', { name: 'Filter projects' })).toBe(menu);
 });
 
 test('Escape dismisses pending changes and restores focus to the filter trigger', () => {
   render(<Harness />);
-  const trigger = screen.getByRole('button', { name: 'Filter cards' });
+  const trigger = screen.getByRole('button', { name: 'Filter projects' });
   trigger.focus();
   fireEvent.click(trigger);
-  fireEvent.click(screen.getByLabelText('Show only favorited cards'));
+  fireEvent.click(screen.getByLabelText('Show only favorited projects'));
   const tagInput = screen.getByPlaceholderText('Enter tag...');
   tagInput.focus();
 
   fireEvent.keyDown(tagInput, { key: 'Escape', code: 'Escape' });
-  expect(screen.queryByRole('dialog', { name: 'Filter cards' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('dialog', { name: 'Filter projects' })).not.toBeInTheDocument();
   expect(trigger).toHaveFocus();
   expect(trigger).toHaveAttribute('aria-expanded', 'false');
   expect(screen.getByTestId('favorites')).toHaveTextContent('false');
 
   fireEvent.click(trigger);
-  expect(screen.getByLabelText('Show only favorited cards')).not.toBeChecked();
+  expect(screen.getByLabelText('Show only favorited projects')).not.toBeChecked();
 });

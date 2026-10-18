@@ -3,7 +3,7 @@
   "id": "add-png",
   "title": "Add Image Overlay",
   "navigationLabel": "Add PNG",
-  "summary": "Place a PNG overlay on map and create an image-overlay card from it.",
+  "summary": "Place a PNG overlay on map and create an image-overlay project from it.",
   "manualPath": "/user-manual?section=add-png",
   "blocks": [
     {
@@ -245,7 +245,7 @@
       "content": [
         {
           "type": "text",
-          "text": "After saving placement, Card Creation opens in "
+          "text": "After saving placement, Project Creation opens in "
         },
         {
           "type": "strong",
@@ -271,7 +271,7 @@
         },
         {
           "type": "text",
-          "text": ". The overlay image is used as card map representation, while additional uploaded images are optional Learn More gallery images."
+          "text": ". The overlay image is used as project map representation, while additional uploaded images are optional Learn More gallery images."
         }
       ]
     }

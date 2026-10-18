@@ -208,7 +208,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The left sidebar opens Feature Search, ArcGIS Upload, Custom Layers, Basemap, Watershed Delineation, tutorials, and What's new. Hover over an icon for its name. Custom Layers requires login. Use the card panel's layout button to dock Project Cards on either side, and its close button to collapse it. Closing a layer panel leaves its displayed layers on the map; uncheck layers or use that panel's Clear action to hide them. Opening ArcGIS Upload from the sidebar closes Custom Layers, and opening Custom Layers closes ArcGIS Upload. A left-docked Project Cards panel can share that side with the active layer panel."
+          "text": "The left sidebar opens Feature Search, ArcGIS Upload, Custom Layers, Basemap, Watershed Delineation, tutorials, and What's new. Hover over an icon for its name. Custom Layers requires login. Use the project panel's layout button to dock Projects on either side, and its close button to collapse it. Closing a layer panel leaves its displayed layers on the map; uncheck layers or use that panel's Clear action to hide them. Opening ArcGIS Upload from the sidebar closes Custom Layers, and opening Custom Layers closes ArcGIS Upload. A left-docked Projects panel can share that side with the active layer panel."
         }
       ]
     },
@@ -229,7 +229,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Your basemap, card grid/list mode, card panel side, and helper sidebar/floating mode are saved as display preferences. While logged out, pending preferences are kept in this browser. After login they are merged into your account preferences and synced when the preference service is available. These preferences do not save every currently checked ArcGIS layer; pin items to auto-load them."
+          "text": "Your basemap, project grid/list mode, project panel side, and helper sidebar/floating mode are saved as display preferences. While logged out, pending preferences are kept in this browser. After login they are merged into your account preferences and synced when the preference service is available. These preferences do not save every currently checked ArcGIS layer; pin items to auto-load them."
         }
       ]
     },
@@ -270,7 +270,7 @@
           "content": [
             {
               "type": "text",
-              "text": "Card Creation Form"
+              "text": "Project Creation Form"
             }
           ],
           "href": "/user-manual?section=add-card"

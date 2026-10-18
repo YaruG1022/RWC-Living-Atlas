@@ -10,12 +10,12 @@ afterEach(() => { jest.restoreAllMocks(); });
 
 test('manual navigation renders each guide without broken gallery callbacks', () => {
   render(<UserManual />);
-  const sections = ['Navigation & Preferences', 'Login, Registration & Passwords', 'Profile & Administration', 'Tutorials & Updates', 'Feature Search Panel', 'Atlas Helper', 'Card Container', 'Card Panel Toolbar', 'Card Detail View', 'Card Creation Form', 'ArcGIS Picker Modal', 'ArcGIS Upload Panel', 'Custom Layers Panel', 'Service / Layer Info Modal', 'Basemap Panel', 'Watershed Panel', 'Map Controls', 'Add Points / Coordinates', 'Polygon Tools', 'Add PNG'];
+  const sections = ['Navigation & Preferences', 'Login, Registration & Passwords', 'Profile & Administration', 'Tutorials & Updates', 'Feature Search Panel', 'Atlas Helper', 'Projects', 'Project Panel Toolbar', 'Project Detail View', 'Project Creation Form', 'ArcGIS Picker Modal', 'ArcGIS Upload Panel', 'Custom Layers Panel', 'Service / Layer Info Modal', 'Basemap Panel', 'Watershed Panel', 'Map Controls', 'Add Points / Coordinates', 'Polygon Tools', 'Add PNG'];
   for (const name of sections) {
     fireEvent.click(within(screen.getByRole('navigation')).getByRole('button', { name, exact: true }));
     expect(screen.getAllByRole('heading', { level: 2 }).length).toBeGreaterThan(0);
   }
-  fireEvent.click(screen.getByRole('button', { name: 'Card Detail View', exact: true }));
+  fireEvent.click(screen.getByRole('button', { name: 'Project Detail View', exact: true }));
   fireEvent.click(screen.getAllByRole('button', { name: 'Open image 1' })[0]);
   fireEvent.click(screen.getByRole('button', { name: 'Move image 1 later' }));
 });
@@ -39,7 +39,7 @@ test('unknown chapter URLs fall back to the overview and keep navigation usable'
   render(<UserManual />);
   expect(screen.getByRole('heading', { name: 'Welcome to the User Manual' })).toBeInTheDocument();
   fireEvent.click(within(screen.getByRole('navigation')).getByRole('button', { name: 'Navigation & Preferences' }));
-  expect(screen.getByRole('link', { name: 'Card Creation Form' }))
+  expect(screen.getByRole('link', { name: 'Project Creation Form' }))
     .toHaveAttribute('href', '/user-manual?section=add-card');
 });
 

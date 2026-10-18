@@ -171,26 +171,26 @@
           "content": [
             {
               "type": "text",
-              "text": " Add Card"
+              "text": " Add Project"
             }
           ]
         },
         {
           "type": "text",
-          "text": " opens the Create Card modal;"
+          "text": " opens the Create Project modal;"
         },
         {
           "type": "strong",
           "content": [
             {
               "type": "text",
-              "text": " View All Cards"
+              "text": " View All Projects"
             }
           ]
         },
         {
           "type": "text",
-          "text": " opens the card container."
+          "text": " opens the Projects panel."
         }
       ]
     }

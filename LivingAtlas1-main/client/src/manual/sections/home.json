@@ -23,7 +23,7 @@
       "content": [
         {
           "type": "text",
-          "text": "This guide explains every interactive feature available in the RWC Living Atlas. Use the navigation on the left to browse each section — demos use the exact same styles and hover effects as the real application, so you can try them directly on this page. Examples illustrate controls and are not a live inventory of cards or layers."
+          "text": "This guide explains every interactive feature available in the RWC Living Atlas. Use the navigation on the left to browse each section — demos use the exact same styles and hover effects as the real application, so you can try them directly on this page. Examples illustrate controls and are not a live inventory of projects or layers."
         }
       ]
     },
@@ -53,13 +53,13 @@
           "content": [
             {
               "type": "text",
-              "text": "card"
+              "text": "project"
             }
           ]
         },
         {
           "type": "text",
-          "text": " is a geographically located resource with metadata, links, images, and files; it can appear as points, a polygon, or an image overlay. You can browse the map, cards, and ArcGIS layers without an account. Log in to create cards, favorite or pin them, and use Custom Layers. Card owners can edit or delete their own cards; administrators can manage any card and user accounts."
+          "text": " is a geographically located resource with metadata, links, images, and files; it can appear as points, a polygon, or an image overlay. You can browse the map, projects, and ArcGIS layers without an account. Log in to create projects, favorite or pin them, and use Custom Layers. Project owners can edit or delete their own projects; administrators can manage any project and user accounts."
         }
       ]
     }

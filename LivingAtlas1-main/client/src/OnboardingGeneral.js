@@ -54,7 +54,7 @@ const STEP_DEFINITIONS = [
     {
         selector: '[data-onboarding-target="navbar-auth-link"][href="/signup"]',
         title: 'Register',
-        description: 'Create an account to save favorite cards and access features available to signed-in users.',
+        description: 'Submit an access request. After approval, sign in to save favorite projects and use features available to your access level.',
         placement: 'bottom',
     },
     {
@@ -72,7 +72,7 @@ const STEP_DEFINITIONS = [
     {
         selector: '[data-onboarding-target="left-sidebar-root"]',
         title: 'Left Sidebar',
-        description: 'Open search, Cards, GIS layers, Custom Layers, Basemap, Watershed Delineation, and the chatbot here. The bell and information buttons at the bottom open updates and this app tour.',
+        description: 'Open search, Projects, GIS layers, Custom Layers, Basemap, Watershed Delineation, and the chatbot here. The bell and information buttons at the bottom open updates and this app tour.',
         placement: 'right',
     },
     {
@@ -89,8 +89,8 @@ const STEP_DEFINITIONS = [
     },
     {
         selector: '[data-onboarding-target="left-sidebar-cards"]',
-        title: 'Project Cards Panel Button',
-        description: 'Show or hide data cards. Search, sort, and filter resources, then select a card to explore its details and location. The circular play button in the panel header starts its guided tour.',
+        title: 'Projects Panel Button',
+        description: 'Show or hide projects. Search, sort, and filter projects, then select one to explore its details and location. The circular play button in the panel header starts its guided tour.',
         placement: 'right',
     },
     {
@@ -114,7 +114,7 @@ const STEP_DEFINITIONS = [
     {
         selector: '[data-onboarding-target="left-sidebar-watershed"]',
         title: 'Watershed Button',
-        description: 'Show StreamStats rivers, delineate a basin, and save it as a custom layer or polygon card. The circular play button in the panel header starts its guided tour; the question mark opens the manual.',
+        description: 'Show StreamStats rivers, delineate a basin, then open Save to choose a custom layer or polygon project. The circular play button in the panel header starts its guided tour; the question mark opens the manual.',
         placement: 'right',
     },
     {
@@ -155,14 +155,14 @@ const STEP_DEFINITIONS = [
     },
     {
         selector: '[data-onboarding-target="map-control-add-cards"]',
-        title: 'Add Cards From Map',
+        title: 'Add Projects From Map',
         description: 'The pencil opens Coordinate, Polygon and Image options. The menu and Add Points, Draw Polygon and Place Image editors sit immediately left of this toolbar. Coordinate supports multiple points with neutral outlined markers by default. Login is required.',
         placement: 'left',
     },
     {
         selector: '[data-onboarding-target="map-control-visibility"]',
         title: 'Visibility Toggle',
-        description: 'Hide or show all card markers, polygon overlays, and image overlays to declutter the map while reviewing basemaps or ArcGIS layers.',
+        description: 'Hide or show all project markers, polygon overlays, and image overlays to declutter the map while reviewing basemaps or ArcGIS layers.',
         placement: 'left',
     },
     {

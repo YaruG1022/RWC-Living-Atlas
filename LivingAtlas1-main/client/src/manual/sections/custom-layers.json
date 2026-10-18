@@ -117,7 +117,7 @@
         },
         {
           "type": "text",
-          "text": " button in the left sidebar to open or close the panel. You must be logged in; a login prompt appears otherwise. Opening it from the sidebar closes the ArcGIS Upload Panel. When Project Cards is docked on the left, it shares that side with Custom Layers vertically."
+          "text": " button in the left sidebar to open or close the panel. You must be logged in; a login prompt appears otherwise. Opening it from the sidebar closes the ArcGIS Upload Panel. When Projects is docked on the left, it shares that side with Custom Layers vertically."
         }
       ]
     },

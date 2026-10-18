@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "detail-view",
-  "title": "Card Detail View",
-  "navigationLabel": "Card Detail View",
+  "title": "Project Detail View",
+  "navigationLabel": "Project Detail View",
   "summary": "The full-screen modal with editing, images, files, and ArcGIS layers.",
   "manualPath": "/user-manual?section=detail-view",
   "blocks": [
@@ -13,7 +13,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Card Detail View"
+          "text": "Project Detail View"
         }
       ]
     },
@@ -36,7 +36,7 @@
         },
         {
           "type": "text",
-          "text": " on a card opens a full-screen panel showing all dataset information. It also has tools for editing, downloading a PDF, managing images and files, and toggling linked ArcGIS map layers."
+          "text": " on a project opens a full-screen panel showing all dataset information. It also has tools for editing, downloading a PDF, managing images and files, and toggling linked ArcGIS map layers."
         }
       ]
     },
@@ -57,7 +57,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The toolbar at the top provides six action buttons:"
+          "text": "At the top of the Detail View, Edit, Download PDF and Delete sit on the left; Help, Onboarding and Close sit on the right:"
         },
         {
           "type": "break"
@@ -77,7 +77,7 @@
         },
         {
           "type": "text",
-          "text": " (pencil icon) — enter edit mode to modify card content"
+          "text": " (pencil icon) — enter edit mode to modify project content"
         },
         {
           "type": "break"
@@ -97,7 +97,7 @@
         },
         {
           "type": "text",
-          "text": " (download icon) — save the card as a PDF"
+          "text": " (download icon) — save the project as a PDF"
         },
         {
           "type": "break"
@@ -117,7 +117,7 @@
         },
         {
           "type": "text",
-          "text": " (trash icon) — permanently delete the card"
+          "text": " (trash icon) — permanently delete the project"
         },
         {
           "type": "break"
@@ -184,7 +184,7 @@
         },
         {
           "type": "text",
-          "text": "Edit and Delete require you to be the card owner or an administrator."
+          "text": "Edit and Delete require you to be the project owner or an administrator."
         }
       ]
     },
@@ -205,7 +205,7 @@
       "content": [
         {
           "type": "text",
-          "text": "When in edit mode the toolbar replaces the Edit button with "
+          "text": "In edit mode the left side replaces Edit with "
         },
         {
           "type": "strong",
@@ -235,7 +235,7 @@
         },
         {
           "type": "text",
-          "text": " buttons. If you make any changes an amber \"You have unsaved changes\" badge appears as a reminder. Clicking Cancel prompts a confirmation if there are unsaved changes."
+          "text": " buttons. Download PDF and Delete remain beside them, followed by the light gray-blue \"You have unsaved changes\" badge after an edit. Help, Onboarding and Close stay on the right, while the left group can wrap on narrow screens. Cancel or Close asks for confirmation when there are unsaved changes."
         }
       ]
     },
@@ -269,7 +269,7 @@
         },
         {
           "type": "text",
-          "text": " sits inside the gallery's bottom left corner in both viewing and editing modes and opens a grid of every uploaded image. In edit mode the Image layout dropdown sits inside the gallery's top right corner. Both controls are semi-transparent until hover or focus. Reorder in the main gallery using drag handles or arrow icons; the all-images grid does not support drag reordering; the first image becomes the card cover. Its neutral badge and selection border appear only in edit mode."
+          "text": " sits inside the gallery's bottom left corner in both viewing and editing modes and opens a grid of every uploaded image. In edit mode the Image layout dropdown sits inside the gallery's top right corner. Both controls are semi-transparent until hover or focus. Reorder in the main gallery using drag handles or arrow icons; the all-images grid does not support drag reordering; the first image becomes the project cover. Its neutral badge and selection border appear only in edit mode."
         },
         {
           "type": "text",
@@ -322,7 +322,7 @@
         },
         {
           "type": "text",
-          "text": " choose up to six images for the main gallery; number 1 is the card cover. Selected images have a special border. Deselecting a number leaves it available for the next selection. Drag images on the main gallery to change their order. Numbered checkboxes and selection borders are hidden outside edit mode."
+          "text": " choose up to six images for the main gallery; number 1 is the project cover. Selected images have a special border. Deselecting a number leaves it available for the next selection. Drag images on the main gallery to change their order. Numbered checkboxes and selection borders are hidden outside edit mode."
         },
         {
           "type": "break"
@@ -382,7 +382,7 @@
         },
         {
           "type": "text",
-          "text": " uploads an additional image, up to 30 total. Add New Image and Delete Selected sit beside Back to Learn More at the top. Save pending deletions before uploading if the stored card is at the limit. Save commits changes; Cancel discards them."
+          "text": " uploads an additional image, up to 30 total. Add New Image and Delete Selected sit beside Back to Learn More at the top. Save pending deletions before uploading if the stored project is at the limit. Save commits changes; Cancel discards them."
         },
         {
           "type": "text",
@@ -428,7 +428,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Dataset metadata is laid out in a two-column grid: Author, Card Creator, Email, Funding, and Organization. Point coordinates appear in Map location. In edit mode metadata fields become editable inputs; Card Creator is read-only and cannot be changed."
+          "text": "Dataset metadata is laid out in a two-column grid: Author, Project Creator, Email, Funding, and Organization. Point coordinates appear in Map location. In edit mode metadata fields become editable inputs; Project Creator is read-only and cannot be changed."
         }
       ]
     },
@@ -456,7 +456,7 @@
           "content": [
             {
               "type": "text",
-              "text": "Card Creator"
+              "text": "Project Creator"
             }
           ]
         },
@@ -505,7 +505,7 @@
         },
         {
           "type": "text",
-          "text": " dropdown sets the card to Public or Private."
+          "text": " dropdown sets the project to Public or Private."
         }
       ]
     },
@@ -611,7 +611,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Files attached to a card appear as a list of download links. Click any link to download that file directly. In edit mode you can delete existing files with the × button next to each filename, and attach new files using the"
+          "text": "Files attached to a project appear as a list of download links. Click any link to download that file directly. In edit mode you can delete existing files with the × button next to each filename, and attach new files using the"
         },
         {
           "type": "strong",
@@ -645,7 +645,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Cards can be linked to specific ArcGIS map layers. Each linked item shows a breadcrumb path (state › folder › layer name). The "
+          "text": "Projects can be linked to specific ArcGIS map layers. Each linked item shows a breadcrumb path (state › folder › layer name). The "
         },
         {
           "type": "strong",
@@ -812,7 +812,7 @@
         },
         {
           "type": "text",
-          "text": "dropdown marks the card "
+          "text": "dropdown marks the project "
         },
         {
           "type": "strong",
@@ -876,7 +876,7 @@
         },
         {
           "type": "text",
-          "text": " section previews the actual marker icons, polygon shape or image footprint, with the card's saved colors and opacity. Click the preview in the live card to close details and locate it on the map; unsaved edits may require confirmation. The compact preview has a neutral background. Cards are shown on the map — as a "
+          "text": " section previews the actual marker icons, polygon shape or image footprint, with the project's saved colors and opacity. Click the preview in the live project to close details and locate it on the map; unsaved edits may require confirmation. The compact preview has a neutral background. Projects are shown on the map — as a "
         },
         {
           "type": "strong",
@@ -992,7 +992,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Cards can also link to your saved "
+          "text": "Projects can also link to your saved "
         },
         {
           "type": "strong",

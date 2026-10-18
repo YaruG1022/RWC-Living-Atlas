@@ -333,7 +333,7 @@
         },
         {
           "type": "text",
-          "text": " to reject it. Card editing and deletion remain in the Card Detail View; ArcGIS management remains in the ArcGIS panel."
+          "text": " to reject it. Project editing and deletion remain in the Project Detail View; ArcGIS management remains in the ArcGIS panel."
         }
       ]
     }

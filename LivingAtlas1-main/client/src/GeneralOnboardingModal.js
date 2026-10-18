@@ -68,12 +68,12 @@ function GeneralOnboardingModal({ isOpen, onClose, onPlay }) {
                     <ul className="onboarding-feature-list">
                         <li><SidebarIcon icon={faMapLocationDot} /><span><strong>Explore the interactive map</strong>: pan, zoom, and click markers, polygons, and image overlays to discover environmental resources.</span></li>
                         <li><SidebarIcon icon={faSearch} /><span><strong>Find app features</strong>: use the sidebar search to find tools by keyword and open them from the results. Use the search on the map to find places, addresses, or coordinates.</span></li>
-                        <li><SidebarIcon icon={faClone} /><span><strong>Browse data cards</strong>: each card is a geographically located resource (e.g., a monitoring station or dataset) with descriptions, images, files, and links. Search, sort, and filter cards by category, tag, or keyword.</span></li>
+                        <li><SidebarIcon icon={faClone} /><span><strong>Browse projects</strong>: each project is a geographically located resource (e.g., a monitoring station or dataset) with descriptions, images, files, and links. Search, sort, and filter projects by category, tag, or keyword.</span></li>
                         <li><SidebarIcon icon={faEarthAmericas} /><span><strong>Load GIS layers</strong>: browse ArcGIS services, add layers to the map, and filter time-aware layers.</span></li>
                         <li><SidebarIcon icon={faObjectGroup} /><span><strong>Add custom layers</strong>: organize and render your own layers with folders, pinning, and ordering.</span></li>
                         <li><SidebarIcon icon={faMap} /><span><strong>Switch basemaps</strong>: choose the background map style that best suits your needs.</span></li>
-                        <li><SidebarIcon icon={faWater} /><span><strong>Delineate watersheds</strong>: show StreamStats rivers, delineate a basin, and save it as a custom layer or polygon card.</span></li>
-                        <li><SidebarIcon icon={faUser} /><span><strong>Sign in for more</strong>: bookmark (favorite) cards, and if authorized, create and manage your own cards.</span></li>
+                        <li><SidebarIcon icon={faWater} /><span><strong>Delineate watersheds</strong>: show StreamStats rivers, delineate a basin, then open Save to choose a custom layer or polygon project.</span></li>
+                        <li><SidebarIcon icon={faUser} /><span><strong>Sign in for more</strong>: bookmark (favorite) projects, and if authorized, create and manage your own projects.</span></li>
                         <li><SidebarIcon icon={faCommentDots} /><span><strong>Ask the AI chatbot</strong>: open RWC Living Atlas Helper from the sidebar to ask about data and app features. Switch between Sidebar and Floating in the chat header. In floating mode, open the helper from its floating handle; the sidebar chatbot button is disabled.</span></li>
                         <li><SidebarIcon icon={faBell} /><span><strong>See what's new</strong>: open the latest changes and feature announcements.</span></li>
                     </ul>

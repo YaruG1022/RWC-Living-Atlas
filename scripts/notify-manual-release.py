@@ -57,7 +57,13 @@ def main():
     if not base or (not args.verify_only and (not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repo) or not token)):
         raise ValueError('ATLAS_MANUAL_BASE_URL, CHATBOT_REPO and CHATBOT_DISPATCH_TOKEN are required')
     expected = json.load(open(args.manifest, encoding='utf-8'))
-    marker = wait_published(base, expected)
+    try:
+        marker = wait_published(base, expected)
+    except RuntimeError as exc:
+        # The deployment is outside this workflow's control (superseded or skipped
+        # by a newer push); warn instead of failing. Nothing is dispatched.
+        print(f'::warning::{exc}')
+        return
     if args.verify_only:
         print(f"Verified published manual {marker['version']}; scheduled chatbot sync will import it")
         return

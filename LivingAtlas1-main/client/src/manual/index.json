@@ -30,7 +30,7 @@
     },
     {
       "id": "cards-workspace",
-      "label": "Cards Workspace",
+      "label": "Projects Workspace",
       "sections": [
         {
           "id": "card-container"
@@ -45,7 +45,7 @@
     },
     {
       "id": "card-creation",
-      "label": "Card Creation",
+      "label": "Project Creation",
       "sections": [
         {
           "id": "add-card",

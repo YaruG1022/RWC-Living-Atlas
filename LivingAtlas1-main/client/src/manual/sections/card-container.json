@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "id": "card-container",
-  "title": "Card Container",
-  "navigationLabel": "Card Container",
-  "summary": "How cards are displayed, navigated, pinned, and favorited.",
+  "title": "Projects",
+  "navigationLabel": "Projects",
+  "summary": "Browse project tiles, preview images, and use favorite, pin, and map controls.",
   "manualPath": "/user-manual?section=card-container",
   "blocks": [
     {
@@ -13,7 +13,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Card Container"
+          "text": "Projects"
         }
       ]
     },
@@ -23,7 +23,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Each dataset or resource is displayed as a card in the main view. The demo below shows a fully-styled sample card. Hover over it to explore its interactive states, then read the feature-by-feature breakdown below."
+          "text": "Each dataset or resource appears as a project in the Projects panel. The demo below shows a project tile. Hover over it to explore its interactive states, then read the feature-by-feature breakdown below."
         }
       ]
     },
@@ -33,7 +33,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Card Image / Thumbnail"
+          "text": "Project Image / Thumbnail"
         }
       ],
       "role": "feature-title"
@@ -44,7 +44,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Uploaded images appear at the top of each card. Cards without an uploaded image show a neutral \"No image\" placeholder. The previous default logo is temporarily hidden, and its file is kept for future replacement."
+          "text": "Uploaded images appear at the top of each project tile. Projects without an uploaded image show a neutral \"No image\" placeholder."
         }
       ]
     },
@@ -65,7 +65,7 @@
       "content": [
         {
           "type": "text",
-          "text": "When a card has more than one image, left (❮) and right (❯) arrow buttons appear on hover over the thumbnail area. Click them to browse through all available images without opening the detail view."
+          "text": "When a project has more than one image, left (❮) and right (❯) arrow buttons appear on hover over the thumbnail area. Click them to browse through all available images without opening the detail view."
         }
       ]
     },
@@ -75,7 +75,7 @@
       "content": [
         {
           "type": "text",
-          "text": "In the demo the arrows are always visible; on real cards they appear only on hover."
+          "text": "In the demo the arrows are always visible; on project tiles they appear only on hover."
         }
       ]
     },
@@ -148,7 +148,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The heart icon in the upper-right corner of each card lets you save cards to your personal favorites list. An outlined heart means unfavorited; a filled red heart means favorited. Click to toggle. Hover to see the scale effect."
+          "text": "The heart icon in the upper-right corner of each project lets you save projects to your personal favorites list. An outlined heart means unfavorited; a filled red heart means favorited. Click to toggle. Hover to see the scale effect."
         }
       ]
     },
@@ -179,7 +179,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The thumbtack icon in the upper-left corner of each card lets you pin that card to the top of the card list. An unpinned button has a white background; a pinned button turns gold. Pinned cards always appear first, regardless of the current sort order, in the order they were pinned. A later pin follows earlier pins; unpinning and pinning again moves it to the end of that group. Click to toggle."
+          "text": "The thumbtack icon in the upper-left corner of each project lets you pin that project to the top of the project list. An unpinned button has a white background; a pinned button turns gold. Pinned projects always appear first, regardless of the current sort order, in the order they were pinned. A later pin follows earlier pins; unpinning and pinning again moves it to the end of that group. Click to toggle."
         }
       ]
     },
@@ -199,7 +199,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Card Title"
+          "text": "Project Title"
         }
       ],
       "role": "feature-title"
@@ -231,7 +231,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The small text below the title shows the card's tags, separated by commas. Tags overflow with an ellipsis when there are too many to fit. Cards with no tags show \"No tags\". Tags are added and edited in the Learn More modal."
+          "text": "The small text below the title shows the project's tags, separated by commas. Tags overflow with an ellipsis when there are too many to fit. Projects with no tags show \"No tags\". Tags are added and edited in the Learn More modal."
         }
       ]
     },
@@ -252,7 +252,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The circular magnifying-glass button on the right side of the tags row flies the main map to the card's location — either a point marker or a polygon area. Hover over it to see the scale effect; click it to animate the map."
+          "text": "The circular magnifying-glass button on the right side of the tags row flies the main map to the project's location — either a point marker or a polygon area. Hover over it to see the scale effect; click it to animate the map."
         }
       ]
     },
@@ -273,7 +273,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Clicking anywhere on the card body (except the image, favorite icon, or zoom button) opens the full detail view. There you can read the complete description, browse all images, view linked map layers, and access attached files and links."
+          "text": "Clicking anywhere on the project body (except the image, favorite icon, or zoom button) opens the full detail view. There you can read the complete description, browse all images, view linked map layers, and access attached files and links."
         }
       ]
     },
@@ -283,7 +283,7 @@
       "content": [
         {
           "type": "text",
-          "text": "You can also focus the card and press"
+          "text": "You can also focus the project and press"
         },
         {
           "type": "strong",
@@ -319,7 +319,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Hover over the demo card to see the lift-and-shadow effect that indicates it is clickable."
+          "text": "Hover over the demo tile to see the lift-and-shadow effect that indicates it is clickable."
         }
       ]
     },
@@ -340,7 +340,7 @@
       "content": [
         {
           "type": "text",
-          "text": "When you click a card's location marker or polygon directly on the map, that card is highlighted with a blue border and glow in the card list. This makes it easy to identify which card corresponds to a map feature you clicked."
+          "text": "When you click a project's location marker or polygon directly on the map, that project is highlighted with a blue border and glow in the project list. This makes it easy to identify which project corresponds to a map feature you clicked."
         }
       ]
     }

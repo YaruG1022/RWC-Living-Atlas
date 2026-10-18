@@ -18,7 +18,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="card-toolbar"]',
         title: 'Toolbar',
-        description: 'Use the compact Add, Sort, and Filter buttons. Favorites is inside Filter: check Show only favorited projects, then Apply. Clear resets filters. The remaining icons switch views and docking side.',
+        description: 'Use Add, Sort, and Filter. Filter opens a floating menu: choose a category or tags, or check Show only favorited projects, then Apply. Clear resets filters. Scroll it if needed. Other icons change views and docking side.',
         placement: 'left',
     },
     {

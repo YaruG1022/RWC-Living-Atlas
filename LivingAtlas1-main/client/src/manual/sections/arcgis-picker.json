@@ -3,7 +3,7 @@
   "id": "arcgis-picker",
   "title": "ArcGIS Picker Modal",
   "navigationLabel": "ArcGIS Picker Modal",
-  "summary": "Browse and select ArcGIS services and layers to link directly to a card — opened from the Card Creation form.",
+  "summary": "Browse and select ArcGIS services and layers to link directly to a project — opened from the Project Creation form.",
   "manualPath": "/user-manual?section=arcgis-picker",
   "blocks": [
     {
@@ -23,7 +23,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The ArcGIS Picker lets you search and select ArcGIS services or individual layers to link to a card. It opens from the "
+          "text": "The ArcGIS Picker lets you search and select ArcGIS services or individual layers to link to a project. It opens from the "
         },
         {
           "type": "strong",
@@ -40,7 +40,7 @@
         },
         {
           "type": "text",
-          "text": "button inside the Card Creation form. Selected items are attached to the card and can be toggled on the map from the Card Detail View."
+          "text": "button inside the Project Creation form. Selected items are attached to the project and can be toggled on the map from the Project Detail View."
         }
       ]
     },
@@ -74,7 +74,7 @@
         },
         {
           "type": "text",
-          "text": " inside the Add Card form to open the picker. It loads available services from the database. If the catalog cannot be loaded or is empty, the picker shows no available services instead of a bundled local list."
+          "text": " inside the Project Creation form to open the picker. It loads available services from the database. If the catalog cannot be loaded or is empty, the picker shows no available services instead of a bundled local list."
         }
       ]
     },

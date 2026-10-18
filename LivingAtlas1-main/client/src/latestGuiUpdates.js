@@ -104,6 +104,12 @@ export const manualGuiUpdates = [
 export const latestGuiUpdateDate = '10/18/2026';
 export const latestGuiUpdates = [
     {
+        title: 'Updated Guides',
+        items: [
+            'Updated onboarding and manual instructions and examples for Projects, filtering, the detail toolbar and watershed point and save controls.',
+        ],
+    },
+    {
         title: 'Project Detail Toolbar',
         items: [
             'Moved the unsaved-changes notice beside Delete with a subtle gray-blue background, and matched Help, Tutorial and Close icons and buttons to the rest of the interface.',
@@ -123,15 +129,15 @@ export const latestGuiUpdates = [
         ],
     },
     {
-        title: 'Card Filter Menu',
+        title: 'Project Filter Menu',
         items: [
-            'Kept the Filter menu fully visible beyond narrow card panels, with screen-aware placement and scrolling on shorter screens.',
+            'Kept the Filter menu fully visible beyond narrow project panels, with screen-aware placement and scrolling on shorter screens.',
         ],
     },
     {
         title: 'Consistent Panel Scrollbars',
         items: [
-            'Made the Project Cards scrollbar slimmer and matched the Basemaps and ArcGIS panel scrollbars to its neutral gray appearance.',
+            'Made the Projects scrollbar slimmer and matched the Basemaps and ArcGIS panel scrollbars to its neutral gray appearance.',
         ],
     },
     {

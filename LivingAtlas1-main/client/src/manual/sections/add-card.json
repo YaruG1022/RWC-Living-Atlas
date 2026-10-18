@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "id": "add-card",
-  "title": "Card Creation Form",
-  "navigationLabel": "Card Creation Form",
-  "summary": "Create a new card with required metadata, location mode, images/files, and optional ArcGIS links.",
+  "title": "Project Creation Form",
+  "navigationLabel": "Project Creation Form",
+  "summary": "Create a new project with required metadata, location mode, images/files, and optional ArcGIS links.",
   "manualPath": "/user-manual?section=add-card",
   "blocks": [
     {
@@ -13,7 +13,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Card Creation Form"
+          "text": "Project Creation Form"
         }
       ]
     },
@@ -23,7 +23,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The Card Creation form lets you submit a new research entry to the atlas. Click the"
+          "text": "The Project Creation form lets you submit a new research entry to the atlas. Click the"
         },
         {
           "type": "text",
@@ -34,13 +34,13 @@
           "content": [
             {
               "type": "text",
-              "text": "Add Card"
+              "text": "Add Project"
             }
           ]
         },
         {
           "type": "text",
-          "text": " button in the card panel toolbar to open it. You must be logged in — a login prompt appears otherwise. You can also start location-first creation from the map toolbar using "
+          "text": " button in the project panel toolbar to open it. You must be logged in — a login prompt appears otherwise. You can also start location-first creation from the map toolbar using "
         },
         {
           "type": "strong",
@@ -92,7 +92,7 @@
         },
         {
           "type": "text",
-          "text": ". Once submitted, the new card appears in the card container and is pinned to the map."
+          "text": ". Once submitted, the new project appears in the Projects panel and is pinned to the map."
         }
       ]
     },
@@ -120,13 +120,13 @@
           "content": [
             {
               "type": "text",
-              "text": "Add Card"
+              "text": "Add Project"
             }
           ]
         },
         {
           "type": "text",
-          "text": " button in the card panel toolbar. Login is required; if you are not logged in, a prompt appears instead. You can also open this form from map toolbar shortcuts (single point, polygon, image overlay) with location pre-filled. The form slides in as a side panel over the map."
+          "text": " button in the project panel toolbar. Login is required; if you are not logged in, a prompt appears instead. You can also open this form from map toolbar shortcuts (single point, polygon, image overlay) with location pre-filled. The form slides in as a side panel over the map."
         }
       ]
     },
@@ -255,7 +255,7 @@
         },
         {
           "type": "text",
-          "text": " provide context for the card."
+          "text": " provide context for the project."
         },
         {
           "type": "text",
@@ -272,7 +272,7 @@
         },
         {
           "type": "text",
-          "text": " (comma-separated) make cards discoverable in search and filter. None of these are required."
+          "text": " (comma-separated) make projects discoverable in search and filter. None of these are required."
         }
       ]
     },
@@ -310,7 +310,7 @@
         },
         {
           "type": "text",
-          "text": " to add additional rows. Links appear as clickable buttons on the card's Detail View."
+          "text": " to add additional rows. Links appear as clickable buttons on the project's Detail View."
         }
       ]
     },
@@ -374,7 +374,7 @@
         },
         {
           "type": "text",
-          "text": " to place a PNG on the map with move/rotate/resize support. For polygon/image modes, centroid is stored as the card's primary location. Location is required for card submission."
+          "text": " to place a PNG on the map with move/rotate/resize support. For polygon/image modes, centroid is stored as the project's primary location. Location is required for project submission."
         }
       ]
     },
@@ -572,7 +572,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Upload one or more images (PNG, JPG, GIF, WebP, max 5 MB each). The first image becomes the card's thumbnail for point/polygon cards. For image-overlay cards, the map representation image is managed separately, and these images are used for the Learn More gallery. Upload supporting files (PDFs, spreadsheets, etc., max 5 MB each) that viewers can download from the Card Detail View."
+          "text": "Upload one or more images (PNG, JPG, GIF, WebP, max 5 MB each). The first image becomes the project's thumbnail for point/polygon projects. For image-overlay projects, the map representation image is managed separately, and these images are used for the Learn More gallery. Upload supporting files (PDFs, spreadsheets, etc., max 5 MB each) that viewers can download from the Project Detail View."
         }
       ]
     },
@@ -593,7 +593,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Optionally link ArcGIS services or individual layers to the card. Click"
+          "text": "Optionally link ArcGIS services or individual layers to the project. Click"
         },
         {
           "type": "text",
@@ -610,7 +610,7 @@
         },
         {
           "type": "text",
-          "text": " to open the ArcGIS picker and browse by state. Linked items appear in the Card Detail View and can be toggled directly on the map from there. Multiple links can be added."
+          "text": " to open the ArcGIS picker and browse by state. Linked items appear in the Project Detail View and can be toggled directly on the map from there. Multiple links can be added."
         }
       ]
     },
@@ -620,7 +620,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Card Marker / Polygon Popup"
+          "text": "Project Marker / Polygon Popup"
         }
       ],
       "role": "feature-title"
@@ -631,7 +631,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Clicking a card marker pin or a card polygon on the map opens a rich popup. The top section shows the card's thumbnail image — if multiple images are attached, "
+          "text": "Clicking a project marker pin or a project polygon on the map opens a rich popup. The top section shows the project's thumbnail image — if multiple images are attached, "
         },
         {
           "type": "strong",
@@ -644,7 +644,7 @@
         },
         {
           "type": "text",
-          "text": " arrows appear on hover to cycle through them; clicking the image opens a fullscreen lightbox. The popup is 275 × 250 pixels, with a compact Edit footer for cards you can edit and a scrollable information area. The bottom section shows the card "
+          "text": " arrows appear on hover to cycle through them; clicking the image opens a fullscreen lightbox. The popup is 275 × 250 pixels, with a compact Edit footer for projects you can edit and a scrollable information area. The bottom section shows the project "
         },
         {
           "type": "strong",
@@ -690,7 +690,7 @@
           "content": [
             {
               "type": "text",
-              "text": "Card Detail View"
+              "text": "Project Detail View"
             }
           ]
         },

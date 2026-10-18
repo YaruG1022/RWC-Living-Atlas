@@ -43,8 +43,6 @@ import {
   faEllipsisV,
   faQuestion,
   faPlay,
-  faCircleQuestion,
-  faCirclePlay,
   faFloppyDisk,
   faUpload,
   faArrowsToCircle,
@@ -289,7 +287,7 @@ function UserManual() {
                   </div>
                   <div className="search-mini-results">
                     <button type="button" className="search-mini-result-item" style={{ pointerEvents: 'none' }}>
-                      Add Card
+                      Add Project
                     </button>
                     <button type="button" className="search-mini-result-item" style={{ pointerEvents: 'none' }}>
                       Add Points / Coordinates
@@ -308,7 +306,7 @@ function UserManual() {
             <div className="um-feature-demo" data-manual-example="feature-search-panel-example-02">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '260px' }}>
                 <div className="search-mini-results" style={{ maxHeight: 'none' }}>
-                  <button type="button" className="search-mini-result-item" style={{ pointerEvents: 'none' }}>View All Cards</button>
+                  <button type="button" className="search-mini-result-item" style={{ pointerEvents: 'none' }}>View All Projects</button>
                   <button type="button" className="search-mini-result-item" style={{ pointerEvents: 'none' }}>Upload Panel Search</button>
                   <button type="button" className="search-mini-result-item" style={{ pointerEvents: 'none' }}>Basemap: streets-v12</button>
                 </div>
@@ -324,7 +322,7 @@ function UserManual() {
             <div className="um-feature-demo" data-manual-example="feature-search-panel-example-03">
               <div className="um-isolated-demo" style={{ gap: '10px' }}>
                 <button type="button" className="search-mini-result-item" style={{ pointerEvents: 'none' }}>
-                  Add Card
+                  Add Project
                 </button>
               </div>
             </div>
@@ -345,7 +343,7 @@ function UserManual() {
 
         {/* ---- Full annotated demo card ---- */}
         <div className="um-card-demo-wrapper" data-manual-example="card-container-example-01">
-          <span className="um-card-demo-label">Demo card — hover to explore</span>
+          <span className="um-card-demo-label">Demo project tile — hover to explore</span>
           <div className="um-card-container" style={{ position: 'relative' }}>
             <button className="card-grid-pin-btn" title="Pin to top" style={{ pointerEvents: 'none' }}>
               <FontAwesomeIcon icon={faThumbtack} />
@@ -640,7 +638,7 @@ function UserManual() {
                     <img src="/manual-sample-image.svg" alt="Demo thumbnail" className="card-thumbnail" />
                   </div>
                   <div className="card-title-row">
-                    <h2 className="card-title">Map-Selected Card</h2>
+                    <h2 className="card-title">Map-Selected Project</h2>
                   </div>
                   <div className="card-meta-row">
                     <p className="card-meta">Other</p>
@@ -682,27 +680,27 @@ function UserManual() {
         <div className="um-toolbar-demo-wrapper" data-manual-example="toolbar-example-01">
           <div className="card-panel-top" style={{ borderRadius: '8px', border: '1px solid #d8e1ea' }}>
             <div className="card-panel-titlebar">
-              <span className="card-panel-title">Project Cards</span>
-              <span className="card-panel-subtitle">24 all cards</span>
+              <span className="card-panel-title">Projects</span>
+              <span className="card-panel-subtitle">24 all projects</span>
             </div>
             <div className="card-panel-toolbar">
-              <button type="button" className="card-toolbar-button" title="Add Card">
-                <FontAwesomeIcon icon={faPlus} /> Add Card
+              <button type="button" className="card-toolbar-button" title="Add Project">
+                <FontAwesomeIcon icon={faPlus} /> Add
               </button>
               <div className="sort-dropdown" style={{ width: 'auto' }}>
-                <button type="button" className="sort-dropdown-trigger" title="Sort cards">
+                <button type="button" className="sort-dropdown-trigger" title="Sort projects">
                   <FontAwesomeIcon icon={faSort} />
-                  <span>Sort By</span>
+                  <span>Sort</span>
                 </button>
               </div>
               <div className="filter-dropdown">
                 <button type="button" className="filter-dropdown-trigger" title="Filter">
                   <FontAwesomeIcon icon={faFilter} />
-                  <span>Filter By</span>
+                  <span>Filter</span>
                 </button>
               </div>
-              <button type="button" className="card-toolbar-button card-toolbar-button--scope all-cards" title="Scope">
-                All Cards
+              <button type="button" className="card-toolbar-button card-toolbar-button--scope all-cards" title="Scope" aria-label="All Projects">
+                All
               </button>
               <button type="button" className="card-toolbar-button card-toolbar-button--icon" title="List View">
                 <FontAwesomeIcon icon={faList} />
@@ -712,7 +710,7 @@ function UserManual() {
               </button>
             </div>
             <div className="card-panel-searchbar">
-              <input type="text" placeholder="Search cards..." readOnly />
+              <input type="text" placeholder="Search projects..." readOnly />
               <button type="button" className="card-panel-searchbar-btn search" title="Search">
                 <FontAwesomeIcon icon={faSearch} />
               </button>
@@ -730,8 +728,8 @@ function UserManual() {
           <div className="um-feature-row">
             <div className="um-feature-demo" data-manual-example="toolbar-example-02">
               <div className="um-isolated-demo">
-                <button type="button" className="card-toolbar-button" title="Add Card" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faPlus} /> Add Card
+                <button type="button" className="card-toolbar-button" title="Add Project" style={{ pointerEvents: 'none' }}>
+                  <FontAwesomeIcon icon={faPlus} /> Add
                 </button>
               </div>
             </div>
@@ -748,7 +746,7 @@ function UserManual() {
                 <div className="sort-dropdown" style={{ width: 'auto' }}>
                   <button type="button" className="sort-dropdown-trigger" style={{ pointerEvents: 'none' }}>
                     <FontAwesomeIcon icon={faSort} />
-                    <span>Newest First</span>
+                    <span>Sort</span>
                   </button>
                 </div>
               </div>
@@ -766,13 +764,13 @@ function UserManual() {
                 <div className="filter-dropdown">
                   <button type="button" className="filter-dropdown-trigger" style={{ pointerEvents: 'none' }}>
                     <FontAwesomeIcon icon={faFilter} />
-                    <span>Filter By</span>
+                    <span>Filter</span>
                   </button>
                 </div>
                 <div className="filter-dropdown">
                   <button type="button" className="filter-dropdown-trigger active" style={{ pointerEvents: 'none' }}>
                     <FontAwesomeIcon icon={faFilter} />
-                    <span>Filter By</span>
+                    <span>Filter</span>
                     <span className="filter-dropdown-badge">2</span>
                   </button>
                 </div>
@@ -786,7 +784,7 @@ function UserManual() {
 
           <div className="um-feature-row">
             <div className="um-feature-demo" data-manual-example="toolbar-example-05"><div className="um-isolated-demo">
-              <label><input type="checkbox" defaultChecked readOnly /> Show only favorited cards</label>
+              <label><input type="checkbox" defaultChecked readOnly /> Show only favorited projects</label>
             </div></div>
             <div className="um-feature-info">
               <p className="um-feature-title"><ManualText sectionId="toolbar" blockId="toolbar-010" onNavigate={navTo} /></p>
@@ -798,8 +796,8 @@ function UserManual() {
           <div className="um-feature-row">
             <div className="um-feature-demo" data-manual-example="toolbar-example-06">
               <div className="um-isolated-demo" style={{ display: 'flex', gap: '8px' }}>
-                <button type="button" className="card-toolbar-button card-toolbar-button--scope all-cards" style={{ pointerEvents: 'none' }}>
-                  All Cards
+                <button type="button" className="card-toolbar-button card-toolbar-button--scope all-cards" aria-label="All Projects" style={{ pointerEvents: 'none' }}>
+                  All
                 </button>
                 <button type="button" className="card-toolbar-button card-toolbar-button--scope in-view" style={{ pointerEvents: 'none' }}>
                   In View
@@ -871,7 +869,7 @@ function UserManual() {
             <div className="um-feature-demo" data-manual-example="toolbar-example-10">
               <div className="um-isolated-demo">
                 <div className="card-panel-info-bar">
-                  <span className="card-panel-title">Project Cards</span>
+                  <span className="card-panel-title">Projects</span>
                   <span className="card-panel-subtitle">12 in view</span>
                 </div>
               </div>
@@ -895,7 +893,7 @@ function UserManual() {
         <div className="um-form-demo-wrapper" data-manual-example="add-card-example-01">
           <div className="um-form-demo-inner">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-              <h2 style={{ margin: 0 }}>Create Card</h2>
+              <h2 style={{ margin: 0 }}>Create Project</h2>
               <button className="close-modal-button" style={{ position: 'static', fontSize: '20px', pointerEvents: 'none' }}>&times;</button>
             </div>
             <label>Author Name (required):</label>
@@ -936,8 +934,8 @@ function UserManual() {
           <div className="um-feature-row">
             <div className="um-feature-demo" data-manual-example="add-card-example-02">
               <div className="um-isolated-demo">
-                <button type="button" className="card-toolbar-button" title="Add Card" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faPlus} /> Add Card
+                <button type="button" className="card-toolbar-button" title="Add Project" style={{ pointerEvents: 'none' }}>
+                  <FontAwesomeIcon icon={faPlus} /> Add
                 </button>
               </div>
             </div>
@@ -1138,7 +1136,7 @@ function UserManual() {
                     {/* thumbnail area */}
                     <div className="card-pin-popup-media">
                       <div style={{ width: '100%', height: '120px', background: '#d9dde3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ color: '#9ca3af', fontSize: '12px' }}>Card thumbnail</span>
+                        <span style={{ color: '#9ca3af', fontSize: '12px' }}>Project thumbnail</span>
                       </div>
                     </div>
                     {/* info panel */}
@@ -1348,20 +1346,28 @@ function UserManual() {
         {/* Full static mock of the modal shell */}
         <div className="um-modal-demo-wrapper" data-manual-example="detail-view-example-01">
           <div className="learn-more-modal-shell" style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.12)' }}>
-            <div className="learn-more-modal-toolbar">
-              <div className="learn-more-modal-toolbar-left">
-                <button className="learn-more-modal-edit-btn" title="Edit" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faPenToSquare} />
-                </button>
-                <button className="learn-more-modal-download-btn" title="Download as PDF" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faDownload} />
-                </button>
-                <button className="learn-more-modal-delete-btn" title="Delete card" style={{ pointerEvents: 'none' }}>
-                  <FontAwesomeIcon icon={faTrashCan} />
-                </button>
-              </div>
-              <div className="learn-more-modal-toolbar-right">
-                <button className="learn-more-modal-close" style={{ pointerEvents: 'none' }}>×</button>
+            <div className="Modal--learn-more" style={{ position: 'static', inset: 'auto', transform: 'none', width: '100%', height: 'auto', minWidth: 0, overflow: 'visible', background: 'transparent', boxShadow: 'none', display: 'block' }}>
+              <div className="learn-more-modal-toolbar">
+                <div className="learn-more-modal-toolbar-left">
+                  <button className="learn-more-modal-edit-btn learn-more-modal-icon-btn" title="Edit" style={{ pointerEvents: 'none' }}>
+                    <FontAwesomeIcon icon={faPenToSquare} />
+                  </button>
+                  <button className="learn-more-modal-download-btn learn-more-modal-icon-btn" title="Download as PDF" style={{ pointerEvents: 'none' }}>
+                    <FontAwesomeIcon icon={faDownload} />
+                  </button>
+                  <button className="learn-more-modal-delete-btn learn-more-modal-icon-btn" title="Delete project" style={{ pointerEvents: 'none' }}>
+                    <FontAwesomeIcon icon={faTrashCan} />
+                  </button>
+                </div>
+                <div className="learn-more-modal-toolbar-right">
+                  <button className="learn-more-modal-help-btn learn-more-modal-icon-btn" title="Help" style={{ pointerEvents: 'none' }}>
+                    <FontAwesomeIcon icon={faQuestion} />
+                  </button>
+                  <button className="learn-more-modal-onboarding-btn learn-more-modal-icon-btn" title="Onboarding" style={{ pointerEvents: 'none' }}>
+                    <FontAwesomeIcon icon={faPlay} />
+                  </button>
+                  <button className="learn-more-modal-close learn-more-modal-icon-btn" title="Close" style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={faTimes} /></button>
+                </div>
               </div>
             </div>
             <div className="learn-more-modal-body um-modal-body-preview">
@@ -1372,7 +1378,7 @@ function UserManual() {
               </div>
               <div className="learn-more-fields-grid">
                 <p><strong>Author:</strong> Jane Smith</p>
-                <p><strong>Card Creator:</strong> jsmith</p>
+                <p><strong>Project Creator:</strong> jsmith</p>
                 <p><strong>Email:</strong> j.smith@cereo.edu</p>
                 <p><strong>Funding:</strong> NSF Grant #12345</p>
                 <p><strong>Organization:</strong> Rivers, Watersheds, Communities (RWC)</p>
@@ -1453,27 +1459,31 @@ function UserManual() {
         <div className="um-feature-list">
 
           {/* 1. Toolbar — view mode */}
-          <div className="um-feature-row">
+          <div className="um-feature-row um-feature-row--gallery">
             <div className="um-feature-demo" data-manual-example="detail-view-example-02">
-              <div className="um-isolated-demo" style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'space-between', minWidth: '220px' }}>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <button className="learn-more-modal-edit-btn" title="Edit" style={{ pointerEvents: 'none' }}>
-                    <FontAwesomeIcon icon={faPenToSquare} />
-                  </button>
-                  <button className="learn-more-modal-download-btn" title="Download as PDF" style={{ pointerEvents: 'none' }}>
-                    <FontAwesomeIcon icon={faDownload} />
-                  </button>
-                  <button className="learn-more-modal-delete-btn" title="Delete card" style={{ pointerEvents: 'none' }}>
-                    <FontAwesomeIcon icon={faTrashCan} />
-                  </button>
-                  <button className="learn-more-modal-help-btn" title="Help" style={{ pointerEvents: 'none' }}>
-                    <FontAwesomeIcon icon={faCircleQuestion} />
-                  </button>
-                  <button className="learn-more-modal-onboarding-btn" title="Onboarding" style={{ pointerEvents: 'none' }}>
-                    <FontAwesomeIcon icon={faCirclePlay} />
-                  </button>
+              <div className="Modal--learn-more" style={{ position: 'static', inset: 'auto', transform: 'none', width: '100%', height: 'auto', minWidth: 0, overflow: 'visible', background: 'transparent', boxShadow: 'none', display: 'block' }}>
+                <div className="um-isolated-demo learn-more-modal-toolbar" style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+                  <div className="learn-more-modal-toolbar-left" style={{ flex: '1 1 124px' }}>
+                    <button className="learn-more-modal-edit-btn learn-more-modal-icon-btn" title="Edit" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faPenToSquare} />
+                    </button>
+                    <button className="learn-more-modal-download-btn learn-more-modal-icon-btn" title="Download as PDF" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faDownload} />
+                    </button>
+                    <button className="learn-more-modal-delete-btn learn-more-modal-icon-btn" title="Delete project" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faTrashCan} />
+                    </button>
+                  </div>
+                  <div className="learn-more-modal-toolbar-right">
+                    <button className="learn-more-modal-help-btn learn-more-modal-icon-btn" title="Help" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faQuestion} />
+                    </button>
+                    <button className="learn-more-modal-onboarding-btn learn-more-modal-icon-btn" title="Onboarding" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faPlay} />
+                    </button>
+                    <button className="learn-more-modal-close learn-more-modal-icon-btn" title="Close" style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={faTimes} /></button>
+                  </div>
                 </div>
-                <button className="learn-more-modal-close" style={{ pointerEvents: 'none' }}>×</button>
               </div>
             </div>
             <div className="um-feature-info">
@@ -1483,13 +1493,32 @@ function UserManual() {
           </div>
 
           {/* 2. Toolbar — edit mode */}
-          <div className="um-feature-row">
+          <div className="um-feature-row um-feature-row--gallery">
             <div className="um-feature-demo" data-manual-example="detail-view-example-03">
-              <div className="um-isolated-demo" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <div className="learn-more-modal-toolbar-actions">
-                  <button className="learn-more-modal-toolbar-btn save" style={{ pointerEvents: 'none' }}>Save</button>
-                  <button className="learn-more-modal-toolbar-btn cancel" style={{ pointerEvents: 'none' }}>Cancel</button>
-                  <span className="learn-more-unsaved-badge">You have unsaved changes</span>
+              <div className="Modal--learn-more" style={{ position: 'static', inset: 'auto', transform: 'none', width: '100%', height: 'auto', minWidth: 0, overflow: 'visible', background: 'transparent', boxShadow: 'none', display: 'block' }}>
+                <div className="um-isolated-demo learn-more-modal-toolbar" style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+                  <div className="learn-more-modal-toolbar-left" style={{ flex: '1 1 320px' }}>
+                    <div className="learn-more-modal-toolbar-actions">
+                      <button className="learn-more-modal-toolbar-btn save" style={{ pointerEvents: 'none' }}>Save</button>
+                      <button className="learn-more-modal-toolbar-btn cancel" style={{ pointerEvents: 'none' }}>Cancel</button>
+                    </div>
+                    <button className="learn-more-modal-download-btn learn-more-modal-icon-btn" title="Download as PDF" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faDownload} />
+                    </button>
+                    <button className="learn-more-modal-delete-btn learn-more-modal-icon-btn" title="Delete project" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faTrashCan} />
+                    </button>
+                    <span className="learn-more-unsaved-badge">You have unsaved changes</span>
+                  </div>
+                  <div className="learn-more-modal-toolbar-right">
+                    <button className="learn-more-modal-help-btn learn-more-modal-icon-btn" title="Help" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faQuestion} />
+                    </button>
+                    <button className="learn-more-modal-onboarding-btn learn-more-modal-icon-btn" title="Onboarding" style={{ pointerEvents: 'none' }}>
+                      <FontAwesomeIcon icon={faPlay} />
+                    </button>
+                    <button className="learn-more-modal-close learn-more-modal-icon-btn" title="Close" style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={faTimes} /></button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1568,7 +1597,7 @@ function UserManual() {
               <div className="um-isolated-demo um-fields-demo">
                 <div className="learn-more-fields-grid">
                   <p><strong>Author:</strong> Jane Smith</p>
-                  <p><strong>Card Creator:</strong> jsmith</p>
+                  <p><strong>Project Creator:</strong> jsmith</p>
                   <p><strong>Email:</strong> j.smith@cereo.edu</p>
                   <p><strong>Funding:</strong> NSF Grant #12345</p>
                   <p><strong>Organization:</strong> Rivers, Watersheds, Communities (RWC)</p>
@@ -1591,7 +1620,7 @@ function UserManual() {
                     <input className="learn-more-inline-input" type="text" defaultValue="Jane Smith" readOnly style={{ marginBottom: 0 }} />
                   </div>
                   <div className="learn-more-field-cell">
-                    <p><strong>Card Creator:</strong></p>
+                    <p><strong>Project Creator:</strong></p>
                     <input className="learn-more-inline-input learn-more-inline-readonly" type="text" defaultValue="jsmith" readOnly disabled style={{ marginBottom: 0 }} />
                   </div>
                 </div>
@@ -2770,7 +2799,7 @@ function UserManual() {
         <h3><ManualText sectionId="watershed-panel" blockId="watershed-panel-012" onNavigate={navTo} /></h3>
         <ol><ManualText sectionId="watershed-panel" blockId="watershed-panel-013" onNavigate={navTo} /></ol>
         <p><ManualText sectionId="watershed-panel" blockId="watershed-panel-014" onNavigate={navTo} /></p>
-        <button type="button" className="um-nav-item" onClick={() => navTo('add-card')}>Read about the Card Creation Form</button>
+        <button type="button" className="um-nav-item" onClick={() => navTo('add-card')}>Read about the Project Creation Form</button>
 
         <h3><ManualText sectionId="watershed-panel" blockId="watershed-panel-015" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="watershed-panel" blockId="watershed-panel-016" onNavigate={navTo} /></p>

@@ -3,7 +3,7 @@
   "id": "watershed-panel",
   "title": "Watershed Panel",
   "navigationLabel": "Watershed Panel",
-  "summary": "Show StreamStats rivers, delineate an upstream basin, and save it as a custom layer or a polygon card.",
+  "summary": "Show StreamStats rivers, delineate an upstream basin, and save it as a custom layer or a polygon project.",
   "manualPath": "/user-manual?section=watershed-panel",
   "blocks": [
     {
@@ -230,7 +230,7 @@
               "content": [
                 {
                   "type": "text",
-                  "text": "Select point on map"
+                  "text": "Select point"
                 }
               ]
             },
@@ -245,7 +245,7 @@
           "content": [
             {
               "type": "text",
-              "text": "Click a river channel in the selected state. StreamStats snaps the point to its stream grid and computes the upstream basin."
+              "text": "Click a river channel in the selected state. A temporary point and a small coordinate popup appear immediately, before the request finishes. The point stays on the map while StreamStats computes the upstream basin; the map does not zoom to a result yet."
             }
           ]
         },
@@ -254,7 +254,7 @@
           "content": [
             {
               "type": "text",
-              "text": "Wait for the response. On success, the map zooms to the yellow basin and displays the returned pour point. The panel shows result details and the save controls."
+              "text": "On success, the map draws and zooms to the basin, and moves the same point to the returned StreamStats location when available. Coordinates stay in the map popup rather than a result block in the panel. Click the point to reopen its popup after closing it. The panel shows Basin name and the Save menu."
             }
           ]
         }
@@ -294,7 +294,7 @@
         },
         {
           "type": "text",
-          "text": " stops waiting for the result. Requests may take up to two minutes before timing out. If a request fails or no watershed is returned, check the state, zoom in, and try a point closer to a stream channel."
+          "text": " cancels the request while keeping the temporary point and popup. A failed or timed-out request also leaves the point available for review or retry; requests may take up to two minutes. Check the state, zoom in, and try closer to a stream channel if no basin is returned. Closing the panel exits picking mode but keeps the point or result and lets an in-progress request finish. Changing basemaps keeps the temporary point."
         }
       ]
     },
@@ -340,7 +340,7 @@
             },
             {
               "type": "text",
-              "text": ", then choose "
+              "text": ", open Save, then choose "
             },
             {
               "type": "strong",
@@ -403,7 +403,7 @@
       "content": [
         {
           "type": "text",
-          "text": "This saves the complete basin GeoJSON, including separate polygon parts and interior holes, to your personal layer library. Root is used even if another folder is currently open. The list refreshes after a successful save. If saving fails, the basin remains available so you can retry. Saving a custom layer does not create a card."
+          "text": "This saves the complete basin GeoJSON, including separate polygon parts and interior holes, to your personal layer library. Root is used even if another folder is currently open. The list refreshes after a successful save. If saving fails, the basin remains available so you can retry. Saving a custom layer does not create a project."
         }
       ]
     },
@@ -414,7 +414,7 @@
       "content": [
         {
           "type": "text",
-          "text": "4. Save as polygon for a card"
+          "text": "4. Save as polygon for a project"
         }
       ]
     },
@@ -427,7 +427,7 @@
           "content": [
             {
               "type": "text",
-              "text": "Log in and choose "
+              "text": "Log in, open Save and choose "
             },
             {
               "type": "strong",
@@ -467,7 +467,7 @@
           "content": [
             {
               "type": "text",
-              "text": "Save the edited shape to continue to the existing card creation form, with the polygon representation prefilled."
+              "text": "Save the edited shape to continue to the existing project creation form, with the polygon representation prefilled."
             }
           ]
         },
@@ -476,7 +476,7 @@
           "content": [
             {
               "type": "text",
-              "text": "Complete the required card fields and submit the form to save the card."
+              "text": "Complete the required project fields and submit the form to save the project."
             }
           ]
         }
@@ -495,7 +495,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Opening or cancelling Edit Polygon does not create a card. Separate polygon components are supported. The existing editor does "
+          "text": "Opening or cancelling Edit Polygon does not create a project. Separate polygon components are supported. The existing editor does "
         },
         {
           "type": "strong",
@@ -551,7 +551,7 @@
         },
         {
           "type": "text",
-          "text": " removes only the temporary basin and pour point. It does not hide the StreamStats rivers, delete a saved custom layer, or delete a card. Uncheck the river checkbox to hide rivers; manage saved layers and cards in their own panels."
+          "text": " is available as soon as a point is placed, including during a request. It cancels any pending request and removes the temporary basin, point and popup. A late response cannot restore a cleared result. It does not hide StreamStats rivers or delete saved layers or projects. Uncheck the river checkbox to hide rivers; manage saved layers and projects in their own panels."
         }
       ]
     },

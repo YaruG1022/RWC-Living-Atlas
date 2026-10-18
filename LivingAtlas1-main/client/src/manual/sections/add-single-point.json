@@ -3,7 +3,7 @@
   "id": "add-single-point",
   "title": "Add Points / Coordinates",
   "navigationLabel": "Add Points / Coordinates",
-  "summary": "Collect and edit one or more coordinates before creating a card.",
+  "summary": "Collect and edit one or more coordinates before creating a project.",
   "manualPath": "/user-manual?section=add-single-point",
   "blocks": [
     {
@@ -131,7 +131,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Step 3: Complete Card Data"
+          "text": "Step 3: Complete Project Data"
         }
       ],
       "role": "feature-title"
@@ -142,7 +142,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Click Save to transfer points into the Card Creation form, then fill title, category, description, links, images, files, and optional ArcGIS links. Submit to create a point-based card marker on the map. Saving points alone does not create a card. Cancel leaves the map editor without applying changes."
+          "text": "Click Save to transfer points into the Project Creation form, then fill title, category, description, links, images, files, and optional ArcGIS links. Submit to create a point-based project marker on the map. Saving points alone does not create a project. Cancel leaves the map editor without applying changes."
         }
       ]
     }

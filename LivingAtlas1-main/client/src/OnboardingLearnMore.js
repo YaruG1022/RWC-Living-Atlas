@@ -23,7 +23,7 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-toolbar"]',
         title: 'Top Toolbar',
-        description: 'This toolbar contains actions to edit, export, delete, open help, start onboarding, and close the Detail View.',
+        description: 'Use Edit, Download as PDF and Delete on the left; Help, play and Close are on the right. In edit mode, Save and Cancel replace Edit, and the unsaved changes notice appears after Delete.',
         placement: 'bottom',
         scrollTo: '[data-onboarding-target="learn-more-toolbar"]',
     },
@@ -79,7 +79,7 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-toolbar"]',
         title: 'Edit Mode - Save or Cancel',
-        description: 'After making edits, click the Save button to commit your changes. Click Cancel or Close to discard any unsaved changes.',
+        description: 'Click Save to save changes. Cancel leaves edit mode; Close exits details. When prompted, confirm discarding unsaved changes or cancel the prompt to keep editing.',
         placement: 'bottom',
         scrollTo: '[data-onboarding-target="learn-more-toolbar"]',
     },

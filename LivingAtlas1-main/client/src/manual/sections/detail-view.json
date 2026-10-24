@@ -256,7 +256,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The Detail View displays up to six selected images. Multiple images adapts the grid to the selected count; Slideshow shows one selected image at a time with navigation inside the image area. Click any tile to open the image in a full-screen lightbox."
+          "text": "The Detail View displays up to six selected images. Multiple images adapts the grid to the selected count; Slideshow shows one selected image at a time with navigation inside the image area. Images fill their frames by default. In edit mode, Adjust lets you drag the image, change zoom, reset the composition, or choose Show full image for maps and diagrams. Use framing stages the change; Save commits it and Cancel restores the previous framing. Click any tile to see the complete uncropped display image in a full-screen lightbox, with an Open original image link."
         },
         {
           "type": "strong",
@@ -382,7 +382,7 @@
         },
         {
           "type": "text",
-          "text": " uploads an additional image, up to 30 total. Add New Image and Delete Selected sit beside Back to Learn More at the top. Save pending deletions before uploading if the stored project is at the limit. Save commits changes; Cancel discards them."
+          "text": " uploads one or more images, up to 30 total, with progress and per-image retry. Originals up to 50 MiB and 160 MP are supported (compressed BMPs: up to 40 MP); large pixel dimensions are reduced for display without cropping the original. Animated GIF originals stay available; display previews use the first frame. Add New Image and Delete Selected sit beside Back to Learn More at the top. Save pending deletions before uploading if the stored project is at the limit. Save commits changes; Cancel discards them."
         },
         {
           "type": "text",

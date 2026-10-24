@@ -63,3 +63,47 @@ Restart the backend after changing storage code or environment settings.
 
 Do not point load scripts at production. Test registrations will remain in this
 local database until the test data is deliberately cleared.
+
+## Large images and display framing
+
+Install the backend requirements, including `Pillow` and `pyvips[binary]`. The
+binary extra bundles libvips, so no system libvips package is required on supported
+Linux/macOS/Windows wheels. Restart the backend to apply migration
+`010_add_image_presentation.sql` before deploying the new client.
+
+Gallery images accept originals up to **50 MiB / 160 megapixels**. A streaming
+libvips pipeline generates an uncropped, EXIF-oriented WebP display image with a
+maximum edge of 4096 pixels. Originals are retained byte-for-byte under a separate
+URL. BMP uses a bounded Pillow fallback (40 MP for compressed BMPs). Animated
+GIF originals remain available; the gallery derivative represents the first frame.
+These are application limits, not a guarantee about a hosting provider's request
+limits. Files are uploaded sequentially to avoid enormous multipart batches.
+
+`POST /imagePreview` generates a transient display image without saving blobs or
+creating a project. Modest PNG/JPEG originals (up to 12 MP with bounded dimensions)
+can generate a local preview on a small canvas. Create Project sends larger or
+unfamiliar images to this endpoint, avoiding original-sized browser decoding. `POST /uploadCardImage` stores the original and derivative and
+accepts an optional `upload_token`; retries with that token return the existing
+image. Preview and image uploads disable the Axios automatic network retry;
+explicit per-image retries retain their token. Failed files remain in the UI.
+Creating a project with images uses `defer_images=true`, then uploads each file;
+retrying a failed image does not create another project.
+
+Per-image `presentation` stores `fit` (`cover` / `contain`), normalized `x` and `y`
+(0–100), and `zoom` (1–3). Adjustments stay in the edit draft until Save. The
+`image_presentations` field on `/uploadForm` validates that every image belongs to
+the current project and commits framing with its metadata. Existing images
+without metadata default to centered Fill. The full-image viewer ignores framing
+and offers an original-file link. Deleting an image removes both files.
+
+Local checks (no Azure credentials):
+
+```sh
+python -m pytest tests/test_image_processing.py tests/test_gallery_layout.py -q
+python -m scripts.check_image_workflow
+```
+
+The processor regressions include a 50,000px-wide image, a 144 MP RGB image,
+files over the previous 10 MiB cap, all advertised formats, transparency, EXIF
+orientation, and clear rejection of corrupt or over-limit originals. The workflow
+check uses only the guarded local test database and cleans up all its fixtures.

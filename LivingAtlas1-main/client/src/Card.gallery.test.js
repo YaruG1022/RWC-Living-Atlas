@@ -320,7 +320,7 @@ test('upload preserves draft layout and order; cancel removes only the new uploa
         savedCard = { ...savedCard, images: [...originalImages, { imageID: 4, url: '/fixture-4.jpg' }] };
         return Promise.resolve({ data: { imageID: 4 } });
     });
-    const input = document.querySelector('input[type="file"][accept="image/*"]');
+    const input = document.querySelector('input[type="file"][accept^="image/"][multiple]');
     fireEvent.change(input, { target: { files: [new File(['fixture'], 'fixture.png', { type: 'image/png' })] } });
     await waitFor(() => expect(within(gallery).getAllByRole('img')).toHaveLength(4));
     expect(screen.getByLabelText('Image layout').value).toBe('multi');
@@ -351,7 +351,7 @@ test('upload appends after the default cover, and the cover can be deleted and r
         savedCard = { ...savedCard, images: [defaultCover, { imageID: 62, url: '/new.png' }] };
         return Promise.resolve({ data: { imageID: 62 } });
     });
-    fireEvent.change(document.querySelector('input[type="file"][accept="image/*"]'), { target: { files: [new File(['fixture'], 'new.png', { type: 'image/png' })] } });
+    fireEvent.change(document.querySelector('input[type="file"][accept^="image/"][multiple]'), { target: { files: [new File(['fixture'], 'new.png', { type: 'image/png' })] } });
     await waitFor(() => expect(within(gallery).getAllByRole('img')).toHaveLength(2));
     expect(within(gallery).getAllByRole('img')[0].getAttribute('src')).toBe('/CEREO-logo.png');
     fireEvent.click(within(gallery).getByRole('button', { name: 'Delete image 1' }));
@@ -376,4 +376,32 @@ test('deleting and saving the last default cover keeps the gallery empty', async
     await waitFor(() => expect(screen.queryByLabelText('Image layout')).toBeNull());
     expect(api.delete).toHaveBeenCalledWith('/deleteCardImage/61');
     expect(within(gallery).queryByRole('img')).toBeNull();
+});
+
+test('framing survives image refresh, is staged until Save, and Cancel restores it', async () => {
+    await editCard();
+    fireEvent.click(screen.getByRole('button', { name: 'Adjust framing for image 1' }));
+    fireEvent.change(screen.getByLabelText('Horizontal position'), { target: { value: '85' } });
+    fireEvent.click(screen.getByText('Use framing'));
+    expect(screen.getByRole('button', { name: 'Open image 1' }).querySelector('img').style.objectPosition).toBe('85% 50%');
+    expect(api.post).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith('/uploadForm', expect.any(FormData)));
+    const body = api.post.mock.calls.find(([url]) => url === '/uploadForm')[1];
+    expect(JSON.parse(body.get('image_presentations'))['1']).toEqual({ fit: 'cover', x: 85, y: 50, zoom: 1 });
+});
+
+test('a failed image upload keeps its file and token for a single-image retry', async () => {
+    await editCard();
+    api.post.mockRejectedValueOnce({ response: { data: { detail: 'Temporary storage failure' } } });
+    const input = screen.getByRole('dialog').querySelector('input[type="file"][accept^="image/"][multiple]');
+    fireEvent.change(input, { target: { files: [new File(['pixels'], 'retry.png', { type: 'image/png' })] } });
+    const retry = await screen.findByRole('button', { name: 'Retry retry.png' });
+    await waitFor(() => expect(retry.disabled).toBe(false));
+    const token = api.post.mock.calls[0][1].get('upload_token');
+    api.post.mockResolvedValueOnce({ data: { imageID: 99 } });
+    fireEvent.click(retry);
+    await waitFor(() => expect(api.post).toHaveBeenCalledTimes(2));
+    expect(api.post.mock.calls[1][1].get('upload_token')).toBe(token);
+    expect(api.post.mock.calls[1][1].get('image').name).toBe('retry.png');
 });

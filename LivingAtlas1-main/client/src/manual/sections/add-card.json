@@ -572,7 +572,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Upload one or more images (PNG, JPG, GIF, WebP, max 5 MB each). The first image becomes the project's thumbnail for point/polygon projects. For image-overlay projects, the map representation image is managed separately, and these images are used for the Learn More gallery. Upload supporting files (PDFs, spreadsheets, etc., max 5 MB each) that viewers can download from the Project Detail View."
+          "text": "Upload one or more PNG, JPG, GIF, WebP or BMP images, up to 50 MiB and 160 megapixels each (compressed BMPs: up to 40 MP). Originals are kept, and smaller display images are prepared automatically. Use Adjust framing to drag, zoom, or show the full image. Uploads run one at a time with progress; retry failed images without uploading completed ones or creating another project. The first image becomes the project's thumbnail for point/polygon projects. For image-overlay projects, the map representation image is managed separately, and these images are used for the Learn More gallery. Upload supporting files (PDFs, spreadsheets, etc., max 5 MB each) that viewers can download from the Project Detail View."
         }
       ]
     },

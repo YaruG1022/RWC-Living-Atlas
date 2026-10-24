@@ -107,3 +107,36 @@ test('a private upload sends the boolean value understood by the backend', async
     await waitFor(() => expect(api.post).toHaveBeenCalledTimes(1));
     expect(api.post.mock.calls[0][1].get('is_public')).toBe('false');
 });
+
+test('large images get bounded previews; partial uploads retry only failures without creating another project', async () => {
+    URL.createObjectURL = jest.fn(() => 'blob:display');
+    URL.revokeObjectURL = jest.fn();
+    let failSecond = true;
+    api.post.mockImplementation((url, body) => {
+        if (url === '/imagePreview') return Promise.resolve({ data: new Blob(['display'], { type: 'image/webp' }) });
+        if (url === '/uploadForm') return Promise.resolve({ data: { card_id: 101 } });
+        if (body.get('image').name === 'second.png' && failSecond) {
+            failSecond = false;
+            return Promise.reject({ response: { data: { detail: 'Temporary storage failure' } } });
+        }
+        return Promise.resolve({ data: { imageID: 7 } });
+    });
+    render(view(account));
+    fillProject();
+    const first = new File([new Uint8Array(11 * 1024 * 1024)], 'first.png', { type: 'image/png' });
+    const second = new File(['second'], 'second.png', { type: 'image/png' });
+    fireEvent.change(screen.getByRole('dialog').querySelector('input[type="file"][accept^="image/"]'), { target: { files: [first, second] } });
+    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Adjust framing' })).toHaveLength(2));
+    submit();
+    const retry = await screen.findByRole('button', { name: 'Retry remaining images' });
+    await waitFor(() => expect(retry.disabled).toBe(false));
+    expect(screen.getByText(/Project created. Some images failed/)).toBeTruthy();
+    const token = api.post.mock.calls.find(([url, body]) => url === '/uploadCardImage' && body.get('image').name === 'second.png')[1].get('upload_token');
+    fireEvent.click(retry);
+    await waitFor(() => expect(window.alert).toHaveBeenCalledWith('Upload Successful'));
+    expect(api.post.mock.calls.filter(([url]) => url === '/uploadForm')).toHaveLength(1);
+    const uploads = api.post.mock.calls.filter(([url]) => url === '/uploadCardImage');
+    expect(uploads.map(([, body]) => body.get('image').name)).toEqual(['first.png', 'second.png', 'second.png']);
+    expect(uploads[2][1].get('upload_token')).toBe(token);
+    expect(uploads[0][1].get('presentation')).toContain('cover');
+});

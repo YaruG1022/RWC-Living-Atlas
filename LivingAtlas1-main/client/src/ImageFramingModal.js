@@ -9,15 +9,18 @@ export default function ImageFramingModal({ image, aspectRatio = 4 / 3, onSave, 
     const drag = useRef(null);
     const update = (key, value) => setPresentation(prev => ({ ...prev, [key]: value }));
     const position = event => {
-        if (!drag.current || presentation.fit !== 'cover') return;
+        const session = drag.current;
+        if (!session || presentation.fit !== 'cover') return;
+        const deltaX = event.clientX - session.clientX;
+        const deltaY = event.clientY - session.clientY;
         const { width, height } = frame.current.getBoundingClientRect();
-        const naturalRatio = drag.current.ratio;
+        const naturalRatio = session.ratio;
         const scale = Math.max(width / naturalRatio, height) * presentation.zoom;
         const overflowX = Math.max(0, scale * naturalRatio - width);
         const overflowY = Math.max(0, scale - height);
         setPresentation(prev => ({ ...prev,
-            x: overflowX ? Math.max(0, Math.min(100, drag.current.x - (event.clientX - drag.current.clientX) / overflowX * 100)) : prev.x,
-            y: overflowY ? Math.max(0, Math.min(100, drag.current.y - (event.clientY - drag.current.clientY) / overflowY * 100)) : prev.y,
+            x: overflowX ? Math.max(0, Math.min(100, session.x - deltaX / overflowX * 100)) : prev.x,
+            y: overflowY ? Math.max(0, Math.min(100, session.y - deltaY / overflowY * 100)) : prev.y,
         }));
     };
     return <Modal isOpen onRequestClose={event => { event?.stopPropagation(); onClose(); }} contentLabel="Adjust image framing" className="image-framing-modal" overlayClassName="image-framing-overlay">
@@ -34,7 +37,7 @@ export default function ImageFramingModal({ image, aspectRatio = 4 / 3, onSave, 
                 const img = frame.current.querySelector('img');
                 drag.current = { ...presentation, clientX: event.clientX, clientY: event.clientY, ratio: img.naturalWidth / img.naturalHeight || 1 };
                 event.currentTarget.setPointerCapture?.(event.pointerId);
-            }} onPointerMove={position} onPointerUp={() => { drag.current = null; }} onPointerCancel={() => { drag.current = null; }}>
+            }} onPointerMove={position} onPointerUp={() => { drag.current = null; }} onPointerCancel={() => { drag.current = null; }} onLostPointerCapture={() => { drag.current = null; }}>
             <img src={image.url} alt="Framing preview" draggable={false} style={framingStyle({ presentation })} />
         </div>
         {presentation.fit === 'cover' && <div className="image-framing-sliders">

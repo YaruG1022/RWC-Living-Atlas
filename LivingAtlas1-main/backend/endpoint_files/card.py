@@ -52,23 +52,16 @@ def upload_image(file: Optional[UploadFile]) -> str:
     if not file:
         return DEFAULT_THUMBNAIL_URL
 
-    allowed_extensions = {"png", "jpg", "jpeg", "gif", "webp"}
+    allowed_extensions = {"png", "jpg", "jpeg", "gif", "webp", "bmp"}
     if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
         raise HTTPException(status_code=400, detail="Invalid thumbnail file type. Allowed: PNG, JPG, JPEG, GIF, WebP")
 
+    from .image_processing import prepare_image
+    _, display, _, _ = prepare_image(file)
     try:
-        # Rewind the file pointer to ensure it's readable
-        file.file.seek(0)
-
-        # Generate unique filename
-        unique_filename = f"{uuid.uuid4()}_{file.filename}"
-        data = file.file.read()
-        return azure_storage.upload_bytes(
-            f"thumbnails/{unique_filename}", data, file.content_type or "image/jpeg"
-        )
-    except Exception as e:
-        print(f"Thumbnail upload error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to upload thumbnail image.")
+        return azure_storage.upload_bytes(f"thumbnails/{uuid.uuid4()}.webp", display, 'image/webp')
+    except Exception:
+        raise HTTPException(status_code=503, detail="Image storage is unavailable. Please retry.")
 
 
 @card_router.post("/create-card")
@@ -112,6 +105,8 @@ async def deleteCard(username: str, title: str, requester_email: str = None):
             if not requester_is_admin and requester_email.lower() != card_owner_email.lower():
                 raise HTTPException(status_code=403, detail="You do not have permission to delete this card")
 
+        cur.execute("SELECT ImageURL, OriginalURL FROM CardImages WHERE CardID=%s", (cardID,))
+        image_assets = cur.fetchall()
         if thumbnail_link and thumbnail_link != DEFAULT_THUMBNAIL_URL:
             # Delete the thumbnail blob from Azure
             try:
@@ -137,6 +132,13 @@ async def deleteCard(username: str, title: str, requester_email: str = None):
         cur.execute("DELETE FROM CardTags WHERE CardID = %s", (cardID,))
         cur.execute("DELETE FROM Cards WHERE CardID = %s", (cardID,))
         conn.commit()
+        for display_url, original_url in image_assets:
+            for url in {display_url, original_url}:
+                if url and url != DEFAULT_THUMBNAIL_URL and url not in {'/CEREO-logo.png', 'CEREO-logo.png'}:
+                    try:
+                        azure_storage.delete_from_url(url)
+                    except Exception:
+                        pass
         return {"Success": "The card is deleted"}
     except HTTPException:
         conn.rollback()
@@ -319,6 +321,9 @@ def allCards(viewer_email: Optional[str] = None,
                             jsonb_build_object(
                                 'imageID', ci.ImageID,
                                 'url', ci.ImageURL,
+                                'original_url', COALESCE(ci.OriginalURL, ci.ImageURL),
+                                'width', ci.ImageWidth, 'height', ci.ImageHeight,
+                                'presentation', ci.Presentation,
                                 'displayOrder', ci.DisplayOrder,
                                 'alt', ci.AltText
                             )
@@ -419,6 +424,8 @@ async def upload_form(
     title: str = Form(...),
     email: str = Form(...),
     contact_email: Optional[str] = Form(None),
+    defer_images: bool = Form(False),
+    image_presentations: Optional[str] = Form(None),
     username: str = Form(...),
     name: str = Form(...),
     original_username: Optional[str] = Form(None),
@@ -454,6 +461,19 @@ async def upload_form(
     Ensures uploaded files are compressed, stored in Azure, and recorded in the database.
     email identifies the owning account; contact_email is independent project metadata.
     """
+    from .image_presentation import parse_presentation
+    presentations = {}
+    if image_presentations is not None:
+        try:
+            parsed = json.loads(image_presentations)
+            if not isinstance(parsed, dict) or len(parsed) > 30:
+                raise ValueError()
+            for key, value in parsed.items():
+                if not key.isdecimal() or int(key) <= 0:
+                    raise ValueError()
+                presentations[int(key)] = parse_presentation(value)
+        except (ValueError, TypeError):
+            raise HTTPException(422, 'Invalid image framing selection.')
     if contact_email is not None:
         contact_email = contact_email.strip()
         if len(contact_email) > 255 or not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", contact_email):
@@ -476,6 +496,8 @@ async def upload_form(
     if images and len(images) > MAX_CARD_IMAGES:
         raise HTTPException(status_code=422, detail=f"A card can have at most {MAX_CARD_IMAGES} images")
     enable_commits = False
+    thumbnail_asset = None
+    metadata_committed = False
     try:
         attachment_tokens = parse_attachment_tokens(description_file_tokens, len(files or []), description)
     except (ValueError, TypeError) as error:
@@ -573,7 +595,12 @@ async def upload_form(
         # --------------------------------------------------
         if thumbnail is not None:
             # User uploaded a new file
-            thumbnail_url = upload_image(thumbnail)
+            if location_type == 'image':
+                thumbnail_url = upload_image(thumbnail)
+            else:
+                from .images import save_image_asset
+                thumbnail_asset = save_image_asset(thumbnail)
+                thumbnail_url = thumbnail_asset['url']
         elif thumbnail_link:
             # User kept the existing thumbnail
             thumbnail_url = thumbnail_link
@@ -629,6 +656,13 @@ async def upload_form(
                   funding, link, link_text, thumbnail_url, userID, location_type or "point",
                   polygon_fill_color or '#0077c0', polygon_line_style or 'solid',
                   (is_public or 'true').lower() != 'false', contact_email, gallery_layout, nextcardid))
+            if thumbnail_asset:
+                from .images import reserve_image_slots
+                reserve_image_slots(nextcardid, 1)
+                cur.execute("""
+                    INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText, OriginalURL, ImageWidth, ImageHeight)
+                    VALUES (%s, %s, (SELECT COALESCE(MAX(DisplayOrder), -1)+1 FROM CardImages WHERE CardID=%s), '', %s, %s, %s)
+                """, (nextcardid, thumbnail_url, nextcardid, thumbnail_asset['original_url'], thumbnail_asset['width'], thumbnail_asset['height']))
             cur.execute("DELETE FROM CardTags WHERE CardID=%s", (nextcardid,))
             # Delete old polygon vertices on update
             cur.execute("DELETE FROM CardPolygonVertices WHERE CardID=%s", (nextcardid,))
@@ -648,6 +682,14 @@ async def upload_form(
         # --------------------------------------------------
         # Handle overlay vertices (polygon/image)
         # --------------------------------------------------
+        if presentations:
+            cur.execute("SELECT ImageID FROM CardImages WHERE CardID=%s", (nextcardid,))
+            owned = {row[0] for row in cur.fetchall()}
+            if not set(presentations).issubset(owned):
+                raise HTTPException(422, 'Framing can only be changed for this project’s images.')
+            for image_id, presentation in presentations.items():
+                cur.execute("UPDATE CardImages SET Presentation=%s::jsonb WHERE CardID=%s AND ImageID=%s", (json.dumps(presentation), nextcardid, image_id))
+
         if selected_image_ids is not None:
             cur.execute("SELECT ImageID FROM CardImages WHERE CardID=%s", (nextcardid,))
             owned_image_ids = {row[0] for row in cur.fetchall()}
@@ -862,21 +904,22 @@ async def upload_form(
         # --------------------------------------------------
         if enable_commits:
             conn.commit()
+            metadata_committed = True
             print("[COMMIT] All changes committed successfully")
 
         # --------------------------------------------------
         # Populate CardImages for newly created cards
         # --------------------------------------------------
-        if not update and location_type == "image":
+        if not update and not defer_images and location_type == "image":
             try:
-                from endpoint_files.images import save_uploaded_file as _save_img
+                from endpoint_files.images import save_image_asset as _save_img
                 if images:
                     for idx, img_file in enumerate(images):
                         try:
-                            img_url = _save_img(img_file)
+                            asset = _save_img(img_file)
                             cur.execute(
-                                "INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText) VALUES (%s, %s, %s, '')",
-                                (nextcardid, img_url, idx)
+                                "INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText, OriginalURL, ImageWidth, ImageHeight) VALUES (%s, %s, %s, '', %s, %s, %s)",
+                                (nextcardid, asset['url'], idx, asset['original_url'], asset['width'], asset['height'])
                             )
                         except Exception as img_err:
                             print(f"[IMAGE] Failed to upload image at index {idx}: {img_err}")
@@ -888,22 +931,28 @@ async def upload_form(
                     conn.rollback()
                 except Exception:
                     pass
-        elif not update:
+        elif not update and not defer_images:
             try:
-                from endpoint_files.images import save_uploaded_file as _save_img
+                from endpoint_files.images import save_image_asset as _save_img
                 # Use the already-uploaded thumbnail as the first gallery image
-                cur.execute(
-                    "INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText) VALUES (%s, %s, 0, '')",
-                    (nextcardid, thumbnail_url)
-                )
+                if thumbnail_asset:
+                    cur.execute(
+                        "INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText, OriginalURL, ImageWidth, ImageHeight) VALUES (%s, %s, 0, '', %s, %s, %s)",
+                        (nextcardid, thumbnail_url, thumbnail_asset['original_url'], thumbnail_asset['width'], thumbnail_asset['height'])
+                    )
+                else:
+                    cur.execute(
+                        "INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText) VALUES (%s, %s, 0, '')",
+                        (nextcardid, thumbnail_url)
+                    )
                 # Upload and insert any additional images (index 1+ since index 0 == thumbnail)
                 if images and len(images) > 1:
                     for idx, img_file in enumerate(images[1:], start=1):
                         try:
-                            img_url = _save_img(img_file)
+                            asset = _save_img(img_file)
                             cur.execute(
-                                "INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText) VALUES (%s, %s, %s, '')",
-                                (nextcardid, img_url, idx)
+                                "INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText, OriginalURL, ImageWidth, ImageHeight) VALUES (%s, %s, %s, '', %s, %s, %s)",
+                                (nextcardid, asset['url'], idx, asset['original_url'], asset['width'], asset['height'])
                             )
                         except Exception as img_err:
                             print(f"[IMAGE] Failed to upload image at index {idx}: {img_err}")
@@ -920,9 +969,21 @@ async def upload_form(
 
     except HTTPException:
         conn.rollback()
+        if thumbnail_asset and not metadata_committed:
+            for url in (thumbnail_asset['url'], thumbnail_asset['original_url']):
+                try:
+                    azure_storage.delete_from_url(url)
+                except Exception:
+                    pass
         raise
     except Exception as e:
         conn.rollback()
+        if thumbnail_asset and not metadata_committed:
+            for url in (thumbnail_asset['url'], thumbnail_asset['original_url']):
+                try:
+                    azure_storage.delete_from_url(url)
+                except Exception:
+                    pass
         print(f"[UPLOADFORM ERROR] {e}")
         raise HTTPException(status_code=500, detail=str(e))
     finally:

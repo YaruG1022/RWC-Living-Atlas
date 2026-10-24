@@ -54,3 +54,6 @@ typing_extensions>=4.6.0
 urllib3==1.26.8
 uvicorn==0.21.1
 wsproto==1.0.0
+
+Pillow>=11.3.0,<13
+pyvips[binary]>=3.0,<4

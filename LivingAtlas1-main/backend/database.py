@@ -236,6 +236,15 @@ def _ensure_schema():
               ADD COLUMN IF NOT EXISTS LineStyle VARCHAR(20);
         """)
 
+        cur.execute("""
+            ALTER TABLE CardImages ADD COLUMN IF NOT EXISTS OriginalURL TEXT;
+            ALTER TABLE CardImages ADD COLUMN IF NOT EXISTS ImageWidth INT;
+            ALTER TABLE CardImages ADD COLUMN IF NOT EXISTS ImageHeight INT;
+            ALTER TABLE CardImages ADD COLUMN IF NOT EXISTS Presentation JSONB;
+            ALTER TABLE CardImages ADD COLUMN IF NOT EXISTS UploadToken VARCHAR(64);
+            CREATE UNIQUE INDEX IF NOT EXISTS cardimages_upload_token ON CardImages (CardID, UploadToken);
+        """)
+
         # Keep the project contact separate from the account that owns the card.
         cur.execute("ALTER TABLE Cards ADD COLUMN IF NOT EXISTS ContactEmail VARCHAR(255);")
 

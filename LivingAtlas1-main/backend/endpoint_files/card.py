@@ -13,6 +13,7 @@ import psycopg2
 import os
 import uuid
 import json
+import re
 import tempfile
 from endpoint_files.description_attachments import parse_attachment_tokens, resolve_attachment_token
 from database import get_connection, get_request_connection, release_request_connection
@@ -51,9 +52,9 @@ def upload_image(file: Optional[UploadFile]) -> str:
     if not file:
         return DEFAULT_THUMBNAIL_URL
 
-    allowed_extensions = {"png", "jpg", "jpeg", "gif"}
+    allowed_extensions = {"png", "jpg", "jpeg", "gif", "webp"}
     if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
-        raise HTTPException(status_code=400, detail="Invalid thumbnail file type. Allowed: PNG, JPG, JPEG, GIF")
+        raise HTTPException(status_code=400, detail="Invalid thumbnail file type. Allowed: PNG, JPG, JPEG, GIF, WebP")
 
     try:
         # Rewind the file pointer to ensure it's readable
@@ -294,6 +295,7 @@ def allCards(viewer_email: Optional[str] = None,
             SELECT
                 u.Username,
                 u.Email,
+                COALESCE(c.ContactEmail, u.Email) AS contact_email,
                 COALESCE(c.Name, '') AS Name,
                 c.Title,
                 c.CardID,
@@ -382,7 +384,7 @@ def allCards(viewer_email: Optional[str] = None,
             rows = local_cur.fetchall()
 
         columns = [
-            "username", "email", "name", "title", "cardID", "category", "date", "description",
+            "username", "email", "contact_email", "name", "title", "cardID", "category", "date", "description",
             "org", "funding", "link", "link_text", "tags", "latitude", "longitude", "thumbnail_link",
             "location_type", "polygon_fill_color", "polygon_line_style", "images", "files", "polygon_vertices",
             "is_public", "gallery_layout", "gallery_image_ids"
@@ -416,6 +418,7 @@ async def upload_form(
     update: Optional[bool] = Form(False),
     title: str = Form(...),
     email: str = Form(...),
+    contact_email: Optional[str] = Form(None),
     username: str = Form(...),
     name: str = Form(...),
     original_username: Optional[str] = Form(None),
@@ -449,7 +452,12 @@ async def upload_form(
     """
     Create or update a Card with metadata, thumbnail, and optional files.
     Ensures uploaded files are compressed, stored in Azure, and recorded in the database.
+    email identifies the owning account; contact_email is independent project metadata.
     """
+    if contact_email is not None:
+        contact_email = contact_email.strip()
+        if len(contact_email) > 255 or not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", contact_email):
+            raise HTTPException(status_code=422, detail="Enter a valid contact email (up to 255 characters).")
     if gallery_layout is not None and gallery_layout not in {
         'multi', 'featured', 'grid-1', 'grid-2', 'grid-3', 'grid-4', 'grid-5', 'grid-6', 'grid-7', 'grid-8', 'slideshow'
     }:
@@ -499,7 +507,7 @@ async def upload_form(
             )
         user_row = cur.fetchone()
         if not user_row:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise HTTPException(status_code=404, detail="No account matches this username and account email. Please sign in again before uploading.")
         userID = user_row[0]
 
         # --------------------------------------------------
@@ -615,12 +623,12 @@ async def upload_form(
                     Description=%s, Organization=%s, Funding=%s, Link=%s, LinkText=%s,
                     Thumbnail_Link=COALESCE(%s, Thumbnail_Link), UserID=%s,
                     LocationType=%s, PolygonFillColor=%s, PolygonLineStyle=%s,
-                    is_public=%s, GalleryLayout=COALESCE(%s, GalleryLayout)
+                    is_public=%s, ContactEmail=COALESCE(%s, ContactEmail), GalleryLayout=COALESCE(%s, GalleryLayout)
                 WHERE CardID=%s
             """, (name, title, latitude_val, longitude_val, categoryID, description, org,
                   funding, link, link_text, thumbnail_url, userID, location_type or "point",
                   polygon_fill_color or '#0077c0', polygon_line_style or 'solid',
-                  (is_public or 'true').lower() != 'false', gallery_layout, nextcardid))
+                  (is_public or 'true').lower() != 'false', contact_email, gallery_layout, nextcardid))
             cur.execute("DELETE FROM CardTags WHERE CardID=%s", (nextcardid,))
             # Delete old polygon vertices on update
             cur.execute("DELETE FROM CardPolygonVertices WHERE CardID=%s", (nextcardid,))
@@ -629,13 +637,13 @@ async def upload_form(
                 INSERT INTO Cards
                     (CardID, UserID, Name, Title, Latitude, Longitude, CategoryID,
                      Description, Organization, Funding, Link, LinkText, Thumbnail_Link, LocationType,
-                     PolygonFillColor, PolygonLineStyle, is_public, GalleryLayout)
+                     PolygonFillColor, PolygonLineStyle, is_public, ContactEmail, GalleryLayout)
                 VALUES
-                    (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (nextcardid, userID, name, title, latitude_val, longitude_val,
                   categoryID, description, org, funding, link, link_text, thumbnail_url, location_type or "point",
                   polygon_fill_color or '#0077c0', polygon_line_style or 'solid',
-                  (is_public or 'true').lower() != 'false', gallery_layout or 'featured'))
+                  (is_public or 'true').lower() != 'false', contact_email if contact_email is not None else email, gallery_layout or 'featured'))
 
         # --------------------------------------------------
         # Handle overlay vertices (polygon/image)

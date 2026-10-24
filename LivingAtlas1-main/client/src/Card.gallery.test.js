@@ -45,6 +45,32 @@ async function editCard() {
     return screen.getByRole('region', { name: 'Project image gallery' });
 }
 
+test('editing a contact email leaves the card owner identity intact', async () => {
+    savedCard.contact_email = 'colleague@example.invalid';
+    await editCard();
+    const input = screen.getByRole('dialog').querySelector('input[name="contact_email"]');
+    expect(input.value).toBe('colleague@example.invalid');
+    fireEvent.change(input, { target: { value: 'another@example.invalid' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith('/uploadForm', expect.any(FormData)));
+    const payload = api.post.mock.calls.find(([url]) => url === '/uploadForm')[1];
+    expect(payload.get('contact_email')).toBe('another@example.invalid');
+    expect(payload.get('email')).toBe('fixture@example.invalid');
+    expect(payload.get('original_email')).toBe('fixture@example.invalid');
+    expect(payload.get('requester_email')).toBe('fixture@example.invalid');
+});
+
+test('a contact email does not grant permission to edit the project', async () => {
+    savedCard.contact_email = 'colleague@example.invalid';
+    localStorage.setItem('email', savedCard.contact_email);
+    const { container } = render(<Card formData={savedCard} isLoggedIn />);
+    fireEvent.click(container.querySelector('.card'));
+    expect(await screen.findByText(savedCard.contact_email, { exact: false })).toBeTruthy();
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit project in Learn More modal', exact: true }));
+    expect(window.alert).toHaveBeenCalledWith(expect.stringContaining("You don't have permission to edit"));
+    expect(screen.getByRole('dialog').querySelector('input[name="contact_email"]')).toBeNull();
+});
+
 test('location preview closes details and uses the existing locate callback', async () => {
     const onZoom = jest.fn();
     const { container } = render(<Card formData={savedCard} isLoggedIn onZoom={onZoom} onCardUpdate={() => {}} />);

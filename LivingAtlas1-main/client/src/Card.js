@@ -7,6 +7,8 @@ import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
 import { SHOW_LEGACY_ORGANIZATION_LOGO } from './branding';
 import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
+import ImageFramingModal from './ImageFramingModal';
+import { IMAGE_ACCEPT, galleryFrameAspect, imageUploadError, uploadPercent, uploadToken, validateImage } from './imageUploads';
 import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, toggleGallerySelection } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faArrowLeft, faCheck, faUpload, faXmark, faQuestion, faPlay, faTimes } from '@fortawesome/free-solid-svg-icons';
@@ -89,6 +91,9 @@ function Card(props) {
     const [isImageMutationLoading, setIsImageMutationLoading] = useState(false);
     const [pendingImageSlotIndex, setPendingImageSlotIndex] = useState(null);
     const [sessionUploadedImageIDs, setSessionUploadedImageIDs] = useState([]);
+    const [framingImage, setFramingImage] = useState(null);
+    const [imageUploadJobs, setImageUploadJobs] = useState([]);
+    const uploadRunning = useRef(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [failedCardImageUrl, setFailedCardImageUrl] = useState(null);
     const [isEditingPolygon, setIsEditingPolygon] = useState(false);
@@ -837,6 +842,10 @@ function Card(props) {
         formDataToSend.append('link_text', linkOverride.link_text ?? '');
     }
     formDataToSend.append('category', formData.category || 'None');
+    const imagePresentations = Object.fromEntries((formData.images || [])
+        .filter(image => resolveImageServerID(image) && image.presentation)
+        .map(image => [resolveImageServerID(image), image.presentation]));
+    if (Object.keys(imagePresentations).length) formDataToSend.append('image_presentations', JSON.stringify(imagePresentations));
 
     // Send polygon vertices as JSON string if polygon card
     if (isOverlayCard && Array.isArray(formData.polygon_vertices) && formData.polygon_vertices.length >= (isImageCard ? 4 : 3)) {
@@ -1427,6 +1436,8 @@ function Card(props) {
         if (e?.stopPropagation) e.stopPropagation();
         if (isImageMutationLoading) return;
 
+        setImageUploadJobs([]);
+        setFramingImage(null);
         // Clean up any active coordinate editing
         setHideCardPointMarkers(false);
         setIsEditingCoordinate(false);
@@ -1495,6 +1506,7 @@ function Card(props) {
     const handleLearnMoreEditSave = async (e) => {
         e.stopPropagation();
         if (loading || isImageMutationLoading) return;
+        if (imageUploadJobs.some(job => job.status === 'failed')) { alert('Retry or remove failed uploads before saving.'); return; }
         setIsImageMutationLoading(true);
         try {
             const serializedLink = serializeLinks(learnMoreLinks);
@@ -1552,6 +1564,9 @@ function Card(props) {
             if (JSON.stringify(formData[field]) !== JSON.stringify(learnMoreBackup[field])) return true;
         }
 
+        if (imageUploadJobs.some(job => job.status === 'failed')) return true;
+        // Compare images, including staged framing.
+        if (JSON.stringify((formData.images || []).map(image => image.presentation)) !== JSON.stringify((learnMoreBackup.images || []).map(image => image.presentation))) return true;
         // Compare images (order + identity)
         if (JSON.stringify((formData.images || []).map(i => i.imageID ?? i.id)) !==
             JSON.stringify((learnMoreBackup.images || []).map(i => i.imageID ?? i.id))) return true;
@@ -1577,10 +1592,11 @@ function Card(props) {
         }
 
         return false;
-    }, [isLearnMoreEditMode, learnMoreBackup, formData, linkedArcgisItems, linkedCustomLayerItems, learnMoreLinks]);
+    }, [isLearnMoreEditMode, learnMoreBackup, formData, linkedArcgisItems, linkedCustomLayerItems, learnMoreLinks, imageUploadJobs]);
 
     const handleLearnMoreClose = async (e) => {
         if (e?.stopPropagation) e.stopPropagation();
+        if (loading || isImageMutationLoading) return false;
 
         if (isLearnMoreEditMode && hasUnsavedChanges) {
             const confirmed = window.confirm('You have unsaved changes. Discard them and close?');
@@ -1677,6 +1693,7 @@ function Card(props) {
             id: image.id ?? image.imageID ?? image.imageId ?? fallbackId,
             imageID: image.imageID ?? image.imageId ?? image.id ?? null,
             url: resolveImageUrl(image.url || image.imageURL || image.thumbnail_link || ''),
+            original_url: resolveImageUrl(image.original_url || image.url || image.imageURL || ''),
             alt: image.alt || image.altText || ''
         };
     };
@@ -1694,7 +1711,10 @@ function Card(props) {
             if (isEditingRef.current) {
                 const remaining = freshImages.filter(image => !pendingDeletedImageIDs.includes(image.imageID));
                 const byID = new Map(remaining.map(image => [image.imageID, image]));
-                const ordered = (prev.images || []).map(image => byID.get(image.imageID)).filter(Boolean);
+                const ordered = (prev.images || []).map(image => {
+                    const fresh = byID.get(image.imageID);
+                    return fresh ? { ...fresh, presentation: image.presentation ?? fresh.presentation } : null;
+                }).filter(Boolean);
                 const knownIDs = new Set(ordered.map(image => image.imageID));
                 images = [...ordered, ...remaining.filter(image => !knownIDs.has(image.imageID))];
             }
@@ -1766,40 +1786,55 @@ function Card(props) {
         }
     };
 
-    const handleLearnMoreImageUpload = async (e) => {
-        e.stopPropagation();
-        const file = e.target.files?.[0];
-        e.target.value = '';
-
-        if (!file) return;
-
-        const cardID = formData.cardID || props.cardID;
-        if (!cardID) {
-            alert('Unable to add images because project ID is missing.');
-            return;
-        }
-
+    const runImageUploads = async jobs => {
+        if (uploadRunning.current) return;
+        uploadRunning.current = true;
         setIsImageMutationLoading(true);
+        const patchJob = (id, patch) => setImageUploadJobs(prev => prev.map(job => job.id === id ? { ...job, ...patch } : job));
         try {
-            const uploadFormData = new FormData();
-            uploadFormData.append('cardID', cardID);
-            uploadFormData.append('altText', file.name || `Project image ${(pendingImageSlotIndex ?? 0) + 1}`);
-            uploadFormData.append('image', file);
-            const uploadResponse = await api.post('/uploadCardImage', uploadFormData);
-            const uploadedImageID = uploadResponse?.data?.imageID;
-
-            if (uploadedImageID) {
-                setSessionUploadedImageIDs((prev) => [...prev, uploadedImageID]);
+            for (const job of jobs) {
+                patchJob(job.id, { status: 'uploading', error: '', progress: 0 });
+                try {
+                    validateImage(job.file);
+                    if (!job.imageID) {
+                        const body = new FormData();
+                        body.append('cardID', formData.cardID || props.cardID);
+                        body.append('altText', job.file.name);
+                        body.append('image', job.file);
+                        body.append('upload_token', job.id);
+                        const response = await api.post('/uploadCardImage', body, {
+                            timeout: 180000, skipRetry: true,
+                            onUploadProgress: event => patchJob(job.id, { progress: uploadPercent(event) }),
+                        });
+                        job.imageID = response.data?.imageID;
+                        patchJob(job.id, { imageID: job.imageID });
+                        if (job.imageID) setSessionUploadedImageIDs(prev => [...new Set([...prev, job.imageID])]);
+                    }
+                    await refreshCardImages(pendingImageSlotIndex, true);
+                    patchJob(job.id, { status: 'done', progress: 100 });
+                } catch (error) {
+                    const message = imageUploadError(error);
+                    patchJob(job.id, { status: 'failed', error: message });
+                    alert(message);
+                }
             }
-
-            await refreshCardImages(pendingImageSlotIndex, true);
-        } catch (error) {
-            console.error('Failed to upload card images:', error);
-            alert(error.response?.data?.detail || 'Failed to upload image.');
         } finally {
+            uploadRunning.current = false;
             setIsImageMutationLoading(false);
             setPendingImageSlotIndex(null);
         }
+    };
+
+    const handleLearnMoreImageUpload = async event => {
+        event.stopPropagation();
+        const files = Array.from(event.target.files || []);
+        event.target.value = '';
+        if (!files.length || uploadRunning.current) return;
+        if (!(formData.cardID || props.cardID)) { alert('Save your project before adding images.'); return; }
+        if ((formData.images || []).length + files.length > MAX_CARD_IMAGES) { alert(`A project can have at most ${MAX_CARD_IMAGES} images.`); return; }
+        const jobs = files.map(file => ({ id: uploadToken(), file, status: 'queued' }));
+        setImageUploadJobs(prev => [...prev.filter(job => job.status !== 'done'), ...jobs]);
+        await runImageUploads(jobs);
     };
 
     const handleLearnMoreImageDelete = async (e, image) => {
@@ -2200,11 +2235,23 @@ function Card(props) {
                     <input
                         ref={learnMoreImageInputRef}
                         type="file"
-                        accept="image/*"
+                        accept={IMAGE_ACCEPT}
+                        multiple
                         onChange={handleLearnMoreImageUpload}
                         style={{ display: 'none' }}
                     />
 
+                    {isLearnMoreEditMode && <>
+                        <p className="image-upload-hint">PNG, JPG, WebP, GIF or BMP · up to 50 MiB / 160 megapixels each. Originals are kept; display images are resized automatically.</p>
+                        {imageUploadJobs.map(job => <div className="image-upload-status" role="status" key={job.id}>
+                            <strong>{job.file.name}</strong> — {job.status === 'uploading' ? (job.progress === 100 ? 'Processing image…' : `Uploading ${job.progress ?? ''}%`) : job.status === 'done' ? 'Uploaded' : job.status === 'failed' ? job.error : 'Waiting'}
+                            {job.status === 'uploading' && <progress max="100" value={job.progress ?? undefined} aria-label={`Uploading ${job.file.name}`} />}
+                            {job.status === 'failed' && <>
+                                <button type="button" disabled={isImageMutationLoading} onClick={() => runImageUploads([job])}>Retry {job.file.name}</button>
+                                <button type="button" disabled={isImageMutationLoading} onClick={() => setImageUploadJobs(prev => prev.filter(item => item.id !== job.id))}>Remove from upload queue</button>
+                            </>}
+                        </div>)}
+                    </>}
                     {isAllImagesView ? (
                         <div className="learn-more-all-images-view">
                             <div className="learn-more-all-images-header">
@@ -2277,6 +2324,10 @@ function Card(props) {
                                             />
                                         </button>
 
+                                        {isLearnMoreEditMode && resolveImageServerID(image) && <button type="button" data-gallery-control className="learn-more-all-image-frame" disabled={isImageMutationLoading} onClick={event => {
+                                            event.stopPropagation();
+                                            setFramingImage({ image, ratio: galleryFrameAspect(learnMoreGalleryImages.length, Math.max(0, visibleGalleryIDs.indexOf(galleryImageID(image)))) });
+                                        }}>Adjust framing</button>}
                                         {isLearnMoreEditMode && resolveImageServerID(image) && (
                                             <button
                                                 type="button"
@@ -2312,6 +2363,7 @@ function Card(props) {
                         onOpen={(event, index) => openImagePreviewAtIndex(event, allImagesList.findIndex(image => galleryImageID(image) === galleryImageID(learnMoreGalleryImages[index])))}
                         onAdd={(event, index) => handleLearnMoreGalleryTileClick(event, null, index)}
                         onDelete={handleLearnMoreImageDelete}
+                        onFrame={(image, ratio) => setFramingImage({ image, ratio })}
                         onSeeAll={() => setIsAllImagesView(true)}
                     />
                     </div>
@@ -2901,6 +2953,11 @@ function Card(props) {
                 </div>
             </Modal>
 
+            {framingImage && <ImageFramingModal key={framingImage.image.imageID} image={framingImage.image} aspectRatio={framingImage.ratio}
+                onClose={() => setFramingImage(null)} onSave={presentation => {
+                    setFormData(prev => ({ ...prev, images: (prev.images || []).map(image => resolveImageServerID(image) === resolveImageServerID(framingImage.image) ? { ...image, presentation } : image) }));
+                    setFramingImage(null);
+                }} />}
             <LearnMoreOnboarding
                 isOpen={isLearnMoreOnboardingOpen}
                 onClose={() => setIsLearnMoreOnboardingOpen(false)}
@@ -2937,6 +2994,7 @@ function Card(props) {
                 {imageList.length > 1 && (
                     <button className="image-preview-nav image-preview-nav-next" onClick={goToNextImage} aria-label="Next image">&#8250;</button>
                 )}
+                {currentImage.original_url && <a className="image-preview-original" href={currentImage.original_url} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()}>Open original image</a>}
                 {imageList.length > 1 && (
                     <div className="image-preview-indicators">
                         {imageList.map((img, idx) => (

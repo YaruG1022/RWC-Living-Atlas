@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faArrowRight, faGripVertical, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faArrowRight, faGripVertical, faXmark, faPen } from '@fortawesome/free-solid-svg-icons';
 import './LearnMoreGallery.css';
 import { framingStyle } from './imageUploads';
 import { MAX_GALLERY_IMAGES } from './gallerySelection';
@@ -67,7 +67,7 @@ export default function LearnMoreGallery({ images: allImages, totalImageCount = 
                     {onFrame && <button type="button" data-gallery-control className="lm-gallery-frame-button" disabled={busy} onClick={event => {
                         const bounds = event.currentTarget.closest('.lm-gallery-cell').getBoundingClientRect();
                         onFrame(image, bounds.width / bounds.height || 4 / 3);
-                    }} aria-label={`Adjust framing for image ${index + 1}`}>Adjust</button>}
+                    }} aria-label={`Adjust framing for image ${index + 1}`} title="Adjust framing"><FontAwesomeIcon icon={faPen} aria-hidden="true" /></button>}
                     <button type="button" data-gallery-control disabled={busy || index === 0} onClick={() => reorder(index, index - 1)} aria-label={`Move image ${index + 1} earlier`}><FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" /></button>
                     <span aria-hidden="true"><FontAwesomeIcon icon={faGripVertical} /></span>
                     <button type="button" data-gallery-control disabled={busy || index === images.length - 1} onClick={() => reorder(index, index + 1)} aria-label={`Move image ${index + 1} later`}><FontAwesomeIcon icon={faArrowRight} aria-hidden="true" /></button>

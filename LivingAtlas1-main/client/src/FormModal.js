@@ -14,7 +14,7 @@ import ArcGISPickerModal from './ArcGISPickerModal';
 import CustomLayerPickerModal from './CustomLayerPickerModal';
 import CreateCardModalOnboarding from './OnboardingCreateCardModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faQuestion, faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faQuestion, faPlay, faPen } from '@fortawesome/free-solid-svg-icons';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -889,7 +889,7 @@ const FormModal = (props) => {
                         {imageJobs.map((job, i) => <div key={job.id} className="form-modal-image-preview-item">
                             {job.url && <img src={job.url} alt={job.file.name} style={framingStyle(job)} />}
                             <button type="button" className="form-modal-image-preview-remove" aria-label={`Remove ${job.file.name}`} onClick={() => removeImage(i)}>×</button>
-                            {job.url && <button type="button" className="form-modal-frame" onClick={() => setFramingJob(job)}>Adjust framing</button>}
+                            {job.url && <button type="button" className="form-modal-frame" aria-label="Adjust framing" title="Adjust framing" onClick={() => setFramingJob(job)}><FontAwesomeIcon icon={faPen} aria-hidden="true" /></button>}
                         </div>)}
                     </div>}
 

@@ -5,13 +5,13 @@ import Modal from 'react-modal';
 import api from './api.js';
 import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
-import { SHOW_LEGACY_ORGANIZATION_LOGO } from './branding';
+import { SHOW_LEGACY_ORGANIZATION_LOGO, isLegacyOrganizationImage, visibleGalleryImages, visibleGallerySelection } from './branding';
 import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
 import ImageFramingModal from './ImageFramingModal';
 import { IMAGE_ACCEPT, galleryFrameAspect, imageUploadError, uploadPercent, uploadToken, validateImage } from './imageUploads';
 import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, toggleGallerySelection } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faArrowLeft, faCheck, faUpload, faXmark, faQuestion, faPlay, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faPen, faTrashCan, faDownload, faArrowLeft, faCheck, faUpload, faXmark, faQuestion, faPlay, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
 import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
 import { fetchUserPreferences } from './userPreferencesApi';
@@ -1704,7 +1704,8 @@ function Card(props) {
         if (!Number.isInteger(cardID) || cardID <= 0) return;
 
         const response = await api.get(`/cardImages/${cardID}`);
-        const freshImages = (response.data?.images || []).map((img, idx) => normalizeImageRecord(img, idx));
+        const responseImages = (response.data?.images || []).map((img, idx) => normalizeImageRecord(img, idx));
+        const freshImages = visibleGalleryImages(responseImages);
 
         setFormData((prev) => {
             let images = freshImages;
@@ -1719,6 +1720,7 @@ function Card(props) {
                 images = [...ordered, ...remaining.filter(image => !knownIDs.has(image.imageID))];
             }
             let selection = isEditingRef.current && prev.gallery_image_ids !== undefined ? prev.gallery_image_ids : response.data?.galleryImageIDs;
+            selection = visibleGallerySelection(responseImages, selection);
             if (includeNewUploads && isEditingRef.current && Array.isArray(selection)) {
                 const previousIDs = new Set((prev.images || []).map(galleryImageID));
                 images.map(galleryImageID).filter(id => !previousIDs.has(id) && !selection.includes(id)).forEach(id => {
@@ -1909,8 +1911,8 @@ function Card(props) {
         ? [{ url: cardThumbnailSrc, id: 'card-representation', imageID: null, alt: 'Project representation' }]
         : displayCardData.images && Array.isArray(displayCardData.images) && displayCardData.images.length > 0
         ? (() => {
-            const images = displayCardData.images.map((img, idx) => normalizeImageRecord(img, idx));
-            const selected = selectedGalleryImages(images, displayCardData.gallery_image_ids);
+            const images = visibleGalleryImages(displayCardData.images.map((img, idx) => normalizeImageRecord(img, idx)));
+            const selected = selectedGalleryImages(images, visibleGallerySelection(displayCardData.images, displayCardData.gallery_image_ids));
             const selectedIDs = new Set(selected.map(galleryImageID));
             return [...selected, ...images.filter(image => !selectedIDs.has(galleryImageID(image)))];
         })()
@@ -1919,11 +1921,11 @@ function Card(props) {
     // Multi-image support: use images array if available, otherwise fall back to single thumbnail
     const imageList = isImageCard
         ? (formData.images && Array.isArray(formData.images) && formData.images.length > 0
-            ? formData.images.map((img, idx) => normalizeImageRecord(img, idx))
+            ? visibleGalleryImages(formData.images.map((img, idx) => normalizeImageRecord(img, idx)))
             : [])
         : formData.images && Array.isArray(formData.images) && formData.images.length > 0
-        ? formData.images.map((img, idx) => normalizeImageRecord(img, idx))
-        : (!pendingDeletedImageIDs.length && formData.thumbnail_link
+        ? visibleGalleryImages(formData.images.map((img, idx) => normalizeImageRecord(img, idx)))
+        : (!pendingDeletedImageIDs.length && formData.thumbnail_link && (SHOW_LEGACY_ORGANIZATION_LOGO || !isLegacyOrganizationImage(formData.thumbnail_link))
             ? [{ url: resolveImageUrl(formData.thumbnail_link), id: 0 }]
             : []);
 
@@ -1976,7 +1978,7 @@ function Card(props) {
     const isCardCurrentImageDefault = (() => {
         const url = cardCurrentImage?.url;
         if (!url || typeof url !== 'string') return true;
-        if (/(?:^|\/)(?:CEREO-logo|default_cereo_thumbnail)\.png(?:[?#].*)?$/i.test(url)) return true;
+        if (isLegacyOrganizationImage(url)) return true;
         return false;
     })();
     const totalIndicatorCount = cardImageList.length;
@@ -2000,10 +2002,11 @@ function Card(props) {
             })
             .slice(0, 2)
     );
-    const learnMoreGalleryImages = selectedGalleryImages(allImagesList, formData.gallery_image_ids);
+    const gallerySelection = visibleGallerySelection(formData.images || [], formData.gallery_image_ids);
+    const learnMoreGalleryImages = selectedGalleryImages(allImagesList, gallerySelection);
     const visibleGalleryIDs = learnMoreGalleryImages.map(galleryImageID);
-    const gallerySelectionSlots = Array.isArray(formData.gallery_image_ids)
-        ? formData.gallery_image_ids.map(id => visibleGalleryIDs.includes(id) ? id : null)
+    const gallerySelectionSlots = Array.isArray(gallerySelection)
+        ? gallerySelection.map(id => visibleGalleryIDs.includes(id) ? id : null)
         : visibleGalleryIDs;
     const toggleGalleryImage = (image) => {
         const id = galleryImageID(image);
@@ -2324,10 +2327,10 @@ function Card(props) {
                                             />
                                         </button>
 
-                                        {isLearnMoreEditMode && resolveImageServerID(image) && <button type="button" data-gallery-control className="learn-more-all-image-frame" disabled={isImageMutationLoading} onClick={event => {
+                                        {isLearnMoreEditMode && resolveImageServerID(image) && <button type="button" data-gallery-control className="learn-more-all-image-frame" aria-label={`Adjust framing for image ${index + 1}`} title="Adjust framing" disabled={isImageMutationLoading} onClick={event => {
                                             event.stopPropagation();
                                             setFramingImage({ image, ratio: galleryFrameAspect(learnMoreGalleryImages.length, Math.max(0, visibleGalleryIDs.indexOf(galleryImageID(image)))) });
-                                        }}>Adjust framing</button>}
+                                        }}><FontAwesomeIcon icon={faPen} aria-hidden="true" /></button>}
                                         {isLearnMoreEditMode && resolveImageServerID(image) && (
                                             <button
                                                 type="button"
@@ -2349,7 +2352,7 @@ function Card(props) {
                     ) : (
                         <>
 
-                    <div data-onboarding-target="learn-more-image-area">
+                    <div data-onboarding-target="learn-more-image-area" className={isLearnMoreEditMode ? 'learn-more-image-area--editing' : undefined}>
 
                     <LearnMoreGallery
                         images={learnMoreGalleryImages}

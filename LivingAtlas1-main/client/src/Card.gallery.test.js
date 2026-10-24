@@ -39,7 +39,7 @@ beforeEach(() => {
 async function editCard() {
     const { container } = render(<Card formData={savedCard} isLoggedIn onCardUpdate={() => {}} />);
     fireEvent.click(container.querySelector('.card'));
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Open image 1' })).toBeTruthy());
+    await waitFor(() => expect(screen.getByRole('region', { name: 'Project image gallery' })).toBeTruthy());
     fireEvent.click(screen.getByRole('button', { name: /Edit/i }));
     await waitFor(() => expect(screen.getByLabelText('Image layout').value).toBe('multi'));
     return screen.getByRole('region', { name: 'Project image gallery' });
@@ -343,39 +343,42 @@ test('failed order save keeps the draft open and allows retry', async () => {
     errors.mockRestore();
 });
 
-test('upload appends after the default cover, and the cover can be deleted and restored by cancel', async () => {
+test('uploads hide the legacy cover, and Cancel removes only the new upload', async () => {
     const defaultCover = { imageID: 61, url: '/CEREO-logo.png', alt: 'Project cover' };
     savedCard = { ...savedCard, images: [defaultCover], thumbnail_link: defaultCover.url };
     const gallery = await editCard();
+    expect(within(gallery).queryByRole('img')).toBeNull();
     api.post.mockImplementation(() => {
         savedCard = { ...savedCard, images: [defaultCover, { imageID: 62, url: '/new.png' }] };
         return Promise.resolve({ data: { imageID: 62 } });
     });
     fireEvent.change(document.querySelector('input[type="file"][accept^="image/"][multiple]'), { target: { files: [new File(['fixture'], 'new.png', { type: 'image/png' })] } });
-    await waitFor(() => expect(within(gallery).getAllByRole('img')).toHaveLength(2));
-    expect(within(gallery).getAllByRole('img')[0].getAttribute('src')).toBe('/CEREO-logo.png');
-    fireEvent.click(within(gallery).getByRole('button', { name: 'Delete image 1' }));
-    expect(within(gallery).getAllByRole('img')).toHaveLength(1);
-    expect(api.delete).not.toHaveBeenCalled();
+    await waitFor(() => expect(within(gallery).getAllByRole('img')).toHaveLength(1));
+    expect(within(gallery).getByRole('img').getAttribute('src')).toBe('/new.png');
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     await waitFor(() => expect(screen.queryByLabelText('Image layout')).toBeNull());
-    expect(within(gallery).getByRole('img').getAttribute('src')).toBe('/CEREO-logo.png');
+    expect(within(gallery).queryByRole('img')).toBeNull();
     expect(api.delete).toHaveBeenCalledWith('/deleteCardImage/62');
+    expect(api.delete).not.toHaveBeenCalledWith('/deleteCardImage/61');
 });
 
-test('deleting and saving the last default cover keeps the gallery empty', async () => {
-    savedCard = { ...savedCard, images: [{ imageID: 61, url: '/CEREO-logo.png' }], thumbnail_link: '/CEREO-logo.png' };
+test.each(['/CEREO-logo.png', 'https://example.invalid/images/thumbnails/default_cereo_thumbnail.png'])('legacy placeholder %s is absent from the main gallery and See All', async url => {
+    savedCard = { ...savedCard, images: [{imageID:61,url}], thumbnail_link:url };
     const gallery = await editCard();
-    fireEvent.click(within(gallery).getByRole('button', { name: 'Delete image 1' }));
     expect(within(gallery).queryByRole('img')).toBeNull();
-    api.delete.mockImplementation(() => {
-        savedCard = { ...savedCard, images: [], thumbnail_link: '' };
-        return Promise.resolve({ data: {} });
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-    await waitFor(() => expect(screen.queryByLabelText('Image layout')).toBeNull());
-    expect(api.delete).toHaveBeenCalledWith('/deleteCardImage/61');
-    expect(within(gallery).queryByRole('img')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name:'See all 0 images' }));
+    expect(document.querySelector('.learn-more-all-image')).toBeNull();
+    expect(screen.getByText('Showing 0 images')).toBeTruthy();
+    expect(api.delete).not.toHaveBeenCalled();
+});
+
+test('See All uses an accessible Font Awesome pen button for framing', async () => {
+    await editCard();
+    fireEvent.click(screen.getByRole('button', { name:'See all 3 images' }));
+    const adjust = screen.getByRole('button', {name:'Adjust framing for image 1'});
+    expect(adjust.querySelector('svg[data-icon="pen"]')).toBeTruthy();
+    fireEvent.click(adjust);
+    expect(screen.getByText('Adjust framing')).toBeTruthy();
 });
 
 test('framing survives image refresh, is staged until Save, and Cancel restores it', async () => {

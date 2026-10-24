@@ -2361,3 +2361,6 @@
 .image-preview-original { position: absolute; bottom: 44px; left: 50%; transform: translateX(-50%); padding: 8px 12px; border-radius: 6px; background: #fff; color: #334155; z-index: 2; }
 
 .Modal--learn-more .learn-more-all-image-frame { position: absolute; bottom: 8px; left: 8px; z-index: 2; width: auto; padding: 6px 10px; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; }
+
+.Modal--learn-more .image-upload-hint { margin: 0 0 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.Modal--learn-more .learn-more-all-image-frame { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }

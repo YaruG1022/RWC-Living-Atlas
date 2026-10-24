@@ -35,6 +35,7 @@ def getMarkers(limit: int | None = Query(None, ge=1, le=500),
                     COALESCE(c.Name, '') AS Name,
                     u.Username,
                     u.Email,
+                    COALESCE(c.ContactEmail, u.Email) AS contact_email,
                     c.Description,
                     c.Organization,
                     c.Funding,
@@ -113,7 +114,7 @@ def getMarkers(limit: int | None = Query(None, ge=1, le=500),
             """, (limit, offset))
             rows = local_cur.fetchall() if local_cur.description else []
         columns = [
-            "cardID", "title", "latitude", "longitude", "category", "name", "username", "email",
+            "cardID", "title", "latitude", "longitude", "category", "name", "username", "email", "contact_email",
             "description", "org", "funding", "link", "thumbnail_link", "tags", "files",
             "location_type", "polygon_fill_color", "polygon_line_style", "polygon_vertices"
         ]
@@ -140,6 +141,7 @@ def updateBoundry(NEpoint: Point, SWpoint: Point):
                     c.CardID,
                     u.Username,
                     u.Email,
+                    COALESCE(c.ContactEmail, u.Email) AS contact_email,
                     c.Title,
                     cat.CategoryLabel,
                     c.DatePosted,
@@ -185,7 +187,7 @@ def updateBoundry(NEpoint: Point, SWpoint: Point):
 
             rows = local_cur.fetchall() if local_cur.description else []
         columns = [
-            "cardID", "username", "email", "title", "category", "date", "description", "org",
+            "cardID", "username", "email", "contact_email", "title", "category", "date", "description", "org",
             "funding", "link", "tags", "latitude", "longitude", "thumbnail_link", "files"
         ]
         data = [dict(zip(columns, row)) for row in rows]

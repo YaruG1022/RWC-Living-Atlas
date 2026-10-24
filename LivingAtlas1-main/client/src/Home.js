@@ -1448,6 +1448,7 @@ function Home(props) {
                 CategoryCondition={CategoryCondition}
                 setCategoryConditionCondition={setCategoryConditionCondition}
                 username={props.username}
+                email={props.email}
                 isLoggedIn={props.isLoggedIn}             /* <-- added */
                 isCollapsed={isCollapsed}
                 setIsCollapsed={setIsCollapsed}

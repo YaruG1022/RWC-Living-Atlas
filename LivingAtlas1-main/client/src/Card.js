@@ -1543,7 +1543,7 @@ function Card(props) {
 
         // Compare tracked formData fields
         const trackedFields = [
-            'title', 'description', 'tags', 'category', 'username', 'name',
+            'title', 'description', 'tags', 'category', 'username', 'name', 'contact_email',
             'latitude', 'longitude', 'location_type',
             'polygon_vertices', 'polygon_fill_color', 'polygon_line_style', 'polygon_fill_opacity',
             'website_link', 'thumbnail_link', 'files', 'gallery_layout', 'gallery_image_ids',
@@ -2361,8 +2361,8 @@ function Card(props) {
                                     <input className="learn-more-inline-input learn-more-inline-readonly" type="text" name="username" value={formData.username || ''} readOnly disabled title="Project Creator cannot be edited" />
                                 </div>
                                 <div className="learn-more-field-cell">
-                                    <p><strong>Email:</strong></p>
-                                    <input className="learn-more-inline-input" type="email" name="email" value={formData.email || ''} onChange={handleInputChange} />
+                                    <p><strong>Contact Email:</strong></p>
+                                    <input className="learn-more-inline-input" type="email" name="contact_email" value={formData.contact_email ?? formData.email ?? ''} onChange={handleInputChange} />
                                 </div>
                                 <div className="learn-more-field-cell">
                                     <p><strong>Funding:</strong></p>
@@ -2507,7 +2507,7 @@ function Card(props) {
                             <div className="learn-more-fields-grid">
                                 <p><strong>Author:</strong> {formData.name}</p>
                                 <p><strong>Project Creator:</strong> {formData.username}</p>
-                                <p><strong>Email:</strong> {formData.email}</p>
+                                <p><strong>Contact Email:</strong> {formData.contact_email ?? formData.email}</p>
                                 <p><strong>Funding:</strong> {formData.funding || 'N/A'}</p>
                                 <p><strong>Organization:</strong> {formData.org || 'N/A'}</p>
                             </div>
@@ -2984,11 +2984,11 @@ function Card(props) {
                         />
                     </label>
                     <label>
-                        Email:
+                        Contact Email:
                         <input
                             type="email"
-                            name="email"
-                            value={formData.email || ""}
+                            name="contact_email"
+                            value={formData.contact_email ?? formData.email ?? ""}
                             onChange={handleInputChange}
                             required
                         />

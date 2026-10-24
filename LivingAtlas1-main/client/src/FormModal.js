@@ -103,9 +103,8 @@ const FormModal = (props) => {
         setPolygonFillColor('#0077c0');
         setPolygonLineStyle('solid');
         setFormData({
-            username: props.username || '',
             name: '',
-            email: props.email || '',
+            contact_email: props.email || '',
             title: '',
             category: '',
             description: '',
@@ -161,9 +160,8 @@ const FormModal = (props) => {
     }, [isCreateCardModalVisible, isCreateCardOnboardingOpen]);
 
     const [formData, setFormData] = useState({
-        username: props.username || '',   // required account login
         name: '',                         // display name
-        email: props.email || '',
+        contact_email: props.email || '',
         title: '',
         category: '',
         description: '',
@@ -175,6 +173,17 @@ const FormModal = (props) => {
         longitude: '',
         is_public: true,                  // visibility: public by default
     });
+
+    // Login can finish after this always-mounted modal has initialized. Only
+    // replace the default contact address; preserve a contact the user entered.
+    const previousAccountEmail = useRef(props.email || '');
+    useEffect(() => {
+        const previousEmail = previousAccountEmail.current;
+        setFormData(prev => prev.contact_email === previousEmail
+            ? { ...prev, contact_email: props.email || '' }
+            : prev);
+        previousAccountEmail.current = props.email || '';
+    }, [props.email]);
 
     const [links, setLinks] = useState([{ url: '', text: '' }]);
 
@@ -251,7 +260,8 @@ const FormModal = (props) => {
 
     const validateForm = () => {
         const errors = [];
-        if (!formData.username.trim()) errors.push("Username is required.");
+        if (!props.username?.trim() || !props.email?.trim()) errors.push("Your account information is missing. Please sign in again before uploading.");
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email.trim()) || formData.contact_email.trim().length > 255) errors.push("Enter a valid contact email (up to 255 characters).");
         if (!formData.name.trim()) errors.push("Name is required.");
         if (!formData.title.trim() || formData.title.length > 255) errors.push("Title is required and must be <256 chars.");
         if (locationType === 'polygon') {
@@ -287,9 +297,11 @@ const FormModal = (props) => {
         // Always use current props.username to avoid stale state
         const payload = {
             ...formData,
-            username: props.username || formData.username,
+            username: props.username,
+            email: props.email,
+            contact_email: formData.contact_email.trim(),
             category: formData.category || 'None',
-            is_public: formData.is_public !== false ? 1 : 0,  // Convert to database format
+            is_public: formData.is_public !== false ? 'true' : 'false',
         };
 
         const formData2 = new FormData();
@@ -444,7 +456,17 @@ const FormModal = (props) => {
         })
         .catch(error => {
             console.error("Upload error:", error.response?.data || error.message);
-            alert("Upload failed.");
+            const detail = error.response?.data?.detail;
+            let message;
+            if (typeof detail === 'string') {
+                message = detail;
+            } else if (Array.isArray(detail)) {
+                message = detail.map(item => `${item.loc?.slice(1).join('.') || 'Form'}: ${item.msg || 'Invalid value'}`).join('\n');
+            }
+            message = message || (error.response
+                ? 'Please try again. If the problem continues, contact support.'
+                : 'Unable to reach the server. Check your connection and try again.');
+            alert(`Upload failed: ${message}`);
         });
     };
 
@@ -610,8 +632,9 @@ const FormModal = (props) => {
                         required 
                     />
 
-                    <label>Email <span className="form-modal-required-star">*</span>:</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} required />
+                    <label htmlFor="project-contact-email">Contact Email <span className="form-modal-required-star">*</span>:</label>
+                    <input id="project-contact-email" type="email" name="contact_email" value={formData.contact_email} onChange={handleInputChange} maxLength={255} required />
+                    <small>The project contact can be someone other than the account creating this project.</small>
 
                     <label>Title <span className="form-modal-required-star">*</span>:</label>
                     <input type="text" name="title" value={formData.title} onChange={handleInputChange} required />

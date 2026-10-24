@@ -78,6 +78,50 @@ class GalleryContractTests(unittest.TestCase):
         self.assertIsNone(params[-2])
         self.assertIsNone(params[10])  # Preserve an intentionally empty thumbnail.
 
+    def test_contact_email_is_metadata_and_does_not_replace_account_identity(self):
+        self.cur.fetchone.side_effect = [(100,), (1,)]
+        self.form(username='river-researcher', email='account@example.invalid', contact_email=' colleague@example.invalid ')
+        lookup = next(call.args for call in self.cur.execute.call_args_list if 'SELECT userID FROM Users' in call.args[0])
+        self.assertEqual(lookup[1], ('river-researcher', 'account@example.invalid'))
+        sql, params = next(call.args for call in self.cur.execute.call_args_list if 'INSERT INTO Cards' in call.args[0])
+        self.assertIn('ContactEmail', sql)
+        self.assertEqual(params[1], 1)
+        self.assertEqual(params[-2], 'colleague@example.invalid')
+
+    def test_contact_changes_preserve_owner_and_legacy_updates_preserve_contact(self):
+        for contact in (None, 'another@example.invalid'):
+            with self.subTest(contact=contact):
+                self.cur.reset_mock()
+                self.cur.fetchone.side_effect = [(100,), (1,), (101,)]
+                self.form(update=True, contact_email=contact)
+                sql, params = next(call.args for call in self.cur.execute.call_args_list if 'UPDATE Cards' in call.args[0])
+                self.assertIn('ContactEmail=COALESCE(%s, ContactEmail)', sql)
+                self.assertEqual(params[11], 1)
+                self.assertEqual(params[-3], contact)
+
+    def test_invalid_contact_email_is_rejected_before_database_access(self):
+        for contact in ('not-an-email', 'a@b@c.invalid', 'a b@example.invalid', 'a' * 256 + '@example.invalid'):
+            with self.subTest(contact=contact):
+                with self.assertRaises(self.cards.HTTPException) as error:
+                    self.form(contact_email=contact)
+                self.assertEqual(error.exception.status_code, 422)
+                self.cur.execute.assert_not_called()
+
+    def test_missing_account_explains_recovery_without_writing_a_card(self):
+        self.cur.fetchone.side_effect = [(100,), None]
+        with self.assertRaises(self.cards.HTTPException) as error:
+            self.form()
+        self.assertEqual(error.exception.status_code, 404)
+        self.assertIn('sign in again', error.exception.detail)
+        self.assertFalse(any('INSERT INTO Cards' in call.args[0] for call in self.cur.execute.call_args_list))
+
+    def test_webp_thumbnail_matches_the_formats_offered_by_the_create_form(self):
+        thumbnail = MagicMock(filename='cover.WEBP', content_type='image/webp')
+        thumbnail.file.read.return_value = b'webp-fixture'
+        with patch.object(self.cards.azure_storage, 'upload_bytes', return_value='/cover.webp', create=True) as upload:
+            self.assertEqual(self.cards.upload_image(thumbnail), '/cover.webp')
+            self.assertEqual(upload.call_args.args[1:], (b'webp-fixture', 'image/webp'))
+
     def test_new_cards_include_a_deletable_default_cover(self):
         self.cur.fetchone.side_effect = [(100,), (1,)]
         self.form()

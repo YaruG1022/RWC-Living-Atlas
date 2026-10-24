@@ -24,6 +24,7 @@ def allCards():
         SELECT 
             u.Username,
             u.Email,
+            COALESCE(c.ContactEmail, u.Email) AS contact_email,
             c.Title,
             c.CardID,
             cat.CategoryLabel,
@@ -87,7 +88,7 @@ def allCards():
     """)
         rows = local_cur.fetchall()
     columns = [
-        "username", "email", "title", "cardID", "category", "date", "description", "org",
+        "username", "email", "contact_email", "title", "cardID", "category", "date", "description", "org",
         "funding", "link", "tags", "latitude", "longitude", "thumbnail_link", "images", "files"
     ]
     data = [dict(zip(columns, row)) for row in rows]
@@ -120,6 +121,7 @@ async def allCardsByTag(categoryString: str = None, tagString: str = None, sortS
         SELECT 
             u.Username,
             u.Email,
+            COALESCE(c.ContactEmail, u.Email) AS contact_email,
             c.Title,
             c.CardID,
             cat.CategoryLabel,
@@ -244,7 +246,7 @@ async def allCardsByTag(categoryString: str = None, tagString: str = None, sortS
         local_cur.execute(finalQUERY)
         rows = local_cur.fetchall()
     columns = [
-        "username", "email", "title", "cardID", "category", "date", "description", "org",
+        "username", "email", "contact_email", "title", "cardID", "category", "date", "description", "org",
         "funding", "link", "tags", "latitude", "longitude", "thumbnail_link", "images", "files",
         "is_public"
     ]
@@ -269,6 +271,7 @@ def searchBar(titleSearch: str,
                 u.Username,
                 c.Name,
                 u.Email,
+                COALESCE(c.ContactEmail, u.Email) AS contact_email,
                 c.Title,
                 c.CardID,
                 cat.CategoryLabel,
@@ -335,7 +338,7 @@ def searchBar(titleSearch: str,
 
             rows = local_cur.fetchall()
         columns = [
-            "username", "name", "email", "title", "cardID", "category", "date",
+            "username", "name", "email", "contact_email", "title", "cardID", "category", "date",
             "description", "org", "funding", "link", "tags",
             "latitude", "longitude", "thumbnail_link", "images", "files"
         ]

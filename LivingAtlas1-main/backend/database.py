@@ -236,6 +236,9 @@ def _ensure_schema():
               ADD COLUMN IF NOT EXISTS LineStyle VARCHAR(20);
         """)
 
+        # Keep the project contact separate from the account that owns the card.
+        cur.execute("ALTER TABLE Cards ADD COLUMN IF NOT EXISTS ContactEmail VARCHAR(255);")
+
         # Persist the learn-more image presentation; existing cards retain their layout.
         cur.execute("""
             ALTER TABLE Cards ADD COLUMN IF NOT EXISTS GalleryLayout VARCHAR(20) DEFAULT 'featured';

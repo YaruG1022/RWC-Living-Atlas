@@ -163,7 +163,7 @@
           "content": [
             {
               "type": "text",
-              "text": "Email"
+              "text": "Contact Email"
             }
           ]
         },
@@ -200,6 +200,10 @@
         {
           "type": "text",
           "text": " is optional and can be one of: River, Watershed, Places, or Other. Validation runs on submit and highlights any missing or invalid fields. Title, Organization, and Funding have a 255-character limit; Description is limited to 2000 plain-text characters. A point uses latitude/longitude with up to eight decimal places; a polygon needs at least three vertices; an image needs valid placement with four corners. If submission fails, review the form's validation message."
+        },
+        {
+          "type": "text",
+          "text": " Contact Email starts with your account email, but you can enter another person’s valid contact address. It does not need to match the creator’s username or account email. The signed-in creator still owns the project."
         }
       ]
     },

@@ -72,7 +72,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="arcgis-service-info-actions"]',
         title: 'Save Service and Open Source Page',
-        description: 'Use the Save button to store the current service in Custom Layers, or open the ArcGIS service page to verify the source metadata directly.',
+        description: 'Save stores this service in your Custom Layers library; the source link opens its ArcGIS page. If saving times out, check Custom Layers before trying again because it may have completed. Follow the error message for other failures.',
         placement: 'left',
     },
     {

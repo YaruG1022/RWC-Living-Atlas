@@ -6,7 +6,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="create-card-modal-root"]',
         title: 'Create Project Modal',
-        description: 'This modal is where you create a new project with metadata, location, media, and optional links.',
+        description: 'Create a project with metadata, location and optional media. Contact Email may belong to another person; it does not change the account that owns the project.',
         placement: 'left',
     },
     {
@@ -24,7 +24,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="create-card-image-upload"]',
         title: 'Image Upload Area',
-        description: 'Upload gallery images used by the project detail view. For image overlay projects, these are optional Learn More images.',
+        description: 'Choose gallery images up to 50 MiB and 160 megapixels each; see Help for format limits. Originals are kept. Use the pencil to position, zoom or show the full image. For Image Overlay projects, map images are separate from gallery images.',
         placement: 'left',
     },
     {
@@ -36,7 +36,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="create-card-submit-actions"]',
         title: 'Submit and Cancel',
-        description: 'Use Submit to create the project after required fields are complete, or Cancel to close without saving.',
+        description: 'Submit creates the project, then uploads gallery images one at a time with progress. If an image fails, Retry remaining images keeps the created project and completed uploads. Review the error before retrying.',
         placement: 'left',
     },
 ];

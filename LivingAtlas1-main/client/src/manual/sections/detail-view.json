@@ -256,7 +256,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The Detail View displays up to six selected images. Multiple images adapts the grid to the selected count; Slideshow shows one selected image at a time with navigation inside the image area. Images fill their frames by default. In edit mode, Adjust lets you drag the image, change zoom, reset the composition, or choose Show full image for maps and diagrams. Use framing stages the change; Save commits it and Cancel restores the previous framing. Click any tile to see the complete uncropped display image in a full-screen lightbox, with an Open original image link."
+          "text": "The Detail View displays up to six selected images. Multiple images adapts the grid to the selected count; Slideshow shows one selected image at a time with navigation inside the image area. Images fill their frames by default. In edit mode, use the pencil icon (Adjust framing) to drag the image, change zoom, reset the composition, or choose Show full image for maps and diagrams. Use framing stages the change; Save commits it and Cancel restores the previous framing. Click any tile to see the complete uncropped display image in a full-screen lightbox, with an Open original image link."
         },
         {
           "type": "strong",
@@ -1018,7 +1018,7 @@
         },
         {
           "type": "text",
-          "text": " button that jumps to the Custom Layers Panel. In edit mode you can remove links with "
+          "text": " button for opening the Custom Layers Panel when the upload belongs to your own library. Shared uploads from other accounts do not show this shortcut. In edit mode you can remove links with "
         },
         {
           "type": "strong",

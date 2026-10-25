@@ -16,7 +16,7 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-image-area"]',
         title: 'Image Area',
-        description: 'View up to six selected images in Multiple images or Slideshow mode. Click an image to preview it. See all N images is inside the bottom-left gallery corner in both view and edit modes; it becomes opaque on hover or focus.',
+        description: 'View up to six selected images in Multiple images or Slideshow mode. Images fill their frames. Click a tile to see the uncropped display image, then use Open original image for the original file. See all N images is in the bottom-left corner.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-image-area"]',
     },
@@ -37,14 +37,14 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-image-area"]',
         title: 'Edit Mode - Image Layout and Order',
-        description: 'Image layout appears only in edit mode, inside the top-right gallery corner; hover or focus makes it opaque. Drag images or use arrows to reorder. The first selected image is the project cover.',
+        description: 'Choose Image layout at the top right. Drag images or use arrows to reorder; the first is the project cover. The pencil opens framing: drag, zoom, reset or Show full image. Use framing stages the adjustment; Save commits it.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-image-area"]',
     },
     {
         selector: '[data-onboarding-target="learn-more-image-area"]',
         title: 'Edit Mode - See All Images',
-        description: 'Open See all N images. Numbered checkboxes choose up to six main images; a new selection fills the lowest vacant number. The separate top-right circles select images for Delete Selected. Add New Image is at the top; a project holds up to 30 images.',
+        description: 'See all N images holds up to 30 images. Numbered checkboxes choose six main images; separate top-right circles select deletions. Add New Image accepts up to 50 MiB / 160 MP each with progress and retry. The pencil adjusts framing; Save commits changes.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-image-area"]',
     },

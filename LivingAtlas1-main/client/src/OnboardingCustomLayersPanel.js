@@ -48,7 +48,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="custom-layers-opacity-slider"]',
         title: 'Display Controls',
-        description: 'Use the opacity slider to change how all saved layers appear on the map.',
+        description: 'Use the opacity slider to change how this library appears on your map. Library selections are separate from each project’s saved linked-layer display choices.',
         placement: 'left',
     },
     {
@@ -66,7 +66,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="custom-layers-service-info-actions"]',
         title: 'Save Service and Open Source Page',
-        description: 'Service info includes a Save button and a direct ArcGIS service page link, making it easy to preserve the service again or verify the original source.',
+        description: 'Save adds the service to your Custom Layers library; the source link opens its ArcGIS page. Follow any save error instructions. After a timeout, check the library before saving again because the save may have completed.',
         placement: 'left',
     },
     {

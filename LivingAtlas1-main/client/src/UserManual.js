@@ -1726,6 +1726,7 @@ function UserManual() {
             <div className="um-feature-info">
               <p className="um-feature-title"><ManualText sectionId="detail-view" blockId="detail-view-023" onNavigate={navTo} /></p>
               <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-024" onNavigate={navTo} /></p>
+              <p className="um-feature-desc"><ManualText sectionId="detail-view" blockId="detail-view-public-linked-layers" onNavigate={navTo} /></p>
             </div>
           </div>
 

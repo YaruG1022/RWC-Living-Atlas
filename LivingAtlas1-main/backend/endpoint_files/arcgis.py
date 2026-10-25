@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 from database import cur, conn, get_request_connection, release_request_connection
 import json
+import logging
 
 arcgis_router = APIRouter(prefix="/arcgis", tags=["ArcGIS"])
 
@@ -755,60 +756,30 @@ class ReorderCustomLayersRequest(BaseModel):
     user_email: str
     order: List[Dict[str, Any]]  # [{ service_key, folder, sort_order }]
 
-def _ensure_custom_layers_table():
-    """Create the user_custom_layers table if it does not exist."""
-    if not cur or not conn:
-        return
+def _custom_layer_database():
+    """Keep each request's transaction and result sets separate from other routes."""
+    connection = get_request_connection()
+    if connection is None:
+        raise HTTPException(
+            status_code=503,
+            detail="The layer library is temporarily unavailable. Please try again shortly.",
+        )
     try:
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS user_custom_layers (
-                id SERIAL PRIMARY KEY,
-                user_email VARCHAR(255) NOT NULL,
-                service_key VARCHAR(255) NOT NULL,
-                label VARCHAR(255) NOT NULL,
-                url TEXT NOT NULL,
-                folder VARCHAR(255) DEFAULT 'Root',
-                type VARCHAR(50) NOT NULL DEFAULT 'MapServer',
-                state VARCHAR(50) DEFAULT '',
-                sort_order INTEGER DEFAULT 0,
-                saved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                CONSTRAINT unique_user_custom_layer UNIQUE (user_email, service_key)
-            )
-        """)
-        conn.commit()
-        # Add sort_order column if table already exists without it
-        try:
-            cur.execute("ALTER TABLE user_custom_layers ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0")
-            conn.commit()
-        except Exception:
-            conn.rollback()
-        # Add layer_order column for per-service layer ordering
-        try:
-            cur.execute("ALTER TABLE user_custom_layers ADD COLUMN IF NOT EXISTS layer_order TEXT DEFAULT NULL")
-            conn.commit()
-        except Exception:
-            conn.rollback()
-        # Add geojson column holding uploaded file layers' feature data
-        try:
-            cur.execute("ALTER TABLE user_custom_layers ADD COLUMN IF NOT EXISTS geojson TEXT DEFAULT NULL")
-            conn.commit()
-        except Exception:
-            conn.rollback()
-    except Exception as e:
-        conn.rollback()
-        print(f"[WARNING] Custom layers table creation failed: {e}")
+        with connection.cursor() as cursor:
+            yield connection, cursor
+    finally:
+        # Also ends read transactions and returns failed connections safely.
+        release_request_connection(connection)
+
 
 @arcgis_router.post("/custom-layers/save")
-def save_custom_layer(request: SaveCustomLayerRequest):
-    if cur is None or conn is None:
-        raise HTTPException(status_code=500, detail="Database connection not available")
+def save_custom_layer(request: SaveCustomLayerRequest, database=Depends(_custom_layer_database)):
+    conn, cur = database
     if not request.user_email or not request.user_email.strip():
         raise HTTPException(status_code=400, detail="user_email is required")
     if not request.service_key or not request.service_key.strip():
         raise HTTPException(status_code=400, detail="service_key is required")
 
-    _ensure_custom_layers_table()
-    _ensure_custom_folders_table()
     try:
         # Assign sort_order = max + 1 for new entries
         cur.execute("""
@@ -850,18 +821,18 @@ def save_custom_layer(request: SaveCustomLayerRequest):
         return {"success": True, "message": f"Layer '{request.label}' saved to custom layers"}
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to save custom layer: {str(e)}")
+        logging.getLogger(__name__).exception("Failed to save custom layer")
+        raise HTTPException(status_code=500, detail="Failed to save custom layer. Please try again.")
 
 @arcgis_router.get("/custom-layers")
 def get_custom_layers(
     user_email: str = Query(..., description="User email"),
+    database=Depends(_custom_layer_database),
 ):
-    if cur is None:
-        raise HTTPException(status_code=500, detail="Database connection not available")
+    conn, cur = database
     if not user_email or not user_email.strip():
         raise HTTPException(status_code=400, detail="user_email is required")
 
-    _ensure_custom_layers_table()
     try:
         cur.execute("""
             SELECT service_key AS key, label, url, folder, type, state, sort_order, layer_order, saved_at
@@ -875,24 +846,24 @@ def get_custom_layers(
         return data
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to load custom layers: {str(e)}")
+        logging.getLogger(__name__).exception("Failed to load custom layers")
+        raise HTTPException(status_code=500, detail="Failed to load custom layers. Please try again.")
 
 @arcgis_router.get("/custom-layers/geojson")
 def get_custom_layer_geojson(
     user_email: str = Query(..., description="User email"),
+    database=Depends(_custom_layer_database),
     service_key: str = Query(..., description="Custom layer service key"),
 ):
     """Feature data of a single uploaded custom layer. Kept out of the
     /custom-layers list response so that panel load stays small — uploaded
     shapefiles are routinely multi-megabyte."""
-    if cur is None:
-        raise HTTPException(status_code=500, detail="Database connection not available")
+    conn, cur = database
     if not user_email or not user_email.strip():
         raise HTTPException(status_code=400, detail="user_email is required")
     if not service_key or not service_key.strip():
         raise HTTPException(status_code=400, detail="service_key is required")
 
-    _ensure_custom_layers_table()
     try:
         cur.execute("""
             SELECT geojson FROM user_custom_layers
@@ -906,16 +877,15 @@ def get_custom_layer_geojson(
         raise
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to load custom layer geojson: {str(e)}")
+        logging.getLogger(__name__).exception("Failed to load custom layer geojson")
+        raise HTTPException(status_code=500, detail="Failed to load custom layer geojson. Please try again.")
 
 @arcgis_router.delete("/custom-layers")
-def delete_custom_layer(request: DeleteCustomLayerRequest):
-    if cur is None or conn is None:
-        raise HTTPException(status_code=500, detail="Database connection not available")
+def delete_custom_layer(request: DeleteCustomLayerRequest, database=Depends(_custom_layer_database)):
+    conn, cur = database
     if not request.user_email or not request.user_email.strip():
         raise HTTPException(status_code=400, detail="user_email is required")
 
-    _ensure_custom_layers_table()
     try:
         cur.execute("""
             DELETE FROM user_custom_layers
@@ -930,17 +900,16 @@ def delete_custom_layer(request: DeleteCustomLayerRequest):
         raise
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to delete custom layer: {str(e)}")
+        logging.getLogger(__name__).exception("Failed to delete custom layer")
+        raise HTTPException(status_code=500, detail="Failed to delete custom layer. Please try again.")
 
 @arcgis_router.put("/custom-layers/reorder")
-def reorder_custom_layers(request: ReorderCustomLayersRequest):
+def reorder_custom_layers(request: ReorderCustomLayersRequest, database=Depends(_custom_layer_database)):
     """Batch-update sort_order (and optionally folder) for a user's custom layers."""
-    if cur is None or conn is None:
-        raise HTTPException(status_code=500, detail="Database connection not available")
+    conn, cur = database
     if not request.user_email or not request.user_email.strip():
         raise HTTPException(status_code=400, detail="user_email is required")
 
-    _ensure_custom_layers_table()
     try:
         for item in request.order:
             service_key = item.get("service_key", "").strip()
@@ -964,7 +933,8 @@ def reorder_custom_layers(request: ReorderCustomLayersRequest):
         return {"success": True, "message": "Custom layers reordered"}
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to reorder custom layers: {str(e)}")
+        logging.getLogger(__name__).exception("Failed to reorder custom layers")
+        raise HTTPException(status_code=500, detail="Failed to reorder custom layers. Please try again.")
 
 class SaveLayerOrderRequest(BaseModel):
     user_email: str
@@ -972,16 +942,14 @@ class SaveLayerOrderRequest(BaseModel):
     layer_order: List[int]  # ordered list of layer IDs
 
 @arcgis_router.put("/custom-layers/layer-order")
-def save_layer_order(request: SaveLayerOrderRequest):
+def save_layer_order(request: SaveLayerOrderRequest, database=Depends(_custom_layer_database)):
     """Save the display order of layers within a specific custom service."""
-    if cur is None or conn is None:
-        raise HTTPException(status_code=500, detail="Database connection not available")
+    conn, cur = database
     if not request.user_email or not request.user_email.strip():
         raise HTTPException(status_code=400, detail="user_email is required")
     if not request.service_key or not request.service_key.strip():
         raise HTTPException(status_code=400, detail="service_key is required")
 
-    _ensure_custom_layers_table()
     try:
         import json
         order_json = json.dumps(request.layer_order)
@@ -999,27 +967,10 @@ def save_layer_order(request: SaveLayerOrderRequest):
         raise
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to save layer order: {str(e)}")
+        logging.getLogger(__name__).exception("Failed to save layer order")
+        raise HTTPException(status_code=500, detail="Failed to save layer order. Please try again.")
 
 # --- Custom Folders (user-created empty folders) ---
-
-def _ensure_custom_folders_table():
-    if not cur or not conn:
-        return
-    try:
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS user_custom_folders (
-                id SERIAL PRIMARY KEY,
-                user_email VARCHAR(255) NOT NULL,
-                folder_name VARCHAR(255) NOT NULL,
-                sort_order INTEGER DEFAULT 0,
-                CONSTRAINT unique_user_folder UNIQUE (user_email, folder_name)
-            )
-        """)
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
-        print(f"[WARNING] Custom folders table creation failed: {e}")
 
 class CreateFolderRequest(BaseModel):
     user_email: str
@@ -1035,12 +986,10 @@ class RenameFolderRequest(BaseModel):
     new_name: str
 
 @arcgis_router.get("/custom-folders")
-def get_custom_folders(user_email: str = Query(..., description="User email")):
-    if cur is None:
-        raise HTTPException(status_code=500, detail="Database connection not available")
+def get_custom_folders(user_email: str = Query(..., description="User email"), database=Depends(_custom_layer_database)):
+    conn, cur = database
     if not user_email or not user_email.strip():
         raise HTTPException(status_code=400, detail="user_email is required")
-    _ensure_custom_folders_table()
     try:
         cur.execute("""
             SELECT folder_name, sort_order FROM user_custom_folders
@@ -1050,17 +999,16 @@ def get_custom_folders(user_email: str = Query(..., description="User email")):
         return [{"folder_name": r[0], "sort_order": r[1]} for r in rows]
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to load custom folders: {str(e)}")
+        logging.getLogger(__name__).exception("Failed to load custom folders")
+        raise HTTPException(status_code=500, detail="Failed to load custom folders. Please try again.")
 
 @arcgis_router.post("/custom-folders")
-def create_custom_folder(request: CreateFolderRequest):
-    if cur is None or conn is None:
-        raise HTTPException(status_code=500, detail="Database connection not available")
+def create_custom_folder(request: CreateFolderRequest, database=Depends(_custom_layer_database)):
+    conn, cur = database
     if not request.user_email or not request.user_email.strip():
         raise HTTPException(status_code=400, detail="user_email is required")
     if not request.folder_name or not request.folder_name.strip():
         raise HTTPException(status_code=400, detail="folder_name is required")
-    _ensure_custom_folders_table()
     try:
         cur.execute("""
             SELECT COALESCE(MAX(sort_order), -1) + 1 FROM user_custom_folders WHERE user_email = %s
@@ -1075,16 +1023,14 @@ def create_custom_folder(request: CreateFolderRequest):
         return {"success": True, "folder_name": request.folder_name.strip(), "sort_order": next_order}
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to create folder: {str(e)}")
+        logging.getLogger(__name__).exception("Failed to create folder")
+        raise HTTPException(status_code=500, detail="Failed to create folder. Please try again.")
 
 @arcgis_router.delete("/custom-folders")
-def delete_custom_folder(request: DeleteFolderRequest):
-    if cur is None or conn is None:
-        raise HTTPException(status_code=500, detail="Database connection not available")
+def delete_custom_folder(request: DeleteFolderRequest, database=Depends(_custom_layer_database)):
+    conn, cur = database
     if not request.user_email or not request.user_email.strip():
         raise HTTPException(status_code=400, detail="user_email is required")
-    _ensure_custom_folders_table()
-    _ensure_custom_layers_table()
     try:
         # Move services in this folder back to Root
         cur.execute("""
@@ -1099,18 +1045,16 @@ def delete_custom_folder(request: DeleteFolderRequest):
         return {"success": True, "message": f"Folder '{request.folder_name}' deleted"}
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to delete folder: {str(e)}")
+        logging.getLogger(__name__).exception("Failed to delete folder")
+        raise HTTPException(status_code=500, detail="Failed to delete folder. Please try again.")
 
 @arcgis_router.put("/custom-folders/rename")
-def rename_custom_folder(request: RenameFolderRequest):
-    if cur is None or conn is None:
-        raise HTTPException(status_code=500, detail="Database connection not available")
+def rename_custom_folder(request: RenameFolderRequest, database=Depends(_custom_layer_database)):
+    conn, cur = database
     if not request.user_email or not request.user_email.strip():
         raise HTTPException(status_code=400, detail="user_email is required")
     if not request.new_name or not request.new_name.strip():
         raise HTTPException(status_code=400, detail="new_name is required")
-    _ensure_custom_folders_table()
-    _ensure_custom_layers_table()
     try:
         # Rename in custom_folders table
         cur.execute("""
@@ -1126,4 +1070,5 @@ def rename_custom_folder(request: RenameFolderRequest):
         return {"success": True, "message": f"Folder renamed to '{request.new_name}'"}
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to rename folder: {str(e)}")
+        logging.getLogger(__name__).exception("Failed to rename folder")
+        raise HTTPException(status_code=500, detail="Failed to rename folder. Please try again.")

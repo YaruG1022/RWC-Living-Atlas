@@ -1,5 +1,6 @@
 import os
 import psycopg2
+from custom_layer_schema import ensure_custom_layer_schema
 from psycopg2 import OperationalError, errorcodes, errors
 from psycopg2.pool import ThreadedConnectionPool
 from threading import BoundedSemaphore, Lock
@@ -129,6 +130,7 @@ def _ensure_schema():
     if not conn or not cur:
         return
     try:
+        ensure_custom_layer_schema(cur)
         # Migration 003 — LocationType column + CardPolygonVertices table
         cur.execute("""
             ALTER TABLE Cards ADD COLUMN IF NOT EXISTS LocationType VARCHAR(10) DEFAULT 'point';

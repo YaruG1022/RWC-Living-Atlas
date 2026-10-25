@@ -842,5 +842,5 @@ nav.um-nav-sidebar {
 /* Leave room for the real slideshow pagination and edit tools in this demo. */
 .um-feature-row--gallery { flex-direction: column; align-items: stretch; }
 .um-feature-row--gallery .um-feature-demo { flex-basis: auto; }
-.um-gallery-demo--interactive { width: min(100%, 540px); }
+.um-gallery-demo--interactive { width: min(100%, 600px); }
 .um-gallery-controls-preview { width: 100%; }

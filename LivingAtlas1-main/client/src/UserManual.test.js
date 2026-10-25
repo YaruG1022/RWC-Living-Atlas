@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import UserManual from './UserManual';
+import Modal from 'react-modal';
+import api from './api';
 
 beforeEach(() => {
   window.history.replaceState({}, '', '/user-manual');
@@ -51,4 +53,33 @@ test('manual gallery demonstrates slideshow controls with isolated sample state'
   expect(screen.getByRole('button', { name: 'Show gallery image 2' })).toHaveAttribute('aria-pressed', 'true');
   fireEvent.change(screen.getByRole('combobox', { name: 'Image layout' }), { target: { value: 'multi' } });
   expect(screen.queryByRole('button', { name: 'Next gallery image' })).not.toBeInTheDocument();
+});
+
+test('manual framing can be canceled or applied to one sample without saving real projects', () => {
+  window.history.replaceState({}, '', '/user-manual?section=detail-view');
+  const root = document.createElement('div');
+  document.body.appendChild(root);
+  Modal.setAppElement(root);
+  const save = jest.spyOn(api, 'post');
+  const view = render(<UserManual />, { container: root });
+  try {
+    const adjust = screen.getByRole('button', { name: 'Adjust framing for image 1' });
+    const image = adjust.closest('.lm-gallery-cell').querySelector('img');
+    fireEvent.click(adjust);
+    let dialog = within(screen.getByRole('dialog', { name: 'Adjust image framing' }));
+    fireEvent.click(dialog.getByRole('button', { name: 'Show full image' }));
+    fireEvent.click(dialog.getByRole('button', { name: 'Cancel', exact: true }));
+    expect(image).toHaveStyle({ objectFit: 'cover' });
+    fireEvent.click(adjust);
+    dialog = within(screen.getByRole('dialog', { name: 'Adjust image framing' }));
+    fireEvent.click(dialog.getByRole('button', { name: 'Show full image' }));
+    fireEvent.click(dialog.getByRole('button', { name: 'Use framing' }));
+    expect(image).toHaveStyle({ objectFit: 'contain' });
+    expect(screen.getByRole('button', { name: 'Adjust framing for image 2' }).closest('.lm-gallery-cell').querySelector('img'))
+      .toHaveStyle({ objectFit: 'cover' });
+    expect(save).not.toHaveBeenCalled();
+  } finally {
+    view.unmount();
+    root.remove();
+  }
 });

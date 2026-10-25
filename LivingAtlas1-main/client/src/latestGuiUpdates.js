@@ -104,6 +104,21 @@ export const manualGuiUpdates = [
 export const latestGuiUpdateDate = '10/25/2026';
 export const latestGuiUpdates = [
     {
+        title: 'Project Contacts and Upload Recovery',
+        items: [
+            'Contact Email can belong to someone other than the signed-in creator. Creating or editing a contact no longer requires it to match the account email or username; project ownership stays with the creator.',
+            'Upload errors now explain the problem so you can correct the form or retry the failed image.',
+        ],
+    },
+    {
+        title: 'Larger Images and Framing',
+        items: [
+            'Gallery uploads now accept PNG, JPG, WebP, GIF and BMP originals up to 50 MiB and 160 megapixels each (compressed BMPs: up to 40 MP). Originals are preserved and smaller display images are prepared automatically.',
+            'Images fill their frames by default. Use the pencil icon to drag, zoom, reset or show the full image. The image viewer shows the uncropped display image and links to the original. Fixed the framing drag crash.',
+            'Uploads show progress and let you retry failed images while keeping completed uploads and the created project. Removed legacy default logos from galleries, fixed overlapping upload instructions and updated framing controls to pencil icons.',
+        ],
+    },
+    {
         title: 'Personal Linked Layer Display',
         items: [
             'Each viewer now has independent show/hide settings for every project’s linked ArcGIS and custom layers. Signed-in choices are saved per account; visitor choices stay in this browser.',
@@ -133,7 +148,7 @@ export const latestGuiUpdates = [
     {
         title: 'Updated Guides',
         items: [
-            'Updated onboarding and manual instructions and examples for Projects, filtering, the detail toolbar and watershed point and save controls.',
+            'Updated guided tours and manual examples for project contacts, larger image uploads, framing, retries, location conversion, unsaved-change confirmation and personal linked-layer display settings.',
         ],
     },
     {

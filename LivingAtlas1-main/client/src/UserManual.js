@@ -898,7 +898,7 @@ function UserManual() {
             </div>
             <label>Author Name (required):</label>
             <input type="text" readOnly placeholder="Jane Doe" className="um-form-input-mock" />
-            <label>Email (required):</label>
+            <label>Contact Email (required):</label>
             <input type="text" readOnly placeholder="jane@example.com" className="um-form-input-mock" />
             <label>Title (required):</label>
             <input type="text" readOnly placeholder="WA Watershed Study 2024" className="um-form-input-mock" />
@@ -951,6 +951,8 @@ function UserManual() {
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '260px' }}>
                 <label style={{ fontSize: '12px', fontWeight: 600, color: '#374957', marginBottom: '3px' }}>Author Name <span style={{ color: '#e05' }}>*</span></label>
                 <input type="text" readOnly defaultValue="Jane Doe" className="um-form-input-mock" style={{ marginBottom: '8px' }} />
+                <label style={{ fontSize: '12px', fontWeight: 600, color: '#374957', marginBottom: '3px' }}>Contact Email <span style={{ color: '#e05' }}>*</span></label>
+                <input type="email" readOnly defaultValue="colleague@example.com" className="um-form-input-mock" style={{ marginBottom: '8px' }} />
                 <label style={{ fontSize: '12px', fontWeight: 600, color: '#374957', marginBottom: '3px' }}>Title <span style={{ color: '#e05' }}>*</span></label>
                 <input type="text" readOnly defaultValue="WA Watershed Study 2024" className="um-form-input-mock" style={{ marginBottom: '8px' }} />
                 <label style={{ fontSize: '12px', fontWeight: 600, color: '#374957', marginBottom: '3px' }}>Category</label>
@@ -1091,7 +1093,8 @@ function UserManual() {
             <div className="um-feature-demo" data-manual-example="add-card-example-09">
               <div className="um-isolated-demo" style={{ flexDirection: 'column', alignItems: 'stretch', minWidth: '240px', gap: '8px' }}>
                 <div className="form-modal-image-upload-area" style={{ pointerEvents: 'none', padding: '12px' }}>
-                  <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#666' }}>Click or drag to add images</p>
+                  <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#666' }}>Choose gallery images</p>
+                  <p className="image-upload-hint">PNG, JPG, WebP, GIF or BMP · up to 50 MiB / 160 megapixels each.</p>
                   <span className="form-modal-image-upload-btn" style={{ fontSize: '12px', padding: '4px 10px' }}>Choose Images</span>
                 </div>
                 <div className="form-modal-file-upload-area" style={{ pointerEvents: 'none', padding: '12px' }}>

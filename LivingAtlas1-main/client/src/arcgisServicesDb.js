@@ -1,4 +1,5 @@
 import api from './api';
+import { customLayerErrorMessage } from './customLayerErrors';
 
 const STATE_MAP = {
   WA: 'washington',
@@ -403,6 +404,7 @@ export async function saveCustomLayer(userEmail, service) {
         return response.data;
     } catch (error) {
         console.error(`[arcgisServicesDb] Failed to save custom layer:`, error);
+        error.message = customLayerErrorMessage(error, 'Could not save this layer. Please try again.', { saving: true });
         throw error;
     }
 }
@@ -436,7 +438,8 @@ export async function fetchCustomLayers(userEmail) {
         return adapted;
     } catch (error) {
         console.warn(`[arcgisServicesDb] Failed to fetch custom layers:`, error?.message || error);
-        return [];
+        error.message = customLayerErrorMessage(error, 'Could not load Custom Layers. Please try again.');
+        throw error;
     }
 }
 
@@ -507,7 +510,8 @@ export async function fetchCustomFolders(userEmail) {
         return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
         console.warn(`[arcgisServicesDb] Failed to fetch custom folders:`, error?.message || error);
-        return [];
+        error.message = customLayerErrorMessage(error, 'Could not load custom folders. Please try again.');
+        throw error;
     }
 }
 

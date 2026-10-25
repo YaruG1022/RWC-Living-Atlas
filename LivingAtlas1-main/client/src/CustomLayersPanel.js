@@ -75,6 +75,8 @@ function CustomLayersPanel({
 
     const [customServices, setCustomServices] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState(null);
+    const [reloadAttempt, setReloadAttempt] = useState(0);
     const [dbFolders, setDbFolders] = useState([]); // user-created folders from DB
 
     // Per-service state
@@ -172,9 +174,10 @@ function CustomLayersPanel({
     // user never opens this panel or any card's learn-more modal.
     useEffect(() => {
         if (!userEmail) return;
-        const loadKey = `${userEmail}:${refreshKey}`;
+        const loadKey = `${userEmail}:${refreshKey}:${reloadAttempt}`;
         if (loadedKeyRef.current === loadKey) return; // already loaded for this user/version
         setIsLoading(true);
+        setLoadError(null);
         let active = true;
         (async () => {
             try {
@@ -214,11 +217,14 @@ function CustomLayersPanel({
                 }
             } catch (err) {
                 console.warn('[CustomLayersPanel] Failed to load custom layers:', err);
-                if (active) setIsLoading(false);
+                if (active) {
+                    setLoadError(err.message || 'Could not load Custom Layers. Please try again.');
+                    setIsLoading(false);
+                }
             }
         })();
         return () => { active = false; };
-    }, [userEmail, refreshKey]);
+    }, [userEmail, refreshKey, reloadAttempt]);
 
     // Group services by folder (preserving sort_order from DB)
     const servicesByFolder = {};
@@ -1679,7 +1685,14 @@ function CustomLayersPanel({
                 <div className="custom-layers-panel-empty">Loading custom layers...</div>
             )}
 
-            {!isLoading && customServices.length === 0 && dbFolders.length === 0 && (
+            {loadError && (
+                <div className="custom-layers-panel-empty" role="alert">
+                    <p>{loadError}</p>
+                    <button type="button" onClick={() => setReloadAttempt(value => value + 1)}>Retry</button>
+                </div>
+            )}
+
+            {!isLoading && !loadError && customServices.length === 0 && dbFolders.length === 0 && (
                 <div className="custom-layers-panel-empty">
                     No custom layers saved yet.<br />
                     Right-click a layer in the GIS Services panel and select "Save to Custom Layers".

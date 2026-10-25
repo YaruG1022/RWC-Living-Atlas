@@ -52,6 +52,7 @@ api.interceptors.response.use(
     if (
       config &&
       !config._retried &&
+      !config.skipRetry &&
       (error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK' || !error.response)
     ) {
       config._retried = true;

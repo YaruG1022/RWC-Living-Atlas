@@ -54,7 +54,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="custom-layers-panel-actions"]',
         title: 'Panel Actions',
-        description: 'The compact row groups Folder, Upload, Added and Clear. Upload imports GeoJSON, KML or a zipped Shapefile; Added shows only loaded items; Clear removes active layers from the map. Hover for full labels.',
+        description: 'The compact row groups Folder, Upload, Added and Clear. Upload imports GeoJSON, KML or a zipped Shapefile; Added shows only loaded items; Clear removes active layers from the map. If the library fails to load, use Retry. Existing saved layers remain in your account.',
         placement: 'left',
     },
     {

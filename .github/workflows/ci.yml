@@ -65,6 +65,9 @@ jobs:
           tests.test_attachment_download
           tests.test_description_attachments
           tests.test_gallery_layout
+          tests.test_image_processing
+          tests.test_custom_layers
+          tests.test_card_link_sharing
       - name: Check repository administration and publication helpers offline
         run: python -m unittest discover -s ../../scripts -p 'test_*.py'
 

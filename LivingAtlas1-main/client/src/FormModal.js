@@ -4,6 +4,8 @@ import ReactDOM from 'react-dom';
 import Modal from 'react-modal';
 import './FormModal.css';
 import api from './api.js';
+import ImageFramingModal from './ImageFramingModal';
+import { IMAGE_ACCEPT, defaultPresentation, galleryFrameAspect, framingStyle, imageUploadError, prepareImagePreview, uploadPercent, uploadToken, validateImage } from './imageUploads';
 import RichTextEditor from './RichTextEditor';
 import { htmlToPlainText } from './richTextUtils';
 import PolygonDrawingModal from './PolygonDrawingModal';
@@ -12,7 +14,7 @@ import ArcGISPickerModal from './ArcGISPickerModal';
 import CustomLayerPickerModal from './CustomLayerPickerModal';
 import CreateCardModalOnboarding from './OnboardingCreateCardModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faQuestion, faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faQuestion, faPlay, faPen } from '@fortawesome/free-solid-svg-icons';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -118,11 +120,13 @@ const FormModal = (props) => {
         });
         setLinks([{ url: '', text: '' }]);
         setSelectedFiles([]);
-        setImageFiles([]);
-        setImagePreviews(prev => {
-            prev.forEach(url => URL.revokeObjectURL(url));
-            return [];
-        });
+        previewGeneration.current += 1;
+        imageJobs.forEach(job => { if (job.url) URL.revokeObjectURL(job.url); });
+        setImageJobs([]);
+        createdCardRef.current = null;
+        setCreatedCardID(null);
+        setUploadMessage('');
+        setFramingJob(null);
         setOverlayImageFile(null);
         setOverlayImagePreview('');
         setOverlayImageSlots([]);
@@ -188,8 +192,16 @@ const FormModal = (props) => {
     const [links, setLinks] = useState([{ url: '', text: '' }]);
 
     const [selectedFiles, setSelectedFiles] = useState([]);   // <-- multiple files
-    const [imageFiles, setImageFiles] = useState([]);         // multi-image upload
-    const [imagePreviews, setImagePreviews] = useState([]);
+    const [imageJobs, setImageJobs] = useState([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const submitRunning = useRef(false);
+    const [createdCardID, setCreatedCardID] = useState(null);
+    const createdCardRef = useRef(null);
+    const previewGeneration = useRef(0);
+    const removedImageIDs = useRef(new Set());
+    const [uploadMessage, setUploadMessage] = useState('');
+    const [framingJob, setFramingJob] = useState(null);
+    const updateImageJob = (id, patch) => setImageJobs(prev => prev.map(job => job.id === id ? { ...job, ...patch } : job));
     const [overlayImageFile, setOverlayImageFile] = useState(null);
     const [overlayImagePreview, setOverlayImagePreview] = useState('');
     const [overlayImageSlots, setOverlayImageSlots] = useState([]);
@@ -227,35 +239,41 @@ const FormModal = (props) => {
         setSelectedFiles(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handleImageInput = (e) => {
-        const files = Array.from(e.target.files);
-        const validImages = [];
-        const validTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"];
-
-        for (let file of files) {
-            if (!validTypes.includes(file.type)) {
-                alert(`"${file.name}" is not a supported image format. Use PNG, JPG, GIF, or WebP.`);
-                continue;
-            }
-            if (file.size > MAX_FILE_SIZE) {
-                alert(`Image "${file.name}" exceeds ${MAX_FILE_SIZE / 1024 / 1024} MB`);
-                continue;
-            }
-            validImages.push(file);
+    const prepareJob = async job => {
+        const generation = previewGeneration.current;
+        updateImageJob(job.id, { status: 'preparing', error: '' });
+        try {
+            const url = await prepareImagePreview(job.file);
+            if (generation !== previewGeneration.current || removedImageIDs.current.has(job.id)) { URL.revokeObjectURL(url); return; }
+            updateImageJob(job.id, { url, status: 'ready' });
+        } catch (error) {
+            if (generation === previewGeneration.current) updateImageJob(job.id, { status: 'preview-failed', error: imageUploadError(error) });
         }
-
-        const newPreviews = validImages.map(f => URL.createObjectURL(f));
-        setImageFiles(prev => [...prev, ...validImages]);
-        setImagePreviews(prev => [...prev, ...newPreviews]);
-        e.target.value = '';
     };
 
-    const removeImage = (index) => {
-        setImageFiles(prev => prev.filter((_, i) => i !== index));
-        setImagePreviews(prev => {
-            URL.revokeObjectURL(prev[index]);
-            return prev.filter((_, i) => i !== index);
-        });
+    const handleImageInput = async event => {
+        const generation = previewGeneration.current;
+        const files = Array.from(event.target.files || []);
+        event.target.value = '';
+        if (imageJobs.length + files.length > 30) { alert('A project can have at most 30 images.'); return; }
+        const jobs = [];
+        for (const file of files) {
+            try { validateImage(file); }
+            catch (error) { alert(`${file.name}: ${error.message}`); continue; }
+            jobs.push({ id: uploadToken(), file, url: '', status: 'queued', presentation: defaultPresentation() });
+        }
+        setImageJobs(prev => [...prev, ...jobs]);
+        for (const job of jobs) {
+            if (generation !== previewGeneration.current) break;
+            if (!removedImageIDs.current.has(job.id)) await prepareJob(job);
+        }
+    };
+
+    const removeImage = index => {
+        const job = imageJobs[index];
+        removedImageIDs.current.add(job.id);
+        if (job.url) URL.revokeObjectURL(job.url);
+        setImageJobs(prev => prev.filter(item => item.id !== job.id));
     };
 
     const validateForm = () => {
@@ -288,6 +306,8 @@ const FormModal = (props) => {
 
     const handleSubmit = (event) => {
         event.preventDefault();
+        if (submitRunning.current || imageJobs.some(job => ['queued', 'preparing', 'preview-failed'].includes(job.status))) return;
+        const wasCreated = Boolean(createdCardRef.current);
         const formErrors = validateForm();
         if (formErrors.length > 0) {
             alert(formErrors.join("\n"));
@@ -387,38 +407,32 @@ const FormModal = (props) => {
             });
         }
         
-        // append multiple images
         if (locationType === 'image') {
-            if (overlayImageFile) {
-                formData2.append('thumbnail', overlayImageFile);
-            }
-            // Extra image slots (additional map overlays)
-            const extraSlots = overlayImageSlots.slice(1).filter(s => s.file);
-            extraSlots.forEach(slot => {
-                formData2.append('images', slot.file);
-            });
-            imageFiles.forEach((file) => {
-                formData2.append('images', file);
-            });
-        } else if (imageFiles.length > 0) {
-            formData2.append('thumbnail', imageFiles[0]); // first image as thumbnail
-            imageFiles.forEach((file) => {
-                formData2.append('images', file);
-            });
+            if (overlayImageFile) formData2.append('thumbnail', overlayImageFile);
+            overlayImageSlots.slice(1).filter(slot => slot.file).forEach(slot => formData2.append('images', slot.file));
+        } else if (imageJobs.length) {
+            formData2.append('defer_images', 'true');
         }
 
+        submitRunning.current = true;
+        setIsSubmitting(true);
+        setUploadMessage(wasCreated ? 'Retrying remaining images…' : 'Creating project…');
         console.log("Uploading FormData:", [...formData2.entries()]);
 
-        api.post('/uploadForm', formData2, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        })
+        (createdCardRef.current ? Promise.resolve({ data: { card_id: createdCardRef.current } }) : api.post('/uploadForm', formData2, {
+            headers: { 'Content-Type': 'multipart/form-data' }, skipRetry: true, timeout: 180000,
+        }))
         .then(async response => {
             const newCardId = response.data?.card_id;
-            if (newCardId && pendingArcgisItems.length > 0) {
+            if (!newCardId && imageJobs.length) throw new Error('The server did not return a project ID.');
+            createdCardRef.current = newCardId;
+            setCreatedCardID(newCardId);
+            if (!wasCreated && newCardId && pendingArcgisItems.length > 0) {
                 for (const item of pendingArcgisItems) {
                     try {
                         await api.post('/cardArcGISLinks', {
                             card_id: newCardId,
+                            requester_email: props.email,
                             service_key: item.service_key,
                             layer_id: item.layer_id ?? null,
                             sublayer_index: item.sublayer_index ?? null,
@@ -432,11 +446,12 @@ const FormModal = (props) => {
                     }
                 }
             }
-            if (newCardId && pendingCustomLayerItems.length > 0) {
+            if (!wasCreated && newCardId && pendingCustomLayerItems.length > 0) {
                 for (const item of pendingCustomLayerItems) {
                     try {
                         await api.post('/cardArcGISLinks', {
                             card_id: newCardId,
+                            requester_email: props.email,
                             service_key: item.service_key,
                             layer_id: null,
                             sublayer_index: null,
@@ -449,6 +464,31 @@ const FormModal = (props) => {
                         console.error('Failed to link custom layer:', linkErr);
                     }
                 }
+            }
+            let failed = false;
+            for (const job of imageJobs.filter(item => item.status !== 'done')) {
+                updateImageJob(job.id, { status: 'uploading', progress: 0, error: '' });
+                setUploadMessage(`Uploading ${job.file.name}…`);
+                try {
+                    const body = new FormData();
+                    body.append('cardID', newCardId);
+                    body.append('image', job.file);
+                    body.append('altText', job.file.name);
+                    body.append('presentation', JSON.stringify(job.presentation));
+                    body.append('upload_token', job.id);
+                    await api.post('/uploadCardImage', body, { timeout: 180000, skipRetry: true,
+                        onUploadProgress: event => updateImageJob(job.id, { progress: uploadPercent(event) }),
+                    });
+                    updateImageJob(job.id, { status: 'done', progress: 100 });
+                } catch (error) {
+                    failed = true;
+                    updateImageJob(job.id, { status: 'failed', error: imageUploadError(error) });
+                }
+            }
+            if (failed) {
+                setUploadMessage('Project created. Some images failed. Retry remaining images; completed uploads will be kept.');
+                window.dispatchEvent(new CustomEvent('atlas:card-uploaded'));
+                return;
             }
             handleCloseModal();
             alert("Upload Successful");
@@ -466,8 +506,9 @@ const FormModal = (props) => {
             message = message || (error.response
                 ? 'Please try again. If the problem continues, contact support.'
                 : 'Unable to reach the server. Check your connection and try again.');
+            setUploadMessage(message);
             alert(`Upload failed: ${message}`);
-        });
+        }).finally(() => { submitRunning.current = false; setIsSubmitting(false); });
     };
 
     const handleStartPolygonDraw = () => {
@@ -623,6 +664,8 @@ const FormModal = (props) => {
                 <div data-onboarding-target="create-card-modal-root">
                 <h2 data-onboarding-target="create-card-title">Create Project</h2>
                 <form onSubmit={handleSubmit}>
+                    {uploadMessage && <div className="image-upload-status" role="status">{uploadMessage}</div>}
+                    <fieldset className="create-project-fields" disabled={isSubmitting || Boolean(createdCardID)}>
                     <label>Author Name <span className="form-modal-required-star">*</span>:</label>
                     <input 
                         type="text" 
@@ -634,7 +677,6 @@ const FormModal = (props) => {
 
                     <label htmlFor="project-contact-email">Contact Email <span className="form-modal-required-star">*</span>:</label>
                     <input id="project-contact-email" type="email" name="contact_email" value={formData.contact_email} onChange={handleInputChange} maxLength={255} required />
-                    <small>The project contact can be someone other than the account creating this project.</small>
 
                     <label>Title <span className="form-modal-required-star">*</span>:</label>
                     <input type="text" name="title" value={formData.title} onChange={handleInputChange} required />
@@ -825,6 +867,11 @@ const FormModal = (props) => {
                     <label>Attach Images (optional):</label>
                     <div
                         className="form-modal-image-upload-area"
+                        onDragOver={event => event.preventDefault()}
+                        onDrop={event => {
+                            event.preventDefault();
+                            if (!isSubmitting && !createdCardID) handleImageInput({ target: { files: event.dataTransfer.files, value: '' } });
+                        }}
                         data-onboarding-target="create-card-image-upload"
                         onClick={() => imageInputRef.current?.click()}
                     >
@@ -833,25 +880,19 @@ const FormModal = (props) => {
                         <input
                             ref={imageInputRef}
                             type="file"
-                            accept="image/png,image/jpeg,image/gif,image/webp"
+                            accept={IMAGE_ACCEPT}
                             multiple
                             onChange={handleImageInput}
                         />
                     </div>
-                    {imagePreviews.length > 0 && (
-                        <div className="form-modal-image-previews">
-                            {imagePreviews.map((src, i) => (
-                                <div key={i} className="form-modal-image-preview-item">
-                                    <img src={src} alt={`preview ${i + 1}`} />
-                                    <button
-                                        type="button"
-                                        className="form-modal-image-preview-remove"
-                                        onClick={() => removeImage(i)}
-                                    >&times;</button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                    <p className="image-upload-hint">Up to 50 MiB / 160 megapixels per image. We keep originals and prepare smaller display images automatically.</p>
+                    {imageJobs.length > 0 && <div className="form-modal-image-previews">
+                        {imageJobs.map((job, i) => <div key={job.id} className="form-modal-image-preview-item">
+                            {job.url && <img src={job.url} alt={job.file.name} style={framingStyle(job)} />}
+                            <button type="button" className="form-modal-image-preview-remove" aria-label={`Remove ${job.file.name}`} onClick={() => removeImage(i)}>×</button>
+                            {job.url && <button type="button" className="form-modal-frame" aria-label="Adjust framing" title="Adjust framing" onClick={() => setFramingJob(job)}><FontAwesomeIcon icon={faPen} aria-hidden="true" /></button>}
+                        </div>)}
+                    </div>}
 
                     <label>Upload Files (optional):</label>
                     <div
@@ -923,14 +964,23 @@ const FormModal = (props) => {
                         </div>
                     )}
 
+                    </fieldset>
+                    {imageJobs.map(job => <div className="image-upload-status" role="status" key={job.id}>
+                        <strong>{job.file.name}</strong> — {job.status === 'preparing' ? 'Preparing preview…' : job.status === 'uploading' ? (job.progress === 100 ? 'Processing image…' : `Uploading ${job.progress ?? ''}%`) : job.status === 'done' ? 'Uploaded' : job.error || 'Ready'}
+                        {job.status === 'uploading' && <progress max="100" value={job.progress ?? undefined} aria-label={`Uploading ${job.file.name}`} />}
+                        {job.status === 'preview-failed' && <button type="button" disabled={isSubmitting} onClick={() => prepareJob(job)}>Retry preview</button>}
+                        {['failed', 'preview-failed'].includes(job.status) && <button type="button" disabled={isSubmitting} onClick={() => removeImage(imageJobs.indexOf(job))}>Remove from upload queue</button>}
+                    </div>)}
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem" }} data-onboarding-target="create-card-submit-actions">
-                        <button type="submit">Submit</button>
-                        <button type="button" className="cancel_button" onClick={handleCloseModal}>Cancel</button>
+                        <button type="submit" disabled={isSubmitting || imageJobs.some(job => ['queued', 'preparing', 'preview-failed'].includes(job.status))}>{isSubmitting ? 'Uploading…' : createdCardID ? 'Retry remaining images' : 'Submit'}</button>
+                        <button type="button" className="cancel_button" disabled={isSubmitting} onClick={handleCloseModal}>{createdCardID ? 'Close' : 'Cancel'}</button>
                     </div>
                 </form>
                 </div>
             </Modal>
 
+            {framingJob && <ImageFramingModal key={framingJob.id} image={{ url: framingJob.url, presentation: framingJob.presentation }} aspectRatio={galleryFrameAspect(imageJobs.length, imageJobs.findIndex(job => job.id === framingJob.id))}
+                onClose={() => setFramingJob(null)} onSave={presentation => { updateImageJob(framingJob.id, { presentation }); setFramingJob(null); }} />}
             <CreateCardModalOnboarding
                 isOpen={isCreateCardOnboardingOpen}
                 onClose={() => setIsCreateCardOnboardingOpen(false)}

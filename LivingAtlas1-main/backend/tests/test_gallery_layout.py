@@ -117,10 +117,38 @@ class GalleryContractTests(unittest.TestCase):
 
     def test_webp_thumbnail_matches_the_formats_offered_by_the_create_form(self):
         thumbnail = MagicMock(filename='cover.WEBP', content_type='image/webp')
-        thumbnail.file.read.return_value = b'webp-fixture'
+        from PIL import Image
+        data = io.BytesIO()
+        Image.new('RGB', (16, 16), 'green').save(data, format='WEBP')
+        thumbnail.file.read.return_value = data.getvalue()
         with patch.object(self.cards.azure_storage, 'upload_bytes', return_value='/cover.webp', create=True) as upload:
             self.assertEqual(self.cards.upload_image(thumbnail), '/cover.webp')
-            self.assertEqual(upload.call_args.args[1:], (b'webp-fixture', 'image/webp'))
+            self.assertEqual(upload.call_args.args[2], 'image/webp')
+            self.assertEqual(Image.open(io.BytesIO(upload.call_args.args[1])).size, (16, 16))
+
+    def test_framing_rejects_other_projects_images_and_preserves_draft_on_failure(self):
+        self.cur.fetchone.side_effect = [(100,), (1,), (101,)]
+        self.cur.fetchall.return_value = [(1,)]
+        with self.assertRaises(self.cards.HTTPException) as error:
+            self.form(update=True, image_presentations='{"999": {"fit":"cover", "x":20}}')
+        self.assertEqual(error.exception.status_code, 422)
+        self.conn.rollback.assert_called()
+
+    def test_framing_is_saved_with_card_metadata(self):
+        self.cur.fetchone.side_effect = [(100,), (1,), (101,)]
+        self.cur.fetchall.return_value = [(7,)]
+        self.form(update=True, image_presentations='{"7":{"fit":"contain"}}')
+        statement = next(call.args for call in self.cur.execute.call_args_list if 'UPDATE CardImages SET Presentation' in call.args[0])
+        self.assertEqual(statement[1][1:], (101, 7))
+        self.assertIn('contain', statement[1][0])
+
+    def test_retried_upload_token_returns_original_result_without_new_storage(self):
+        self.cur.fetchone.side_effect = [(101,), (7, '/display.webp', '/original.png', 120, 80, {'fit':'cover'})]
+        with patch.object(self.images, 'save_image_asset') as store:
+            result = asyncio.run(self.images.upload_card_image(cardID=101, image=object(), altText='', presentation='{}', upload_token='same-upload'))
+        self.assertEqual(result['imageID'], 7)
+        store.assert_not_called()
+        self.conn.rollback.assert_called_once()
 
     def test_new_cards_include_a_deletable_default_cover(self):
         self.cur.fetchone.side_effect = [(100,), (1,)]
@@ -189,10 +217,10 @@ class GalleryContractTests(unittest.TestCase):
         for batch in (False, True):
             self.conn.reset_mock()
             self.cur.fetchone.side_effect = [(101,), (30,)]
-            with patch.object(self.images, 'save_uploaded_file') as upload:
+            with patch.object(self.images, 'save_image_asset') as upload:
                 with self.assertRaises(self.images.HTTPException) as error:
                     asyncio.run(self.images.upload_card_images(cardID=101, images=[object()], altTexts=None) if batch
-                                else self.images.upload_card_image(cardID=101, image=object(), altText=''))
+                                else self.images.upload_card_image(cardID=101, image=object(), altText='', presentation='{}', upload_token=None))
                 self.assertEqual(error.exception.status_code, 422)
                 upload.assert_not_called()
                 self.conn.rollback.assert_called_once()

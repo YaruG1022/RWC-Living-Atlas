@@ -2,6 +2,9 @@ import mapboxgl from 'mapbox-gl';
 
 // Track all active ArcGIS popups for stacking offset
 const activePopups = [];
+const escapeText = value => String(value).replace(/[&<>"']/g, character => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;',
+}[character]));
 
 /**
  * Show a popup for a feature from any ArcGIS service.
@@ -30,20 +33,20 @@ export async function showArcgisPopup(e, layer) {
     // Collapse logic for long descriptions
     const descShort = layerDescription.length > 120 ? layerDescription.slice(0, 120) + "..." : layerDescription;
     const hasLongDesc = layerDescription.length > 120;
-    const descId = `desc-${layer.id}-${feature.properties.OBJECTID || Math.floor(Math.random()*100000)}`;
+    const descId = `arcgis-desc-${Date.now()}-${Math.floor(Math.random()*1000000)}`;
 
     const propertyEntries = Object.entries(feature.properties || {});
 
     let html = `
   <div class="arcgis-popup-wrapper">
     <div class="arcgis-popup-header">
-      <h3 style="margin:0;font-size:1.1em;">${layerName}</h3>
+      <h3 style="margin:0;font-size:1.1em;">${escapeText(layerName)}</h3>
     </div>
     <div class="arcgis-popup-body">
     ${layerDescription ? `
       <div style="font-size:0.95em;color:#444;margin-bottom:6px;">
         <div id="${descId}-container" style="display:inline;">
-          <span id="${descId}">${descShort}</span>
+          <span id="${descId}">${escapeText(descShort)}</span>
         </div>
         ${hasLongDesc ? `<a href="#" id="${descId}-toggle" style="margin-left:8px;font-size:0.95em;">Show more</a>` : ""}
       </div>
@@ -54,8 +57,8 @@ export async function showArcgisPopup(e, layer) {
           ? `<tr><td style="color:#777;">No attributes for this feature.</td></tr>`
           : propertyEntries.map(([key, value]) =>
           `<tr>
-            <td style="font-weight:bold;padding-right:6px;vertical-align:top;">${key}</td>
-            <td style="word-break:break-word;overflow-wrap:anywhere;">${String(value)}</td>
+            <td style="font-weight:bold;padding-right:6px;vertical-align:top;">${escapeText(key)}</td>
+            <td style="word-break:break-word;overflow-wrap:anywhere;">${escapeText(value)}</td>
           </tr>`
         ).join('')}
       </tbody>

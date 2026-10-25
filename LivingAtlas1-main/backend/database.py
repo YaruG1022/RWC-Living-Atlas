@@ -1,5 +1,7 @@
 import os
 import psycopg2
+from custom_layer_schema import ensure_custom_layer_schema
+from card_link_schema import ensure_card_link_schema
 from psycopg2 import OperationalError, errorcodes, errors
 from psycopg2.pool import ThreadedConnectionPool
 from threading import BoundedSemaphore, Lock
@@ -129,6 +131,8 @@ def _ensure_schema():
     if not conn or not cur:
         return
     try:
+        ensure_custom_layer_schema(cur)
+        ensure_card_link_schema(cur)
         # Migration 003 — LocationType column + CardPolygonVertices table
         cur.execute("""
             ALTER TABLE Cards ADD COLUMN IF NOT EXISTS LocationType VARCHAR(10) DEFAULT 'point';
@@ -234,6 +238,15 @@ def _ensure_schema():
               ADD COLUMN IF NOT EXISTS FillColor VARCHAR(20),
               ADD COLUMN IF NOT EXISTS FillOpacity DOUBLE PRECISION,
               ADD COLUMN IF NOT EXISTS LineStyle VARCHAR(20);
+        """)
+
+        cur.execute("""
+            ALTER TABLE CardImages ADD COLUMN IF NOT EXISTS OriginalURL TEXT;
+            ALTER TABLE CardImages ADD COLUMN IF NOT EXISTS ImageWidth INT;
+            ALTER TABLE CardImages ADD COLUMN IF NOT EXISTS ImageHeight INT;
+            ALTER TABLE CardImages ADD COLUMN IF NOT EXISTS Presentation JSONB;
+            ALTER TABLE CardImages ADD COLUMN IF NOT EXISTS UploadToken VARCHAR(64);
+            CREATE UNIQUE INDEX IF NOT EXISTS cardimages_upload_token ON CardImages (CardID, UploadToken);
         """)
 
         # Keep the project contact separate from the account that owns the card.

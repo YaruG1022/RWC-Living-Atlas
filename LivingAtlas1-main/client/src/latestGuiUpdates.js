@@ -101,8 +101,35 @@ export const manualGuiUpdates = [
     },
 ];
 
-export const latestGuiUpdateDate = '10/18/2026';
+export const latestGuiUpdateDate = '10/25/2026';
 export const latestGuiUpdates = [
+    {
+        title: 'Personal Linked Layer Display',
+        items: [
+            'Each viewer now has independent show/hide settings for every project’s linked ArcGIS and custom layers. Signed-in choices are saved per account; visitor choices stay in this browser.',
+            'Changing a checkbox never changes another viewer’s settings, including when the creator or an admin toggles it. New viewers start with layers hidden; all public project associations remain available to enable.',
+        ],
+    },
+    {
+        title: 'Unsaved Project Changes',
+        items: [
+            'Closing Learn More with the Close button, outside click or Escape now consistently confirms unsaved edits, including funding, organization, visibility and pending files. Canceling the confirmation keeps your draft; confirming discards it and closes the modal.',
+        ],
+    },
+    {
+        title: 'Project Location Editing',
+        items: [
+            'All project types can now switch between Point, Polygon and Image in Learn More edit mode. The current type is disabled. Cancel restores the prior location, and the main Save commits the new one.',
+            'Switching type closes map project popups and hides the old marker or overlay while placing the new location. Temporarily hid the floating Projects collapse arrow and removed the extra contact-email hint from Create Project.',
+        ],
+    },
+    {
+        title: 'Custom Layers Reliability',
+        items: [
+            'Fixed intermittent failures when saving layers while the library is loading or refreshing.',
+            'Failed library loads now show an error and Retry instead of an empty library. Save errors explain how to recover; after a timeout, check the library before saving again.',
+        ],
+    },
     {
         title: 'Updated Guides',
         items: [

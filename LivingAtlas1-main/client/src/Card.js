@@ -5,19 +5,23 @@ import Modal from 'react-modal';
 import api from './api.js';
 import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
-import { SHOW_LEGACY_ORGANIZATION_LOGO } from './branding';
+import { SHOW_LEGACY_ORGANIZATION_LOGO, isLegacyOrganizationImage, visibleGalleryImages, visibleGallerySelection } from './branding';
 import LearnMoreGallery, { MAX_CARD_IMAGES } from './LearnMoreGallery';
+import ImageFramingModal from './ImageFramingModal';
+import { IMAGE_ACCEPT, galleryFrameAspect, imageUploadError, uploadPercent, uploadToken, validateImage } from './imageUploads';
 import { MAX_GALLERY_IMAGES, galleryImageID, selectedGalleryImages, toggleGallerySelection } from './gallerySelection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faTrashCan, faDownload, faArrowLeft, faCheck, faUpload, faXmark, faQuestion, faPlay, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faPen, faTrashCan, faDownload, faArrowLeft, faCheck, faUpload, faXmark, faQuestion, faPlay, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
 import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
-import { fetchUserPreferences } from './userPreferencesApi';
 import RichTextEditor from './RichTextEditor';
 import RepresentationPreview from './RepresentationPreview';
 import { descriptionToHtml, htmlToPlainText } from './richTextUtils';
 import PolygonDrawingModal from './PolygonDrawingModal';
 import CoordinatesPanel from './CoordinatesPanel';
+import { setCardLocationEditing } from './cardLocationEditing';
+import { toggleSharedCardLayer } from './sharedCardLayers';
+import { resolveLinkedLayerVisibility, saveLinkedLayerVisibility } from './linkedLayerVisibility';
 import ArcGISPickerModal from './ArcGISPickerModal';
 import { fetchAllArcgisServices } from './arcgisServicesDb';
 import CustomLayerPickerModal from './CustomLayerPickerModal';
@@ -30,26 +34,6 @@ const ARCGIS_STATE_FULL_NAMES = {
     ID: 'Idaho ArcGIS Services',
     OR: 'Oregon ArcGIS Services',
 };
-
-// Pinned ArcGIS items live in the same user-preference list
-// (preferences.arcgis.pinnedItems) used by the ArcGIS upload panel, so pinned
-// layers persist in the database and auto-load with the panel's pin system.
-function normalizePinnedArcgisItems(items) {
-    if (!Array.isArray(items)) return [];
-    return items
-        .filter(i => i && typeof i === 'object' && typeof i.serviceKey === 'string' && i.serviceKey.trim())
-        .map(i => ({
-            serviceKey: i.serviceKey.trim(),
-            layerId: i.layerId ?? null,
-            sublayerIndex: i.sublayerIndex ?? null,
-        }));
-}
-
-function pinMatchesLinkedItem(pin, item) {
-    return pin.serviceKey === item.service_key
-        && (pin.layerId ?? null) === (item.layer_id ?? null)
-        && (pin.sublayerIndex ?? null) === (item.sublayer_index ?? null);
-}
 
 function parseLinks(link, linkText) {
     if (!link) return [{ url: '', text: '' }];
@@ -89,15 +73,19 @@ function Card(props) {
     const [isImageMutationLoading, setIsImageMutationLoading] = useState(false);
     const [pendingImageSlotIndex, setPendingImageSlotIndex] = useState(null);
     const [sessionUploadedImageIDs, setSessionUploadedImageIDs] = useState([]);
+    const [framingImage, setFramingImage] = useState(null);
+    const [imageUploadJobs, setImageUploadJobs] = useState([]);
+    const uploadRunning = useRef(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [failedCardImageUrl, setFailedCardImageUrl] = useState(null);
     const [isEditingPolygon, setIsEditingPolygon] = useState(false);
-    // True while converting a point/coordinate card to polygon or image (blank slate),
-    // as opposed to editing an existing polygon/image card's own vertices.
-    const [isConvertingLocationType, setIsConvertingLocationType] = useState(false);
+    // The stored/draft type stays intact until the new map editor is accepted.
+    const [conversionTargetType, setConversionTargetType] = useState(null);
+    const isConvertingLocationType = conversionTargetType !== null;
+    const editorMapHiddenBackupRef = useRef(false);
     const [isEditingCoordinate, setIsEditingCoordinate] = useState(false);
     // True while a coordinate edit is in progress or staged but not yet saved.
-    const [hideCardPointMarkers, setHideCardPointMarkers] = useState(false);
+    const [hideCardMapRepresentation, setHideCardMapRepresentation] = useState(false);
     const [isLocationTypeMenuOpen, setIsLocationTypeMenuOpen] = useState(false);
     const isEditingRef = useRef(false); // Track editing state across renders
     const learnMoreImageInputRef = useRef(null);
@@ -117,14 +105,15 @@ function Card(props) {
     const [isArcgisPickerOpen, setIsArcgisPickerOpen] = useState(false);
     // Track which linked items have their layer shown on the map (keyed by item.id)
     const [linkedArcgisChecked, setLinkedArcgisChecked] = useState({});
-    // Pinned ArcGIS items (shared with the upload panel via user preferences / DB)
-    const [pinnedArcgisItems, setPinnedArcgisItems] = useState([]);
-    const pinnedArcgisLoadedRef = useRef(false);
-    const pinnedAutoOpenedRef = useRef(false);
-    const linkedItemsLoadedRef = useRef(null); // tracks which cardID was last loaded
+    const layerViewerEmail = props.isLoggedIn ? (localStorage.getItem('email') || '').trim().toLowerCase() : '';
+    const layerViewerRef = useRef(layerViewerEmail);
+    layerViewerRef.current = layerViewerEmail;
+    const visibilityRevisionRef = useRef({});
     const linkedArcgisItemsBackupRef = useRef(null); // backup of linkedArcgisItems when edit mode starts
     const [linkedCustomLayerItems, setLinkedCustomLayerItems] = useState([]);
     const [linkedCustomLayerChecked, setLinkedCustomLayerChecked] = useState({});
+    const [linkedLayerError, setLinkedLayerError] = useState('');
+    const fetchedCardLinksRef = useRef([]);
     const [isCustomLayerPickerOpen, setIsCustomLayerPickerOpen] = useState(false);
     const linkedCustomLayerItemsBackupRef = useRef(null);
     const [learnMoreLinks, setLearnMoreLinks] = useState([{ url: '', text: '' }]);
@@ -172,52 +161,73 @@ function Card(props) {
         setIsFavorited(props.isFavorited);
     }, [props.isFavorited]);
 
-    // Split fetched card links into ArcGIS vs custom-layer items, and restore
-    // both checkbox groups' visibility from the DB-persisted is_visible flag so
-    // it survives modal close/reopen and page reloads instead of resetting.
-    const applyFetchedCardLinks = useCallback((all) => {
-        const arcgisItems = all.filter(i => i.item_type !== 'uploaded_custom');
-        setLinkedArcgisItems(arcgisItems);
-        const arcgisCheckedMap = {};
-        arcgisItems.forEach(item => {
-            if (item.is_visible) {
-                arcgisCheckedMap[item.id] = true;
-                window.dispatchEvent(new CustomEvent('arcgis-layer-toggle', {
-                    detail: { serviceKey: item.service_key, layerId: item.layer_id, checked: true },
-                }));
-            }
+    const showLinkedCustomLayer = useCallback((item,checked) => {
+        toggleSharedCardLayer(item,checked,undefined,layerViewerEmail).catch(error => {
+            if (layerViewerRef.current !== layerViewerEmail || !checked) return;
+            console.warn('Linked layer could not be displayed:',error);
+            setLinkedCustomLayerChecked(prev => ({...prev,[item.id]:false}));
+            setLinkedLayerError('This linked layer could not be displayed. Please reopen the project or try again.');
         });
-        setLinkedArcgisChecked(prev => ({ ...prev, ...arcgisCheckedMap }));
+    }, [layerViewerEmail]);
 
-        const customItems = all.filter(i => i.item_type === 'uploaded_custom');
-        setLinkedCustomLayerItems(customItems);
-        const customCheckedMap = {};
-        customItems.forEach(item => {
-            if (item.is_visible) {
-                customCheckedMap[item.id] = true;
-                window.dispatchEvent(new CustomEvent('custom-layer-toggle', {
-                    detail: { serviceKey: item.service_key, checked: true },
-                }));
-            }
+    const applyFetchedCardLinks = useCallback(all => {
+        setLinkedLayerError('');
+        fetchedCardLinksRef.current.filter(old => !all.some(item => item.id === old.id && item.is_visible && item.shared_layer_key === old.shared_layer_key)).forEach(old => {
+            if (old.item_type === 'uploaded_custom') showLinkedCustomLayer(old,false);
+            else window.dispatchEvent(new CustomEvent('arcgis-layer-toggle',{detail:{serviceKey:old.service_key,layerId:old.layer_id,checked:false}}));
         });
-        setLinkedCustomLayerChecked(customCheckedMap);
-    }, []);
+        fetchedCardLinksRef.current = all;
+        const arcgisItems = all.filter(item => item.item_type !== 'uploaded_custom');
+        setLinkedArcgisItems(arcgisItems);
+        setLinkedArcgisChecked(Object.fromEntries(arcgisItems.map(item => [item.id,Boolean(item.is_visible)])));
+        arcgisItems.forEach(item => window.dispatchEvent(new CustomEvent('arcgis-layer-toggle', {
+            detail:{serviceKey:item.service_key,layerId:item.layer_id,checked:Boolean(item.is_visible)},
+        })));
+        const customItems = all.filter(item => item.item_type === 'uploaded_custom');
+        setLinkedCustomLayerItems(customItems);
+        setLinkedCustomLayerChecked(Object.fromEntries(customItems.map(item => [item.id,Boolean(item.is_visible)])));
+        customItems.forEach(item => showLinkedCustomLayer(item,Boolean(item.is_visible)));
+    }, [showLinkedCustomLayer]);
+
+    // Clear the previous account's map layers, including on logout or card unmount.
+    useEffect(() => {
+        return () => {
+            fetchedCardLinksRef.current.forEach(item => {
+                if (item.item_type === 'uploaded_custom') toggleSharedCardLayer(item,false,undefined,layerViewerEmail).catch(() => {});
+                else window.dispatchEvent(new CustomEvent('arcgis-layer-toggle',{detail:{serviceKey:item.service_key,layerId:item.layer_id,checked:false}}));
+            });
+            fetchedCardLinksRef.current = [];
+        };
+    }, [layerViewerEmail]);
+
+    useEffect(() => {
+        setLinkedArcgisItems([]);
+        setLinkedCustomLayerItems([]);
+        setLinkedArcgisChecked({});
+        setLinkedCustomLayerChecked({});
+        setLinkedLayerError('');
+        visibilityRevisionRef.current = {};
+    }, [layerViewerEmail]);
 
     useEffect(() => {
         if (props.forceOpenLearnMoreSignal) {
             setIsModalOpen(true);
-            const cardId = formData.cardID;
-            if (cardId) {
-                refreshCardImages().catch(() => {});
-                if (linkedItemsLoadedRef.current !== cardId) {
-                    linkedItemsLoadedRef.current = cardId;
-                    api.get(`/cardArcGISLinks?card_id=${cardId}`)
-                        .then(res => applyFetchedCardLinks(res.data.data || []))
-                        .catch(() => {});
-                }
-            }
+            refreshCardImages().catch(() => {});
         }
     }, [props.forceOpenLearnMoreSignal]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        if (!isModalOpen || !formData.cardID) return;
+        let active = true;
+        api.get(`/cardArcGISLinks?card_id=${formData.cardID}&user_email=${encodeURIComponent(layerViewerEmail)}`)
+            .then(res => {
+                if (active) applyFetchedCardLinks(resolveLinkedLayerVisibility(res.data.data || [],layerViewerEmail));
+            })
+            .catch(() => {
+                if (active) setLinkedLayerError('Linked layer settings could not be loaded. Please reopen the project or try again.');
+            });
+        return () => { active = false; };
+    }, [isModalOpen,formData.cardID,layerViewerEmail,applyFetchedCardLinks]);
 
     // Resolve linked services from the database when the card details open.
     useEffect(() => {
@@ -246,86 +256,39 @@ function Card(props) {
         });
     }, [linkedArcgisItems, arcgisServiceByKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Load pinned ArcGIS items from user preferences when the learn-more modal opens
-    useEffect(() => {
-        if (!isModalOpen) {
-            pinnedArcgisLoadedRef.current = false;
-            pinnedAutoOpenedRef.current = false;
-            return;
-        }
-        if (pinnedArcgisLoadedRef.current) return;
-        pinnedArcgisLoadedRef.current = true;
-        const email = localStorage.getItem('email') || '';
-        if (!email) {
-            setPinnedArcgisItems([]);
-            return;
-        }
-        fetchUserPreferences(email)
-            .then(prefs => setPinnedArcgisItems(normalizePinnedArcgisItems(prefs?.arcgis?.pinnedItems)))
-            .catch(() => {});
-    }, [isModalOpen]);
-
-    // Pinned linked layers always stay open: force-show them once per modal open
-    useEffect(() => {
-        if (!isModalOpen || pinnedAutoOpenedRef.current) return;
-        if (linkedArcgisItems.length === 0 || pinnedArcgisItems.length === 0) return;
-        pinnedAutoOpenedRef.current = true;
-        const pinnedLinked = linkedArcgisItems.filter(item =>
-            pinnedArcgisItems.some(pin => pinMatchesLinkedItem(pin, item))
-        );
-        if (pinnedLinked.length === 0) return;
-        setLinkedArcgisChecked(prev => {
-            const nextState = { ...prev };
-            pinnedLinked.forEach(item => { nextState[item.id] = true; });
-            return nextState;
+    const persistLinkedVisibility = (item,checked,previous,apply) => {
+        const email = layerViewerEmail;
+        const revision = Symbol('visibility-change');
+        visibilityRevisionRef.current[item.id] = revision;
+        setLinkedLayerError('');
+        saveLinkedLayerVisibility(item,checked,email).catch(() => {
+            if (layerViewerRef.current !== email || visibilityRevisionRef.current[item.id] !== revision) return;
+            apply(previous);
+            setLinkedLayerError('Your layer display setting could not be saved. Please try again.');
         });
-        pinnedLinked.forEach(item => {
+    };
+
+    const handleToggleArcgisLayer = (item,nowChecked) => {
+        const apply = checked => {
+            setLinkedArcgisChecked(prev => ({...prev,[item.id]:checked}));
             window.dispatchEvent(new CustomEvent('arcgis-layer-toggle', {
-                detail: { serviceKey: item.service_key, layerId: item.layer_id, checked: true },
+                detail:{serviceKey:item.service_key,layerId:item.layer_id,checked},
             }));
-        });
-    }, [isModalOpen, linkedArcgisItems, pinnedArcgisItems]);
-
-    const handleToggleArcgisLayer = (item, nowChecked) => {
-        window.dispatchEvent(new CustomEvent('arcgis-layer-toggle', {
-            detail: { serviceKey: item.service_key, layerId: item.layer_id, checked: nowChecked },
-        }));
-        // Persist to DB so the shown/hidden state survives modal close/reopen and reloads.
-        api.patch(`/cardArcGISLinks/${item.id}`, { is_visible: nowChecked })
-            .catch(err => console.warn('Failed to save ArcGIS layer visibility:', err));
-    };
-
-    const handleToggleCustomLayer = (item, nowChecked) => {
-        window.dispatchEvent(new CustomEvent('custom-layer-toggle', {
-            detail: { serviceKey: item.service_key, checked: nowChecked },
-        }));
-        // Persist to DB so the shown/hidden state survives modal close/reopen and reloads.
-        api.patch(`/cardArcGISLinks/${item.id}`, { is_visible: nowChecked })
-            .catch(err => console.warn('Failed to save custom layer visibility:', err));
-    };
-
-    // Keep the Linked Custom Layers checkboxes in sync with the Custom Layers
-    // Panel's own service checkboxes (panel → learn-more direction). The panel
-    // persists the is_visible flag for every card link of the service itself.
-    useEffect(() => {
-        const handler = (e) => {
-            const { serviceKey, checked } = e.detail || {};
-            if (!serviceKey) return;
-            setLinkedCustomLayerChecked(prev => {
-                let changed = false;
-                const next = { ...prev };
-                linkedCustomLayerItems.forEach(item => {
-                    if (item.service_key === serviceKey && next[item.id] !== checked) {
-                        next[item.id] = checked;
-                        changed = true;
-                    }
-                });
-                return changed ? next : prev;
-            });
         };
-        window.addEventListener('custom-layer-panel-toggle', handler);
-        return () => window.removeEventListener('custom-layer-panel-toggle', handler);
-    }, [linkedCustomLayerItems]);
+        const previous = !!linkedArcgisChecked[item.id];
+        apply(nowChecked);
+        persistLinkedVisibility(item,nowChecked,previous,apply);
+    };
+
+    const handleToggleCustomLayer = (item,nowChecked) => {
+        const apply = checked => {
+            setLinkedCustomLayerChecked(prev => ({...prev,[item.id]:checked}));
+            showLinkedCustomLayer(item,checked);
+        };
+        const previous = !!linkedCustomLayerChecked[item.id];
+        apply(nowChecked);
+        persistLinkedVisibility(item,nowChecked,previous,apply);
+    };
 
     // Ensure username and name always have safe defaults
     // Now handled by handleEdit
@@ -347,16 +310,7 @@ function Card(props) {
         setIsAllImagesView(false);
         setIsModalOpen(true);
         if (props.onLearnMore) props.onLearnMore();
-        const cardId = formData.cardID;
-        if (cardId) {
-            refreshCardImages().catch(() => {});
-            if (linkedItemsLoadedRef.current !== cardId) {
-                linkedItemsLoadedRef.current = cardId;
-                api.get(`/cardArcGISLinks?card_id=${cardId}`)
-                    .then(res => applyFetchedCardLinks(res.data.data || []))
-                    .catch(() => {});
-            }
-        }
+        if (formData.cardID) refreshCardImages().catch(() => {});
     };
 
     const isLearnMoreModalVisible = isModalOpen && !isEditingPolygon && !isEditingCoordinate;
@@ -400,6 +354,10 @@ function Card(props) {
         if (shouldBeInEditMode && !isLearnMoreEditMode) {
             onboardingEditModeRef.current = true;
             isEditingRef.current = true;
+            setLearnMoreBackup({ ...formData });
+            setLearnMoreLinks(parseLinks(formData.link, formData.link_text));
+            linkedArcgisItemsBackupRef.current = linkedArcgisItems.map(item => ({ ...item }));
+            linkedCustomLayerItemsBackupRef.current = linkedCustomLayerItems.map(item => ({ ...item }));
             setEditFormLinks(parseLinks(formData.link, formData.link_text));
             setFormData((prev) => ({
                 ...prev,
@@ -413,7 +371,7 @@ function Card(props) {
             setIsLearnMoreEditMode(false);
             isEditingRef.current = false;
         }
-    }, [isLearnMoreOnboardingOpen, isLearnMoreModalVisible, learnMoreOnboardingStep]);
+    }, [isLearnMoreOnboardingOpen, isLearnMoreModalVisible, learnMoreOnboardingStep, isLearnMoreEditMode, formData, linkedArcgisItems, linkedCustomLayerItems]);
 
     const handleZoom = (e) => {
         e.stopPropagation();
@@ -837,6 +795,10 @@ function Card(props) {
         formDataToSend.append('link_text', linkOverride.link_text ?? '');
     }
     formDataToSend.append('category', formData.category || 'None');
+    const imagePresentations = Object.fromEntries((formData.images || [])
+        .filter(image => resolveImageServerID(image) && image.presentation)
+        .map(image => [resolveImageServerID(image), image.presentation]));
+    if (Object.keys(imagePresentations).length) formDataToSend.append('image_presentations', JSON.stringify(imagePresentations));
 
     // Send polygon vertices as JSON string if polygon card
     if (isOverlayCard && Array.isArray(formData.polygon_vertices) && formData.polygon_vertices.length >= (isImageCard ? 4 : 3)) {
@@ -997,21 +959,14 @@ function Card(props) {
     }
 };
 
-    // Hide the card's own map markers from the moment the coordinate editor opens
-    // until the edit reaches the server (Content1 then re-creates them at the new
-    // position). Without this the pre-edit markers linger at the old position, in
-    // their old color, next to the editable copies the panel draws.
+    // Hide every stored representation until this draft is saved or discarded.
+    // The map also reapplies this after marker refreshes and style changes.
     useEffect(() => {
         const cardID = formData.cardID || props.cardID;
-        // isModalOpen stays true while the coordinate editor is up, so it also acts
-        // as a safety net: closing the card always brings its markers back.
-        if (!cardID || !hideCardPointMarkers || !isModalOpen) return undefined;
-        const selector = `[data-card-marker-id="${cardID}"]`;
-        document.querySelectorAll(selector).forEach(el => { el.style.display = 'none'; });
-        return () => {
-            document.querySelectorAll(selector).forEach(el => { el.style.display = ''; });
-        };
-    }, [hideCardPointMarkers, isModalOpen, formData.cardID, props.cardID]);
+        if (!cardID || !hideCardMapRepresentation || !isModalOpen) return undefined;
+        setCardLocationEditing(cardID, true);
+        return () => setCardLocationEditing(cardID, false);
+    }, [hideCardMapRepresentation, isModalOpen, formData.cardID, props.cardID]);
 
     // Edit an existing point card's coordinate(s): hide the learn-more modal and
     // open the same "Add Points" tool used by the map's "Add card from map" toolbar.
@@ -1019,7 +974,8 @@ function Card(props) {
         const map = window.atlasMapInstance;
         if (!map) { console.error('Map not found'); return; }
         setIsLocationTypeMenuOpen(false);
-        setHideCardPointMarkers(true);
+        editorMapHiddenBackupRef.current = hideCardMapRepresentation;
+        setHideCardMapRepresentation(true);
         setIsEditingCoordinate(true);
         document.querySelectorAll('.card-pin-rich-popup .mapboxgl-popup-close-button').forEach(button => button.click());
         const lat = parseFloat(formData.latitude);
@@ -1027,75 +983,51 @@ function Card(props) {
         if (!isNaN(lat) && !isNaN(lng)) {
             map.flyTo({ center: [lng, lat], zoom: 14 });
         }
-    }, [formData.latitude, formData.longitude]);
+    }, [formData.latitude, formData.longitude, hideCardMapRepresentation]);
 
     const handleCoordinateEditSave = useCallback((points) => {
         const first = points?.[0];
-        if (first) {
-            setFormData(prev => ({
+        if (!first) return;
+        setFormData(prev => {
+            const type = points.length > 1 || (!conversionTargetType && prev.location_type === 'multipoint') ? 'multipoint' : 'point';
+            return {
                 ...prev,
+                location_type: type,
                 latitude: Number(first.lat).toFixed(6),
                 longitude: Number(first.lng).toFixed(6),
-                // Multi-point cards are rendered from polygon_vertices, so the edited
-                // points have to be written back there too — updating lat/lng alone
-                // leaves the card's markers untouched.
-                ...(prev.location_type === 'multipoint' ? {
-                    polygon_vertices: points.map(p => ({
-                        lat: p.lat,
-                        lng: p.lng,
-                        icon: p.icon,
-                        markerColor: p.color,
-                        markerOpacity: p.opacity,
-                    })),
-                } : {}),
-            }));
-        }
+                polygon_vertices: type === 'multipoint' ? points.map(p => ({
+                    lat: p.lat, lng: p.lng, icon: p.icon,
+                    markerColor: p.color, markerOpacity: p.opacity,
+                })) : [],
+            };
+        });
+        setConversionTargetType(null);
         setIsEditingCoordinate(false);
-        // Ensure learn-more modal stays in edit mode
         isEditingRef.current = true;
         setIsLearnMoreEditMode(true);
-    }, []);
+    }, [conversionTargetType]);
 
     const handleCoordinateEditCancel = useCallback(() => {
-        setHideCardPointMarkers(false);
+        setHideCardMapRepresentation(editorMapHiddenBackupRef.current);
+        setConversionTargetType(null);
         setIsEditingCoordinate(false);
     }, []);
 
-    // Change marker card to polygon: hide modal → open PolygonDrawingModal
-    const handleChangeToPolygon = useCallback(() => {
+    const handleChangeLocationType = useCallback((targetType, event) => {
+        event?.stopPropagation();
+        const currentType = ['polygon', 'image'].includes(formData.location_type) ? formData.location_type : 'point';
+        if (targetType === currentType) return;
         const map = window.atlasMapInstance;
         if (!map) { console.error('Map not found'); return; }
-
-        // Switch location_type but preserve existing lat/lng
-        setFormData(prev => ({ ...prev, location_type: 'polygon' }));
-        setIsConvertingLocationType(true);
-        setIsEditingPolygon(true);
-
-        // Fly to the current marker location
-        const lat = parseFloat(formData.latitude);
-        const lng = parseFloat(formData.longitude);
-        if (!isNaN(lat) && !isNaN(lng)) {
-            map.flyTo({ center: [lng, lat], zoom: 14 });
-        }
-    }, [formData.latitude, formData.longitude]);
-
-    // Change marker card to image overlay: hide modal → open PolygonDrawingModal
-    // in image mode, blank (no existing overlay image), matching the map's
-    // "Add card from map" → Image tool.
-    const handleChangeToImage = useCallback(() => {
-        const map = window.atlasMapInstance;
-        if (!map) { console.error('Map not found'); return; }
-
-        setFormData(prev => ({ ...prev, location_type: 'image' }));
-        setIsConvertingLocationType(true);
-        setIsEditingPolygon(true);
-
-        const lat = parseFloat(formData.latitude);
-        const lng = parseFloat(formData.longitude);
-        if (!isNaN(lat) && !isNaN(lng)) {
-            map.flyTo({ center: [lng, lat], zoom: 14 });
-        }
-    }, [formData.latitude, formData.longitude]);
+        editorMapHiddenBackupRef.current = hideCardMapRepresentation;
+        setIsLocationTypeMenuOpen(false);
+        setHideCardMapRepresentation(true);
+        setConversionTargetType(targetType);
+        if (targetType === 'point') setIsEditingCoordinate(true);
+        else setIsEditingPolygon(true);
+        const lat = Number(formData.latitude), lng = Number(formData.longitude);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) map.flyTo({ center: [lng, lat], zoom: 14 });
+    }, [formData.location_type, formData.latitude, formData.longitude, hideCardMapRepresentation]);
 
     // Edit polygon: hide modal → fly to polygon → open PolygonDrawingModal
     const handleEditPolygon = useCallback(() => {
@@ -1104,33 +1036,8 @@ function Card(props) {
         const minimumVertices = formData.location_type === 'image' ? 4 : 3;
         if (!map || !Array.isArray(verts) || verts.length < minimumVertices) return;
 
-        // Close any open Mapbox popups on the map
-        document.querySelectorAll('.mapboxgl-popup').forEach(el => {
-            const closeBtn = el.querySelector('.mapboxgl-popup-close-button');
-            if (closeBtn) closeBtn.click();
-            else el.remove();
-        });
-
-        // Hide the existing card polygon layers so they don't show underneath the editor
-        const cardID = formData.cardID || props.cardID;
-        if (cardID) {
-            if (formData.location_type === 'image') {
-                const imageLayerId = `card-image-layer-${cardID}`;
-                const outlineLayerId = `card-image-outline-${cardID}`;
-                if (map.getLayer(imageLayerId)) map.setLayoutProperty(imageLayerId, 'visibility', 'none');
-                if (map.getLayer(outlineLayerId)) map.setLayoutProperty(outlineLayerId, 'visibility', 'none');
-            } else {
-                const fillLayerId = `card-polygon-fill-${cardID}`;
-                const lineLayerId = `card-polygon-line-${cardID}`;
-                if (map.getLayer(fillLayerId)) map.setLayoutProperty(fillLayerId, 'visibility', 'none');
-                // Borders are rendered as one line layer per line style (plus the legacy
-                // single layer on older sessions) — hide every variant.
-                ['', '-solid', '-dashed', '-dotted', '-dashdot'].forEach(suffix => {
-                    const styleLineId = `${lineLayerId}${suffix}`;
-                    if (map.getLayer(styleLineId)) map.setLayoutProperty(styleLineId, 'visibility', 'none');
-                });
-            }
-        }
+        editorMapHiddenBackupRef.current = hideCardMapRepresentation;
+        setHideCardMapRepresentation(true);
 
         setIsEditingPolygon(true);
 
@@ -1142,37 +1049,17 @@ function Card(props) {
             [Math.max(...lngs), Math.max(...lats)]
         ];
         map.fitBounds(bounds, { padding: 80, maxZoom: 16 });
-    }, [formData.polygon_vertices, formData.cardID, formData.location_type, props.cardID]);
-
-    // Restore card polygon layer visibility
-    const restoreCardPolygonLayers = useCallback(() => {
-        const map = window.atlasMapInstance;
-        const cardID = formData.cardID || props.cardID;
-        if (!map || !cardID) return;
-        if (formData.location_type === 'image') {
-            const imageLayerId = `card-image-layer-${cardID}`;
-            const outlineLayerId = `card-image-outline-${cardID}`;
-            if (map.getLayer(imageLayerId)) map.setLayoutProperty(imageLayerId, 'visibility', 'visible');
-            if (map.getLayer(outlineLayerId)) map.setLayoutProperty(outlineLayerId, 'visibility', 'visible');
-            return;
-        }
-
-        const fillLayerId = `card-polygon-fill-${cardID}`;
-        const lineLayerId = `card-polygon-line-${cardID}`;
-        if (map.getLayer(fillLayerId)) map.setLayoutProperty(fillLayerId, 'visibility', 'visible');
-        // Restore every per-style border line layer (plus the legacy single layer).
-        ['', '-solid', '-dashed', '-dotted', '-dashdot'].forEach(suffix => {
-            const styleLineId = `${lineLayerId}${suffix}`;
-            if (map.getLayer(styleLineId)) map.setLayoutProperty(styleLineId, 'visibility', 'visible');
-        });
-    }, [formData.cardID, formData.location_type, props.cardID]);
+    }, [formData.polygon_vertices, formData.location_type, hideCardMapRepresentation]);
 
     // After polygon/image edit save: update formData and return to learn-more modal (edit mode).
     // PolygonDrawingModal's onSave signature differs by mode: polygon mode passes an
     // array of rings (each an array of vertices) plus per-ring styles; image mode passes
     // a single flat array of the 4 corner vertices plus the placed image slots (not styles).
     const handlePolygonEditSave = useCallback((allRingsOrVerts, centroid, style, ringStylesOrSlots = []) => {
-        const isImageSave = formData.location_type === 'image';
+        const targetType = conversionTargetType || formData.location_type;
+        const isImageSave = targetType === 'image';
+        const imageSlot = isImageSave ? ringStylesOrSlots[0] : null;
+        const imageChanged = Boolean(imageSlot?.file) || Boolean(imageSlot?.url && imageSlot.url !== getRepresentativeImageUrl());
         const flatVerts = isImageSave
             ? allRingsOrVerts.map(v => ({ ...v, ring: 0 }))
             : allRingsOrVerts.flatMap((ring, ringIdx) => {
@@ -1205,7 +1092,7 @@ function Card(props) {
             fillOpacity: v.fillOpacity != null ? Number(v.fillOpacity) : cardFillOpacity,
             lineStyle: v.lineStyle || cardLineStyle,
         });
-        const polygonUnchanged = !isConvertingLocationType &&
+        const polygonUnchanged = !isConvertingLocationType && !imageChanged &&
             JSON.stringify((formData.polygon_vertices || []).map(normalizeVertex)) ===
             JSON.stringify(flatVerts.map(normalizeVertex));
         if (polygonUnchanged) {
@@ -1213,13 +1100,15 @@ function Card(props) {
             // Ensure learn-more modal stays in edit mode
             isEditingRef.current = true;
             setIsLearnMoreEditMode(true);
-            restoreCardPolygonLayers();
+            setHideCardMapRepresentation(editorMapHiddenBackupRef.current);
             return;
         }
 
         setFormData(prev => ({
             ...prev,
+            location_type: targetType,
             polygon_vertices: flatVerts,
+            ...(imageSlot?.url && !imageSlot.file ? { thumbnail_link: imageSlot.url } : {}),
             latitude: centroid.lat.toFixed(6),
             longitude: centroid.lng.toFixed(6),
             polygon_fill_color: primaryStyle.fillColor || prev.polygon_fill_color,
@@ -1227,138 +1116,24 @@ function Card(props) {
             polygon_fill_opacity: primaryStyle.fillOpacity ?? prev.polygon_fill_opacity,
         }));
         setIsEditingPolygon(false);
-        setIsConvertingLocationType(false);
+        setConversionTargetType(null);
         // Ensure learn-more modal stays in edit mode
         isEditingRef.current = true;
         setIsLearnMoreEditMode(true);
 
-        // Restore card polygon layer visibility
-        restoreCardPolygonLayers();
-
-        // Update the polygon on the main map immediately
-        const map = window.atlasMapInstance;
-        const cardID = formData.cardID || props.cardID;
-        if (map && cardID && flatVerts.length >= (formData.location_type === 'image' ? 4 : 3)) {
-            const fillColor = primaryStyle.fillColor || formData.polygon_fill_color || '#0077c0';
-            if (formData.location_type === 'image') {
-                const imageSourceId = `card-image-${cardID}`;
-                const outlineSourceId = `card-image-outline-source-${cardID}`;
-                const outlineLayerId = `card-image-outline-${cardID}`;
-                const imageCoords = flatVerts.slice(0, 4).map(v => [parseFloat(v.lng), parseFloat(v.lat)]);
-                const outlineCoords = [...imageCoords, imageCoords[0]];
-                const imageSource = map.getSource(imageSourceId);
-                const outlineSource = map.getSource(outlineSourceId);
-                if (imageSource) {
-                    const imageUrl = thumbnail ? preview : getRepresentativeImageUrl();
-                    if (typeof imageSource.updateImage === 'function') {
-                        imageSource.updateImage({ url: imageUrl, coordinates: imageCoords });
-                    } else if (typeof imageSource.setCoordinates === 'function') {
-                        imageSource.setCoordinates(imageCoords);
-                    }
-                }
-                if (outlineSource) {
-                    outlineSource.setData({
-                        type: 'Feature',
-                        geometry: { type: 'Polygon', coordinates: [outlineCoords] }
-                    });
-                }
-                if (map.getLayer(outlineLayerId)) {
-                    map.setPaintProperty(outlineLayerId, 'line-color', fillColor);
-                }
-            } else {
-                const sourceId = `card-polygon-${cardID}`;
-                const fillLayerId = `card-polygon-fill-${cardID}`;
-                const lineLayerId = `card-polygon-line-${cardID}`;
-                // Group flat vertices by ring, keeping each ring's own style
-                const ringMap = new Map();
-                for (const v of flatVerts) {
-                    const r = v.ring ?? 0;
-                    if (!ringMap.has(r)) {
-                        ringMap.set(r, {
-                            coords: [],
-                            style: { fillColor: v.fillColor, fillOpacity: v.fillOpacity, lineStyle: v.lineStyle }
-                        });
-                    }
-                    ringMap.get(r).coords.push([parseFloat(v.lng), parseFloat(v.lat)]);
-                }
-                // One feature per ring with per-ring style properties — must match the
-                // data-driven structure renderCardPolygons() builds in Content1.js,
-                // otherwise all rings collapse to a single color/opacity until reload.
-                const ringFeatures = [...ringMap.entries()]
-                    .sort(([a], [b]) => a - b)
-                    .map(([ringIndex, data]) => {
-                        const coords = [...data.coords, data.coords[0]];
-                        const style = data.style || {};
-                        return {
-                            type: 'Feature',
-                            properties: {
-                                ring: ringIndex,
-                                fillColor: style.fillColor || fillColor,
-                                fillOpacity: style.fillOpacity ?? primaryStyle.fillOpacity ?? 0.2,
-                                lineStyle: style.lineStyle || primaryStyle.lineStyle || 'solid',
-                            },
-                            geometry: { type: 'Polygon', coordinates: [coords] }
-                        };
-                    });
-
-                const source = map.getSource(sourceId);
-                if (source) {
-                    source.setData({ type: 'FeatureCollection', features: ringFeatures });
-                }
-
-                // Keep paint properties data-driven so each ring retains its own
-                // color/opacity instead of flattening to the primary style.
-                const dataDrivenColor = ['coalesce', ['get', 'fillColor'], fillColor];
-                if (map.getLayer(fillLayerId)) {
-                    map.setPaintProperty(fillLayerId, 'fill-color', dataDrivenColor);
-                    map.setPaintProperty(fillLayerId, 'fill-opacity', ['coalesce', ['get', 'fillOpacity'], 0.2]);
-                }
-                // Recolor the legacy single line layer and every existing per-style layer.
-                ['', '-solid', '-dashed', '-dotted', '-dashdot'].forEach(suffix => {
-                    const styleLineId = `${lineLayerId}${suffix}`;
-                    if (map.getLayer(styleLineId)) {
-                        map.setPaintProperty(styleLineId, 'line-color', dataDrivenColor);
-                    }
-                });
-                // A ring may have switched to a line style that has no layer yet
-                // (Content1 only creates layers for styles present at load time) —
-                // create any missing per-style border layers.
-                if (map.getSource(sourceId)) {
-                    const LINE_STYLE_DASH = { solid: [], dashed: [4, 3], dotted: [1, 2], dashdot: [4, 2, 1, 2] };
-                    const stylesPresent = new Set(ringFeatures.map(f => f.properties.lineStyle || 'solid'));
-                    stylesPresent.forEach(styleKey => {
-                        const styleLineId = `${lineLayerId}-${styleKey}`;
-                        if (map.getLayer(styleLineId)) return;
-                        const dash = LINE_STYLE_DASH[styleKey] || [];
-                        const paint = {
-                            'line-color': dataDrivenColor,
-                            'line-width': 2,
-                        };
-                        if (styleKey !== 'solid' && dash.length > 0) {
-                            paint['line-dasharray'] = dash;
-                        }
-                        map.addLayer({
-                            id: styleLineId,
-                            type: 'line',
-                            source: sourceId,
-                            filter: ['==', ['coalesce', ['get', 'lineStyle'], 'solid'], styleKey],
-                            paint,
-                        });
-                    });
-                }
-            }
+        if (imageSlot?.file) {
+            setThumbnail(imageSlot.file);
+            setPreview(imageSlot.url);
         }
-    }, [formData.cardID, formData.location_type, formData.polygon_fill_color, formData.polygon_fill_opacity, formData.polygon_line_style, formData.polygon_vertices, isConvertingLocationType, getRepresentativeImageUrl, preview, props.cardID, restoreCardPolygonLayers, thumbnail]);
+        // The draft preview uses the new geometry. Content1 renders it after the
+        // main Save succeeds, keeping cancel free of persistent map mutations.
+    }, [conversionTargetType, formData.location_type, formData.polygon_fill_color, formData.polygon_fill_opacity, formData.polygon_line_style, formData.polygon_vertices, isConvertingLocationType, getRepresentativeImageUrl]);
 
     const handlePolygonEditCancel = useCallback(() => {
-        // If was converting from marker to polygon/image, revert location_type
-        if (isConvertingLocationType) {
-            setFormData(prev => ({ ...prev, location_type: 'point' }));
-            setIsConvertingLocationType(false);
-        }
+        setConversionTargetType(null);
         setIsEditingPolygon(false);
-        restoreCardPolygonLayers();
-    }, [restoreCardPolygonLayers, isConvertingLocationType]);
+        setHideCardMapRepresentation(editorMapHiddenBackupRef.current);
+    }, []);
 
     const handleLearnMoreEditStart = (e) => {
         e.stopPropagation();
@@ -1427,9 +1202,16 @@ function Card(props) {
         if (e?.stopPropagation) e.stopPropagation();
         if (isImageMutationLoading) return;
 
+        setImageUploadJobs([]);
+        setFramingImage(null);
+        setTagInput('');
         // Clean up any active coordinate editing
-        setHideCardPointMarkers(false);
+        setHideCardMapRepresentation(false);
         setIsEditingCoordinate(false);
+        setIsEditingPolygon(false);
+        setConversionTargetType(null);
+        setThumbnail(null);
+        setPreview('');
 
         setIsImageMutationLoading(true);
         await rollbackSessionUploads();
@@ -1452,6 +1234,7 @@ function Card(props) {
         setSelectedAllImageIDs([]);
         setPendingDeletedImageIDs([]);
         setIsImageMutationLoading(false);
+        setLearnMoreBackup(null);
     };
 
     const applyPendingImageDeletes = async () => {
@@ -1495,6 +1278,7 @@ function Card(props) {
     const handleLearnMoreEditSave = async (e) => {
         e.stopPropagation();
         if (loading || isImageMutationLoading) return;
+        if (imageUploadJobs.some(job => job.status === 'failed')) { alert('Retry or remove failed uploads before saving.'); return; }
         setIsImageMutationLoading(true);
         try {
             const serializedLink = serializeLinks(learnMoreLinks);
@@ -1524,7 +1308,9 @@ function Card(props) {
                 // This save path skips the page reload, so the map still shows the
                 // pre-edit markers and polygons. Ask Content1/Content2 to re-fetch, the
                 // same way creating a card from the map does.
-                setHideCardPointMarkers(false);
+                setHideCardMapRepresentation(false);
+                setThumbnail(null);
+                setPreview('');
                 window.dispatchEvent(new CustomEvent('atlas:card-uploaded'));
                 setIsLearnMoreEditMode(false);
                 setLearnMoreBackup(null);
@@ -1537,13 +1323,14 @@ function Card(props) {
         }
     };
 
-    // Compute whether there are unsaved changes in edit mode
+    // Compare the active draft snapshot, including a draft left after a tutorial.
     const hasUnsavedChanges = useMemo(() => {
-        if (!isLearnMoreEditMode || !learnMoreBackup) return false;
+        if (!learnMoreBackup) return false;
 
         // Compare tracked formData fields
         const trackedFields = [
             'title', 'description', 'tags', 'category', 'username', 'name', 'contact_email',
+            'funding', 'org', 'is_public',
             'latitude', 'longitude', 'location_type',
             'polygon_vertices', 'polygon_fill_color', 'polygon_line_style', 'polygon_fill_opacity',
             'website_link', 'thumbnail_link', 'files', 'gallery_layout', 'gallery_image_ids',
@@ -1552,6 +1339,10 @@ function Card(props) {
             if (JSON.stringify(formData[field]) !== JSON.stringify(learnMoreBackup[field])) return true;
         }
 
+        if (formData.filesToUpload?.length || thumbnail || pendingDeletedImageIDs.length || sessionUploadedImageIDs.length) return true;
+        if (imageUploadJobs.some(job => job.status !== 'done')) return true;
+        // Compare images, including staged framing.
+        if (JSON.stringify((formData.images || []).map(image => image.presentation)) !== JSON.stringify((learnMoreBackup.images || []).map(image => image.presentation))) return true;
         // Compare images (order + identity)
         if (JSON.stringify((formData.images || []).map(i => i.imageID ?? i.id)) !==
             JSON.stringify((learnMoreBackup.images || []).map(i => i.imageID ?? i.id))) return true;
@@ -1577,17 +1368,18 @@ function Card(props) {
         }
 
         return false;
-    }, [isLearnMoreEditMode, learnMoreBackup, formData, linkedArcgisItems, linkedCustomLayerItems, learnMoreLinks]);
+    }, [learnMoreBackup, formData, linkedArcgisItems, linkedCustomLayerItems, learnMoreLinks, imageUploadJobs, thumbnail, pendingDeletedImageIDs, sessionUploadedImageIDs]);
 
     const handleLearnMoreClose = async (e) => {
         if (e?.stopPropagation) e.stopPropagation();
+        if (loading || isImageMutationLoading) return false;
 
-        if (isLearnMoreEditMode && hasUnsavedChanges) {
+        if (hasUnsavedChanges) {
             const confirmed = window.confirm('You have unsaved changes. Discard them and close?');
             if (!confirmed) return false;
         }
 
-        if (isLearnMoreEditMode) {
+        if (isLearnMoreEditMode || hasUnsavedChanges) {
             await handleLearnMoreEditCancel(e);
         }
 
@@ -1677,6 +1469,7 @@ function Card(props) {
             id: image.id ?? image.imageID ?? image.imageId ?? fallbackId,
             imageID: image.imageID ?? image.imageId ?? image.id ?? null,
             url: resolveImageUrl(image.url || image.imageURL || image.thumbnail_link || ''),
+            original_url: resolveImageUrl(image.original_url || image.url || image.imageURL || ''),
             alt: image.alt || image.altText || ''
         };
     };
@@ -1687,18 +1480,23 @@ function Card(props) {
         if (!Number.isInteger(cardID) || cardID <= 0) return;
 
         const response = await api.get(`/cardImages/${cardID}`);
-        const freshImages = (response.data?.images || []).map((img, idx) => normalizeImageRecord(img, idx));
+        const responseImages = (response.data?.images || []).map((img, idx) => normalizeImageRecord(img, idx));
+        const freshImages = visibleGalleryImages(responseImages);
 
         setFormData((prev) => {
             let images = freshImages;
             if (isEditingRef.current) {
                 const remaining = freshImages.filter(image => !pendingDeletedImageIDs.includes(image.imageID));
                 const byID = new Map(remaining.map(image => [image.imageID, image]));
-                const ordered = (prev.images || []).map(image => byID.get(image.imageID)).filter(Boolean);
+                const ordered = (prev.images || []).map(image => {
+                    const fresh = byID.get(image.imageID);
+                    return fresh ? { ...fresh, presentation: image.presentation ?? fresh.presentation } : null;
+                }).filter(Boolean);
                 const knownIDs = new Set(ordered.map(image => image.imageID));
                 images = [...ordered, ...remaining.filter(image => !knownIDs.has(image.imageID))];
             }
             let selection = isEditingRef.current && prev.gallery_image_ids !== undefined ? prev.gallery_image_ids : response.data?.galleryImageIDs;
+            selection = visibleGallerySelection(responseImages, selection);
             if (includeNewUploads && isEditingRef.current && Array.isArray(selection)) {
                 const previousIDs = new Set((prev.images || []).map(galleryImageID));
                 images.map(galleryImageID).filter(id => !previousIDs.has(id) && !selection.includes(id)).forEach(id => {
@@ -1766,40 +1564,55 @@ function Card(props) {
         }
     };
 
-    const handleLearnMoreImageUpload = async (e) => {
-        e.stopPropagation();
-        const file = e.target.files?.[0];
-        e.target.value = '';
-
-        if (!file) return;
-
-        const cardID = formData.cardID || props.cardID;
-        if (!cardID) {
-            alert('Unable to add images because project ID is missing.');
-            return;
-        }
-
+    const runImageUploads = async jobs => {
+        if (uploadRunning.current) return;
+        uploadRunning.current = true;
         setIsImageMutationLoading(true);
+        const patchJob = (id, patch) => setImageUploadJobs(prev => prev.map(job => job.id === id ? { ...job, ...patch } : job));
         try {
-            const uploadFormData = new FormData();
-            uploadFormData.append('cardID', cardID);
-            uploadFormData.append('altText', file.name || `Project image ${(pendingImageSlotIndex ?? 0) + 1}`);
-            uploadFormData.append('image', file);
-            const uploadResponse = await api.post('/uploadCardImage', uploadFormData);
-            const uploadedImageID = uploadResponse?.data?.imageID;
-
-            if (uploadedImageID) {
-                setSessionUploadedImageIDs((prev) => [...prev, uploadedImageID]);
+            for (const job of jobs) {
+                patchJob(job.id, { status: 'uploading', error: '', progress: 0 });
+                try {
+                    validateImage(job.file);
+                    if (!job.imageID) {
+                        const body = new FormData();
+                        body.append('cardID', formData.cardID || props.cardID);
+                        body.append('altText', job.file.name);
+                        body.append('image', job.file);
+                        body.append('upload_token', job.id);
+                        const response = await api.post('/uploadCardImage', body, {
+                            timeout: 180000, skipRetry: true,
+                            onUploadProgress: event => patchJob(job.id, { progress: uploadPercent(event) }),
+                        });
+                        job.imageID = response.data?.imageID;
+                        patchJob(job.id, { imageID: job.imageID });
+                        if (job.imageID) setSessionUploadedImageIDs(prev => [...new Set([...prev, job.imageID])]);
+                    }
+                    await refreshCardImages(pendingImageSlotIndex, true);
+                    patchJob(job.id, { status: 'done', progress: 100 });
+                } catch (error) {
+                    const message = imageUploadError(error);
+                    patchJob(job.id, { status: 'failed', error: message });
+                    alert(message);
+                }
             }
-
-            await refreshCardImages(pendingImageSlotIndex, true);
-        } catch (error) {
-            console.error('Failed to upload card images:', error);
-            alert(error.response?.data?.detail || 'Failed to upload image.');
         } finally {
+            uploadRunning.current = false;
             setIsImageMutationLoading(false);
             setPendingImageSlotIndex(null);
         }
+    };
+
+    const handleLearnMoreImageUpload = async event => {
+        event.stopPropagation();
+        const files = Array.from(event.target.files || []);
+        event.target.value = '';
+        if (!files.length || uploadRunning.current) return;
+        if (!(formData.cardID || props.cardID)) { alert('Save your project before adding images.'); return; }
+        if ((formData.images || []).length + files.length > MAX_CARD_IMAGES) { alert(`A project can have at most ${MAX_CARD_IMAGES} images.`); return; }
+        const jobs = files.map(file => ({ id: uploadToken(), file, status: 'queued' }));
+        setImageUploadJobs(prev => [...prev.filter(job => job.status !== 'done'), ...jobs]);
+        await runImageUploads(jobs);
     };
 
     const handleLearnMoreImageDelete = async (e, image) => {
@@ -1842,7 +1655,7 @@ function Card(props) {
         <>
             <p><strong>Map location:</strong></p>
             <div className="learn-more-representation-preview">
-                <RepresentationPreview data={formData} imageSrc={isImageCard && (formData.thumbnail_link || preview) ? getRepresentativeImageUrl() : undefined} onLocate={async e => {
+                <RepresentationPreview data={formData} imageSrc={isImageCard ? (thumbnail ? preview : getRepresentativeImageUrl()) : undefined} onLocate={async e => {
                     if (await handleLearnMoreClose(e)) handleZoom(e);
                 }} />
                 <div className="learn-more-representation-info">
@@ -1874,8 +1687,8 @@ function Card(props) {
         ? [{ url: cardThumbnailSrc, id: 'card-representation', imageID: null, alt: 'Project representation' }]
         : displayCardData.images && Array.isArray(displayCardData.images) && displayCardData.images.length > 0
         ? (() => {
-            const images = displayCardData.images.map((img, idx) => normalizeImageRecord(img, idx));
-            const selected = selectedGalleryImages(images, displayCardData.gallery_image_ids);
+            const images = visibleGalleryImages(displayCardData.images.map((img, idx) => normalizeImageRecord(img, idx)));
+            const selected = selectedGalleryImages(images, visibleGallerySelection(displayCardData.images, displayCardData.gallery_image_ids));
             const selectedIDs = new Set(selected.map(galleryImageID));
             return [...selected, ...images.filter(image => !selectedIDs.has(galleryImageID(image)))];
         })()
@@ -1884,11 +1697,11 @@ function Card(props) {
     // Multi-image support: use images array if available, otherwise fall back to single thumbnail
     const imageList = isImageCard
         ? (formData.images && Array.isArray(formData.images) && formData.images.length > 0
-            ? formData.images.map((img, idx) => normalizeImageRecord(img, idx))
+            ? visibleGalleryImages(formData.images.map((img, idx) => normalizeImageRecord(img, idx)))
             : [])
         : formData.images && Array.isArray(formData.images) && formData.images.length > 0
-        ? formData.images.map((img, idx) => normalizeImageRecord(img, idx))
-        : (!pendingDeletedImageIDs.length && formData.thumbnail_link
+        ? visibleGalleryImages(formData.images.map((img, idx) => normalizeImageRecord(img, idx)))
+        : (!pendingDeletedImageIDs.length && formData.thumbnail_link && (SHOW_LEGACY_ORGANIZATION_LOGO || !isLegacyOrganizationImage(formData.thumbnail_link))
             ? [{ url: resolveImageUrl(formData.thumbnail_link), id: 0 }]
             : []);
 
@@ -1941,7 +1754,7 @@ function Card(props) {
     const isCardCurrentImageDefault = (() => {
         const url = cardCurrentImage?.url;
         if (!url || typeof url !== 'string') return true;
-        if (/(?:^|\/)(?:CEREO-logo|default_cereo_thumbnail)\.png(?:[?#].*)?$/i.test(url)) return true;
+        if (isLegacyOrganizationImage(url)) return true;
         return false;
     })();
     const totalIndicatorCount = cardImageList.length;
@@ -1965,10 +1778,11 @@ function Card(props) {
             })
             .slice(0, 2)
     );
-    const learnMoreGalleryImages = selectedGalleryImages(allImagesList, formData.gallery_image_ids);
+    const gallerySelection = visibleGallerySelection(formData.images || [], formData.gallery_image_ids);
+    const learnMoreGalleryImages = selectedGalleryImages(allImagesList, gallerySelection);
     const visibleGalleryIDs = learnMoreGalleryImages.map(galleryImageID);
-    const gallerySelectionSlots = Array.isArray(formData.gallery_image_ids)
-        ? formData.gallery_image_ids.map(id => visibleGalleryIDs.includes(id) ? id : null)
+    const gallerySelectionSlots = Array.isArray(gallerySelection)
+        ? gallerySelection.map(id => visibleGalleryIDs.includes(id) ? id : null)
         : visibleGalleryIDs;
     const toggleGalleryImage = (image) => {
         const id = galleryImageID(image);
@@ -2100,6 +1914,7 @@ function Card(props) {
                 isOpen={isLearnMoreModalVisible}
                 onRequestClose={handleLearnMoreClose}
                 shouldCloseOnOverlayClick={!isLearnMoreOnboardingOpen}
+                shouldCloseOnEsc={!isLearnMoreOnboardingOpen}
                 className="Modal Modal--learn-more"
                 overlayClassName="ModalOverlay ModalOverlay--learn-more"
             >
@@ -2108,7 +1923,13 @@ function Card(props) {
                     data-onboarding-target="learn-more-modal-shell"
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => e.stopPropagation()}
+                    onKeyDown={(event) => {
+                        event.stopPropagation();
+                        if (event.key === 'Escape' && !event.defaultPrevented && !isLearnMoreOnboardingOpen) {
+                            event.preventDefault();
+                            handleLearnMoreClose(event);
+                        }
+                    }}
                     onKeyUp={(e) => e.stopPropagation()}
                 >
                 <div className="learn-more-modal-toolbar" data-onboarding-target="learn-more-toolbar">
@@ -2200,11 +2021,23 @@ function Card(props) {
                     <input
                         ref={learnMoreImageInputRef}
                         type="file"
-                        accept="image/*"
+                        accept={IMAGE_ACCEPT}
+                        multiple
                         onChange={handleLearnMoreImageUpload}
                         style={{ display: 'none' }}
                     />
 
+                    {isLearnMoreEditMode && <>
+                        <p className="image-upload-hint">PNG, JPG, WebP, GIF or BMP · up to 50 MiB / 160 megapixels each. Originals are kept; display images are resized automatically.</p>
+                        {imageUploadJobs.map(job => <div className="image-upload-status" role="status" key={job.id}>
+                            <strong>{job.file.name}</strong> — {job.status === 'uploading' ? (job.progress === 100 ? 'Processing image…' : `Uploading ${job.progress ?? ''}%`) : job.status === 'done' ? 'Uploaded' : job.status === 'failed' ? job.error : 'Waiting'}
+                            {job.status === 'uploading' && <progress max="100" value={job.progress ?? undefined} aria-label={`Uploading ${job.file.name}`} />}
+                            {job.status === 'failed' && <>
+                                <button type="button" disabled={isImageMutationLoading} onClick={() => runImageUploads([job])}>Retry {job.file.name}</button>
+                                <button type="button" disabled={isImageMutationLoading} onClick={() => setImageUploadJobs(prev => prev.filter(item => item.id !== job.id))}>Remove from upload queue</button>
+                            </>}
+                        </div>)}
+                    </>}
                     {isAllImagesView ? (
                         <div className="learn-more-all-images-view">
                             <div className="learn-more-all-images-header">
@@ -2277,6 +2110,10 @@ function Card(props) {
                                             />
                                         </button>
 
+                                        {isLearnMoreEditMode && resolveImageServerID(image) && <button type="button" data-gallery-control className="learn-more-all-image-frame" aria-label={`Adjust framing for image ${index + 1}`} title="Adjust framing" disabled={isImageMutationLoading} onClick={event => {
+                                            event.stopPropagation();
+                                            setFramingImage({ image, ratio: galleryFrameAspect(learnMoreGalleryImages.length, Math.max(0, visibleGalleryIDs.indexOf(galleryImageID(image)))) });
+                                        }}><FontAwesomeIcon icon={faPen} aria-hidden="true" /></button>}
                                         {isLearnMoreEditMode && resolveImageServerID(image) && (
                                             <button
                                                 type="button"
@@ -2298,7 +2135,7 @@ function Card(props) {
                     ) : (
                         <>
 
-                    <div data-onboarding-target="learn-more-image-area">
+                    <div data-onboarding-target="learn-more-image-area" className={isLearnMoreEditMode ? 'learn-more-image-area--editing' : undefined}>
 
                     <LearnMoreGallery
                         images={learnMoreGalleryImages}
@@ -2312,6 +2149,7 @@ function Card(props) {
                         onOpen={(event, index) => openImagePreviewAtIndex(event, allImagesList.findIndex(image => galleryImageID(image) === galleryImageID(learnMoreGalleryImages[index])))}
                         onAdd={(event, index) => handleLearnMoreGalleryTileClick(event, null, index)}
                         onDelete={handleLearnMoreImageDelete}
+                        onFrame={(image, ratio) => setFramingImage({ image, ratio })}
                         onSeeAll={() => setIsAllImagesView(true)}
                     />
                     </div>
@@ -2458,47 +2296,27 @@ function Card(props) {
                             <div className="learn-more-location-section" data-onboarding-target="learn-more-coordinates-polygon">
                                 {renderRepresentationPreview()}
                                 <div className="learn-more-location-actions">
-                                    {isOverlayCard ? (
-                                        <button type="button" className="learn-more-select-location-btn" onClick={handleEditPolygon}>
-                                            {isImageCard ? 'Edit Image' : 'Edit Polygon'}
+                                    <div className="learn-more-location-btn-group">
+                                        <button type="button" className="learn-more-select-location-btn" onClick={isOverlayCard ? handleEditPolygon : handleEditCoordinate}>
+                                            {isImageCard ? 'Edit Image' : isOverlayCard ? 'Edit Polygon' : 'Edit Coordinate'}
                                         </button>
-                                    ) : (
-                                        <div className="learn-more-location-btn-group">
-                                            <button type="button" className="learn-more-select-location-btn" onClick={handleEditCoordinate}>
-                                                Edit Coordinate
+                                        <div className="learn-more-location-type-btn-wrap" ref={locationTypeMenuRef}>
+                                            <button type="button" className="learn-more-select-location-btn learn-more-change-to-polygon-btn"
+                                                aria-expanded={isLocationTypeMenuOpen} onClick={event => { event.stopPropagation(); setIsLocationTypeMenuOpen(v => !v); }}>
+                                                Change location type
                                             </button>
-                                            <div className="learn-more-location-type-btn-wrap" ref={locationTypeMenuRef}>
-                                                <button
-                                                    type="button"
-                                                    className="learn-more-select-location-btn learn-more-change-to-polygon-btn"
-                                                    onClick={() => setIsLocationTypeMenuOpen(v => !v)}
-                                                >
-                                                    Change location type
-                                                </button>
-                                                {isLocationTypeMenuOpen && (
-                                                    <div className="learn-more-location-type-menu">
-                                                        <button type="button" className="learn-more-location-type-menu-item active" disabled>
-                                                            Point
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            className="learn-more-location-type-menu-item"
-                                                            onClick={() => { setIsLocationTypeMenuOpen(false); handleChangeToPolygon(); }}
-                                                        >
-                                                            Polygon
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            className="learn-more-location-type-menu-item"
-                                                            onClick={() => { setIsLocationTypeMenuOpen(false); handleChangeToImage(); }}
-                                                        >
-                                                            Image
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
+                                            {isLocationTypeMenuOpen && <div className="learn-more-location-type-menu">
+                                                {['point', 'polygon', 'image'].map(type => {
+                                                    const active = type === (isOverlayCard ? formData.location_type : 'point');
+                                                    return <button key={type} type="button"
+                                                        className={`learn-more-location-type-menu-item${active ? ' active' : ''}`}
+                                                        disabled={active} onClick={event => handleChangeLocationType(type, event)}>
+                                                        {type[0].toUpperCase() + type.slice(1)}
+                                                    </button>;
+                                                })}
+                                            </div>}
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                             </div>
                         </>
@@ -2640,10 +2458,12 @@ function Card(props) {
                         )
                     )}
 
+                    {linkedLayerError && <p role="alert">{linkedLayerError}</p>}
                     {/* Linked ArcGIS Services/Layers Section */}
                     {(isLearnMoreEditMode || linkedArcgisItems.length > 0) && (
                     <div className="learn-more-arcgis-links-section" data-onboarding-target="learn-more-arcgis-section">
                         <p><strong>Linked ArcGIS Services/Layers:</strong></p>
+                        <p className="image-upload-hint">Display settings are saved for you only.</p>
                         {linkedArcgisItems.length === 0 ? (
                             <p className="learn-more-no-arcgis-links">No linked ArcGIS items.</p>
                         ) : (
@@ -2652,8 +2472,7 @@ function Card(props) {
                                     const stateLabel = ARCGIS_STATE_FULL_NAMES[item.state_code] || item.state_code;
                                     const isServiceLevel = item.item_type === 'service';
                                     const serviceLabel = arcgisServiceByKey[item.service_key]?.label || item.service_key;
-                                    const isPinnedItem = pinnedArcgisItems.some(pin => pinMatchesLinkedItem(pin, item));
-                                    const isLayerChecked = isPinnedItem || !!linkedArcgisChecked[item.id];
+                                    const isLayerChecked = !!linkedArcgisChecked[item.id];
 
                                     // Resolve legend image for this item
                                     const legendImg = (() => {
@@ -2679,15 +2498,12 @@ function Card(props) {
                                         <li key={item.id} className="learn-more-arcgis-link-item">
                                             <label
                                                 className="learn-more-arcgis-layer-toggle-label"
-                                                title={isPinnedItem
-                                                    ? 'Pinned layers always stay open (unpin to hide)'
-                                                    : 'Show/hide this layer on the map'}
+                                                title="Show/hide this layer for you only"
                                             >
                                                 <input
                                                     type="checkbox"
                                                     className="learn-more-arcgis-layer-toggle-cb"
                                                     checked={isLayerChecked}
-                                                    disabled={isPinnedItem}
                                                     onChange={() => {
                                                         const nowChecked = !isLayerChecked;
                                                         setLinkedArcgisChecked(prev => ({ ...prev, [item.id]: nowChecked }));
@@ -2739,7 +2555,7 @@ function Card(props) {
                                                     title="Remove link"
                                                     onClick={async () => {
                                                         try {
-                                                            await api.delete(`/cardArcGISLinks/${item.id}`);
+                                                            await api.delete(`/cardArcGISLinks/${item.id}`, {params:{requester_email:localStorage.getItem('email') || ''}});
                                                             setLinkedArcgisItems(prev => prev.filter(i => i.id !== item.id));
                                                         } catch (err) {
                                                             console.error('Failed to remove ArcGIS link:', err);
@@ -2775,7 +2591,7 @@ function Card(props) {
                                 const newItems = [];
                                 for (const link of links) {
                                     try {
-                                        const res = await api.post('/cardArcGISLinks', { card_id: cardId, ...link });
+                                        const res = await api.post('/cardArcGISLinks', { card_id: cardId, ...link, requester_email:localStorage.getItem('email') || '' });
                                         newItems.push({ id: res.data.id, card_id: cardId, ...link });
                                     } catch (err) {
                                         console.error('Failed to add ArcGIS link:', err);
@@ -2800,11 +2616,12 @@ function Card(props) {
                             <ul className="learn-more-arcgis-links-list">
                                 {linkedCustomLayerItems.map(item => {
                                     const isChecked = !!linkedCustomLayerChecked[item.id];
+                                    const personalSource = item.source_is_personal ?? (props.isLoggedIn && (localStorage.getItem('email') || '').toLowerCase() === (formData.email || '').toLowerCase());
                                     return (
                                         <li key={item.id} className="learn-more-arcgis-link-item">
                                             <label
                                                 className="learn-more-arcgis-layer-toggle-label"
-                                                title="Show/hide this layer on the map"
+                                                title="Show/hide this layer for you only"
                                             >
                                                 <input
                                                     type="checkbox"
@@ -2824,14 +2641,14 @@ function Card(props) {
                                                 <span className="learn-more-arcgis-row-sep"> › </span>
                                                 <span className="learn-more-arcgis-row-text learn-more-arcgis-row-name">{item.display_name}</span>
                                             </span>
-                                            <button
+                                            {personalSource && <button
                                                 type="button"
                                                 className="learn-more-arcgis-goto-btn"
                                                 onClick={() => window.dispatchEvent(new CustomEvent('open-custom-layers-panel'))}
                                                 title="Open Custom Layers Panel"
                                             >
                                                 ›
-                                            </button>
+                                            </button>}
                                             {isLearnMoreEditMode && (
                                                 <button
                                                     type="button"
@@ -2839,7 +2656,7 @@ function Card(props) {
                                                     title="Remove link"
                                                     onClick={async () => {
                                                         try {
-                                                            await api.delete(`/cardArcGISLinks/${item.id}`);
+                                                            await api.delete(`/cardArcGISLinks/${item.id}`, {params:{requester_email:localStorage.getItem('email') || ''}});
                                                             setLinkedCustomLayerItems(prev => prev.filter(i => i.id !== item.id));
                                                         } catch (err) {
                                                             console.error('Failed to remove custom layer link:', err);
@@ -2875,7 +2692,7 @@ function Card(props) {
                                 const newItems = [];
                                 for (const link of links) {
                                     try {
-                                        const res = await api.post('/cardArcGISLinks', { card_id: cardId, ...link });
+                                        const res = await api.post('/cardArcGISLinks', { card_id: cardId, ...link, requester_email:localStorage.getItem('email') || '' });
                                         newItems.push({ id: res.data.id, card_id: cardId, ...link });
                                     } catch (err) {
                                         console.error('Failed to add custom layer link:', err);
@@ -2901,6 +2718,11 @@ function Card(props) {
                 </div>
             </Modal>
 
+            {framingImage && <ImageFramingModal key={framingImage.image.imageID} image={framingImage.image} aspectRatio={framingImage.ratio}
+                onClose={() => setFramingImage(null)} onSave={presentation => {
+                    setFormData(prev => ({ ...prev, images: (prev.images || []).map(image => resolveImageServerID(image) === resolveImageServerID(framingImage.image) ? { ...image, presentation } : image) }));
+                    setFramingImage(null);
+                }} />}
             <LearnMoreOnboarding
                 isOpen={isLearnMoreOnboardingOpen}
                 onClose={() => setIsLearnMoreOnboardingOpen(false)}
@@ -2937,6 +2759,7 @@ function Card(props) {
                 {imageList.length > 1 && (
                     <button className="image-preview-nav image-preview-nav-next" onClick={goToNextImage} aria-label="Next image">&#8250;</button>
                 )}
+                {currentImage.original_url && <a className="image-preview-original" href={currentImage.original_url} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()}>Open original image</a>}
                 {imageList.length > 1 && (
                     <div className="image-preview-indicators">
                         {imageList.map((img, idx) => (
@@ -3304,8 +3127,8 @@ function Card(props) {
             <div onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
             {isEditingPolygon && (
                 <PolygonDrawingModal
-                    mode={isImageCard ? 'image' : 'polygon'}
-                    title={isImageCard ? (isConvertingLocationType ? 'Place Image' : 'Edit Image') : 'Draw Polygon'}
+                    mode={conversionTargetType || (isImageCard ? 'image' : 'polygon')}
+                    title={(conversionTargetType || formData.location_type) === 'image' ? (isConvertingLocationType ? 'Place Image' : 'Edit Image') : 'Draw Polygon'}
                     initialVertices={isConvertingLocationType ? [] : formData.polygon_vertices}
                     initialLineStyle={isConvertingLocationType ? undefined : formData.polygon_line_style}
                     initialFillColor={isConvertingLocationType ? undefined : formData.polygon_fill_color}
@@ -3317,6 +3140,7 @@ function Card(props) {
             {isEditingCoordinate && (
                 <CoordinatesPanel
                     initialPoints={(() => {
+                        if (isConvertingLocationType) return [];
                         // Multi-point cards keep their real points (and per-point icon /
                         // color / opacity) in polygon_vertices — latitude/longitude is only
                         // the card's representative coordinate, so editing from it alone

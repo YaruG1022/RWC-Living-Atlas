@@ -10,16 +10,20 @@ from typing import Optional
 import os
 import uuid
 import datetime
+import json
+import re
 import requests as _requests
 from pathlib import Path
 from . import azure_storage
+from .image_processing import prepare_image, MAX_IMAGE_BYTES
+from .image_presentation import parse_presentation
 
 images_router = APIRouter()
 
 # Configure image storage directory (used as local fallback only)
 IMAGE_UPLOAD_DIR = "uploads/card_images"
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'}
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+MAX_FILE_SIZE = MAX_IMAGE_BYTES
 IMAGE_FOLDER = "card_images"
 MAX_CARD_IMAGES = 30
 
@@ -44,30 +48,40 @@ def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def save_uploaded_file(file: UploadFile) -> str:
-    """
-    Save uploaded file to Azure Blob Storage and return its public URL.
-    """
+def save_image_asset(file: UploadFile):
     if not allowed_file(file.filename):
-        raise HTTPException(status_code=400, detail="File type not allowed")
-
-    content = file.file.read()
-    if len(content) > MAX_FILE_SIZE:
-        raise HTTPException(status_code=413, detail="File too large")
-
-    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    file_ext = file.filename.rsplit('.', 1)[1].lower()
-    unique_filename = f"{uuid.uuid4().hex}_{timestamp}.{file_ext}"
-    content_type = f"image/{file_ext}" if file_ext != 'jpg' else "image/jpeg"
-
-    # Azure Blob Storage upload (primary storage)
-    blob_name = f"{IMAGE_FOLDER}/{unique_filename}"
+        raise HTTPException(415, detail="Use a PNG, JPG, WebP, GIF or BMP image.")
+    original, display, width, height = prepare_image(file)
+    key = uuid.uuid4().hex
+    source_name = f"{IMAGE_FOLDER}/originals/{key}.{file.filename.rsplit('.', 1)[1].lower()}"
+    display_name = f"{IMAGE_FOLDER}/{key}.webp"
+    uploaded = []
     try:
-        return azure_storage.upload_bytes(blob_name, content, content_type)
-    except HTTPException:
+        original_url = azure_storage.upload_bytes(source_name, original, file.content_type or 'application/octet-stream')
+        uploaded.append(original_url)
+        url = azure_storage.upload_bytes(display_name, display, 'image/webp')
+        uploaded.append(url)
+        return {'url': url, 'original_url': original_url, 'width': width, 'height': height}
+    except Exception:
+        for url in uploaded:
+            try:
+                azure_storage.delete_from_url(url)
+            except Exception:
+                pass
         raise
-    except Exception as az_err:
-        raise HTTPException(status_code=500, detail=f"Azure upload failed: {az_err}")
+
+
+def save_uploaded_file(file: UploadFile) -> str:
+    return save_image_asset(file)['url']
+
+
+@images_router.post('/imagePreview')
+def image_preview(image: UploadFile = File(...)):
+    # Fallback for browsers unable to decode very large originals. No blobs or
+    # database records are created for an unsubmitted project preview.
+    _, display, _, _ = prepare_image(image)
+    return Response(display, media_type='image/webp')
+
 
 def _should_sync_thumbnail_with_gallery(card_id: int) -> bool:
     cur.execute("SELECT COALESCE(LocationType, 'point') FROM Cards WHERE CardID = %s", (card_id,))
@@ -90,7 +104,9 @@ def sync_gallery_thumbnail(card_id: int):
 async def upload_card_image(
     cardID: int = Form(...),
     altText: str = Form(default=""),
-    image: UploadFile = File(...)
+    image: UploadFile = File(...),
+    presentation: str = Form('{}'),
+    upload_token: Optional[str] = Form(None)
 ):
     """
     Upload a new image for a card
@@ -103,11 +119,23 @@ async def upload_card_image(
     Returns:
         Created image record with ImageID and ImageURL
     """
+    asset = None
+    framing = parse_presentation(presentation)
+    if upload_token and not re.fullmatch(r'[A-Za-z0-9-]{1,64}', upload_token):
+        raise HTTPException(422, 'Invalid image upload token.')
     try:
-        # Verify card exists
+        if upload_token:
+            cur.execute("SELECT CardID FROM Cards WHERE CardID=%s FOR UPDATE", (cardID,))
+            if not cur.fetchone():
+                raise HTTPException(404, 'Project not found.')
+            cur.execute("SELECT ImageID, ImageURL, OriginalURL, ImageWidth, ImageHeight, Presentation FROM CardImages WHERE CardID=%s AND UploadToken=%s", (cardID, upload_token))
+            existing = cur.fetchone()
+            if existing:
+                conn.rollback()
+                return {'success': True, 'imageID': existing[0], 'imageURL': existing[1], 'original_url': existing[2], 'width': existing[3], 'height': existing[4], 'presentation': existing[5]}
         reserve_image_slots(cardID, 1)
-        
-        image_url = save_uploaded_file(image)
+        asset = save_image_asset(image)
+        image_url = asset['url']
         
         # Get next display order
         cur.execute(
@@ -118,10 +146,10 @@ async def upload_card_image(
         
         # Insert into CardImages
         cur.execute("""
-            INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText, OriginalURL, ImageWidth, ImageHeight, Presentation, UploadToken)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s)
             RETURNING ImageID
-        """, (cardID, image_url, next_order, altText))
+        """, (cardID, image_url, next_order, altText, asset['original_url'], asset['width'], asset['height'], json.dumps(framing), upload_token))
         
         image_id = cur.fetchone()[0]
 
@@ -132,16 +160,23 @@ async def upload_card_image(
             "success": True,
             "imageID": image_id,
             "imageURL": image_url,
+            **asset,
+            "presentation": framing,
             "displayOrder": next_order,
             "altText": altText
         }
     
-    except HTTPException:
+    except Exception as error:
         conn.rollback()
-        raise
-    except Exception as e:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+        if asset:
+            for url in (asset['url'], asset['original_url']):
+                try:
+                    azure_storage.delete_from_url(url)
+                except Exception:
+                    pass
+        if isinstance(error, HTTPException):
+            raise
+        raise HTTPException(503, 'Image could not be saved. Please retry this image.')
 
 @images_router.post("/uploadCardImages")
 async def upload_card_images(
@@ -160,6 +195,7 @@ async def upload_card_images(
     Returns:
         Created image records with ImageID and ImageURL
     """
+    saved_assets = []
     try:
         if not images:
             raise HTTPException(status_code=400, detail="No images provided")
@@ -178,16 +214,18 @@ async def upload_card_images(
 
         created_images = []
         for index, image in enumerate(images):
-            image_url = save_uploaded_file(image)
+            asset = save_image_asset(image)
+            saved_assets.append(asset)
+            image_url = asset['url']
             alt_text = alt_text_values[index] if index < len(alt_text_values) else ""
 
             cur.execute(
                 """
-                INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText, OriginalURL, ImageWidth, ImageHeight)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 RETURNING ImageID
                 """,
-                (cardID, image_url, next_order + index, alt_text)
+                (cardID, image_url, next_order + index, alt_text, asset['original_url'], asset['width'], asset['height'])
             )
             image_id = cur.fetchone()[0]
 
@@ -207,12 +245,17 @@ async def upload_card_images(
             "images": created_images
         }
 
-    except HTTPException:
+    except Exception as error:
         conn.rollback()
-        raise
-    except Exception as e:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Batch upload failed: {str(e)}")
+        for asset in saved_assets:
+            for url in (asset['url'], asset['original_url']):
+                try:
+                    azure_storage.delete_from_url(url)
+                except Exception:
+                    pass
+        if isinstance(error, HTTPException):
+            raise
+        raise HTTPException(503, 'Images could not be saved. Please retry.')
 
 
 @images_router.delete("/deleteCardImage/{imageID}")
@@ -228,14 +271,14 @@ async def delete_card_image(imageID: int):
     """
     try:
         # Get image details
-        cur.execute("SELECT ImageURL, CardID FROM CardImages WHERE ImageID = %s", (imageID,))
+        cur.execute("SELECT ImageURL, CardID, OriginalURL FROM CardImages WHERE ImageID = %s", (imageID,))
         result = cur.fetchone()
         
         if not result:
             raise HTTPException(status_code=404, detail="Image not found")
         
-        image_url, card_id = result
-        
+        image_url, card_id = result[:2]
+        original_url = result[2] if len(result) > 2 else None
         # Delete from database
         cur.execute("DELETE FROM CardImages WHERE ImageID = %s", (imageID,))
         
@@ -244,6 +287,8 @@ async def delete_card_image(imageID: int):
             # Default covers are shared assets; deleting their record is enough.
             if image_url not in {'/CEREO-logo.png', 'CEREO-logo.png'} and not image_url.endswith('/thumbnails/default_cereo_thumbnail.png'):
                 azure_storage.delete_from_url(image_url)
+            if original_url and original_url != image_url:
+                azure_storage.delete_from_url(original_url)
         except Exception as az_err:
             print(f"[images] Azure delete failed (non-fatal): {az_err}")
 
@@ -338,7 +383,7 @@ async def get_card_images(cardID: int):
         if not card:
             raise HTTPException(status_code=404, detail="Card not found")
         cur.execute("""
-            SELECT ImageID, ImageURL, DisplayOrder, AltText, DateAdded
+            SELECT ImageID, ImageURL, DisplayOrder, AltText, DateAdded, OriginalURL, ImageWidth, ImageHeight, Presentation
             FROM CardImages
             WHERE CardID = %s
             ORDER BY DisplayOrder ASC
@@ -351,7 +396,11 @@ async def get_card_images(cardID: int):
                 "url": row[1],
                 "displayOrder": row[2],
                 "alt": row[3],
-                "dateAdded": str(row[4]) if row[4] else None
+                "dateAdded": str(row[4]) if row[4] else None,
+                "original_url": row[5] if len(row) > 5 and row[5] else row[1],
+                "width": row[6] if len(row) > 6 else None,
+                "height": row[7] if len(row) > 7 else None,
+                "presentation": row[8] if len(row) > 8 else None
             }
             for row in rows
         ]

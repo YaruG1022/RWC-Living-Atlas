@@ -1,5 +1,7 @@
 # 本地集成与负载测试
 
+Custom Layers 保存并发、文件夹与旧表迁移回归：运行 `scripts/check_custom_layer_workflow.py`；结果和限制见 [专项报告](CUSTOM_LAYERS_REPORT.zh-CN.md)。
+
 [en-US](README.md) · [es-ES](README.es-ES.md) · [zh-CN](README.zh-CN.md)
 
 这些脚本只针对隔离的 `livingatlas_test` 数据库和本地 HTTP 后端。每次运行结束时都会核对并删除测试创建的记录。结果与限制见 [TEST_REPORT.zh-CN.md](TEST_REPORT.zh-CN.md)。

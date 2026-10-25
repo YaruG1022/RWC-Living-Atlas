@@ -58,7 +58,7 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-coordinates-polygon"]',
         title: 'Edit Mode - Map Location',
-        description: 'Map location previews actual markers, polygons and image overlays. Use Edit Coordinate, Edit Polygon, Edit Image or Change location type to update it. These map editors share a compact layout beside the map toolbar.',
+        description: 'Map location previews markers, polygons and image overlays. Change location type is available for all three; the current type is disabled. Choose another type to place a new location. The old location hides while you edit. Cancel restores it; the main Save commits your changes.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-coordinates-polygon"]',
     },
@@ -72,14 +72,14 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-arcgis-section"]',
         title: 'Edit Mode - ArcGIS & Custom Layers',
-        description: 'Link your project to ArcGIS services/layers or custom layers. Each linked item has a visibility checkbox, a jump-to-panel button, and a remove button in edit mode.',
+        description: 'Link your project to ArcGIS or custom layers. Every viewer chooses which linked layers to show on their own map. Signed-in choices are saved per account and project association; visitor choices stay in this browser. New viewers start with layers hidden. Public project layers remain available even when their creator hides them.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-arcgis-section"]',
     },
     {
         selector: '[data-onboarding-target="learn-more-toolbar"]',
         title: 'Edit Mode - Save or Cancel',
-        description: 'Click Save to save changes. Cancel leaves edit mode; Close exits details. When prompted, confirm discarding unsaved changes or cancel the prompt to keep editing.',
+        description: 'Click Save to save changes. Cancel leaves edit mode; Close exits details. Closing with the Close button, outside click or Escape confirms unsaved changes. Cancel the confirmation to keep editing, or confirm to discard the draft and close.',
         placement: 'bottom',
         scrollTo: '[data-onboarding-target="learn-more-toolbar"]',
     },

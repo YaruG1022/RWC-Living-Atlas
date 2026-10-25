@@ -235,7 +235,7 @@
         },
         {
           "type": "text",
-          "text": " buttons. Download PDF and Delete remain beside them, followed by the light gray-blue \"You have unsaved changes\" badge after an edit. Help, Onboarding and Close stay on the right, while the left group can wrap on narrow screens. Cancel or Close asks for confirmation when there are unsaved changes."
+          "text": " buttons. Download PDF and Delete remain beside them, followed by the light gray-blue \"You have unsaved changes\" badge after an edit. Help, Onboarding and Close stay on the right, while the left group can wrap on narrow screens. Cancel asks before discarding unsaved changes. Closing with the Close button, clicking outside the modal or pressing Escape also asks before discarding changes, including funding, organization, visibility and pending file uploads. Cancel the confirmation to keep the modal and draft open, or confirm to discard and close. No confirmation appears when nothing has changed."
         }
       ]
     },
@@ -256,7 +256,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The Detail View displays up to six selected images. Multiple images adapts the grid to the selected count; Slideshow shows one selected image at a time with navigation inside the image area. Click any tile to open the image in a full-screen lightbox."
+          "text": "The Detail View displays up to six selected images. Multiple images adapts the grid to the selected count; Slideshow shows one selected image at a time with navigation inside the image area. Images fill their frames by default. In edit mode, Adjust lets you drag the image, change zoom, reset the composition, or choose Show full image for maps and diagrams. Use framing stages the change; Save commits it and Cancel restores the previous framing. Click any tile to see the complete uncropped display image in a full-screen lightbox, with an Open original image link."
         },
         {
           "type": "strong",
@@ -382,7 +382,7 @@
         },
         {
           "type": "text",
-          "text": " uploads an additional image, up to 30 total. Add New Image and Delete Selected sit beside Back to Learn More at the top. Save pending deletions before uploading if the stored project is at the limit. Save commits changes; Cancel discards them."
+          "text": " uploads one or more images, up to 30 total, with progress and per-image retry. Originals up to 50 MiB and 160 MP are supported (compressed BMPs: up to 40 MP); large pixel dimensions are reduced for display without cropping the original. Animated GIF originals stay available; display previews use the first frame. Add New Image and Delete Selected sit beside Back to Learn More at the top. Save pending deletions before uploading if the stored project is at the limit. Save commits changes; Cancel discards them."
         },
         {
           "type": "text",
@@ -971,7 +971,7 @@
         },
         {
           "type": "text",
-          "text": " buttons; Change location type opens a menu to switch between Point, Polygon, and Image. Point and multi-point coordinates are displayed here as read-only text. Use Edit Coordinate to change them; there are no coordinate input boxes in the metadata area."
+          "text": " buttons; Change location type is available for Point, Polygon, and Image projects and opens a menu to switch to either other type. The current type is disabled. Choosing a new type closes project popups and hides the old map location while you place the replacement. Cancel in the map editor returns to the previous location; accepting the editor stages a draft until the main Save. Cancel in Learn More discards the draft and restores the saved location. Point and multi-point coordinates are displayed here as read-only text. Use Edit Coordinate to change them; there are no coordinate input boxes in the metadata area."
         }
       ]
     },
@@ -1096,6 +1096,16 @@
         {
           "type": "text",
           "text": " in the top-right corner or click the dark overlay to close the lightbox."
+        }
+      ]
+    },
+    {
+      "id": "detail-view-public-linked-layers",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Every viewer has independent show/hide choices for each project’s linked ArcGIS and custom layers. Signed-in choices are saved to the account and restored when reopening the project. Visitor choices stay in this browser and are separate from signed-in accounts. New viewers start with layers hidden. A creator or administrator changing a checkbox only changes their own display; it does not change anyone else’s choice or remove the association. All linked layers on public projects remain available for viewers to enable, even if their creator has hidden them. Private projects remain limited to their creator and administrators. Shared uploads are displayed directly without being copied into the viewer’s personal library."
         }
       ]
     }

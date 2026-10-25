@@ -4,8 +4,10 @@ import Card from './Card';
 import api from './api';
 import { fetchAllArcgisServices } from './arcgisServicesDb';
 import { fetchUserPreferences } from './userPreferencesApi';
+import { toggleSharedCardLayer } from './sharedCardLayers';
 
-jest.mock('./api', () => ({ defaults: { baseURL: '' }, get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn() }));
+jest.mock('./api', () => ({ defaults: { baseURL: '' }, get: jest.fn(), post: jest.fn(), put: jest.fn(), patch: jest.fn(), delete: jest.fn() }));
+jest.mock('./sharedCardLayers', () => ({toggleSharedCardLayer:jest.fn()}));
 jest.mock('jspdf', () => ({ jsPDF: jest.fn() }));
 jest.mock('./arcgisDataUtils', () => ({ fetchArcgisLegend: jest.fn() }));
 jest.mock('./userPreferencesApi', () => ({ fetchUserPreferences: jest.fn().mockResolvedValue({}) }));
@@ -22,8 +24,11 @@ const originalImages = Array.from({ length: 3 }, (_, index) => ({ imageID: index
 let savedCard;
 beforeEach(() => {
     jest.clearAllMocks();
+    localStorage.clear();
     fetchAllArcgisServices.mockResolvedValue([]);
     fetchUserPreferences.mockResolvedValue({});
+    toggleSharedCardLayer.mockResolvedValue();
+    api.patch.mockResolvedValue({data:{}});
     window.alert = jest.fn();
     window.confirm = jest.fn(() => true);
     localStorage.setItem('email', 'fixture@example.invalid');
@@ -39,7 +44,7 @@ beforeEach(() => {
 async function editCard() {
     const { container } = render(<Card formData={savedCard} isLoggedIn onCardUpdate={() => {}} />);
     fireEvent.click(container.querySelector('.card'));
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Open image 1' })).toBeTruthy());
+    await waitFor(() => expect(screen.getByRole('region', { name: 'Project image gallery' })).toBeTruthy());
     fireEvent.click(screen.getByRole('button', { name: /Edit/i }));
     await waitFor(() => expect(screen.getByLabelText('Image layout').value).toBe('multi'));
     return screen.getByRole('region', { name: 'Project image gallery' });
@@ -58,6 +63,102 @@ test('editing a contact email leaves the card owner identity intact', async () =
     expect(payload.get('email')).toBe('fixture@example.invalid');
     expect(payload.get('original_email')).toBe('fixture@example.invalid');
     expect(payload.get('requester_email')).toBe('fixture@example.invalid');
+});
+
+test.each(['other-user','guest'])('a public card restores independent linked layer choices for %s', async audience => {
+    savedCard.is_public = true;
+    const email = audience === 'guest' ? '' : 'viewer@example.invalid';
+    if (email) localStorage.setItem('email',email); else localStorage.removeItem('email');
+    const links = [
+        {id:11,service_key:'wa-river',layer_id:1,display_name:'Shared river',item_type:'layer',state_code:'WA',folder_name:'Water',is_visible:true,can_manage:false},
+        {id:12,service_key:'uploaded-owner',display_name:'Shared upload',item_type:'uploaded_custom',folder_name:'Root',is_visible:true,shared_layer_key:'shared-custom-42',can_manage:false},
+    ];
+    const original = api.get.getMockImplementation();
+    api.get.mockImplementation((url,...args) => url.startsWith('/cardArcGISLinks?') ? Promise.resolve({data:{data:links}}) : original(url,...args));
+    const {container,unmount} = render(<Card formData={savedCard} isLoggedIn={!!email} />);
+    fireEvent.click(container.querySelector('.card'));
+    const customToggle=within((await screen.findByText('Shared upload')).closest('.learn-more-arcgis-link-item')).getByRole('checkbox');
+    const arcgisToggle=within(screen.getByText('Shared river').closest('.learn-more-arcgis-link-item')).getByRole('checkbox');
+    expect(customToggle.checked).toBe(!!email);expect(arcgisToggle.checked).toBe(!!email);
+    fireEvent.click(customToggle);fireEvent.click(arcgisToggle);
+    expect(toggleSharedCardLayer).toHaveBeenLastCalledWith(expect.objectContaining({id:12}),!email,undefined,email);
+    if(email) {
+        await waitFor(()=>expect(api.patch).toHaveBeenCalledWith('/cardArcGISLinks/12',{is_visible:false,requester_email:email}));
+        expect(api.patch).toHaveBeenCalledWith('/cardArcGISLinks/11',{is_visible:false,requester_email:email});
+    } else {
+        expect(api.patch).not.toHaveBeenCalled();
+        unmount();
+        const next=render(<Card formData={savedCard} isLoggedIn={false}/>);
+        fireEvent.click(next.container.querySelector('.card'));
+        const restored=await screen.findByText('Shared upload');
+        expect(within(restored.closest('.learn-more-arcgis-link-item')).getByRole('checkbox')).toBeChecked();
+    }
+});
+
+test('the creator saves a personal display preference just like any other viewer',async()=>{
+    const item={id:12,service_key:'uploaded-owner',display_name:'Creator upload',item_type:'uploaded_custom',folder_name:'Root',is_visible:true,shared_layer_key:'shared-custom-42',can_manage:true};
+    const original=api.get.getMockImplementation();
+    api.get.mockImplementation((url,...args)=>url.startsWith('/cardArcGISLinks?')?Promise.resolve({data:{data:[item]}}):original(url,...args));
+    const {container}=render(<Card formData={savedCard} isLoggedIn/>);
+    fireEvent.click(container.querySelector('.card'));
+    const label=await screen.findByText('Creator upload');
+    fireEvent.click(within(label.closest('.learn-more-arcgis-link-item')).getByRole('checkbox'));
+    await waitFor(()=>expect(api.patch).toHaveBeenCalledWith('/cardArcGISLinks/12',{is_visible:false,requester_email:'fixture@example.invalid'}));
+    expect(toggleSharedCardLayer).toHaveBeenCalledWith(item,false,undefined,'fixture@example.invalid');
+});
+
+test('a creator viewing an upload supplied by another account uses that exact shared asset',async()=>{
+    const links=[{id:12,service_key:'same-key',display_name:'Admin supplied upload',item_type:'uploaded_custom',folder_name:'Root',
+        is_visible:true,shared_layer_key:'shared-custom-99',can_manage:true,source_is_personal:false}];
+    const original=api.get.getMockImplementation();
+    api.get.mockImplementation((url,...args)=>url.startsWith('/cardArcGISLinks?')?Promise.resolve({data:{data:links}}):original(url,...args));
+    const {container}=render(<Card formData={savedCard} isLoggedIn />);
+    fireEvent.click(container.querySelector('.card'));
+    await screen.findByText('Admin supplied upload');
+    expect(toggleSharedCardLayer).toHaveBeenCalledWith(links[0],true,undefined,'fixture@example.invalid');
+});
+
+test('personal ArcGIS pins do not override linked-layer choices or disable their checkboxes',async()=>{
+    const item={id:11,service_key:'wa-pinned',layer_id:1,display_name:'Pinned river',item_type:'layer',state_code:'WA',folder_name:'Water',is_visible:false,can_manage:true};
+    fetchUserPreferences.mockResolvedValue({arcgis:{pinnedItems:[{serviceKey:'wa-pinned',layerId:1,sublayerIndex:null}]}});
+    const original=api.get.getMockImplementation();
+    api.get.mockImplementation((url,...args)=>url.startsWith('/cardArcGISLinks?')?Promise.resolve({data:{data:[item]}}):original(url,...args));
+    const {container}=render(<Card formData={savedCard} isLoggedIn />);
+    fireEvent.click(container.querySelector('.card'));
+    const name=await screen.findByText('Pinned river');
+    const checkbox=within(name.closest('.learn-more-arcgis-link-item')).getByRole('checkbox');
+    expect(checkbox).not.toBeChecked();expect(checkbox).toBeEnabled();expect(api.patch).not.toHaveBeenCalled();
+    fireEvent.click(checkbox);
+    await waitFor(()=>expect(api.patch).toHaveBeenCalledWith('/cardArcGISLinks/11',{is_visible:true,requester_email:'fixture@example.invalid'}));
+});
+
+test('switching accounts clears previous map layers and restores the next account preference',async()=>{
+    const item={id:12,service_key:'same-key',display_name:'Account upload',item_type:'uploaded_custom',folder_name:'Root',shared_layer_key:'shared-custom-42'};
+    const original=api.get.getMockImplementation();
+    api.get.mockImplementation((url,...args)=>url.startsWith('/cardArcGISLinks?')?Promise.resolve({data:{data:[{...item,is_visible:url.includes('fixture%40')} ]}}):original(url,...args));
+    const view=render(<Card formData={savedCard} isLoggedIn/>);
+    fireEvent.click(view.container.querySelector('.card'));
+    const name=await screen.findByText('Account upload');
+    expect(within(name.closest('.learn-more-arcgis-link-item')).getByRole('checkbox')).toBeChecked();
+    localStorage.setItem('email','second@example.invalid');
+    view.rerender(<Card formData={savedCard} isLoggedIn/>);
+    await waitFor(()=>expect(api.get).toHaveBeenCalledWith(expect.stringContaining('second%40example.invalid')));
+    await waitFor(()=>expect(within(screen.getByText('Account upload').closest('.learn-more-arcgis-link-item')).getByRole('checkbox')).not.toBeChecked());
+    expect(toggleSharedCardLayer).toHaveBeenCalledWith(expect.objectContaining({id:12}),false,undefined,'fixture@example.invalid');
+    expect(api.patch).not.toHaveBeenCalled();
+});
+
+test('a failed personal visibility save restores the checkbox and shows a retry message',async()=>{
+    const item={id:11,service_key:'wa-river',layer_id:1,display_name:'Save failure river',item_type:'layer',is_visible:false};
+    const original=api.get.getMockImplementation();
+    api.get.mockImplementation((url,...args)=>url.startsWith('/cardArcGISLinks?')?Promise.resolve({data:{data:[item]}}):original(url,...args));
+    api.patch.mockRejectedValueOnce(new Error('Offline'));
+    const view=render(<Card formData={savedCard} isLoggedIn/>);
+    fireEvent.click(view.container.querySelector('.card'));
+    const checkbox=within((await screen.findByText('Save failure river')).closest('.learn-more-arcgis-link-item')).getByRole('checkbox');
+    fireEvent.click(checkbox);
+    expect(await screen.findByRole('alert')).toHaveTextContent('could not be saved');
+    expect(checkbox).not.toBeChecked();
 });
 
 test('a contact email does not grant permission to edit the project', async () => {
@@ -320,7 +421,7 @@ test('upload preserves draft layout and order; cancel removes only the new uploa
         savedCard = { ...savedCard, images: [...originalImages, { imageID: 4, url: '/fixture-4.jpg' }] };
         return Promise.resolve({ data: { imageID: 4 } });
     });
-    const input = document.querySelector('input[type="file"][accept="image/*"]');
+    const input = document.querySelector('input[type="file"][accept^="image/"][multiple]');
     fireEvent.change(input, { target: { files: [new File(['fixture'], 'fixture.png', { type: 'image/png' })] } });
     await waitFor(() => expect(within(gallery).getAllByRole('img')).toHaveLength(4));
     expect(screen.getByLabelText('Image layout').value).toBe('multi');
@@ -343,37 +444,68 @@ test('failed order save keeps the draft open and allows retry', async () => {
     errors.mockRestore();
 });
 
-test('upload appends after the default cover, and the cover can be deleted and restored by cancel', async () => {
+test('uploads hide the legacy cover, and Cancel removes only the new upload', async () => {
     const defaultCover = { imageID: 61, url: '/CEREO-logo.png', alt: 'Project cover' };
     savedCard = { ...savedCard, images: [defaultCover], thumbnail_link: defaultCover.url };
     const gallery = await editCard();
+    expect(within(gallery).queryByRole('img')).toBeNull();
     api.post.mockImplementation(() => {
         savedCard = { ...savedCard, images: [defaultCover, { imageID: 62, url: '/new.png' }] };
         return Promise.resolve({ data: { imageID: 62 } });
     });
-    fireEvent.change(document.querySelector('input[type="file"][accept="image/*"]'), { target: { files: [new File(['fixture'], 'new.png', { type: 'image/png' })] } });
-    await waitFor(() => expect(within(gallery).getAllByRole('img')).toHaveLength(2));
-    expect(within(gallery).getAllByRole('img')[0].getAttribute('src')).toBe('/CEREO-logo.png');
-    fireEvent.click(within(gallery).getByRole('button', { name: 'Delete image 1' }));
-    expect(within(gallery).getAllByRole('img')).toHaveLength(1);
-    expect(api.delete).not.toHaveBeenCalled();
+    fireEvent.change(document.querySelector('input[type="file"][accept^="image/"][multiple]'), { target: { files: [new File(['fixture'], 'new.png', { type: 'image/png' })] } });
+    await waitFor(() => expect(within(gallery).getAllByRole('img')).toHaveLength(1));
+    expect(within(gallery).getByRole('img').getAttribute('src')).toBe('/new.png');
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     await waitFor(() => expect(screen.queryByLabelText('Image layout')).toBeNull());
-    expect(within(gallery).getByRole('img').getAttribute('src')).toBe('/CEREO-logo.png');
+    expect(within(gallery).queryByRole('img')).toBeNull();
     expect(api.delete).toHaveBeenCalledWith('/deleteCardImage/62');
+    expect(api.delete).not.toHaveBeenCalledWith('/deleteCardImage/61');
 });
 
-test('deleting and saving the last default cover keeps the gallery empty', async () => {
-    savedCard = { ...savedCard, images: [{ imageID: 61, url: '/CEREO-logo.png' }], thumbnail_link: '/CEREO-logo.png' };
+test.each(['/CEREO-logo.png', 'https://example.invalid/images/thumbnails/default_cereo_thumbnail.png'])('legacy placeholder %s is absent from the main gallery and See All', async url => {
+    savedCard = { ...savedCard, images: [{imageID:61,url}], thumbnail_link:url };
     const gallery = await editCard();
-    fireEvent.click(within(gallery).getByRole('button', { name: 'Delete image 1' }));
     expect(within(gallery).queryByRole('img')).toBeNull();
-    api.delete.mockImplementation(() => {
-        savedCard = { ...savedCard, images: [], thumbnail_link: '' };
-        return Promise.resolve({ data: {} });
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-    await waitFor(() => expect(screen.queryByLabelText('Image layout')).toBeNull());
-    expect(api.delete).toHaveBeenCalledWith('/deleteCardImage/61');
-    expect(within(gallery).queryByRole('img')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name:'See all 0 images' }));
+    expect(document.querySelector('.learn-more-all-image')).toBeNull();
+    expect(screen.getByText('Showing 0 images')).toBeTruthy();
+    expect(api.delete).not.toHaveBeenCalled();
+});
+
+test('See All uses an accessible Font Awesome pen button for framing', async () => {
+    await editCard();
+    fireEvent.click(screen.getByRole('button', { name:'See all 3 images' }));
+    const adjust = screen.getByRole('button', {name:'Adjust framing for image 1'});
+    expect(adjust.querySelector('svg[data-icon="pen"]')).toBeTruthy();
+    fireEvent.click(adjust);
+    expect(screen.getByText('Adjust framing')).toBeTruthy();
+});
+
+test('framing survives image refresh, is staged until Save, and Cancel restores it', async () => {
+    await editCard();
+    fireEvent.click(screen.getByRole('button', { name: 'Adjust framing for image 1' }));
+    fireEvent.change(screen.getByLabelText('Horizontal position'), { target: { value: '85' } });
+    fireEvent.click(screen.getByText('Use framing'));
+    expect(screen.getByRole('button', { name: 'Open image 1' }).querySelector('img').style.objectPosition).toBe('85% 50%');
+    expect(api.post).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith('/uploadForm', expect.any(FormData)));
+    const body = api.post.mock.calls.find(([url]) => url === '/uploadForm')[1];
+    expect(JSON.parse(body.get('image_presentations'))['1']).toEqual({ fit: 'cover', x: 85, y: 50, zoom: 1 });
+});
+
+test('a failed image upload keeps its file and token for a single-image retry', async () => {
+    await editCard();
+    api.post.mockRejectedValueOnce({ response: { data: { detail: 'Temporary storage failure' } } });
+    const input = screen.getByRole('dialog').querySelector('input[type="file"][accept^="image/"][multiple]');
+    fireEvent.change(input, { target: { files: [new File(['pixels'], 'retry.png', { type: 'image/png' })] } });
+    const retry = await screen.findByRole('button', { name: 'Retry retry.png' });
+    await waitFor(() => expect(retry.disabled).toBe(false));
+    const token = api.post.mock.calls[0][1].get('upload_token');
+    api.post.mockResolvedValueOnce({ data: { imageID: 99 } });
+    fireEvent.click(retry);
+    await waitFor(() => expect(api.post).toHaveBeenCalledTimes(2));
+    expect(api.post.mock.calls[1][1].get('upload_token')).toBe(token);
+    expect(api.post.mock.calls[1][1].get('image').name).toBe('retry.png');
 });

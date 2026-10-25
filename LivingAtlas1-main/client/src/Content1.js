@@ -15,6 +15,7 @@ import html2canvas from 'html2canvas';
 import { icon } from '@fortawesome/fontawesome-svg-core';
 import { faEye, faEyeSlash, faCamera, faImage, faLocationDot, faPencil, faDrawPolygon, faArrowsToCircle } from '@fortawesome/free-solid-svg-icons';
 import { buildMarkerIconElement } from './markerIcons';
+import { CARD_LOCATION_EDIT_EVENT, hasCardLocationEdits, syncCardLocationEditing } from './cardLocationEditing';
 
 // Mapbox Token
 mapboxgl.accessToken =
@@ -632,6 +633,7 @@ const Content1 = (props) => {
   }, [resolveImageUrl]);
 
   const openMarkerPopup = useCallback((feature, lngLatOrMarker, mapInstance) => {
+    if (hasCardLocationEdits()) return;
     closeMarkerPopup();
     openMarkerIdRef.current = feature.cardID;
     // Keep the hover effect on while the popup for this shape is open.
@@ -957,6 +959,7 @@ const Content1 = (props) => {
               }
             });
           }
+          syncCardLocationEditing(map, allMarkers, visible);
         });
         drawGroup.appendChild(toggleBtn);
 
@@ -1133,6 +1136,7 @@ const Content1 = (props) => {
             yellowMarkers.push([feature.category, feature.tags, [lng, lat]]);
 
             pointMarker.getElement().addEventListener('click', (event) => {
+              if (hasCardLocationEdits()) return;
               event.preventDefault();
               event.stopPropagation();
               if (markerPopupRef.current && openMarkerIdRef.current === feature.cardID) {
@@ -1183,6 +1187,7 @@ const Content1 = (props) => {
         }
 
         marker.getElement().addEventListener('click', (event) => {
+          if (hasCardLocationEdits()) return;
           event.preventDefault();
           event.stopPropagation();
           if (markerPopupRef.current && openMarkerIdRef.current === feature.cardID) {
@@ -1202,6 +1207,7 @@ const Content1 = (props) => {
       renderCardPolygons(markersData, map);
 
       showAll();
+      syncCardLocationEditing(map, allMarkers, markersVisibleRef.current);
     };
 
     const renderCardPolygons = (markersData, mapInstance) => {
@@ -1362,6 +1368,7 @@ const Content1 = (props) => {
           });
 
           const polygonClickHandler = (e) => {
+            if (hasCardLocationEdits()) return;
             e.originalEvent.stopPropagation();
             preventGenericClickClose = true;
             if (markerPopupRef.current && openMarkerIdRef.current === feature.cardID) {
@@ -1446,6 +1453,7 @@ const Content1 = (props) => {
         });
 
         const imageClickHandler = (e) => {
+          if (hasCardLocationEdits()) return;
           e.originalEvent.stopPropagation();
           preventGenericClickClose = true;
           if (markerPopupRef.current && openMarkerIdRef.current === feature.cardID) {
@@ -1560,6 +1568,13 @@ const Content1 = (props) => {
     };
 
     clearMarkers();
+    const syncEditingVisibility = () => syncCardLocationEditing(map, allMarkers, markersVisibleRef.current);
+    const handleLocationEdit = event => {
+      if (event.detail?.active) closeMarkerPopup();
+      syncEditingVisibility();
+    };
+    window.addEventListener(CARD_LOCATION_EDIT_EVENT, handleLocationEdit);
+    map.on('styledata', syncEditingVisibility);
     window.addEventListener('atlas:cards-loaded', handleCardsLoaded);
     window.addEventListener('atlas:card-uploaded', handleCardUploaded);
 
@@ -1694,6 +1709,8 @@ const Content1 = (props) => {
 
     return () => {
       isActive = false;
+      window.removeEventListener(CARD_LOCATION_EDIT_EVENT, handleLocationEdit);
+      map.off('styledata', syncEditingVisibility);
       window.removeEventListener('atlas:cards-loaded', handleCardsLoaded);
       window.removeEventListener('atlas:card-uploaded', handleCardUploaded);
       window.cancelAnimationFrame(creditSyncRafId);

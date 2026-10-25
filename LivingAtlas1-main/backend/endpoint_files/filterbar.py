@@ -52,13 +52,16 @@ def allCards():
                         jsonb_build_object(
                             'imageID', img_sub.ImageID,
                             'url', img_sub.ImageURL,
+                                'original_url', COALESCE(img_sub.OriginalURL, img_sub.ImageURL),
+                                'width', img_sub.ImageWidth, 'height', img_sub.ImageHeight,
+                                'presentation', img_sub.Presentation,
                             'displayOrder', img_sub.DisplayOrder,
                             'alt', img_sub.AltText
                         )
                         ORDER BY img_sub.DisplayOrder ASC, img_sub.ImageID ASC
                     )
                     FROM (
-                        SELECT DISTINCT ci2.ImageID, ci2.ImageURL, ci2.DisplayOrder, ci2.AltText
+                        SELECT DISTINCT ci2.ImageID, ci2.ImageURL, ci2.DisplayOrder, ci2.AltText, ci2.OriginalURL, ci2.ImageWidth, ci2.ImageHeight, ci2.Presentation
                         FROM CardImages ci2
                         WHERE ci2.CardID = c.CardID
                     ) img_sub
@@ -149,13 +152,16 @@ async def allCardsByTag(categoryString: str = None, tagString: str = None, sortS
                         jsonb_build_object(
                             'imageID', img_sub.ImageID,
                             'url', img_sub.ImageURL,
+                                'original_url', COALESCE(img_sub.OriginalURL, img_sub.ImageURL),
+                                'width', img_sub.ImageWidth, 'height', img_sub.ImageHeight,
+                                'presentation', img_sub.Presentation,
                             'displayOrder', img_sub.DisplayOrder,
                             'alt', img_sub.AltText
                         )
                         ORDER BY img_sub.DisplayOrder ASC, img_sub.ImageID ASC
                     )
                     FROM (
-                        SELECT DISTINCT ci2.ImageID, ci2.ImageURL, ci2.DisplayOrder, ci2.AltText
+                        SELECT DISTINCT ci2.ImageID, ci2.ImageURL, ci2.DisplayOrder, ci2.AltText, ci2.OriginalURL, ci2.ImageWidth, ci2.ImageHeight, ci2.Presentation
                         FROM CardImages ci2
                         WHERE ci2.CardID = c.CardID
                     ) img_sub
@@ -299,13 +305,16 @@ def searchBar(titleSearch: str,
                             jsonb_build_object(
                                 'imageID', img_sub.ImageID,
                                 'url', img_sub.ImageURL,
+                                'original_url', COALESCE(img_sub.OriginalURL, img_sub.ImageURL),
+                                'width', img_sub.ImageWidth, 'height', img_sub.ImageHeight,
+                                'presentation', img_sub.Presentation,
                                 'displayOrder', img_sub.DisplayOrder,
                                 'alt', img_sub.AltText
                             )
                             ORDER BY img_sub.DisplayOrder ASC, img_sub.ImageID ASC
                         )
                         FROM (
-                            SELECT DISTINCT ci2.ImageID, ci2.ImageURL, ci2.DisplayOrder, ci2.AltText
+                            SELECT DISTINCT ci2.ImageID, ci2.ImageURL, ci2.DisplayOrder, ci2.AltText, ci2.OriginalURL, ci2.ImageWidth, ci2.ImageHeight, ci2.Presentation
                             FROM CardImages ci2
                             WHERE ci2.CardID = c.CardID
                         ) img_sub

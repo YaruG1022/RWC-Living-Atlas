@@ -238,7 +238,7 @@ function ArcgisUploadPanel({
     const [directToggleTick, setDirectToggleTick] = useState(0);
     // Tracks whether the DB-persisted "visible" ArcGIS links (learn-more modal checkboxes)
     // have already been fetched & auto-restored once for this mount.
-    const visibleArcgisLinksLoadedRef = useRef(false);
+    const restoredArcgisTargetsRef = useRef([]);
     // Bumped once the Mapbox map + style are ready, so layer-rendering effects that
     // ran too early (e.g. auto-loading pinned layers right after a page refresh)
     // get re-run and actually add their layers.
@@ -949,11 +949,19 @@ function ArcgisUploadPanel({
     // hide a layer the user had shown. Routed through the same direct-toggle
     // pipeline used by pins and by the live checkbox toggle.
     useEffect(() => {
-        if (visibleArcgisLinksLoadedRef.current) return;
         if (!servicesInitialLoadDone) return;
-        visibleArcgisLinksLoadedRef.current = true;
+        let active = true;
+        const previous = restoredArcgisTargetsRef.current;
+        restoredArcgisTargetsRef.current = [];
+        if (previous.length) {
+            pendingDirectTogglesRef.current = [...pendingDirectTogglesRef.current,
+                ...previous.map(item => ({serviceKey:item.service_key,layerId:item.layer_id ?? null,checked:false}))];
+            setDirectToggleTick(value => value + 1);
+        }
 
-        fetchVisibleArcgisLayerTargets().then(items => {
+        fetchVisibleArcgisLayerTargets(userEmail).then(items => {
+            if (!active) return;
+            restoredArcgisTargetsRef.current = items;
             if (!items.length) return;
             const togglesToDispatch = items.map(i => ({ serviceKey: i.service_key, layerId: i.layer_id ?? null, checked: true }));
             pendingDirectTogglesRef.current = [
@@ -964,7 +972,8 @@ function ArcgisUploadPanel({
             ];
             setDirectToggleTick(t => t + 1);
         });
-    }, [servicesInitialLoadDone]);
+        return () => { active = false; };
+    }, [servicesInitialLoadDone, userEmail]);
 
     // On state change: remove any ArcGIS layers/sources left from the previous state
     // NOTE: Disabled since states are now all loaded together as top-level folders

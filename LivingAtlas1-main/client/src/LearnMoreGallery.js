@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faArrowRight, faGripVertical, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faArrowRight, faGripVertical, faXmark, faPen } from '@fortawesome/free-solid-svg-icons';
 import './LearnMoreGallery.css';
+import { framingStyle } from './imageUploads';
 import { MAX_GALLERY_IMAGES } from './gallerySelection';
 
 export const MAX_CARD_IMAGES = 30;
@@ -15,7 +16,7 @@ export function GalleryLayoutSelector({ layout, busy, onChange }) {
     </label>;
 }
 
-export default function LearnMoreGallery({ images: allImages, totalImageCount = allImages.length, layout = 'multi', editing, busy, coverUrl, onReorder, onOpen, onAdd, onDelete, onLayoutChange, onSeeAll }) {
+export default function LearnMoreGallery({ images: allImages, totalImageCount = allImages.length, layout = 'multi', editing, busy, coverUrl, onReorder, onOpen, onAdd, onDelete, onLayoutChange, onSeeAll, onFrame }) {
     const images = allImages.slice(0, MAX_GALLERY_IMAGES);
     const [slide, setSlide] = useState(0);
     const [dragOver, setDragOver] = useState(null);
@@ -58,11 +59,15 @@ export default function LearnMoreGallery({ images: allImages, totalImageCount = 
                 <button type="button" data-gallery-control className="lm-gallery-image-button" disabled={!image && !canAdd}
                     onClick={(event) => image ? onOpen(event, index) : onAdd(event, index)}
                     aria-label={image ? `Open image ${index + 1}` : `Add image ${index + 1}`}>
-                    {image ? <img src={image.url} alt={image.alt || `Project image ${index + 1}`} draggable={false} />
+                    {image ? <img src={image.url} alt={image.alt || `Project image ${index + 1}`} style={framingStyle(image)} draggable={false} />
                         : <span className="lm-gallery-empty">{totalImageCount > 0 ? 'No images selected' : editing && canAdd ? '+ Add image' : 'No image'}</span>}
                 </button>
                 {isCover && <span className="lm-gallery-cover">Project cover</span>}
                 {editing && image && <div className="lm-gallery-tile-tools">
+                    {onFrame && <button type="button" data-gallery-control className="lm-gallery-frame-button" disabled={busy} onClick={event => {
+                        const bounds = event.currentTarget.closest('.lm-gallery-cell').getBoundingClientRect();
+                        onFrame(image, bounds.width / bounds.height || 4 / 3);
+                    }} aria-label={`Adjust framing for image ${index + 1}`} title="Adjust framing"><FontAwesomeIcon icon={faPen} aria-hidden="true" /></button>}
                     <button type="button" data-gallery-control disabled={busy || index === 0} onClick={() => reorder(index, index - 1)} aria-label={`Move image ${index + 1} earlier`}><FontAwesomeIcon icon={faArrowLeft} aria-hidden="true" /></button>
                     <span aria-hidden="true"><FontAwesomeIcon icon={faGripVertical} /></span>
                     <button type="button" data-gallery-control disabled={busy || index === images.length - 1} onClick={() => reorder(index, index + 1)} aria-label={`Move image ${index + 1} later`}><FontAwesomeIcon icon={faArrowRight} aria-hidden="true" /></button>

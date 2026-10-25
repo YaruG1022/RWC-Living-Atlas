@@ -1,4 +1,5 @@
 import api from './api';
+import { customLayerErrorMessage } from './customLayerErrors';
 
 const STATE_MAP = {
   WA: 'washington',
@@ -403,6 +404,7 @@ export async function saveCustomLayer(userEmail, service) {
         return response.data;
     } catch (error) {
         console.error(`[arcgisServicesDb] Failed to save custom layer:`, error);
+        error.message = customLayerErrorMessage(error, 'Could not save this layer. Please try again.', { saving: true });
         throw error;
     }
 }
@@ -436,7 +438,8 @@ export async function fetchCustomLayers(userEmail) {
         return adapted;
     } catch (error) {
         console.warn(`[arcgisServicesDb] Failed to fetch custom layers:`, error?.message || error);
-        return [];
+        error.message = customLayerErrorMessage(error, 'Could not load Custom Layers. Please try again.');
+        throw error;
     }
 }
 
@@ -507,7 +510,8 @@ export async function fetchCustomFolders(userEmail) {
         return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
         console.warn(`[arcgisServicesDb] Failed to fetch custom folders:`, error?.message || error);
-        return [];
+        error.message = customLayerErrorMessage(error, 'Could not load custom folders. Please try again.');
+        throw error;
     }
 }
 
@@ -540,9 +544,9 @@ export async function renameCustomFolder(userEmail, oldName, newName) {
 // Service keys of uploaded custom layers marked visible on any card (is_visible = true
 // in CardArcGISLinks), so they can auto-restore on the map without needing a card's
 // learn-more modal to be opened first.
-export async function fetchVisibleCustomLayerServiceKeys() {
+export async function fetchVisibleCustomLayerServiceKeys(userEmail = '') {
     try {
-        const response = await api.get('/cardArcGISLinks/visible-custom-layers');
+        const response = await api.get('/cardArcGISLinks/visible-custom-layers', {params:{user_email:userEmail}});
         return Array.isArray(response.data?.service_keys) ? response.data.service_keys : [];
     } catch (error) {
         console.warn('[arcgisServicesDb] Failed to fetch visible custom layer service keys:', error?.message || error);
@@ -553,9 +557,9 @@ export async function fetchVisibleCustomLayerServiceKeys() {
 // { service_key, layer_id } pairs of ArcGIS (non-custom-upload) links marked visible
 // on any card, so they can auto-restore on the map without needing a card's
 // learn-more modal to be opened first.
-export async function fetchVisibleArcgisLayerTargets() {
+export async function fetchVisibleArcgisLayerTargets(userEmail = '') {
     try {
-        const response = await api.get('/cardArcGISLinks/visible-arcgis-layers');
+        const response = await api.get('/cardArcGISLinks/visible-arcgis-layers', {params:{user_email:userEmail}});
         return Array.isArray(response.data?.items) ? response.data.items : [];
     } catch (error) {
         console.warn('[arcgisServicesDb] Failed to fetch visible ArcGIS layer targets:', error?.message || error);

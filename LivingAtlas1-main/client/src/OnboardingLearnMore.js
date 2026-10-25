@@ -58,7 +58,7 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-coordinates-polygon"]',
         title: 'Edit Mode - Map Location',
-        description: 'Map location previews actual markers, polygons and image overlays. Use Edit Coordinate, Edit Polygon, Edit Image or Change location type to update it. These map editors share a compact layout beside the map toolbar.',
+        description: 'Map location previews markers, polygons and image overlays. Change location type is available for all three; the current type is disabled. Choose another type to place a new location. The old location hides while you edit. Cancel restores it; the main Save commits your changes.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-coordinates-polygon"]',
     },

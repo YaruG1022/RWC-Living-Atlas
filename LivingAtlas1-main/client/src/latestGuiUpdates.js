@@ -104,6 +104,13 @@ export const manualGuiUpdates = [
 export const latestGuiUpdateDate = '10/25/2026';
 export const latestGuiUpdates = [
     {
+        title: 'Project Location Editing',
+        items: [
+            'All project types can now switch between Point, Polygon and Image in Learn More edit mode. The current type is disabled. Cancel restores the prior location, and the main Save commits the new one.',
+            'Switching type closes map project popups and hides the old marker or overlay while placing the new location. Temporarily hid the floating Projects collapse arrow and removed the extra contact-email hint from Create Project.',
+        ],
+    },
+    {
         title: 'Custom Layers Reliability',
         items: [
             'Fixed intermittent failures when saving layers while the library is loading or refreshing.',

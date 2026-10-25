@@ -971,7 +971,7 @@
         },
         {
           "type": "text",
-          "text": " buttons; Change location type opens a menu to switch between Point, Polygon, and Image. Point and multi-point coordinates are displayed here as read-only text. Use Edit Coordinate to change them; there are no coordinate input boxes in the metadata area."
+          "text": " buttons; Change location type is available for Point, Polygon, and Image projects and opens a menu to switch to either other type. The current type is disabled. Choosing a new type closes project popups and hides the old map location while you place the replacement. Cancel in the map editor returns to the previous location; accepting the editor stages a draft until the main Save. Cancel in Learn More discards the draft and restores the saved location. Point and multi-point coordinates are displayed here as read-only text. Use Edit Coordinate to change them; there are no coordinate input boxes in the metadata area."
         }
       ]
     },

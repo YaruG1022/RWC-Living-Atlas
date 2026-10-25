@@ -1506,7 +1506,7 @@
 .learn-more-location-type-menu-item:disabled {
   color: #1d4ed8;
   font-weight: 600;
-  cursor: default;
+  cursor: not-allowed;
   background: #eef2ff;
 }
 

@@ -20,6 +20,7 @@ import RepresentationPreview from './RepresentationPreview';
 import { descriptionToHtml, htmlToPlainText } from './richTextUtils';
 import PolygonDrawingModal from './PolygonDrawingModal';
 import CoordinatesPanel from './CoordinatesPanel';
+import { setCardLocationEditing } from './cardLocationEditing';
 import ArcGISPickerModal from './ArcGISPickerModal';
 import { fetchAllArcgisServices } from './arcgisServicesDb';
 import CustomLayerPickerModal from './CustomLayerPickerModal';
@@ -97,12 +98,13 @@ function Card(props) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [failedCardImageUrl, setFailedCardImageUrl] = useState(null);
     const [isEditingPolygon, setIsEditingPolygon] = useState(false);
-    // True while converting a point/coordinate card to polygon or image (blank slate),
-    // as opposed to editing an existing polygon/image card's own vertices.
-    const [isConvertingLocationType, setIsConvertingLocationType] = useState(false);
+    // The stored/draft type stays intact until the new map editor is accepted.
+    const [conversionTargetType, setConversionTargetType] = useState(null);
+    const isConvertingLocationType = conversionTargetType !== null;
+    const editorMapHiddenBackupRef = useRef(false);
     const [isEditingCoordinate, setIsEditingCoordinate] = useState(false);
     // True while a coordinate edit is in progress or staged but not yet saved.
-    const [hideCardPointMarkers, setHideCardPointMarkers] = useState(false);
+    const [hideCardMapRepresentation, setHideCardMapRepresentation] = useState(false);
     const [isLocationTypeMenuOpen, setIsLocationTypeMenuOpen] = useState(false);
     const isEditingRef = useRef(false); // Track editing state across renders
     const learnMoreImageInputRef = useRef(null);
@@ -1006,21 +1008,14 @@ function Card(props) {
     }
 };
 
-    // Hide the card's own map markers from the moment the coordinate editor opens
-    // until the edit reaches the server (Content1 then re-creates them at the new
-    // position). Without this the pre-edit markers linger at the old position, in
-    // their old color, next to the editable copies the panel draws.
+    // Hide every stored representation until this draft is saved or discarded.
+    // The map also reapplies this after marker refreshes and style changes.
     useEffect(() => {
         const cardID = formData.cardID || props.cardID;
-        // isModalOpen stays true while the coordinate editor is up, so it also acts
-        // as a safety net: closing the card always brings its markers back.
-        if (!cardID || !hideCardPointMarkers || !isModalOpen) return undefined;
-        const selector = `[data-card-marker-id="${cardID}"]`;
-        document.querySelectorAll(selector).forEach(el => { el.style.display = 'none'; });
-        return () => {
-            document.querySelectorAll(selector).forEach(el => { el.style.display = ''; });
-        };
-    }, [hideCardPointMarkers, isModalOpen, formData.cardID, props.cardID]);
+        if (!cardID || !hideCardMapRepresentation || !isModalOpen) return undefined;
+        setCardLocationEditing(cardID, true);
+        return () => setCardLocationEditing(cardID, false);
+    }, [hideCardMapRepresentation, isModalOpen, formData.cardID, props.cardID]);
 
     // Edit an existing point card's coordinate(s): hide the learn-more modal and
     // open the same "Add Points" tool used by the map's "Add card from map" toolbar.
@@ -1028,7 +1023,8 @@ function Card(props) {
         const map = window.atlasMapInstance;
         if (!map) { console.error('Map not found'); return; }
         setIsLocationTypeMenuOpen(false);
-        setHideCardPointMarkers(true);
+        editorMapHiddenBackupRef.current = hideCardMapRepresentation;
+        setHideCardMapRepresentation(true);
         setIsEditingCoordinate(true);
         document.querySelectorAll('.card-pin-rich-popup .mapboxgl-popup-close-button').forEach(button => button.click());
         const lat = parseFloat(formData.latitude);
@@ -1036,75 +1032,51 @@ function Card(props) {
         if (!isNaN(lat) && !isNaN(lng)) {
             map.flyTo({ center: [lng, lat], zoom: 14 });
         }
-    }, [formData.latitude, formData.longitude]);
+    }, [formData.latitude, formData.longitude, hideCardMapRepresentation]);
 
     const handleCoordinateEditSave = useCallback((points) => {
         const first = points?.[0];
-        if (first) {
-            setFormData(prev => ({
+        if (!first) return;
+        setFormData(prev => {
+            const type = points.length > 1 || (!conversionTargetType && prev.location_type === 'multipoint') ? 'multipoint' : 'point';
+            return {
                 ...prev,
+                location_type: type,
                 latitude: Number(first.lat).toFixed(6),
                 longitude: Number(first.lng).toFixed(6),
-                // Multi-point cards are rendered from polygon_vertices, so the edited
-                // points have to be written back there too — updating lat/lng alone
-                // leaves the card's markers untouched.
-                ...(prev.location_type === 'multipoint' ? {
-                    polygon_vertices: points.map(p => ({
-                        lat: p.lat,
-                        lng: p.lng,
-                        icon: p.icon,
-                        markerColor: p.color,
-                        markerOpacity: p.opacity,
-                    })),
-                } : {}),
-            }));
-        }
+                polygon_vertices: type === 'multipoint' ? points.map(p => ({
+                    lat: p.lat, lng: p.lng, icon: p.icon,
+                    markerColor: p.color, markerOpacity: p.opacity,
+                })) : [],
+            };
+        });
+        setConversionTargetType(null);
         setIsEditingCoordinate(false);
-        // Ensure learn-more modal stays in edit mode
         isEditingRef.current = true;
         setIsLearnMoreEditMode(true);
-    }, []);
+    }, [conversionTargetType]);
 
     const handleCoordinateEditCancel = useCallback(() => {
-        setHideCardPointMarkers(false);
+        setHideCardMapRepresentation(editorMapHiddenBackupRef.current);
+        setConversionTargetType(null);
         setIsEditingCoordinate(false);
     }, []);
 
-    // Change marker card to polygon: hide modal → open PolygonDrawingModal
-    const handleChangeToPolygon = useCallback(() => {
+    const handleChangeLocationType = useCallback((targetType, event) => {
+        event?.stopPropagation();
+        const currentType = ['polygon', 'image'].includes(formData.location_type) ? formData.location_type : 'point';
+        if (targetType === currentType) return;
         const map = window.atlasMapInstance;
         if (!map) { console.error('Map not found'); return; }
-
-        // Switch location_type but preserve existing lat/lng
-        setFormData(prev => ({ ...prev, location_type: 'polygon' }));
-        setIsConvertingLocationType(true);
-        setIsEditingPolygon(true);
-
-        // Fly to the current marker location
-        const lat = parseFloat(formData.latitude);
-        const lng = parseFloat(formData.longitude);
-        if (!isNaN(lat) && !isNaN(lng)) {
-            map.flyTo({ center: [lng, lat], zoom: 14 });
-        }
-    }, [formData.latitude, formData.longitude]);
-
-    // Change marker card to image overlay: hide modal → open PolygonDrawingModal
-    // in image mode, blank (no existing overlay image), matching the map's
-    // "Add card from map" → Image tool.
-    const handleChangeToImage = useCallback(() => {
-        const map = window.atlasMapInstance;
-        if (!map) { console.error('Map not found'); return; }
-
-        setFormData(prev => ({ ...prev, location_type: 'image' }));
-        setIsConvertingLocationType(true);
-        setIsEditingPolygon(true);
-
-        const lat = parseFloat(formData.latitude);
-        const lng = parseFloat(formData.longitude);
-        if (!isNaN(lat) && !isNaN(lng)) {
-            map.flyTo({ center: [lng, lat], zoom: 14 });
-        }
-    }, [formData.latitude, formData.longitude]);
+        editorMapHiddenBackupRef.current = hideCardMapRepresentation;
+        setIsLocationTypeMenuOpen(false);
+        setHideCardMapRepresentation(true);
+        setConversionTargetType(targetType);
+        if (targetType === 'point') setIsEditingCoordinate(true);
+        else setIsEditingPolygon(true);
+        const lat = Number(formData.latitude), lng = Number(formData.longitude);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) map.flyTo({ center: [lng, lat], zoom: 14 });
+    }, [formData.location_type, formData.latitude, formData.longitude, hideCardMapRepresentation]);
 
     // Edit polygon: hide modal → fly to polygon → open PolygonDrawingModal
     const handleEditPolygon = useCallback(() => {
@@ -1113,33 +1085,8 @@ function Card(props) {
         const minimumVertices = formData.location_type === 'image' ? 4 : 3;
         if (!map || !Array.isArray(verts) || verts.length < minimumVertices) return;
 
-        // Close any open Mapbox popups on the map
-        document.querySelectorAll('.mapboxgl-popup').forEach(el => {
-            const closeBtn = el.querySelector('.mapboxgl-popup-close-button');
-            if (closeBtn) closeBtn.click();
-            else el.remove();
-        });
-
-        // Hide the existing card polygon layers so they don't show underneath the editor
-        const cardID = formData.cardID || props.cardID;
-        if (cardID) {
-            if (formData.location_type === 'image') {
-                const imageLayerId = `card-image-layer-${cardID}`;
-                const outlineLayerId = `card-image-outline-${cardID}`;
-                if (map.getLayer(imageLayerId)) map.setLayoutProperty(imageLayerId, 'visibility', 'none');
-                if (map.getLayer(outlineLayerId)) map.setLayoutProperty(outlineLayerId, 'visibility', 'none');
-            } else {
-                const fillLayerId = `card-polygon-fill-${cardID}`;
-                const lineLayerId = `card-polygon-line-${cardID}`;
-                if (map.getLayer(fillLayerId)) map.setLayoutProperty(fillLayerId, 'visibility', 'none');
-                // Borders are rendered as one line layer per line style (plus the legacy
-                // single layer on older sessions) — hide every variant.
-                ['', '-solid', '-dashed', '-dotted', '-dashdot'].forEach(suffix => {
-                    const styleLineId = `${lineLayerId}${suffix}`;
-                    if (map.getLayer(styleLineId)) map.setLayoutProperty(styleLineId, 'visibility', 'none');
-                });
-            }
-        }
+        editorMapHiddenBackupRef.current = hideCardMapRepresentation;
+        setHideCardMapRepresentation(true);
 
         setIsEditingPolygon(true);
 
@@ -1151,37 +1098,17 @@ function Card(props) {
             [Math.max(...lngs), Math.max(...lats)]
         ];
         map.fitBounds(bounds, { padding: 80, maxZoom: 16 });
-    }, [formData.polygon_vertices, formData.cardID, formData.location_type, props.cardID]);
-
-    // Restore card polygon layer visibility
-    const restoreCardPolygonLayers = useCallback(() => {
-        const map = window.atlasMapInstance;
-        const cardID = formData.cardID || props.cardID;
-        if (!map || !cardID) return;
-        if (formData.location_type === 'image') {
-            const imageLayerId = `card-image-layer-${cardID}`;
-            const outlineLayerId = `card-image-outline-${cardID}`;
-            if (map.getLayer(imageLayerId)) map.setLayoutProperty(imageLayerId, 'visibility', 'visible');
-            if (map.getLayer(outlineLayerId)) map.setLayoutProperty(outlineLayerId, 'visibility', 'visible');
-            return;
-        }
-
-        const fillLayerId = `card-polygon-fill-${cardID}`;
-        const lineLayerId = `card-polygon-line-${cardID}`;
-        if (map.getLayer(fillLayerId)) map.setLayoutProperty(fillLayerId, 'visibility', 'visible');
-        // Restore every per-style border line layer (plus the legacy single layer).
-        ['', '-solid', '-dashed', '-dotted', '-dashdot'].forEach(suffix => {
-            const styleLineId = `${lineLayerId}${suffix}`;
-            if (map.getLayer(styleLineId)) map.setLayoutProperty(styleLineId, 'visibility', 'visible');
-        });
-    }, [formData.cardID, formData.location_type, props.cardID]);
+    }, [formData.polygon_vertices, formData.location_type, hideCardMapRepresentation]);
 
     // After polygon/image edit save: update formData and return to learn-more modal (edit mode).
     // PolygonDrawingModal's onSave signature differs by mode: polygon mode passes an
     // array of rings (each an array of vertices) plus per-ring styles; image mode passes
     // a single flat array of the 4 corner vertices plus the placed image slots (not styles).
     const handlePolygonEditSave = useCallback((allRingsOrVerts, centroid, style, ringStylesOrSlots = []) => {
-        const isImageSave = formData.location_type === 'image';
+        const targetType = conversionTargetType || formData.location_type;
+        const isImageSave = targetType === 'image';
+        const imageSlot = isImageSave ? ringStylesOrSlots[0] : null;
+        const imageChanged = Boolean(imageSlot?.file) || Boolean(imageSlot?.url && imageSlot.url !== getRepresentativeImageUrl());
         const flatVerts = isImageSave
             ? allRingsOrVerts.map(v => ({ ...v, ring: 0 }))
             : allRingsOrVerts.flatMap((ring, ringIdx) => {
@@ -1214,7 +1141,7 @@ function Card(props) {
             fillOpacity: v.fillOpacity != null ? Number(v.fillOpacity) : cardFillOpacity,
             lineStyle: v.lineStyle || cardLineStyle,
         });
-        const polygonUnchanged = !isConvertingLocationType &&
+        const polygonUnchanged = !isConvertingLocationType && !imageChanged &&
             JSON.stringify((formData.polygon_vertices || []).map(normalizeVertex)) ===
             JSON.stringify(flatVerts.map(normalizeVertex));
         if (polygonUnchanged) {
@@ -1222,13 +1149,15 @@ function Card(props) {
             // Ensure learn-more modal stays in edit mode
             isEditingRef.current = true;
             setIsLearnMoreEditMode(true);
-            restoreCardPolygonLayers();
+            setHideCardMapRepresentation(editorMapHiddenBackupRef.current);
             return;
         }
 
         setFormData(prev => ({
             ...prev,
+            location_type: targetType,
             polygon_vertices: flatVerts,
+            ...(imageSlot?.url && !imageSlot.file ? { thumbnail_link: imageSlot.url } : {}),
             latitude: centroid.lat.toFixed(6),
             longitude: centroid.lng.toFixed(6),
             polygon_fill_color: primaryStyle.fillColor || prev.polygon_fill_color,
@@ -1236,138 +1165,24 @@ function Card(props) {
             polygon_fill_opacity: primaryStyle.fillOpacity ?? prev.polygon_fill_opacity,
         }));
         setIsEditingPolygon(false);
-        setIsConvertingLocationType(false);
+        setConversionTargetType(null);
         // Ensure learn-more modal stays in edit mode
         isEditingRef.current = true;
         setIsLearnMoreEditMode(true);
 
-        // Restore card polygon layer visibility
-        restoreCardPolygonLayers();
-
-        // Update the polygon on the main map immediately
-        const map = window.atlasMapInstance;
-        const cardID = formData.cardID || props.cardID;
-        if (map && cardID && flatVerts.length >= (formData.location_type === 'image' ? 4 : 3)) {
-            const fillColor = primaryStyle.fillColor || formData.polygon_fill_color || '#0077c0';
-            if (formData.location_type === 'image') {
-                const imageSourceId = `card-image-${cardID}`;
-                const outlineSourceId = `card-image-outline-source-${cardID}`;
-                const outlineLayerId = `card-image-outline-${cardID}`;
-                const imageCoords = flatVerts.slice(0, 4).map(v => [parseFloat(v.lng), parseFloat(v.lat)]);
-                const outlineCoords = [...imageCoords, imageCoords[0]];
-                const imageSource = map.getSource(imageSourceId);
-                const outlineSource = map.getSource(outlineSourceId);
-                if (imageSource) {
-                    const imageUrl = thumbnail ? preview : getRepresentativeImageUrl();
-                    if (typeof imageSource.updateImage === 'function') {
-                        imageSource.updateImage({ url: imageUrl, coordinates: imageCoords });
-                    } else if (typeof imageSource.setCoordinates === 'function') {
-                        imageSource.setCoordinates(imageCoords);
-                    }
-                }
-                if (outlineSource) {
-                    outlineSource.setData({
-                        type: 'Feature',
-                        geometry: { type: 'Polygon', coordinates: [outlineCoords] }
-                    });
-                }
-                if (map.getLayer(outlineLayerId)) {
-                    map.setPaintProperty(outlineLayerId, 'line-color', fillColor);
-                }
-            } else {
-                const sourceId = `card-polygon-${cardID}`;
-                const fillLayerId = `card-polygon-fill-${cardID}`;
-                const lineLayerId = `card-polygon-line-${cardID}`;
-                // Group flat vertices by ring, keeping each ring's own style
-                const ringMap = new Map();
-                for (const v of flatVerts) {
-                    const r = v.ring ?? 0;
-                    if (!ringMap.has(r)) {
-                        ringMap.set(r, {
-                            coords: [],
-                            style: { fillColor: v.fillColor, fillOpacity: v.fillOpacity, lineStyle: v.lineStyle }
-                        });
-                    }
-                    ringMap.get(r).coords.push([parseFloat(v.lng), parseFloat(v.lat)]);
-                }
-                // One feature per ring with per-ring style properties — must match the
-                // data-driven structure renderCardPolygons() builds in Content1.js,
-                // otherwise all rings collapse to a single color/opacity until reload.
-                const ringFeatures = [...ringMap.entries()]
-                    .sort(([a], [b]) => a - b)
-                    .map(([ringIndex, data]) => {
-                        const coords = [...data.coords, data.coords[0]];
-                        const style = data.style || {};
-                        return {
-                            type: 'Feature',
-                            properties: {
-                                ring: ringIndex,
-                                fillColor: style.fillColor || fillColor,
-                                fillOpacity: style.fillOpacity ?? primaryStyle.fillOpacity ?? 0.2,
-                                lineStyle: style.lineStyle || primaryStyle.lineStyle || 'solid',
-                            },
-                            geometry: { type: 'Polygon', coordinates: [coords] }
-                        };
-                    });
-
-                const source = map.getSource(sourceId);
-                if (source) {
-                    source.setData({ type: 'FeatureCollection', features: ringFeatures });
-                }
-
-                // Keep paint properties data-driven so each ring retains its own
-                // color/opacity instead of flattening to the primary style.
-                const dataDrivenColor = ['coalesce', ['get', 'fillColor'], fillColor];
-                if (map.getLayer(fillLayerId)) {
-                    map.setPaintProperty(fillLayerId, 'fill-color', dataDrivenColor);
-                    map.setPaintProperty(fillLayerId, 'fill-opacity', ['coalesce', ['get', 'fillOpacity'], 0.2]);
-                }
-                // Recolor the legacy single line layer and every existing per-style layer.
-                ['', '-solid', '-dashed', '-dotted', '-dashdot'].forEach(suffix => {
-                    const styleLineId = `${lineLayerId}${suffix}`;
-                    if (map.getLayer(styleLineId)) {
-                        map.setPaintProperty(styleLineId, 'line-color', dataDrivenColor);
-                    }
-                });
-                // A ring may have switched to a line style that has no layer yet
-                // (Content1 only creates layers for styles present at load time) —
-                // create any missing per-style border layers.
-                if (map.getSource(sourceId)) {
-                    const LINE_STYLE_DASH = { solid: [], dashed: [4, 3], dotted: [1, 2], dashdot: [4, 2, 1, 2] };
-                    const stylesPresent = new Set(ringFeatures.map(f => f.properties.lineStyle || 'solid'));
-                    stylesPresent.forEach(styleKey => {
-                        const styleLineId = `${lineLayerId}-${styleKey}`;
-                        if (map.getLayer(styleLineId)) return;
-                        const dash = LINE_STYLE_DASH[styleKey] || [];
-                        const paint = {
-                            'line-color': dataDrivenColor,
-                            'line-width': 2,
-                        };
-                        if (styleKey !== 'solid' && dash.length > 0) {
-                            paint['line-dasharray'] = dash;
-                        }
-                        map.addLayer({
-                            id: styleLineId,
-                            type: 'line',
-                            source: sourceId,
-                            filter: ['==', ['coalesce', ['get', 'lineStyle'], 'solid'], styleKey],
-                            paint,
-                        });
-                    });
-                }
-            }
+        if (imageSlot?.file) {
+            setThumbnail(imageSlot.file);
+            setPreview(imageSlot.url);
         }
-    }, [formData.cardID, formData.location_type, formData.polygon_fill_color, formData.polygon_fill_opacity, formData.polygon_line_style, formData.polygon_vertices, isConvertingLocationType, getRepresentativeImageUrl, preview, props.cardID, restoreCardPolygonLayers, thumbnail]);
+        // The draft preview uses the new geometry. Content1 renders it after the
+        // main Save succeeds, keeping cancel free of persistent map mutations.
+    }, [conversionTargetType, formData.location_type, formData.polygon_fill_color, formData.polygon_fill_opacity, formData.polygon_line_style, formData.polygon_vertices, isConvertingLocationType, getRepresentativeImageUrl]);
 
     const handlePolygonEditCancel = useCallback(() => {
-        // If was converting from marker to polygon/image, revert location_type
-        if (isConvertingLocationType) {
-            setFormData(prev => ({ ...prev, location_type: 'point' }));
-            setIsConvertingLocationType(false);
-        }
+        setConversionTargetType(null);
         setIsEditingPolygon(false);
-        restoreCardPolygonLayers();
-    }, [restoreCardPolygonLayers, isConvertingLocationType]);
+        setHideCardMapRepresentation(editorMapHiddenBackupRef.current);
+    }, []);
 
     const handleLearnMoreEditStart = (e) => {
         e.stopPropagation();
@@ -1439,8 +1254,12 @@ function Card(props) {
         setImageUploadJobs([]);
         setFramingImage(null);
         // Clean up any active coordinate editing
-        setHideCardPointMarkers(false);
+        setHideCardMapRepresentation(false);
         setIsEditingCoordinate(false);
+        setIsEditingPolygon(false);
+        setConversionTargetType(null);
+        setThumbnail(null);
+        setPreview('');
 
         setIsImageMutationLoading(true);
         await rollbackSessionUploads();
@@ -1536,7 +1355,9 @@ function Card(props) {
                 // This save path skips the page reload, so the map still shows the
                 // pre-edit markers and polygons. Ask Content1/Content2 to re-fetch, the
                 // same way creating a card from the map does.
-                setHideCardPointMarkers(false);
+                setHideCardMapRepresentation(false);
+                setThumbnail(null);
+                setPreview('');
                 window.dispatchEvent(new CustomEvent('atlas:card-uploaded'));
                 setIsLearnMoreEditMode(false);
                 setLearnMoreBackup(null);
@@ -1879,7 +1700,7 @@ function Card(props) {
         <>
             <p><strong>Map location:</strong></p>
             <div className="learn-more-representation-preview">
-                <RepresentationPreview data={formData} imageSrc={isImageCard && (formData.thumbnail_link || preview) ? getRepresentativeImageUrl() : undefined} onLocate={async e => {
+                <RepresentationPreview data={formData} imageSrc={isImageCard ? (thumbnail ? preview : getRepresentativeImageUrl()) : undefined} onLocate={async e => {
                     if (await handleLearnMoreClose(e)) handleZoom(e);
                 }} />
                 <div className="learn-more-representation-info">
@@ -2513,47 +2334,27 @@ function Card(props) {
                             <div className="learn-more-location-section" data-onboarding-target="learn-more-coordinates-polygon">
                                 {renderRepresentationPreview()}
                                 <div className="learn-more-location-actions">
-                                    {isOverlayCard ? (
-                                        <button type="button" className="learn-more-select-location-btn" onClick={handleEditPolygon}>
-                                            {isImageCard ? 'Edit Image' : 'Edit Polygon'}
+                                    <div className="learn-more-location-btn-group">
+                                        <button type="button" className="learn-more-select-location-btn" onClick={isOverlayCard ? handleEditPolygon : handleEditCoordinate}>
+                                            {isImageCard ? 'Edit Image' : isOverlayCard ? 'Edit Polygon' : 'Edit Coordinate'}
                                         </button>
-                                    ) : (
-                                        <div className="learn-more-location-btn-group">
-                                            <button type="button" className="learn-more-select-location-btn" onClick={handleEditCoordinate}>
-                                                Edit Coordinate
+                                        <div className="learn-more-location-type-btn-wrap" ref={locationTypeMenuRef}>
+                                            <button type="button" className="learn-more-select-location-btn learn-more-change-to-polygon-btn"
+                                                aria-expanded={isLocationTypeMenuOpen} onClick={event => { event.stopPropagation(); setIsLocationTypeMenuOpen(v => !v); }}>
+                                                Change location type
                                             </button>
-                                            <div className="learn-more-location-type-btn-wrap" ref={locationTypeMenuRef}>
-                                                <button
-                                                    type="button"
-                                                    className="learn-more-select-location-btn learn-more-change-to-polygon-btn"
-                                                    onClick={() => setIsLocationTypeMenuOpen(v => !v)}
-                                                >
-                                                    Change location type
-                                                </button>
-                                                {isLocationTypeMenuOpen && (
-                                                    <div className="learn-more-location-type-menu">
-                                                        <button type="button" className="learn-more-location-type-menu-item active" disabled>
-                                                            Point
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            className="learn-more-location-type-menu-item"
-                                                            onClick={() => { setIsLocationTypeMenuOpen(false); handleChangeToPolygon(); }}
-                                                        >
-                                                            Polygon
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            className="learn-more-location-type-menu-item"
-                                                            onClick={() => { setIsLocationTypeMenuOpen(false); handleChangeToImage(); }}
-                                                        >
-                                                            Image
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
+                                            {isLocationTypeMenuOpen && <div className="learn-more-location-type-menu">
+                                                {['point', 'polygon', 'image'].map(type => {
+                                                    const active = type === (isOverlayCard ? formData.location_type : 'point');
+                                                    return <button key={type} type="button"
+                                                        className={`learn-more-location-type-menu-item${active ? ' active' : ''}`}
+                                                        disabled={active} onClick={event => handleChangeLocationType(type, event)}>
+                                                        {type[0].toUpperCase() + type.slice(1)}
+                                                    </button>;
+                                                })}
+                                            </div>}
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                             </div>
                         </>
@@ -3365,8 +3166,8 @@ function Card(props) {
             <div onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
             {isEditingPolygon && (
                 <PolygonDrawingModal
-                    mode={isImageCard ? 'image' : 'polygon'}
-                    title={isImageCard ? (isConvertingLocationType ? 'Place Image' : 'Edit Image') : 'Draw Polygon'}
+                    mode={conversionTargetType || (isImageCard ? 'image' : 'polygon')}
+                    title={(conversionTargetType || formData.location_type) === 'image' ? (isConvertingLocationType ? 'Place Image' : 'Edit Image') : 'Draw Polygon'}
                     initialVertices={isConvertingLocationType ? [] : formData.polygon_vertices}
                     initialLineStyle={isConvertingLocationType ? undefined : formData.polygon_line_style}
                     initialFillColor={isConvertingLocationType ? undefined : formData.polygon_fill_color}
@@ -3378,6 +3179,7 @@ function Card(props) {
             {isEditingCoordinate && (
                 <CoordinatesPanel
                     initialPoints={(() => {
+                        if (isConvertingLocationType) return [];
                         // Multi-point cards keep their real points (and per-point icon /
                         // color / opacity) in polygon_vertices — latitude/longitude is only
                         // the card's representative coordinate, so editing from it alone

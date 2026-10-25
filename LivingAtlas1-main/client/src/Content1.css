@@ -1,4 +1,9 @@
 /* AtlasMap root fills available space, avoids navbar and sidebars */
+[data-card-location-editing="true"] {
+  display: none !important;
+  pointer-events: none !important;
+}
+
 .AtlasMap {
   position: fixed;
   top: var(--app-navbar-height); /* height of navbar */

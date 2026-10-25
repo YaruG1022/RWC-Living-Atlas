@@ -4,8 +4,10 @@ import Card from './Card';
 import api from './api';
 import { fetchAllArcgisServices } from './arcgisServicesDb';
 import { fetchUserPreferences } from './userPreferencesApi';
+import { toggleSharedCardLayer } from './sharedCardLayers';
 
-jest.mock('./api', () => ({ defaults: { baseURL: '' }, get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn() }));
+jest.mock('./api', () => ({ defaults: { baseURL: '' }, get: jest.fn(), post: jest.fn(), put: jest.fn(), patch: jest.fn(), delete: jest.fn() }));
+jest.mock('./sharedCardLayers', () => ({toggleSharedCardLayer:jest.fn()}));
 jest.mock('jspdf', () => ({ jsPDF: jest.fn() }));
 jest.mock('./arcgisDataUtils', () => ({ fetchArcgisLegend: jest.fn() }));
 jest.mock('./userPreferencesApi', () => ({ fetchUserPreferences: jest.fn().mockResolvedValue({}) }));
@@ -24,6 +26,8 @@ beforeEach(() => {
     jest.clearAllMocks();
     fetchAllArcgisServices.mockResolvedValue([]);
     fetchUserPreferences.mockResolvedValue({});
+    toggleSharedCardLayer.mockResolvedValue();
+    api.patch.mockResolvedValue({data:{}});
     window.alert = jest.fn();
     window.confirm = jest.fn(() => true);
     localStorage.setItem('email', 'fixture@example.invalid');
@@ -58,6 +62,66 @@ test('editing a contact email leaves the card owner identity intact', async () =
     expect(payload.get('email')).toBe('fixture@example.invalid');
     expect(payload.get('original_email')).toBe('fixture@example.invalid');
     expect(payload.get('requester_email')).toBe('fixture@example.invalid');
+});
+
+test.each(['other-user','guest'])('a public card shares enabled layers with %s while their toggles stay local', async audience => {
+    savedCard.is_public = true;
+    if (audience === 'guest') localStorage.removeItem('email');
+    else localStorage.setItem('email','viewer@example.invalid');
+    const links = [
+        {id:11,service_key:'wa-river',layer_id:1,display_name:'Shared river',item_type:'layer',state_code:'WA',folder_name:'Water',is_visible:true,can_manage:false},
+        {id:12,service_key:'uploaded-owner',display_name:'Shared upload',item_type:'uploaded_custom',folder_name:'Root',is_visible:true,shared_layer_key:'shared-custom-42',can_manage:false},
+    ];
+    const original = api.get.getMockImplementation();
+    api.get.mockImplementation((url,...args) => url.startsWith('/cardArcGISLinks?') ? Promise.resolve({data:{data:links}}) : original(url,...args));
+    const {container} = render(<Card formData={savedCard} isLoggedIn={audience !== 'guest'} />);
+    fireEvent.click(container.querySelector('.card'));
+    const custom = await screen.findByText('Shared upload');
+    const customToggle = within(custom.closest('.learn-more-arcgis-link-item')).getByRole('checkbox');
+    expect(customToggle).toBeChecked();
+    expect(toggleSharedCardLayer).toHaveBeenCalledWith(links[1],true);
+    fireEvent.click(customToggle);
+    expect(toggleSharedCardLayer).toHaveBeenLastCalledWith(links[1],false);
+    const arcgisToggle = within(screen.getByText('Shared river').closest('.learn-more-arcgis-link-item')).getByRole('checkbox');
+    expect(arcgisToggle).toBeChecked(); fireEvent.click(arcgisToggle);
+    expect(api.patch).not.toHaveBeenCalled();
+});
+
+test('the creator can persist a linked layer display state using the account identity', async () => {
+    const links=[{id:12,service_key:'uploaded-owner',display_name:'Creator upload',item_type:'uploaded_custom',folder_name:'Root',is_visible:true,shared_layer_key:'shared-custom-42',can_manage:true}];
+    const original = api.get.getMockImplementation();
+    api.get.mockImplementation((url,...args) => url.startsWith('/cardArcGISLinks?') ? Promise.resolve({data:{data:links}}) : original(url,...args));
+    const {container} = render(<Card formData={savedCard} isLoggedIn />);
+    fireEvent.click(container.querySelector('.card'));
+    const label=await screen.findByText('Creator upload');
+    fireEvent.click(within(label.closest('.learn-more-arcgis-link-item')).getByRole('checkbox'));
+    expect(api.patch).toHaveBeenCalledWith('/cardArcGISLinks/12',{is_visible:false,requester_email:'fixture@example.invalid'});
+    expect(toggleSharedCardLayer).not.toHaveBeenCalled();
+});
+
+test('a creator viewing an upload supplied by another account uses that exact shared asset',async()=>{
+    const links=[{id:12,service_key:'same-key',display_name:'Admin supplied upload',item_type:'uploaded_custom',folder_name:'Root',
+        is_visible:true,shared_layer_key:'shared-custom-99',can_manage:true,source_is_personal:false}];
+    const original=api.get.getMockImplementation();
+    api.get.mockImplementation((url,...args)=>url.startsWith('/cardArcGISLinks?')?Promise.resolve({data:{data:links}}):original(url,...args));
+    const {container}=render(<Card formData={savedCard} isLoggedIn />);
+    fireEvent.click(container.querySelector('.card'));
+    await screen.findByText('Admin supplied upload');
+    expect(toggleSharedCardLayer).toHaveBeenCalledWith(links[0],true);
+});
+
+test('a personal ArcGIS pin does not publish a project association until the creator enables it',async()=>{
+    const item={id:11,service_key:'wa-pinned',layer_id:1,display_name:'Pinned river',item_type:'layer',state_code:'WA',folder_name:'Water',is_visible:false,can_manage:true};
+    fetchUserPreferences.mockResolvedValue({arcgis:{pinnedItems:[{serviceKey:'wa-pinned',layerId:1,sublayerIndex:null}]}});
+    const original=api.get.getMockImplementation();
+    api.get.mockImplementation((url,...args)=>url.startsWith('/cardArcGISLinks?')?Promise.resolve({data:{data:[item]}}):original(url,...args));
+    const {container}=render(<Card formData={savedCard} isLoggedIn />);
+    fireEvent.click(container.querySelector('.card'));
+    const name=await screen.findByText('Pinned river');
+    const checkbox=within(name.closest('.learn-more-arcgis-link-item')).getByRole('checkbox');
+    expect(checkbox).not.toBeChecked();expect(checkbox).toBeEnabled();expect(api.patch).not.toHaveBeenCalled();
+    fireEvent.click(checkbox);
+    expect(api.patch).toHaveBeenCalledWith('/cardArcGISLinks/11',{is_visible:true,requester_email:'fixture@example.invalid'});
 });
 
 test('a contact email does not grant permission to edit the project', async () => {

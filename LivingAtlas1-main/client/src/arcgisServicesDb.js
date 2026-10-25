@@ -544,9 +544,9 @@ export async function renameCustomFolder(userEmail, oldName, newName) {
 // Service keys of uploaded custom layers marked visible on any card (is_visible = true
 // in CardArcGISLinks), so they can auto-restore on the map without needing a card's
 // learn-more modal to be opened first.
-export async function fetchVisibleCustomLayerServiceKeys() {
+export async function fetchVisibleCustomLayerServiceKeys(userEmail = '') {
     try {
-        const response = await api.get('/cardArcGISLinks/visible-custom-layers');
+        const response = await api.get('/cardArcGISLinks/visible-custom-layers', {params:{user_email:userEmail}});
         return Array.isArray(response.data?.service_keys) ? response.data.service_keys : [];
     } catch (error) {
         console.warn('[arcgisServicesDb] Failed to fetch visible custom layer service keys:', error?.message || error);
@@ -557,9 +557,9 @@ export async function fetchVisibleCustomLayerServiceKeys() {
 // { service_key, layer_id } pairs of ArcGIS (non-custom-upload) links marked visible
 // on any card, so they can auto-restore on the map without needing a card's
 // learn-more modal to be opened first.
-export async function fetchVisibleArcgisLayerTargets() {
+export async function fetchVisibleArcgisLayerTargets(userEmail = '') {
     try {
-        const response = await api.get('/cardArcGISLinks/visible-arcgis-layers');
+        const response = await api.get('/cardArcGISLinks/visible-arcgis-layers', {params:{user_email:userEmail}});
         return Array.isArray(response.data?.items) ? response.data.items : [];
     } catch (error) {
         console.warn('[arcgisServicesDb] Failed to fetch visible ArcGIS layer targets:', error?.message || error);

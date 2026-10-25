@@ -285,7 +285,7 @@ export function ServiceInfoModal({
             return;
         }
         let active = true;
-        api.get('/cardArcGISLinks/by-service', { params: { service_key: serviceKey } })
+        api.get('/cardArcGISLinks/by-service', { params: { service_key: serviceKey, user_email: localStorage.getItem('email') || '' } })
             .then(res => {
                 const raw = res?.data?.data || [];
                 if (active) setLinkedCards(Array.isArray(raw) ? raw : []);
@@ -304,6 +304,7 @@ export function ServiceInfoModal({
             try {
                 const res = await api.post('/cardArcGISLinks', {
                     card_id: card.cardID,
+                    requester_email: localStorage.getItem('email') || '',
                     service_key: service.key,
                     layer_id: null,
                     sublayer_index: null,
@@ -315,6 +316,7 @@ export function ServiceInfoModal({
                 newLinks.push({
                     id: res.data.id,
                     card_id: card.cardID,
+                    requester_email: localStorage.getItem('email') || '',
                     card_title: card.title || `Card #${card.cardID}`,
                 });
             } catch (err) {
@@ -329,7 +331,7 @@ export function ServiceInfoModal({
 
     const handleUnlinkCard = async (linkId) => {
         try {
-            await api.delete(`/cardArcGISLinks/${linkId}`);
+            await api.delete(`/cardArcGISLinks/${linkId}`, {params:{requester_email:localStorage.getItem('email') || ''}});
             setLinkedCards(prev => prev.filter(c => c.id !== linkId));
         } catch (err) {
             console.error('[ServiceInfoModal] Failed to remove card link:', err);

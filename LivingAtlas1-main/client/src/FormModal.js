@@ -432,6 +432,7 @@ const FormModal = (props) => {
                     try {
                         await api.post('/cardArcGISLinks', {
                             card_id: newCardId,
+                            requester_email: props.email,
                             service_key: item.service_key,
                             layer_id: item.layer_id ?? null,
                             sublayer_index: item.sublayer_index ?? null,
@@ -450,6 +451,7 @@ const FormModal = (props) => {
                     try {
                         await api.post('/cardArcGISLinks', {
                             card_id: newCardId,
+                            requester_email: props.email,
                             service_key: item.service_key,
                             layer_id: null,
                             sublayer_index: null,

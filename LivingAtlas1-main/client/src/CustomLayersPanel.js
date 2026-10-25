@@ -187,7 +187,7 @@ function CustomLayersPanel({
                 const [layers, folders, visibleKeys] = await Promise.all([
                     fetchCustomLayers(userEmail),
                     fetchCustomFolders(userEmail),
-                    fetchVisibleCustomLayerServiceKeys(),
+                    fetchVisibleCustomLayerServiceKeys(userEmail),
                 ]);
                 if (active) {
                     const uploadedLayerStates = {};
@@ -689,11 +689,14 @@ function CustomLayersPanel({
         // eslint-disable-next-line
     }, [checkedLayerIds, serviceLayers, checkedSublayerIds]);
 
+    const externalCustomTogglesRef = useRef(new Set());
+
     // Listen for external toggle requests from the learn-more modal card view
     useEffect(() => {
         const handler = (e) => {
             const { serviceKey, checked } = e.detail || {};
             if (!serviceKey) return;
+            externalCustomTogglesRef.current.add(serviceKey);
             setCheckedLayerIds(prev => ({ ...prev, [serviceKey]: checked ? [0] : [] }));
             setServiceLayerAdded(prev => ({ ...prev, [serviceKey]: !!checked }));
         };
@@ -711,6 +714,7 @@ function CustomLayersPanel({
             .filter(s => s.type === 'uploaded')
             .forEach(service => {
                 const checked = (checkedLayerIds[service.key] || []).length > 0;
+                const externalToggle = externalCustomTogglesRef.current.delete(service.key);
                 const prev = prevServiceVisibleRef.current[service.key];
                 if (prev === undefined) {
                     // First observation — just record the state (e.g. on load).
@@ -723,7 +727,7 @@ function CustomLayersPanel({
                 window.dispatchEvent(new CustomEvent('custom-layer-panel-toggle', {
                     detail: { serviceKey: service.key, checked },
                 }));
-                api.patch('/cardArcGISLinks/by-service', { service_key: service.key, is_visible: checked })
+                if (!externalToggle) api.patch('/cardArcGISLinks/by-service', { service_key: service.key, is_visible: checked, requester_email: userEmail })
                     .catch(err => console.warn('[CustomLayersPanel] Failed to sync custom layer visibility:', err));
             });
         // eslint-disable-next-line react-hooks/exhaustive-deps

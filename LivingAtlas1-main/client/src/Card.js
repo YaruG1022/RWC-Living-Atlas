@@ -407,6 +407,10 @@ function Card(props) {
         if (shouldBeInEditMode && !isLearnMoreEditMode) {
             onboardingEditModeRef.current = true;
             isEditingRef.current = true;
+            setLearnMoreBackup({ ...formData });
+            setLearnMoreLinks(parseLinks(formData.link, formData.link_text));
+            linkedArcgisItemsBackupRef.current = linkedArcgisItems.map(item => ({ ...item }));
+            linkedCustomLayerItemsBackupRef.current = linkedCustomLayerItems.map(item => ({ ...item }));
             setEditFormLinks(parseLinks(formData.link, formData.link_text));
             setFormData((prev) => ({
                 ...prev,
@@ -420,7 +424,7 @@ function Card(props) {
             setIsLearnMoreEditMode(false);
             isEditingRef.current = false;
         }
-    }, [isLearnMoreOnboardingOpen, isLearnMoreModalVisible, learnMoreOnboardingStep]);
+    }, [isLearnMoreOnboardingOpen, isLearnMoreModalVisible, learnMoreOnboardingStep, isLearnMoreEditMode, formData, linkedArcgisItems, linkedCustomLayerItems]);
 
     const handleZoom = (e) => {
         e.stopPropagation();
@@ -1253,6 +1257,7 @@ function Card(props) {
 
         setImageUploadJobs([]);
         setFramingImage(null);
+        setTagInput('');
         // Clean up any active coordinate editing
         setHideCardMapRepresentation(false);
         setIsEditingCoordinate(false);
@@ -1282,6 +1287,7 @@ function Card(props) {
         setSelectedAllImageIDs([]);
         setPendingDeletedImageIDs([]);
         setIsImageMutationLoading(false);
+        setLearnMoreBackup(null);
     };
 
     const applyPendingImageDeletes = async () => {
@@ -1370,13 +1376,14 @@ function Card(props) {
         }
     };
 
-    // Compute whether there are unsaved changes in edit mode
+    // Compare the active draft snapshot, including a draft left after a tutorial.
     const hasUnsavedChanges = useMemo(() => {
-        if (!isLearnMoreEditMode || !learnMoreBackup) return false;
+        if (!learnMoreBackup) return false;
 
         // Compare tracked formData fields
         const trackedFields = [
             'title', 'description', 'tags', 'category', 'username', 'name', 'contact_email',
+            'funding', 'org', 'is_public',
             'latitude', 'longitude', 'location_type',
             'polygon_vertices', 'polygon_fill_color', 'polygon_line_style', 'polygon_fill_opacity',
             'website_link', 'thumbnail_link', 'files', 'gallery_layout', 'gallery_image_ids',
@@ -1385,7 +1392,8 @@ function Card(props) {
             if (JSON.stringify(formData[field]) !== JSON.stringify(learnMoreBackup[field])) return true;
         }
 
-        if (imageUploadJobs.some(job => job.status === 'failed')) return true;
+        if (formData.filesToUpload?.length || thumbnail || pendingDeletedImageIDs.length || sessionUploadedImageIDs.length) return true;
+        if (imageUploadJobs.some(job => job.status !== 'done')) return true;
         // Compare images, including staged framing.
         if (JSON.stringify((formData.images || []).map(image => image.presentation)) !== JSON.stringify((learnMoreBackup.images || []).map(image => image.presentation))) return true;
         // Compare images (order + identity)
@@ -1413,18 +1421,18 @@ function Card(props) {
         }
 
         return false;
-    }, [isLearnMoreEditMode, learnMoreBackup, formData, linkedArcgisItems, linkedCustomLayerItems, learnMoreLinks, imageUploadJobs]);
+    }, [learnMoreBackup, formData, linkedArcgisItems, linkedCustomLayerItems, learnMoreLinks, imageUploadJobs, thumbnail, pendingDeletedImageIDs, sessionUploadedImageIDs]);
 
     const handleLearnMoreClose = async (e) => {
         if (e?.stopPropagation) e.stopPropagation();
         if (loading || isImageMutationLoading) return false;
 
-        if (isLearnMoreEditMode && hasUnsavedChanges) {
+        if (hasUnsavedChanges) {
             const confirmed = window.confirm('You have unsaved changes. Discard them and close?');
             if (!confirmed) return false;
         }
 
-        if (isLearnMoreEditMode) {
+        if (isLearnMoreEditMode || hasUnsavedChanges) {
             await handleLearnMoreEditCancel(e);
         }
 
@@ -1959,6 +1967,7 @@ function Card(props) {
                 isOpen={isLearnMoreModalVisible}
                 onRequestClose={handleLearnMoreClose}
                 shouldCloseOnOverlayClick={!isLearnMoreOnboardingOpen}
+                shouldCloseOnEsc={!isLearnMoreOnboardingOpen}
                 className="Modal Modal--learn-more"
                 overlayClassName="ModalOverlay ModalOverlay--learn-more"
             >
@@ -1967,7 +1976,13 @@ function Card(props) {
                     data-onboarding-target="learn-more-modal-shell"
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => e.stopPropagation()}
+                    onKeyDown={(event) => {
+                        event.stopPropagation();
+                        if (event.key === 'Escape' && !event.defaultPrevented && !isLearnMoreOnboardingOpen) {
+                            event.preventDefault();
+                            handleLearnMoreClose(event);
+                        }
+                    }}
                     onKeyUp={(e) => e.stopPropagation()}
                 >
                 <div className="learn-more-modal-toolbar" data-onboarding-target="learn-more-toolbar">

@@ -675,7 +675,6 @@ const FormModal = (props) => {
 
                     <label htmlFor="project-contact-email">Contact Email <span className="form-modal-required-star">*</span>:</label>
                     <input id="project-contact-email" type="email" name="contact_email" value={formData.contact_email} onChange={handleInputChange} maxLength={255} required />
-                    <small>The project contact can be someone other than the account creating this project.</small>
 
                     <label>Title <span className="form-modal-required-star">*</span>:</label>
                     <input type="text" name="title" value={formData.title} onChange={handleInputChange} required />

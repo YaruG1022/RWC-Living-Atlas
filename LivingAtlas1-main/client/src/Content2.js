@@ -900,7 +900,8 @@ function Content2(props) {
         <>
             {/* Sidebar collapse toggle */}
             <div id="right-sidebar">
-                <div className={`collapse-toggle ${isOnLeft ? 'collapse-toggle--left' : ''}`} onClick={toggleCollapse}>
+                {/* Temporarily hidden; retain the toggle implementation for later use. */}
+                <div hidden style={{ display: 'none' }} className={`collapse-toggle ${isOnLeft ? 'collapse-toggle--left' : ''}`} onClick={toggleCollapse}>
                     <FontAwesomeIcon icon={
                         isOnLeft
                             ? (props.isCollapsed ? faAngleDoubleRight : faAngleDoubleLeft)

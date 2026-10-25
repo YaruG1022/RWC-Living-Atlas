@@ -11,7 +11,7 @@ import {
     fetchArcgisServiceInfo,
     fetchArcgisLayerInfo,
 } from './arcgisDataUtils';
-import { fetchCustomLayers, deleteCustomLayer, reorderCustomLayers, saveLayerOrder, fetchCustomFolders, createCustomFolder, deleteCustomFolder, renameCustomFolder, saveCustomLayer, fetchVisibleCustomLayerServiceKeys, fetchCustomLayerGeojson } from './arcgisServicesDb';
+import { fetchCustomLayers, deleteCustomLayer, reorderCustomLayers, saveLayerOrder, fetchCustomFolders, createCustomFolder, deleteCustomFolder, renameCustomFolder, saveCustomLayer, fetchCustomLayerGeojson } from './arcgisServicesDb';
 import { buildLayerTree, getAllLeafLayers, getDescendantLeafLayers, LayerTreeNode } from './LayerTree';
 import { filterUploadPanelData } from './arcgisUploadSearchUtils';
 import { buildMatchList, useSearchNav } from './arcgisSearchNavUtils';
@@ -168,10 +168,7 @@ function CustomLayersPanel({
         statusTimer.current = setTimeout(() => setStatusMsg(null), 3000);
     };
 
-    // Load custom layers + folders from backend — once per user+refreshKey. Not gated on
-    // isOpen: the panel is mounted for the lifetime of the app (see Home.js), and layers
-    // linked to cards as "visible" need to render on the map on page load even if the
-    // user never opens this panel or any card's learn-more modal.
+    // Personal library rendering is independent of each card's linked layer settings.
     useEffect(() => {
         if (!userEmail) return;
         const loadKey = `${userEmail}:${refreshKey}:${reloadAttempt}`;
@@ -184,32 +181,20 @@ function CustomLayersPanel({
                 // Fold any pre-DB localStorage uploads in before reading the list,
                 // so they come back as ordinary rows below.
                 await migrateLegacyUploadedLayers(userEmail);
-                const [layers, folders, visibleKeys] = await Promise.all([
+                const [layers, folders] = await Promise.all([
                     fetchCustomLayers(userEmail),
                     fetchCustomFolders(userEmail),
-                    fetchVisibleCustomLayerServiceKeys(userEmail),
                 ]);
                 if (active) {
                     const uploadedLayerStates = {};
-                    const visibleKeySet = new Set(visibleKeys);
-                    const autoCheckedLayerIds = {};
-                    const autoServiceLayerAdded = {};
                     layers.filter(s => s.type === 'uploaded').forEach(s => {
                         uploadedLayerStates[s.key] = [{ id: 0, name: s.label, type: 'Feature Layer' }];
-                        if (visibleKeySet.has(s.key)) {
-                            autoCheckedLayerIds[s.key] = [0];
-                            autoServiceLayerAdded[s.key] = true;
-                        }
                     });
                     unstable_batchedUpdates(() => {
                         setCustomServices(layers);
                         setDbFolders(folders);
                         if (Object.keys(uploadedLayerStates).length > 0) {
                             setServiceLayers(prev => ({ ...prev, ...uploadedLayerStates }));
-                        }
-                        if (Object.keys(autoCheckedLayerIds).length > 0) {
-                            setCheckedLayerIds(prev => ({ ...prev, ...autoCheckedLayerIds }));
-                            setServiceLayerAdded(prev => ({ ...prev, ...autoServiceLayerAdded }));
                         }
                         setIsLoading(false);
                     });
@@ -688,50 +673,6 @@ function CustomLayersPanel({
         });
         // eslint-disable-next-line
     }, [checkedLayerIds, serviceLayers, checkedSublayerIds]);
-
-    const externalCustomTogglesRef = useRef(new Set());
-
-    // Listen for external toggle requests from the learn-more modal card view
-    useEffect(() => {
-        const handler = (e) => {
-            const { serviceKey, checked } = e.detail || {};
-            if (!serviceKey) return;
-            externalCustomTogglesRef.current.add(serviceKey);
-            setCheckedLayerIds(prev => ({ ...prev, [serviceKey]: checked ? [0] : [] }));
-            setServiceLayerAdded(prev => ({ ...prev, [serviceKey]: !!checked }));
-        };
-        window.addEventListener('custom-layer-toggle', handler);
-        return () => window.removeEventListener('custom-layer-toggle', handler);
-    }, []);
-
-    // Keep the card learn-more "Linked Custom Layers" checkboxes and the DB
-    // (is_visible) in sync with the panel's own service checkboxes. Only the
-    // uploaded custom services (the ones that can be linked to cards) are
-    // considered; the learn-more modal listens for 'custom-layer-panel-toggle'.
-    const prevServiceVisibleRef = useRef({});
-    useEffect(() => {
-        customServices
-            .filter(s => s.type === 'uploaded')
-            .forEach(service => {
-                const checked = (checkedLayerIds[service.key] || []).length > 0;
-                const externalToggle = externalCustomTogglesRef.current.delete(service.key);
-                const prev = prevServiceVisibleRef.current[service.key];
-                if (prev === undefined) {
-                    // First observation — just record the state (e.g. on load).
-                    prevServiceVisibleRef.current[service.key] = checked;
-                    return;
-                }
-                if (prev === checked) return;
-                prevServiceVisibleRef.current[service.key] = checked;
-
-                window.dispatchEvent(new CustomEvent('custom-layer-panel-toggle', {
-                    detail: { serviceKey: service.key, checked },
-                }));
-                if (!externalToggle) api.patch('/cardArcGISLinks/by-service', { service_key: service.key, is_visible: checked, requester_email: userEmail })
-                    .catch(err => console.warn('[CustomLayersPanel] Failed to sync custom layer visibility:', err));
-            });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [checkedLayerIds, customServices]);
 
     // Clear all layers from map:
     const handleClearAllLayers = () => {

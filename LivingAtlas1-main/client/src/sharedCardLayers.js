@@ -25,10 +25,10 @@ function render(map,state,entry,refresh=false) {
     }
 }
 
-export async function toggleSharedCardLayer(item,checked,map=window.atlasMapInstance) {
+export async function toggleSharedCardLayer(item,checked,map=window.atlasMapInstance,userEmail='') {
     if (!map || !item.shared_layer_key) throw new Error('The map or shared layer is not ready. Please try again.');
     const state = stateFor(map);
-    const key = item.shared_layer_key;
+    const key = `card-link-${item.id}`;
     const entry = state.entries.get(key) || {revision:0};
     entry.revision += 1;
     entry.enabled = checked;
@@ -42,10 +42,10 @@ export async function toggleSharedCardLayer(item,checked,map=window.atlasMapInst
         return;
     }
     try {
-        const response = await api.get(`/cardArcGISLinks/public-custom-layer/${item.id}`);
+        const response = await api.get(`/cardArcGISLinks/public-custom-layer/${item.id}`,{params:{user_email:userEmail}});
         if (revision !== entry.revision || !entry.enabled) return;
-        if (response.data?.service?.key !== key || !response.data?.geojson) throw new Error('This shared layer is unavailable.');
-        entry.payload = response.data;
+        if (response.data?.service?.key !== item.shared_layer_key || !response.data?.geojson) throw new Error('This shared layer is unavailable.');
+        entry.payload = {...response.data,service:{...response.data.service,key}};
         render(map,state,entry,true);
     } catch (error) {
         if (revision !== entry.revision) return;

@@ -24,6 +24,7 @@ const originalImages = Array.from({ length: 3 }, (_, index) => ({ imageID: index
 let savedCard;
 beforeEach(() => {
     jest.clearAllMocks();
+    localStorage.clear();
     fetchAllArcgisServices.mockResolvedValue([]);
     fetchUserPreferences.mockResolvedValue({});
     toggleSharedCardLayer.mockResolvedValue();
@@ -64,39 +65,46 @@ test('editing a contact email leaves the card owner identity intact', async () =
     expect(payload.get('requester_email')).toBe('fixture@example.invalid');
 });
 
-test.each(['other-user','guest'])('a public card shares enabled layers with %s while their toggles stay local', async audience => {
+test.each(['other-user','guest'])('a public card restores independent linked layer choices for %s', async audience => {
     savedCard.is_public = true;
-    if (audience === 'guest') localStorage.removeItem('email');
-    else localStorage.setItem('email','viewer@example.invalid');
+    const email = audience === 'guest' ? '' : 'viewer@example.invalid';
+    if (email) localStorage.setItem('email',email); else localStorage.removeItem('email');
     const links = [
         {id:11,service_key:'wa-river',layer_id:1,display_name:'Shared river',item_type:'layer',state_code:'WA',folder_name:'Water',is_visible:true,can_manage:false},
         {id:12,service_key:'uploaded-owner',display_name:'Shared upload',item_type:'uploaded_custom',folder_name:'Root',is_visible:true,shared_layer_key:'shared-custom-42',can_manage:false},
     ];
     const original = api.get.getMockImplementation();
     api.get.mockImplementation((url,...args) => url.startsWith('/cardArcGISLinks?') ? Promise.resolve({data:{data:links}}) : original(url,...args));
-    const {container} = render(<Card formData={savedCard} isLoggedIn={audience !== 'guest'} />);
+    const {container,unmount} = render(<Card formData={savedCard} isLoggedIn={!!email} />);
     fireEvent.click(container.querySelector('.card'));
-    const custom = await screen.findByText('Shared upload');
-    const customToggle = within(custom.closest('.learn-more-arcgis-link-item')).getByRole('checkbox');
-    expect(customToggle).toBeChecked();
-    expect(toggleSharedCardLayer).toHaveBeenCalledWith(links[1],true);
-    fireEvent.click(customToggle);
-    expect(toggleSharedCardLayer).toHaveBeenLastCalledWith(links[1],false);
-    const arcgisToggle = within(screen.getByText('Shared river').closest('.learn-more-arcgis-link-item')).getByRole('checkbox');
-    expect(arcgisToggle).toBeChecked(); fireEvent.click(arcgisToggle);
-    expect(api.patch).not.toHaveBeenCalled();
+    const customToggle=within((await screen.findByText('Shared upload')).closest('.learn-more-arcgis-link-item')).getByRole('checkbox');
+    const arcgisToggle=within(screen.getByText('Shared river').closest('.learn-more-arcgis-link-item')).getByRole('checkbox');
+    expect(customToggle.checked).toBe(!!email);expect(arcgisToggle.checked).toBe(!!email);
+    fireEvent.click(customToggle);fireEvent.click(arcgisToggle);
+    expect(toggleSharedCardLayer).toHaveBeenLastCalledWith(expect.objectContaining({id:12}),!email,undefined,email);
+    if(email) {
+        await waitFor(()=>expect(api.patch).toHaveBeenCalledWith('/cardArcGISLinks/12',{is_visible:false,requester_email:email}));
+        expect(api.patch).toHaveBeenCalledWith('/cardArcGISLinks/11',{is_visible:false,requester_email:email});
+    } else {
+        expect(api.patch).not.toHaveBeenCalled();
+        unmount();
+        const next=render(<Card formData={savedCard} isLoggedIn={false}/>);
+        fireEvent.click(next.container.querySelector('.card'));
+        const restored=await screen.findByText('Shared upload');
+        expect(within(restored.closest('.learn-more-arcgis-link-item')).getByRole('checkbox')).toBeChecked();
+    }
 });
 
-test('the creator can persist a linked layer display state using the account identity', async () => {
-    const links=[{id:12,service_key:'uploaded-owner',display_name:'Creator upload',item_type:'uploaded_custom',folder_name:'Root',is_visible:true,shared_layer_key:'shared-custom-42',can_manage:true}];
-    const original = api.get.getMockImplementation();
-    api.get.mockImplementation((url,...args) => url.startsWith('/cardArcGISLinks?') ? Promise.resolve({data:{data:links}}) : original(url,...args));
-    const {container} = render(<Card formData={savedCard} isLoggedIn />);
+test('the creator saves a personal display preference just like any other viewer',async()=>{
+    const item={id:12,service_key:'uploaded-owner',display_name:'Creator upload',item_type:'uploaded_custom',folder_name:'Root',is_visible:true,shared_layer_key:'shared-custom-42',can_manage:true};
+    const original=api.get.getMockImplementation();
+    api.get.mockImplementation((url,...args)=>url.startsWith('/cardArcGISLinks?')?Promise.resolve({data:{data:[item]}}):original(url,...args));
+    const {container}=render(<Card formData={savedCard} isLoggedIn/>);
     fireEvent.click(container.querySelector('.card'));
     const label=await screen.findByText('Creator upload');
     fireEvent.click(within(label.closest('.learn-more-arcgis-link-item')).getByRole('checkbox'));
-    expect(api.patch).toHaveBeenCalledWith('/cardArcGISLinks/12',{is_visible:false,requester_email:'fixture@example.invalid'});
-    expect(toggleSharedCardLayer).not.toHaveBeenCalled();
+    await waitFor(()=>expect(api.patch).toHaveBeenCalledWith('/cardArcGISLinks/12',{is_visible:false,requester_email:'fixture@example.invalid'}));
+    expect(toggleSharedCardLayer).toHaveBeenCalledWith(item,false,undefined,'fixture@example.invalid');
 });
 
 test('a creator viewing an upload supplied by another account uses that exact shared asset',async()=>{
@@ -107,10 +115,10 @@ test('a creator viewing an upload supplied by another account uses that exact sh
     const {container}=render(<Card formData={savedCard} isLoggedIn />);
     fireEvent.click(container.querySelector('.card'));
     await screen.findByText('Admin supplied upload');
-    expect(toggleSharedCardLayer).toHaveBeenCalledWith(links[0],true);
+    expect(toggleSharedCardLayer).toHaveBeenCalledWith(links[0],true,undefined,'fixture@example.invalid');
 });
 
-test('a personal ArcGIS pin does not publish a project association until the creator enables it',async()=>{
+test('personal ArcGIS pins do not override linked-layer choices or disable their checkboxes',async()=>{
     const item={id:11,service_key:'wa-pinned',layer_id:1,display_name:'Pinned river',item_type:'layer',state_code:'WA',folder_name:'Water',is_visible:false,can_manage:true};
     fetchUserPreferences.mockResolvedValue({arcgis:{pinnedItems:[{serviceKey:'wa-pinned',layerId:1,sublayerIndex:null}]}});
     const original=api.get.getMockImplementation();
@@ -121,7 +129,36 @@ test('a personal ArcGIS pin does not publish a project association until the cre
     const checkbox=within(name.closest('.learn-more-arcgis-link-item')).getByRole('checkbox');
     expect(checkbox).not.toBeChecked();expect(checkbox).toBeEnabled();expect(api.patch).not.toHaveBeenCalled();
     fireEvent.click(checkbox);
-    expect(api.patch).toHaveBeenCalledWith('/cardArcGISLinks/11',{is_visible:true,requester_email:'fixture@example.invalid'});
+    await waitFor(()=>expect(api.patch).toHaveBeenCalledWith('/cardArcGISLinks/11',{is_visible:true,requester_email:'fixture@example.invalid'}));
+});
+
+test('switching accounts clears previous map layers and restores the next account preference',async()=>{
+    const item={id:12,service_key:'same-key',display_name:'Account upload',item_type:'uploaded_custom',folder_name:'Root',shared_layer_key:'shared-custom-42'};
+    const original=api.get.getMockImplementation();
+    api.get.mockImplementation((url,...args)=>url.startsWith('/cardArcGISLinks?')?Promise.resolve({data:{data:[{...item,is_visible:url.includes('fixture%40')} ]}}):original(url,...args));
+    const view=render(<Card formData={savedCard} isLoggedIn/>);
+    fireEvent.click(view.container.querySelector('.card'));
+    const name=await screen.findByText('Account upload');
+    expect(within(name.closest('.learn-more-arcgis-link-item')).getByRole('checkbox')).toBeChecked();
+    localStorage.setItem('email','second@example.invalid');
+    view.rerender(<Card formData={savedCard} isLoggedIn/>);
+    await waitFor(()=>expect(api.get).toHaveBeenCalledWith(expect.stringContaining('second%40example.invalid')));
+    await waitFor(()=>expect(within(screen.getByText('Account upload').closest('.learn-more-arcgis-link-item')).getByRole('checkbox')).not.toBeChecked());
+    expect(toggleSharedCardLayer).toHaveBeenCalledWith(expect.objectContaining({id:12}),false,undefined,'fixture@example.invalid');
+    expect(api.patch).not.toHaveBeenCalled();
+});
+
+test('a failed personal visibility save restores the checkbox and shows a retry message',async()=>{
+    const item={id:11,service_key:'wa-river',layer_id:1,display_name:'Save failure river',item_type:'layer',is_visible:false};
+    const original=api.get.getMockImplementation();
+    api.get.mockImplementation((url,...args)=>url.startsWith('/cardArcGISLinks?')?Promise.resolve({data:{data:[item]}}):original(url,...args));
+    api.patch.mockRejectedValueOnce(new Error('Offline'));
+    const view=render(<Card formData={savedCard} isLoggedIn/>);
+    fireEvent.click(view.container.querySelector('.card'));
+    const checkbox=within((await screen.findByText('Save failure river')).closest('.learn-more-arcgis-link-item')).getByRole('checkbox');
+    fireEvent.click(checkbox);
+    expect(await screen.findByRole('alert')).toHaveTextContent('could not be saved');
+    expect(checkbox).not.toBeChecked();
 });
 
 test('a contact email does not grant permission to edit the project', async () => {

@@ -14,7 +14,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faPen, faTrashCan, faDownload, faArrowLeft, faCheck, faUpload, faXmark, faQuestion, faPlay, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { jsPDF } from 'jspdf';
 import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
-import { fetchUserPreferences } from './userPreferencesApi';
 import RichTextEditor from './RichTextEditor';
 import RepresentationPreview from './RepresentationPreview';
 import { descriptionToHtml, htmlToPlainText } from './richTextUtils';
@@ -22,6 +21,7 @@ import PolygonDrawingModal from './PolygonDrawingModal';
 import CoordinatesPanel from './CoordinatesPanel';
 import { setCardLocationEditing } from './cardLocationEditing';
 import { toggleSharedCardLayer } from './sharedCardLayers';
+import { resolveLinkedLayerVisibility, saveLinkedLayerVisibility } from './linkedLayerVisibility';
 import ArcGISPickerModal from './ArcGISPickerModal';
 import { fetchAllArcgisServices } from './arcgisServicesDb';
 import CustomLayerPickerModal from './CustomLayerPickerModal';
@@ -34,26 +34,6 @@ const ARCGIS_STATE_FULL_NAMES = {
     ID: 'Idaho ArcGIS Services',
     OR: 'Oregon ArcGIS Services',
 };
-
-// Pinned ArcGIS items live in the same user-preference list
-// (preferences.arcgis.pinnedItems) used by the ArcGIS upload panel, so pinned
-// layers persist in the database and auto-load with the panel's pin system.
-function normalizePinnedArcgisItems(items) {
-    if (!Array.isArray(items)) return [];
-    return items
-        .filter(i => i && typeof i === 'object' && typeof i.serviceKey === 'string' && i.serviceKey.trim())
-        .map(i => ({
-            serviceKey: i.serviceKey.trim(),
-            layerId: i.layerId ?? null,
-            sublayerIndex: i.sublayerIndex ?? null,
-        }));
-}
-
-function pinMatchesLinkedItem(pin, item) {
-    return pin.serviceKey === item.service_key
-        && (pin.layerId ?? null) === (item.layer_id ?? null)
-        && (pin.sublayerIndex ?? null) === (item.sublayer_index ?? null);
-}
 
 function parseLinks(link, linkText) {
     if (!link) return [{ url: '', text: '' }];
@@ -125,11 +105,10 @@ function Card(props) {
     const [isArcgisPickerOpen, setIsArcgisPickerOpen] = useState(false);
     // Track which linked items have their layer shown on the map (keyed by item.id)
     const [linkedArcgisChecked, setLinkedArcgisChecked] = useState({});
-    // Pinned ArcGIS items (shared with the upload panel via user preferences / DB)
-    const [pinnedArcgisItems, setPinnedArcgisItems] = useState([]);
-    const pinnedArcgisLoadedRef = useRef(false);
-    const pinnedAutoOpenedRef = useRef(false);
-    const linkedItemsLoadedRef = useRef(null); // tracks which cardID was last loaded
+    const layerViewerEmail = props.isLoggedIn ? (localStorage.getItem('email') || '').trim().toLowerCase() : '';
+    const layerViewerRef = useRef(layerViewerEmail);
+    layerViewerRef.current = layerViewerEmail;
+    const visibilityRevisionRef = useRef({});
     const linkedArcgisItemsBackupRef = useRef(null); // backup of linkedArcgisItems when edit mode starts
     const [linkedCustomLayerItems, setLinkedCustomLayerItems] = useState([]);
     const [linkedCustomLayerChecked, setLinkedCustomLayerChecked] = useState({});
@@ -183,18 +162,13 @@ function Card(props) {
     }, [props.isFavorited]);
 
     const showLinkedCustomLayer = useCallback((item,checked) => {
-        const viewer = props.isLoggedIn ? (localStorage.getItem('email') || '') : '';
-        const personalSource = item.source_is_personal ?? (viewer.toLowerCase() === (formData.email || '').toLowerCase());
-        if (!personalSource) {
-            toggleSharedCardLayer(item,checked).catch(error => {
-                console.warn('Shared layer could not be displayed:',error);
-                setLinkedCustomLayerChecked(prev => ({...prev,[item.id]:false}));
-                setLinkedLayerError('This shared layer could not be displayed. It may no longer be public. Please reopen the project or try again.');
-            });
-        } else {
-            window.dispatchEvent(new CustomEvent('custom-layer-toggle', {detail:{serviceKey:item.service_key,checked}}));
-        }
-    }, [formData.email, props.isLoggedIn]);
+        toggleSharedCardLayer(item,checked,undefined,layerViewerEmail).catch(error => {
+            if (layerViewerRef.current !== layerViewerEmail || !checked) return;
+            console.warn('Linked layer could not be displayed:',error);
+            setLinkedCustomLayerChecked(prev => ({...prev,[item.id]:false}));
+            setLinkedLayerError('This linked layer could not be displayed. Please reopen the project or try again.');
+        });
+    }, [layerViewerEmail]);
 
     const applyFetchedCardLinks = useCallback(all => {
         setLinkedLayerError('');
@@ -215,30 +189,45 @@ function Card(props) {
         customItems.forEach(item => showLinkedCustomLayer(item,Boolean(item.is_visible)));
     }, [showLinkedCustomLayer]);
 
-    const canPublishLinkedVisibility = item => {
-        if (!props.isLoggedIn) return false;
-        if (typeof item.can_manage === 'boolean') return item.can_manage;
-        const email = localStorage.getItem('email') || '';
-        let admin = false;
-        try { admin = Boolean(JSON.parse(localStorage.getItem('isAdmin'))); } catch {}
-        return Boolean(props.isLoggedIn && email && (admin || email.toLowerCase() === (formData.email || '').toLowerCase()));
-    };
+    // Clear the previous account's map layers, including on logout or card unmount.
+    useEffect(() => {
+        return () => {
+            fetchedCardLinksRef.current.forEach(item => {
+                if (item.item_type === 'uploaded_custom') toggleSharedCardLayer(item,false,undefined,layerViewerEmail).catch(() => {});
+                else window.dispatchEvent(new CustomEvent('arcgis-layer-toggle',{detail:{serviceKey:item.service_key,layerId:item.layer_id,checked:false}}));
+            });
+            fetchedCardLinksRef.current = [];
+        };
+    }, [layerViewerEmail]);
+
+    useEffect(() => {
+        setLinkedArcgisItems([]);
+        setLinkedCustomLayerItems([]);
+        setLinkedArcgisChecked({});
+        setLinkedCustomLayerChecked({});
+        setLinkedLayerError('');
+        visibilityRevisionRef.current = {};
+    }, [layerViewerEmail]);
 
     useEffect(() => {
         if (props.forceOpenLearnMoreSignal) {
             setIsModalOpen(true);
-            const cardId = formData.cardID;
-            if (cardId) {
-                refreshCardImages().catch(() => {});
-                if (cardId) {
-                    linkedItemsLoadedRef.current = cardId;
-                    api.get(`/cardArcGISLinks?card_id=${cardId}&user_email=${encodeURIComponent(props.isLoggedIn ? (localStorage.getItem('email') || '') : '')}`)
-                        .then(res => applyFetchedCardLinks(res.data.data || []))
-                        .catch(() => {});
-                }
-            }
+            refreshCardImages().catch(() => {});
         }
     }, [props.forceOpenLearnMoreSignal]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        if (!isModalOpen || !formData.cardID) return;
+        let active = true;
+        api.get(`/cardArcGISLinks?card_id=${formData.cardID}&user_email=${encodeURIComponent(layerViewerEmail)}`)
+            .then(res => {
+                if (active) applyFetchedCardLinks(resolveLinkedLayerVisibility(res.data.data || [],layerViewerEmail));
+            })
+            .catch(() => {
+                if (active) setLinkedLayerError('Linked layer settings could not be loaded. Please reopen the project or try again.');
+            });
+        return () => { active = false; };
+    }, [isModalOpen,formData.cardID,layerViewerEmail,applyFetchedCardLinks]);
 
     // Resolve linked services from the database when the card details open.
     useEffect(() => {
@@ -267,85 +256,39 @@ function Card(props) {
         });
     }, [linkedArcgisItems, arcgisServiceByKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Load pinned ArcGIS items from user preferences when the learn-more modal opens
-    useEffect(() => {
-        if (!isModalOpen) {
-            pinnedArcgisLoadedRef.current = false;
-            pinnedAutoOpenedRef.current = false;
-            return;
-        }
-        if (pinnedArcgisLoadedRef.current) return;
-        pinnedArcgisLoadedRef.current = true;
-        const email = localStorage.getItem('email') || '';
-        if (!email) {
-            setPinnedArcgisItems([]);
-            return;
-        }
-        fetchUserPreferences(email)
-            .then(prefs => setPinnedArcgisItems(normalizePinnedArcgisItems(prefs?.arcgis?.pinnedItems)))
-            .catch(() => {});
-    }, [isModalOpen]);
-
-    // Pinned linked layers always stay open: force-show them once per modal open
-    useEffect(() => {
-        if (!isModalOpen || pinnedAutoOpenedRef.current) return;
-        if (linkedArcgisItems.length === 0 || pinnedArcgisItems.length === 0) return;
-        pinnedAutoOpenedRef.current = true;
-        const pinnedLinked = linkedArcgisItems.filter(item =>
-            pinnedArcgisItems.some(pin => pinMatchesLinkedItem(pin, item))
-        );
-        if (pinnedLinked.length === 0) return;
-        setLinkedArcgisChecked(prev => {
-            const nextState = { ...prev };
-            pinnedLinked.filter(item => !canPublishLinkedVisibility(item)).forEach(item => { nextState[item.id] = true; });
-            return nextState;
+    const persistLinkedVisibility = (item,checked,previous,apply) => {
+        const email = layerViewerEmail;
+        const revision = Symbol('visibility-change');
+        visibilityRevisionRef.current[item.id] = revision;
+        setLinkedLayerError('');
+        saveLinkedLayerVisibility(item,checked,email).catch(() => {
+            if (layerViewerRef.current !== email || visibilityRevisionRef.current[item.id] !== revision) return;
+            apply(previous);
+            setLinkedLayerError('Your layer display setting could not be saved. Please try again.');
         });
-        pinnedLinked.forEach(item => {
+    };
+
+    const handleToggleArcgisLayer = (item,nowChecked) => {
+        const apply = checked => {
+            setLinkedArcgisChecked(prev => ({...prev,[item.id]:checked}));
             window.dispatchEvent(new CustomEvent('arcgis-layer-toggle', {
-                detail: { serviceKey: item.service_key, layerId: item.layer_id, checked: true },
+                detail:{serviceKey:item.service_key,layerId:item.layer_id,checked},
             }));
-        });
-    }, [isModalOpen, linkedArcgisItems, pinnedArcgisItems]);
-
-    const handleToggleArcgisLayer = (item, nowChecked) => {
-        const keepPersonalPin = canPublishLinkedVisibility(item) && pinnedArcgisItems.some(pin => pinMatchesLinkedItem(pin,item));
-        if (!keepPersonalPin) window.dispatchEvent(new CustomEvent('arcgis-layer-toggle', {
-            detail: { serviceKey: item.service_key, layerId: item.layer_id, checked: nowChecked },
-        }));
-        // Persist to DB so the shown/hidden state survives modal close/reopen and reloads.
-        if (canPublishLinkedVisibility(item)) api.patch(`/cardArcGISLinks/${item.id}`, { is_visible: nowChecked, requester_email: localStorage.getItem('email') || '' })
-            .catch(err => console.warn('Failed to save ArcGIS layer visibility:', err));
-    };
-
-    const handleToggleCustomLayer = (item, nowChecked) => {
-        showLinkedCustomLayer(item,nowChecked);
-        if (canPublishLinkedVisibility(item)) api.patch(`/cardArcGISLinks/${item.id}`, {
-            is_visible:nowChecked, requester_email:localStorage.getItem('email') || '',
-        }).catch(err => console.warn('Failed to save custom layer visibility:',err));
-    };
-
-    // Keep the Linked Custom Layers checkboxes in sync with the Custom Layers
-    // Panel's own service checkboxes (panel → learn-more direction). The panel
-    // persists the is_visible flag for every card link of the service itself.
-    useEffect(() => {
-        const handler = (e) => {
-            const { serviceKey, checked } = e.detail || {};
-            if (!serviceKey) return;
-            setLinkedCustomLayerChecked(prev => {
-                let changed = false;
-                const next = { ...prev };
-                linkedCustomLayerItems.forEach(item => {
-                    if (item.service_key === serviceKey && next[item.id] !== checked) {
-                        next[item.id] = checked;
-                        changed = true;
-                    }
-                });
-                return changed ? next : prev;
-            });
         };
-        window.addEventListener('custom-layer-panel-toggle', handler);
-        return () => window.removeEventListener('custom-layer-panel-toggle', handler);
-    }, [linkedCustomLayerItems]);
+        const previous = !!linkedArcgisChecked[item.id];
+        apply(nowChecked);
+        persistLinkedVisibility(item,nowChecked,previous,apply);
+    };
+
+    const handleToggleCustomLayer = (item,nowChecked) => {
+        const apply = checked => {
+            setLinkedCustomLayerChecked(prev => ({...prev,[item.id]:checked}));
+            showLinkedCustomLayer(item,checked);
+        };
+        const previous = !!linkedCustomLayerChecked[item.id];
+        apply(nowChecked);
+        persistLinkedVisibility(item,nowChecked,previous,apply);
+    };
 
     // Ensure username and name always have safe defaults
     // Now handled by handleEdit
@@ -367,16 +310,7 @@ function Card(props) {
         setIsAllImagesView(false);
         setIsModalOpen(true);
         if (props.onLearnMore) props.onLearnMore();
-        const cardId = formData.cardID;
-        if (cardId) {
-            refreshCardImages().catch(() => {});
-            if (cardId) {
-                linkedItemsLoadedRef.current = cardId;
-                api.get(`/cardArcGISLinks?card_id=${cardId}&user_email=${encodeURIComponent(props.isLoggedIn ? (localStorage.getItem('email') || '') : '')}`)
-                    .then(res => applyFetchedCardLinks(res.data.data || []))
-                    .catch(() => {});
-            }
-        }
+        if (formData.cardID) refreshCardImages().catch(() => {});
     };
 
     const isLearnMoreModalVisible = isModalOpen && !isEditingPolygon && !isEditingCoordinate;
@@ -2524,10 +2458,12 @@ function Card(props) {
                         )
                     )}
 
+                    {linkedLayerError && <p role="alert">{linkedLayerError}</p>}
                     {/* Linked ArcGIS Services/Layers Section */}
                     {(isLearnMoreEditMode || linkedArcgisItems.length > 0) && (
                     <div className="learn-more-arcgis-links-section" data-onboarding-target="learn-more-arcgis-section">
                         <p><strong>Linked ArcGIS Services/Layers:</strong></p>
+                        <p className="image-upload-hint">Display settings are saved for you only.</p>
                         {linkedArcgisItems.length === 0 ? (
                             <p className="learn-more-no-arcgis-links">No linked ArcGIS items.</p>
                         ) : (
@@ -2536,9 +2472,7 @@ function Card(props) {
                                     const stateLabel = ARCGIS_STATE_FULL_NAMES[item.state_code] || item.state_code;
                                     const isServiceLevel = item.item_type === 'service';
                                     const serviceLabel = arcgisServiceByKey[item.service_key]?.label || item.service_key;
-                                    const isPinnedItem = pinnedArcgisItems.some(pin => pinMatchesLinkedItem(pin, item));
-                                    const canPublish = canPublishLinkedVisibility(item);
-                                    const isLayerChecked = (!canPublish && isPinnedItem) || !!linkedArcgisChecked[item.id];
+                                    const isLayerChecked = !!linkedArcgisChecked[item.id];
 
                                     // Resolve legend image for this item
                                     const legendImg = (() => {
@@ -2564,15 +2498,12 @@ function Card(props) {
                                         <li key={item.id} className="learn-more-arcgis-link-item">
                                             <label
                                                 className="learn-more-arcgis-layer-toggle-label"
-                                                title={canPublish ? "Set this project's default layer display; personal pins are separate" : isPinnedItem
-                                                    ? 'Pinned layers always stay open (unpin to hide)'
-                                                    : 'Show/hide this layer on the map'}
+                                                title="Show/hide this layer for you only"
                                             >
                                                 <input
                                                     type="checkbox"
                                                     className="learn-more-arcgis-layer-toggle-cb"
                                                     checked={isLayerChecked}
-                                                    disabled={isPinnedItem && !canPublish}
                                                     onChange={() => {
                                                         const nowChecked = !isLayerChecked;
                                                         setLinkedArcgisChecked(prev => ({ ...prev, [item.id]: nowChecked }));
@@ -2679,7 +2610,6 @@ function Card(props) {
                     {(isLearnMoreEditMode || linkedCustomLayerItems.length > 0) && (
                     <div className="learn-more-arcgis-links-section">
                         <p><strong>Linked Custom Layers:</strong></p>
-                        {linkedLayerError && <p role="alert">{linkedLayerError}</p>}
                         {linkedCustomLayerItems.length === 0 ? (
                             <p className="learn-more-no-arcgis-links">No linked custom layers.</p>
                         ) : (
@@ -2691,7 +2621,7 @@ function Card(props) {
                                         <li key={item.id} className="learn-more-arcgis-link-item">
                                             <label
                                                 className="learn-more-arcgis-layer-toggle-label"
-                                                title="Show/hide this layer on the map"
+                                                title="Show/hide this layer for you only"
                                             >
                                                 <input
                                                     type="checkbox"

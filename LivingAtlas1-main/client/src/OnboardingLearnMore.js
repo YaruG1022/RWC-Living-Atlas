@@ -79,7 +79,7 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-toolbar"]',
         title: 'Edit Mode - Save or Cancel',
-        description: 'Click Save to save changes. Cancel leaves edit mode; Close exits details. When prompted, confirm discarding unsaved changes or cancel the prompt to keep editing.',
+        description: 'Click Save to save changes. Cancel leaves edit mode; Close exits details. Closing with the Close button, outside click or Escape confirms unsaved changes. Cancel the confirmation to keep editing, or confirm to discard the draft and close.',
         placement: 'bottom',
         scrollTo: '[data-onboarding-target="learn-more-toolbar"]',
     },

@@ -235,7 +235,7 @@
         },
         {
           "type": "text",
-          "text": " buttons. Download PDF and Delete remain beside them, followed by the light gray-blue \"You have unsaved changes\" badge after an edit. Help, Onboarding and Close stay on the right, while the left group can wrap on narrow screens. Cancel or Close asks for confirmation when there are unsaved changes."
+          "text": " buttons. Download PDF and Delete remain beside them, followed by the light gray-blue \"You have unsaved changes\" badge after an edit. Help, Onboarding and Close stay on the right, while the left group can wrap on narrow screens. Cancel asks before discarding unsaved changes. Closing with the Close button, clicking outside the modal or pressing Escape also asks before discarding changes, including funding, organization, visibility and pending file uploads. Cancel the confirmation to keep the modal and draft open, or confirm to discard and close. No confirmation appears when nothing has changed."
         }
       ]
     },

@@ -81,6 +81,7 @@ flowchart TD
 | 功能：文件与外部集成 | 高 | 上传大小/格式、删除回滚、Azure 故障、ArcGIS 响应异常、Mapbox 超时；无孤儿文件/记录 | 合约测试 + 集成测试 |
 | 功能：Custom Layers 保存 | 高 | 保存/读取并发、文件夹/排序/GeoJSON 保留、错误与重试、旧表迁移、测试数据清理 | `tests.test_custom_layers` + `scripts/check_custom_layer_workflow.py`；[本地证据](../LivingAtlas1-main/backend/load_tests/CUSTOM_LAYERS_REPORT.zh-CN.md) |
 | 功能：位置类型转换 | 高 | Point/Polygon/Image 双向转换、当前类型禁用、地图隐藏/弹窗关闭、保存/取消、几何与图片保留 | `Card.location.test.js`、`cardLocationEditing.test.js`、`scripts/check_location_conversion.py`；[本地证据](../LivingAtlas1-main/backend/load_tests/LOCATION_CONVERSION_REPORT.zh-CN.md) |
+| 功能：未保存草稿关闭保护 | 高 | Close/遮罩/Esc 统一确认、取消保留、确认丢弃、元数据/文件变化、无更改直接关闭、教程草稿 | 真实 ReactModal 的 `Card.close.test.js`；[本地证据](LEARN_MORE_CLOSE_REPORT.zh-CN.md) |
 | 功能：端到端用户旅程 | 高 | 注册→登录→浏览地图→筛选→卡片详情→上传/编辑；校验前后端环境连接 | Playwright 等浏览器自动化；生产只做低影响冒烟 |
 | 非功能：安全 | 高 | 按 [OWASP ASVS](https://owasp.org/projects/asvs) 建需求清单；认证授权、SQL 注入、XSS、上传、密钥、依赖扫描 | 静态/依赖扫描 + API 安全测试 + 人工复核 |
 | 非功能：迁移与数据完整性 | 高 | 带历史重复 ID/邮箱和大表的迁移、幂等重启、并发 worker 启动、备份与回滚 | 隔离 DB 集成 + 预发布演练 |

@@ -104,6 +104,12 @@ export const manualGuiUpdates = [
 export const latestGuiUpdateDate = '10/25/2026';
 export const latestGuiUpdates = [
     {
+        title: 'Unsaved Project Changes',
+        items: [
+            'Closing Learn More with the Close button, outside click or Escape now consistently confirms unsaved edits, including funding, organization, visibility and pending files. Canceling the confirmation keeps your draft; confirming discards it and closes the modal.',
+        ],
+    },
+    {
         title: 'Project Location Editing',
         items: [
             'All project types can now switch between Point, Polygon and Image in Learn More edit mode. The current type is disabled. Cancel restores the prior location, and the main Save commits the new one.',

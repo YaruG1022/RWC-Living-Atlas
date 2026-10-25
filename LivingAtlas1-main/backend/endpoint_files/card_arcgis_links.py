@@ -36,7 +36,7 @@ def _require_editor(cursor, card_id, email):
     if row is None:
         raise HTTPException(404, 'Project not found')
     if not email or (row[0].lower() != email.lower() and not row[1]):
-        raise HTTPException(403, 'Only the project creator or an admin can change published linked layers')
+        raise HTTPException(403, 'Only the project creator or an admin can change linked layer associations')
     return row[0]
 
 
@@ -74,15 +74,16 @@ def get_card_arcgis_links(card_id: int, user_email: str = '', database=Depends(_
     _, cursor = database
     cursor.execute('''
         SELECT l.id,l.card_id,l.service_key,l.layer_id,l.sublayer_index,
-               l.display_name,l.item_type,l.state_code,l.folder_name,l.is_visible,
+               l.display_name,l.item_type,l.state_code,l.folder_name,COALESCE(preference.is_visible,FALSE),
                CASE WHEN custom.id IS NOT NULL THEN 'shared-custom-' || custom.id::text END,
                (LOWER(owner.Email)=LOWER(%s) OR COALESCE(viewer.Is_Admin,FALSE)),
                COALESCE(LOWER(custom.user_email)=LOWER(%s),FALSE)
         FROM CardArcGISLinks l JOIN Cards card ON card.CardID=l.card_id
         JOIN Users owner ON owner.UserID=card.UserID
         LEFT JOIN Users viewer ON LOWER(viewer.Email)=LOWER(%s)
+        LEFT JOIN card_link_visibility preference ON preference.link_id=l.id AND preference.user_id=viewer.UserID
         LEFT JOIN user_custom_layers custom ON l.item_type='uploaded_custom' AND custom.id=l.custom_layer_id
-        WHERE l.card_id=%s AND ((COALESCE(card.is_public,TRUE) AND l.is_visible)
+        WHERE l.card_id=%s AND (COALESCE(card.is_public,TRUE)
             OR LOWER(owner.Email)=LOWER(%s) OR COALESCE(viewer.Is_Admin,FALSE))
         ORDER BY l.id
     ''', (user_email,user_email,user_email,card_id,user_email))
@@ -96,19 +97,21 @@ def get_card_arcgis_links_by_service(service_key: str, user_email: str = '', dat
     _, cursor = database
     cursor.execute('''
         SELECT l.id,l.card_id,card.Title,l.service_key,l.layer_id,l.sublayer_index,
-               l.display_name,l.item_type,l.state_code,l.folder_name,l.is_visible
+               l.display_name,l.item_type,l.state_code,l.folder_name,COALESCE(preference.is_visible,FALSE)
         FROM CardArcGISLinks l JOIN Cards card ON card.CardID=l.card_id
         JOIN Users owner ON owner.UserID=card.UserID
-        WHERE l.service_key=%s AND ((COALESCE(card.is_public,TRUE) AND l.is_visible)
-            OR LOWER(owner.Email)=LOWER(%s)) ORDER BY l.id
-    ''', (service_key,user_email))
+        LEFT JOIN Users viewer ON LOWER(viewer.Email)=LOWER(%s)
+        LEFT JOIN card_link_visibility preference ON preference.link_id=l.id AND preference.user_id=viewer.UserID
+        WHERE l.service_key=%s AND (COALESCE(card.is_public,TRUE)
+            OR LOWER(owner.Email)=LOWER(%s) OR COALESCE(viewer.Is_Admin,FALSE)) ORDER BY l.id
+    ''', (user_email,service_key,user_email))
     columns = ['id','card_id','card_title','service_key','layer_id','sublayer_index',
                'display_name','item_type','state_code','folder_name','is_visible']
     return {'data':[dict(zip(columns,row)) for row in cursor.fetchall()]}
 
 
 @card_arcgis_links_router.get('/cardArcGISLinks/public-custom-layer/{link_id}')
-def get_public_custom_layer(link_id: int, database=Depends(_database)):
+def get_public_custom_layer(link_id: int, user_email: str = '', database=Depends(_database)):
     _, cursor = database
     # Resolve the linked asset, independently of the viewer's personal library.
     cursor.execute('''
@@ -116,8 +119,10 @@ def get_public_custom_layer(link_id: int, database=Depends(_database)):
         FROM CardArcGISLinks l JOIN Cards card ON card.CardID=l.card_id
         JOIN Users owner ON owner.UserID=card.UserID
         JOIN user_custom_layers custom ON custom.id=l.custom_layer_id
-        WHERE l.id=%s AND l.item_type='uploaded_custom' AND l.is_visible AND COALESCE(card.is_public,TRUE)
-    ''', (link_id,))
+        LEFT JOIN Users viewer ON LOWER(viewer.Email)=LOWER(%s)
+        WHERE l.id=%s AND l.item_type='uploaded_custom'
+            AND (COALESCE(card.is_public,TRUE) OR LOWER(owner.Email)=LOWER(%s) OR COALESCE(viewer.Is_Admin,FALSE))
+    ''', (user_email,link_id,user_email))
     row = cursor.fetchone()
     if row is None or not row[2]:
         raise HTTPException(404, 'This shared layer is unavailable or is no longer public')
@@ -131,7 +136,11 @@ def get_visible_custom_layer_service_keys(user_email: str = '', database=Depends
     cursor.execute('''
         SELECT DISTINCT l.service_key FROM CardArcGISLinks l
         JOIN Cards card ON card.CardID=l.card_id JOIN Users owner ON owner.UserID=card.UserID
-        WHERE l.item_type='uploaded_custom' AND l.is_visible AND LOWER(owner.Email)=LOWER(%s)
+        JOIN Users viewer ON LOWER(viewer.Email)=LOWER(%s)
+        JOIN card_link_visibility preference ON preference.link_id=l.id AND preference.user_id=viewer.UserID
+        JOIN user_custom_layers custom ON custom.id=l.custom_layer_id AND LOWER(custom.user_email)=LOWER(viewer.Email)
+        WHERE l.item_type='uploaded_custom' AND preference.is_visible
+            AND (COALESCE(card.is_public,TRUE) OR card.UserID=viewer.UserID OR COALESCE(viewer.Is_Admin,FALSE))
     ''', (user_email,))
     return {'service_keys':[row[0] for row in cursor.fetchall()]}
 
@@ -142,8 +151,10 @@ def get_visible_arcgis_layer_targets(user_email: str = '', database=Depends(_dat
     cursor.execute('''
         SELECT DISTINCT l.service_key,l.layer_id FROM CardArcGISLinks l
         JOIN Cards card ON card.CardID=l.card_id JOIN Users owner ON owner.UserID=card.UserID
-        WHERE l.item_type!='uploaded_custom' AND l.is_visible
-            AND (COALESCE(card.is_public,TRUE) OR LOWER(owner.Email)=LOWER(%s))
+        JOIN Users viewer ON LOWER(viewer.Email)=LOWER(%s)
+        JOIN card_link_visibility preference ON preference.link_id=l.id AND preference.user_id=viewer.UserID
+        WHERE l.item_type!='uploaded_custom' AND preference.is_visible
+            AND (COALESCE(card.is_public,TRUE) OR card.UserID=viewer.UserID OR COALESCE(viewer.Is_Admin,FALSE))
     ''', (user_email,))
     return {'items':[{'service_key':row[0],'layer_id':row[1]} for row in cursor.fetchall()]}
 
@@ -173,12 +184,16 @@ def create_card_arcgis_link(link: LinkCreate, database=Depends(_database)):
 def update_card_arcgis_links_visibility_by_service(update: LinkVisibilityByServiceUpdate, database=Depends(_database)):
     connection,cursor = database
     if not update.requester_email:
-        raise HTTPException(403, 'Sign in to change your published linked layers')
-    # A personal library toggle must not alter another creator's published links.
+        raise HTTPException(403, 'Sign in to save your linked layer display settings')
+    # Compatibility for older clients: bulk changes still belong to this viewer only.
     cursor.execute('''
-        UPDATE CardArcGISLinks l SET is_visible=%s FROM Cards card, Users owner
-        WHERE l.card_id=card.CardID AND card.UserID=owner.UserID
-            AND LOWER(owner.Email)=LOWER(%s) AND l.service_key=%s AND l.item_type='uploaded_custom'
+        INSERT INTO card_link_visibility (link_id,user_id,is_visible)
+        SELECT l.id,viewer.UserID,%s FROM CardArcGISLinks l
+        JOIN Cards card ON card.CardID=l.card_id
+        JOIN Users viewer ON LOWER(viewer.Email)=LOWER(%s)
+        WHERE l.service_key=%s AND l.item_type='uploaded_custom'
+            AND (COALESCE(card.is_public,TRUE) OR card.UserID=viewer.UserID OR COALESCE(viewer.Is_Admin,FALSE))
+        ON CONFLICT (link_id,user_id) DO UPDATE SET is_visible=EXCLUDED.is_visible
     ''', (update.is_visible,update.requester_email,update.service_key))
     connection.commit()
     return {'success':True}
@@ -187,8 +202,20 @@ def update_card_arcgis_links_visibility_by_service(update: LinkVisibilityByServi
 @card_arcgis_links_router.patch('/cardArcGISLinks/{link_id}')
 def update_card_arcgis_link_visibility(link_id: int, update: LinkVisibilityUpdate, database=Depends(_database)):
     connection,cursor = database
-    _require_link_editor(cursor,link_id,update.requester_email)
-    cursor.execute('UPDATE CardArcGISLinks SET is_visible=%s WHERE id=%s',(update.is_visible,link_id))
+    if not update.requester_email:
+        raise HTTPException(403, 'Sign in to save your linked layer display settings')
+    cursor.execute('''
+        SELECT viewer.UserID FROM CardArcGISLinks l JOIN Cards card ON card.CardID=l.card_id
+        JOIN Users viewer ON LOWER(viewer.Email)=LOWER(%s)
+        WHERE l.id=%s AND (COALESCE(card.is_public,TRUE) OR card.UserID=viewer.UserID OR COALESCE(viewer.Is_Admin,FALSE))
+    ''', (update.requester_email,link_id))
+    row=cursor.fetchone()
+    if row is None:
+        raise HTTPException(404, 'This linked layer is unavailable')
+    cursor.execute('''
+        INSERT INTO card_link_visibility (link_id,user_id,is_visible) VALUES (%s,%s,%s)
+        ON CONFLICT (link_id,user_id) DO UPDATE SET is_visible=EXCLUDED.is_visible
+    ''', (link_id,row[0],update.is_visible))
     connection.commit()
     return {'success':True}
 

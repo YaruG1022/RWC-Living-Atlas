@@ -72,7 +72,7 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-arcgis-section"]',
         title: 'Edit Mode - ArcGIS & Custom Layers',
-        description: 'Link your project to ArcGIS services/layers or custom layers. Each linked item has a visibility checkbox, a jump-to-panel button, and a remove button in edit mode.',
+        description: 'Link your project to ArcGIS or custom layers. On a public project, enabled linked layers can be viewed by other people, including visitors. Their checkboxes affect only their map; creators and admins set the published display state. Personal uploads can also open in your Custom Layers panel.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-arcgis-section"]',
     },

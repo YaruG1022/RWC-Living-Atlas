@@ -104,6 +104,13 @@ export const manualGuiUpdates = [
 export const latestGuiUpdateDate = '10/25/2026';
 export const latestGuiUpdates = [
     {
+        title: 'Public Project Layers',
+        items: [
+            'Enabled ArcGIS and custom layers on public projects are now viewable by other accounts and visitors. Shared uploads do not need to be copied into a personal library, and identically named uploads remain separate.',
+            'Viewer checkboxes affect only their own map. Private projects and disabled associations are excluded from public sharing; creators and admins manage the published layer state.',
+        ],
+    },
+    {
         title: 'Unsaved Project Changes',
         items: [
             'Closing Learn More with the Close button, outside click or Escape now consistently confirms unsaved edits, including funding, organization, visibility and pending files. Canceling the confirmation keeps your draft; confirming discards it and closes the modal.',

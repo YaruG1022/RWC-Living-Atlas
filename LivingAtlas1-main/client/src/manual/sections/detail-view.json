@@ -1098,6 +1098,16 @@
           "text": " in the top-right corner or click the dark overlay to close the lightbox."
         }
       ]
+    },
+    {
+      "id": "detail-view-public-linked-layers",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "On a public project, enabled linked ArcGIS and custom layers can be viewed by other accounts and visitors. Open the project to display its shared uploads without copying them into your own library. Viewer checkboxes affect only the viewer’s map; the project creator or an administrator sets the published display state. Private projects and disabled associations are not shared. Personal uploads keep their Custom Layers panel shortcut; shared uploads from someone else do not appear in your personal library."
+        }
+      ]
     }
   ],
   "images": [

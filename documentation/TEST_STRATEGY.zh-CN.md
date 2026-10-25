@@ -79,6 +79,7 @@ flowchart TD
 | 功能：注册/认证/授权 | 高 | 输入边界、重复/大小写邮箱、权限提升、会话失效、未授权访问；核对状态码和数据库不变量 | 单元 + API 集成 + 少量 E2E |
 | 功能：卡片与地图 | 高 | 创建/编辑/删除卡片，筛选组合、排序/分页、空结果、地图点位与列表一致、并发更新 | API/DB 集成 + 浏览器 E2E |
 | 功能：文件与外部集成 | 高 | 上传大小/格式、删除回滚、Azure 故障、ArcGIS 响应异常、Mapbox 超时；无孤儿文件/记录 | 合约测试 + 集成测试 |
+| 功能：Custom Layers 保存 | 高 | 保存/读取并发、文件夹/排序/GeoJSON 保留、错误与重试、旧表迁移、测试数据清理 | `tests.test_custom_layers` + `scripts/check_custom_layer_workflow.py`；[本地证据](../LivingAtlas1-main/backend/load_tests/CUSTOM_LAYERS_REPORT.zh-CN.md) |
 | 功能：端到端用户旅程 | 高 | 注册→登录→浏览地图→筛选→卡片详情→上传/编辑；校验前后端环境连接 | Playwright 等浏览器自动化；生产只做低影响冒烟 |
 | 非功能：安全 | 高 | 按 [OWASP ASVS](https://owasp.org/projects/asvs) 建需求清单；认证授权、SQL 注入、XSS、上传、密钥、依赖扫描 | 静态/依赖扫描 + API 安全测试 + 人工复核 |
 | 非功能：迁移与数据完整性 | 高 | 带历史重复 ID/邮箱和大表的迁移、幂等重启、并发 worker 启动、备份与回滚 | 隔离 DB 集成 + 预发布演练 |

@@ -101,8 +101,15 @@ export const manualGuiUpdates = [
     },
 ];
 
-export const latestGuiUpdateDate = '10/18/2026';
+export const latestGuiUpdateDate = '10/25/2026';
 export const latestGuiUpdates = [
+    {
+        title: 'Custom Layers Reliability',
+        items: [
+            'Fixed intermittent failures when saving layers while the library is loading or refreshing.',
+            'Failed library loads now show an error and Retry instead of an empty library. Save errors explain how to recover; after a timeout, check the library before saving again.',
+        ],
+    },
     {
         title: 'Updated Guides',
         items: [

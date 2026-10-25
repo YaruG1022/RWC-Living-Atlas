@@ -1105,7 +1105,7 @@
       "content": [
         {
           "type": "text",
-          "text": "On a public project, enabled linked ArcGIS and custom layers can be viewed by other accounts and visitors. Open the project to display its shared uploads without copying them into your own library. Viewer checkboxes affect only the viewer’s map; the project creator or an administrator sets the published display state. Private projects and disabled associations are not shared. Personal uploads keep their Custom Layers panel shortcut; shared uploads from someone else do not appear in your personal library."
+          "text": "Every viewer has independent show/hide choices for each project’s linked ArcGIS and custom layers. Signed-in choices are saved to the account and restored when reopening the project. Visitor choices stay in this browser and are separate from signed-in accounts. New viewers start with layers hidden. A creator or administrator changing a checkbox only changes their own display; it does not change anyone else’s choice or remove the association. All linked layers on public projects remain available for viewers to enable, even if their creator has hidden them. Private projects remain limited to their creator and administrators. Shared uploads are displayed directly without being copied into the viewer’s personal library."
         }
       ]
     }

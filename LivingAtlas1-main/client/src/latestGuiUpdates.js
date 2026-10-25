@@ -104,10 +104,10 @@ export const manualGuiUpdates = [
 export const latestGuiUpdateDate = '10/25/2026';
 export const latestGuiUpdates = [
     {
-        title: 'Public Project Layers',
+        title: 'Personal Linked Layer Display',
         items: [
-            'Enabled ArcGIS and custom layers on public projects are now viewable by other accounts and visitors. Shared uploads do not need to be copied into a personal library, and identically named uploads remain separate.',
-            'Viewer checkboxes affect only their own map. Private projects and disabled associations are excluded from public sharing; creators and admins manage the published layer state.',
+            'Each viewer now has independent show/hide settings for every project’s linked ArcGIS and custom layers. Signed-in choices are saved per account; visitor choices stay in this browser.',
+            'Changing a checkbox never changes another viewer’s settings, including when the creator or an admin toggles it. New viewers start with layers hidden; all public project associations remain available to enable.',
         ],
     },
     {

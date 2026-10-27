@@ -56,6 +56,20 @@ class CustomLayerTests(unittest.IsolatedAsyncioTestCase):
         return dict(user_email='probe@example.invalid', service_key='probe',
                     label='Probe', url='https://example.invalid/MapServer', **extra)
 
+    async def test_openapi_documents_both_folder_rename_contracts(self):
+        response = await self.client.get('/openapi.json')
+        self.assertEqual(response.status_code, 200, response.text)
+        schema = response.json()
+        for path, required in [
+            ('/arcgis/services/rename-folder', {'old_folder_name', 'new_folder_name'}),
+            ('/arcgis/custom-folders/rename', {'user_email', 'old_name', 'new_name'}),
+        ]:
+            with self.subTest(path=path):
+                body = schema['paths'][path]['put']['requestBody']['content']['application/json']['schema']
+                model = schema['components']['schemas'][body['$ref'].rsplit('/', 1)[-1]]
+                self.assertEqual(set(model['required']), required)
+        self.database.get_request_connection.assert_not_called()
+
     async def test_save_commits_and_releases_request_connection(self):
         response = await self.client.post('/arcgis/custom-layers/save', json=self.payload(folder='Water'))
         self.assertEqual(response.status_code, 200, response.text)

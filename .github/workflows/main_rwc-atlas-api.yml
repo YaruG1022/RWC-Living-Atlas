@@ -1,0 +1,65 @@
+name: Deploy backend to Azure - rwc-atlas-api
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'LivingAtlas1-main/backend/**'
+      - '.github/workflows/main_rwc-atlas-api.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: azure-rwc-atlas-api
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # The Azure federated credential must trust main, not a PR or feature branch.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Check out the release
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: LivingAtlas1-main/backend/requirements.txt
+
+      - name: Verify backend dependencies
+        working-directory: LivingAtlas1-main/backend
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip check
+
+      - name: Package backend source
+        # Archive the subtree so main.py and requirements.txt are at ZIP root.
+        # Only committed source is included; runner environments are excluded.
+        run: |
+          git archive --format=zip --output="$RUNNER_TEMP/atlas-api.zip" HEAD:LivingAtlas1-main/backend
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_36AC34D2851E403899F0E71BBFC0068D }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_898B17970FF44FC29E21AE91B8283547 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_1CCD65A7993341F9AD6B27914994AE25 }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: rwc-atlas-api
+          slot-name: Production
+          package: ${{ runner.temp }}/atlas-api.zip
+          # App settings must include SCM_DO_BUILD_DURING_DEPLOYMENT=true.
+          startup-command: python -m uvicorn main:app --host 0.0.0.0 --port 8000

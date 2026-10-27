@@ -980,7 +980,7 @@ class DeleteFolderRequest(BaseModel):
     user_email: str
     folder_name: str
 
-class RenameFolderRequest(BaseModel):
+class RenameCustomFolderRequest(BaseModel):
     user_email: str
     old_name: str
     new_name: str
@@ -1049,7 +1049,7 @@ def delete_custom_folder(request: DeleteFolderRequest, database=Depends(_custom_
         raise HTTPException(status_code=500, detail="Failed to delete folder. Please try again.")
 
 @arcgis_router.put("/custom-folders/rename")
-def rename_custom_folder(request: RenameFolderRequest, database=Depends(_custom_layer_database)):
+def rename_custom_folder(request: RenameCustomFolderRequest, database=Depends(_custom_layer_database)):
     conn, cur = database
     if not request.user_email or not request.user_email.strip():
         raise HTTPException(status_code=400, detail="user_email is required")

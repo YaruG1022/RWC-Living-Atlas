@@ -8,8 +8,9 @@ account
 
 from fastapi import APIRouter, Form, HTTPException, UploadFile, File
 from database import conn, cur, get_request_connection, release_request_connection
-from pydantic import BaseModel
+from pydantic import BaseModel, StrictBool
 from typing import Dict, Any
+from contextlib import contextmanager
 import json
 import psycopg2
 
@@ -343,20 +344,39 @@ def hash_password(password: str, salt: bytes) -> str:
     pepper = bytes("xe5Dx93xefx16x9ax12wy", 'utf-8')
     return hashlib.sha256(bytes(password, 'utf-8') + salt + pepper).hexdigest()
 
-@account_router.post("/list_database")
-async def list_database():
+class UserRoleUpdateRequest(BaseModel):
+    email: str
+    is_admin: StrictBool
+
+
+@contextmanager
+def account_management_cursor():
+    """Give each management request its own recoverable transaction."""
+    connection = get_request_connection()
+    if connection is None:
+        raise HTTPException(status_code=503, detail="User database is temporarily unavailable. Please try again.")
     try:
-        # Query user basics plus account timestamps for admin table display
-        cur.execute("SELECT username, email, COALESCE(is_admin, false), created_at, last_online_at FROM users")
-        rows = cur.fetchall()
+        with connection, connection.cursor() as cursor:
+            yield cursor
+    except HTTPException:
+        raise
+    except psycopg2.errors.ForeignKeyViolation:
+        raise HTTPException(status_code=409, detail="This user still owns linked content. Reassign or remove it before deleting the user.")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Unable to complete the user management request. Please try again.")
+    finally:
+        release_request_connection(connection)
 
-        # Convert the query result into a list of dictionaries
-        users = [{"name": row[0], "email": row[1], "is_admin": row[2], "created_at": row[3], "last_online_at": row[4]} for row in rows]
-        
 
-        return {"users": users}
-    except Exception as e:
-        return {"error": str(e)}
+@account_router.post("/list_database")
+def list_database():
+    with account_management_cursor() as cursor:
+        cursor.execute("SELECT username, email, COALESCE(is_admin, false), created_at, last_online_at FROM users")
+        rows = cursor.fetchall()
+        return {"users": [
+            {"name": row[0], "email": row[1], "is_admin": row[2], "created_at": row[3], "last_online_at": row[4]}
+            for row in rows
+        ]}
 
 
 @account_router.post("/fetch_signup_requests")
@@ -400,46 +420,35 @@ def get_user_role(email: str):
 
 
 
-# Define the edit_user_role endpoint
 @account_router.post("/edit_user_role")
-async def edit_user_role(user_info: dict):
-    try:
-        email = user_info.get('email')
-        is_admin = user_info.get('is_admin')
-
-        # Update the is_admin status of the user with the provided email
-        cur.execute("UPDATE Users SET is_admin = %s WHERE email = %s", (is_admin, email))
-        conn.commit()  # Commit the transaction
-        
-        return {"message": f"User role updated successfully."}
-    except Exception as e:
-        return {"error": str(e)}
-
-
-
-# Define the delete_user endpoint
-@account_router.post("/delete_user/{email}")
-async def delete_user(email: str):
-    try:
-        # Query the database to get the role of the user with the provided email
-        cur.execute("SELECT is_admin FROM Users WHERE email = %s", (email,))
-        row = cur.fetchone()
-        
+def edit_user_role(user_info: UserRoleUpdateRequest):
+    with account_management_cursor() as cursor:
+        # Serialize role changes so concurrent requests cannot demote every admin.
+        cursor.execute("LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE")
+        cursor.execute("SELECT COALESCE(is_admin, false) FROM users WHERE email = %s", (user_info.email,))
+        row = cursor.fetchone()
         if row is None:
-            return {"error": "User not found"}
-        
-        is_admin = row[0]
-        
-        if is_admin:
-            return {"error": "Admin users cannot be deleted"}
-        
-        # Execute SQL query to delete the user with the provided email
-        cur.execute("DELETE FROM Users WHERE email = %s", (email,))
-        conn.commit()  # Commit the transaction
-        
-        return {"message": f"User with email '{email}' has been deleted successfully."}
-    except Exception as e:
-        return {"error": str(e)}
+            raise HTTPException(status_code=404, detail="User not found")
+        if row[0] and not user_info.is_admin:
+            cursor.execute("SELECT COUNT(*) FROM users WHERE is_admin = TRUE")
+            if cursor.fetchone()[0] <= 1:
+                raise HTTPException(status_code=409, detail="The last admin must keep the Admin role. Promote another user first.")
+        cursor.execute("UPDATE users SET is_admin = %s WHERE email = %s", (user_info.is_admin, user_info.email))
+    return {"success": True, "message": "User role updated successfully."}
+
+
+@account_router.post("/delete_user/{email}")
+def delete_user(email: str):
+    with account_management_cursor() as cursor:
+        cursor.execute("LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE")
+        cursor.execute("SELECT COALESCE(is_admin, false) FROM users WHERE email = %s FOR UPDATE", (email,))
+        row = cursor.fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="User not found")
+        if row[0]:
+            raise HTTPException(status_code=409, detail="Admin users cannot be deleted. Change their role first.")
+        cursor.execute("DELETE FROM users WHERE email = %s", (email,))
+    return {"success": True, "message": "User deleted successfully."}
 
 
 @account_router.post("/deny_request/{email}")

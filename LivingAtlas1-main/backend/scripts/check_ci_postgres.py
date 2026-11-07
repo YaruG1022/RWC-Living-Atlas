@@ -95,6 +95,43 @@ class PostgreSQLContracts(unittest.TestCase):
                 return await client.request(method, path, **kwargs)
         return asyncio.run(send())
 
+    def test_parallel_role_changes_keep_at_least_one_admin(self):
+        with self.database.conn, self.database.conn.cursor() as cursor:
+            cursor.execute("INSERT INTO users (userid, username, email, is_admin, hashedpassword, salt) VALUES (201, 'First admin', 'first-admin@example.invalid', TRUE, 'fixture', %s), (202, 'Second admin', 'second-admin@example.invalid', TRUE, 'fixture', %s)", (b"fixture", b"fixture"))
+        try:
+            def demote(email):
+                return self.request("POST", "/edit_user_role", json={"email": email, "is_admin": False}).status_code
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                statuses = list(executor.map(demote, ["first-admin@example.invalid", "second-admin@example.invalid"]))
+            self.assertEqual(sorted(statuses), [200, 409])
+            with self.database.conn, self.database.conn.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) FROM users WHERE is_admin = TRUE")
+                self.assertEqual(cursor.fetchone()[0], 1)
+        finally:
+            with self.database.conn, self.database.conn.cursor() as cursor:
+                cursor.execute("DELETE FROM users WHERE userid IN (201, 202)")
+
+    def test_user_management_persists_roles_and_recovers_after_delete_conflict(self):
+        with self.database.conn, self.database.conn.cursor() as cursor:
+            cursor.execute("INSERT INTO users (userid, username, email, is_admin, hashedpassword, salt) VALUES (101, 'Admin', 'admin@example.invalid', TRUE, 'fixture', %s), (102, 'Member', 'member+test#1@example.invalid', FALSE, 'fixture', %s)", (b"fixture", b"fixture"))
+        try:
+            response = self.request("POST", "/edit_user_role", json={"email": "member+test#1@example.invalid", "is_admin": True})
+            self.assertEqual(response.status_code, 200, response.text)
+            rows = self.request("POST", "/list_database").json()["users"]
+            self.assertTrue(next(row for row in rows if row["email"] == "member+test#1@example.invalid")["is_admin"])
+            self.assertEqual(self.request("POST", "/delete_user/member%2Btest%231@example.invalid").status_code, 409)
+            response = self.request("POST", "/edit_user_role", json={"email": "member+test#1@example.invalid", "is_admin": False})
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertEqual(self.request("POST", "/edit_user_role", json={"email": "admin@example.invalid", "is_admin": False}).status_code, 409)
+            # Existing owner has Cards references. Keep that content and recover the transaction.
+            self.assertEqual(self.request("POST", "/delete_user/ci_owner@example.invalid").status_code, 409)
+            self.assertEqual(self.request("POST", "/delete_user/member%2Btest%231@example.invalid").status_code, 200)
+            self.assertEqual(self.request("POST", "/delete_user/member%2Btest%231@example.invalid").status_code, 404)
+            self.assertEqual(self.request("POST", "/list_database").status_code, 200)
+        finally:
+            with self.database.conn, self.database.conn.cursor() as cursor:
+                cursor.execute("DELETE FROM users WHERE userid IN (101, 102)")
+
     def signup(self, email):
         response = self.request("POST", "/uploadSignup", data={
             "username": "CI signup", "email": email, "password": "synthetic-ci-password",

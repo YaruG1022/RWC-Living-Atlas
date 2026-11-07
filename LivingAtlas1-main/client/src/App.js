@@ -50,40 +50,23 @@ function safeParseBooleanFromStorage(key) {
 }
 
 function App() {
-  const [email, setEmail] = useState('');
+  // Restore before protected routes render, and before the persistence effect runs.
+  const [savedAuth] = useState(() => {
+    const isCurrentVersion = localStorage.getItem('authStorageVersion') === AUTH_STORAGE_VERSION;
+    const isLoggedIn = isCurrentVersion && safeParseBooleanFromStorage('isLoggedIn');
+    return {
+      isLoggedIn,
+      email: isLoggedIn ? localStorage.getItem('email') || '' : '',
+      username: isLoggedIn ? localStorage.getItem('username') || '' : '',
+      isAdmin: isLoggedIn && safeParseBooleanFromStorage('isAdmin'),
+    };
+  });
+  const [email, setEmail] = useState(savedAuth.email);
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  const resetAuthStorage = () => {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('email');
-    localStorage.removeItem('username');
-    localStorage.removeItem('isAdmin');
-  };
-
-  // Load login state from localStorage on component mount
-  useEffect(() => {
-    const storedVersion = localStorage.getItem('authStorageVersion');
-    if (storedVersion !== AUTH_STORAGE_VERSION) {
-      resetAuthStorage();
-      localStorage.setItem('authStorageVersion', AUTH_STORAGE_VERSION);
-    }
-
-    const savedIsLoggedIn = safeParseBooleanFromStorage('isLoggedIn');
-    const savedIsAdmin = safeParseBooleanFromStorage('isAdmin');
-    const savedEmail = localStorage.getItem('email') || '';
-    const savedUsername = localStorage.getItem('username') || '';
-
-    if (savedIsLoggedIn) {
-      setIsLoggedIn(savedIsLoggedIn);
-      setEmail(savedEmail);
-      setUsername(savedUsername);
-      setIsAdmin(savedIsAdmin);
-    }
-  }, []);
+  const [isLoggedIn, setIsLoggedIn] = useState(savedAuth.isLoggedIn);
+  const [username, setUsername] = useState(savedAuth.username);
+  const [isAdmin, setIsAdmin] = useState(savedAuth.isAdmin);
 
   // Update localStorage when login state changes
   useEffect(() => {
@@ -154,7 +137,7 @@ function App() {
         </Route>
         <Route path="/signup" component={Signup} />
         <Route path="/administration">
-          {isLoggedIn && isAdmin ? <Administration /> : <Redirect to="/login" />}
+          {isLoggedIn && isAdmin ? <Administration currentEmail={email} onCurrentRoleChange={setIsAdmin} /> : <Redirect to="/login" />}
         </Route>
         <Route path="/switch-account">
           {isLoggedIn ? (

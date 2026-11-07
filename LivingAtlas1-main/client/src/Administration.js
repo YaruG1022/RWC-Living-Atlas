@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import api from './api.js';
+import Modal from 'react-modal';
 import './Administration.css';
 import InfoPage from './InfoPage';
 import './AccountPage.css';
 
-function Administration() {
+function managementError(error) {
+    return error.response?.data?.detail || error.response?.data?.error || error.message || 'Please try again.';
+}
+
+function checkManagementResponse(response) {
+    if (response.data?.error || response.data?.success === false) {
+        throw new Error(response.data.error || response.data.message || 'The request failed.');
+    }
+    return response.data;
+}
+
+function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () => {} }) {
     const [users, setUsers] = useState([]);
     const [signUpRequests, setSignUpRequests] = useState([]);
     const [error, setError] = useState(null);
-    const [activeTab, setActiveTab] = useState('statistics');
+    const [activeTab, setActiveTab] = useState('manage-users');
     const [roleModalUser, setRoleModalUser] = useState(null);
     const [selectedRole, setSelectedRole] = useState('regular');
     const [roleConfirmText, setRoleConfirmText] = useState('');
@@ -18,10 +30,13 @@ function Administration() {
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [deleteModalError, setDeleteModalError] = useState('');
     const [isDeletingUser, setIsDeletingUser] = useState(false);
+    const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+    const [search, setSearch] = useState('');
+    const [notice, setNotice] = useState('');
     const [sortBy, setSortBy] = useState('name');
     const [sortOrder, setSortOrder] = useState('asc');
 
-    const currentEmail = (localStorage.getItem('email') || '').trim().toLowerCase();
+    const currentEmail = (accountEmail || localStorage.getItem('email') || '').trim().toLowerCase();
     const isCurrentUserLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
 
     const getUserOnlineState = (user) => {
@@ -68,7 +83,8 @@ function Administration() {
     };
 
     const getSortedUsers = () => {
-        const sorted = [...users];
+        const query = search.trim().toLowerCase();
+        const sorted = users.filter(user => `${user.name} ${user.email}`.toLowerCase().includes(query));
         sorted.sort((a, b) => {
             let aVal, bVal;
             if (sortBy === 'name') {
@@ -104,11 +120,16 @@ function Administration() {
     }, [activeTab]);
 
     const fetchUsers = async () => {
+        setIsLoadingUsers(true);
+        setError(null);
         try {
-            const response = await api.post('/list_database');
-            setUsers(response.data.users);
+            const data = checkManagementResponse(await api.post('/list_database'));
+            if (!Array.isArray(data.users)) throw new Error('Unable to load users. Please try again.');
+            setUsers(data.users);
         } catch (error) {
-            setError(error.message);
+            setError(managementError(error));
+        } finally {
+            setIsLoadingUsers(false);
         }
     };
 
@@ -122,7 +143,7 @@ function Administration() {
     };
 
     const handleDeleteUser = async () => {
-        if (!deleteModalUser) {
+        if (!deleteModalUser || isDeletingUser) {
             return;
         }
 
@@ -134,19 +155,19 @@ function Administration() {
         try {
             setIsDeletingUser(true);
             setDeleteModalError('');
-            await api.post(`/delete_user/${deleteModalUser.email}`);
-            const response = await api.post('/list_database');
-            setUsers(response.data.users);
+            checkManagementResponse(await api.post(`/delete_user/${encodeURIComponent(deleteModalUser.email)}`, null, { skipRetry: true }));
+            setUsers(previous => previous.filter(user => user.email !== deleteModalUser.email));
+            setNotice(`${deleteModalUser.name || deleteModalUser.email} was deleted.`);
             handleCloseDeleteModal();
         } catch (error) {
-            setError(error.message);
-            setDeleteModalError(error.message);
+            setDeleteModalError(managementError(error));
         } finally {
             setIsDeletingUser(false);
         }
     };
 
     const handleOpenDeleteModal = (user) => {
+        setNotice('');
         setDeleteModalUser(user);
         setDeleteConfirmText('');
         setDeleteModalError('');
@@ -172,6 +193,7 @@ function Administration() {
     };
 
     const handleOpenRoleModal = (user) => {
+        setNotice('');
         setRoleModalUser(user);
         setSelectedRole(user.is_admin ? 'admin' : 'regular');
         setRoleConfirmText('');
@@ -186,7 +208,7 @@ function Administration() {
     };
 
     const handleEditUserRole = async () => {
-        if (!roleModalUser) {
+        if (!roleModalUser || isRoleUpdating) {
             return;
         }
 
@@ -198,16 +220,20 @@ function Administration() {
         try {
             setIsRoleUpdating(true);
             setRoleModalError('');
-            await api.post('/edit_user_role', {
+            const isAdmin = selectedRole === 'admin';
+            checkManagementResponse(await api.post('/edit_user_role', {
                 email: roleModalUser.email,
-                is_admin: selectedRole === 'admin'
-            });
-            const response = await api.post('/list_database');
-            setUsers(response.data.users);
+                is_admin: isAdmin,
+            }, { skipRetry: true }));
+            setUsers(previous => previous.map(user => user.email === roleModalUser.email ? { ...user, is_admin: isAdmin } : user));
+            setNotice(`Role updated for ${roleModalUser.name || roleModalUser.email}.`);
             handleCloseRoleModal();
+            if (roleModalUser.email.trim().toLowerCase() === currentEmail) {
+                localStorage.setItem('isAdmin', JSON.stringify(isAdmin));
+                onCurrentRoleChange(isAdmin);
+            }
         } catch (error) {
-            setError(error.message);
-            setRoleModalError(error.message);
+            setRoleModalError(managementError(error));
         } finally {
             setIsRoleUpdating(false);
         }
@@ -289,31 +315,39 @@ function Administration() {
             {activeTab === 'manage-users' && (
                 <section className="admin-card account-panel">
                     <h2 className="admin-section-title account-section-title">User Management</h2>
-                    {error && <p className="admin-error">Error: {error}</p>}
-                    <div className="admin-table-wrap">
+                    {error && <p className="admin-error" role="alert">{error}</p>}
+                    {notice && <p className="admin-notice" role="status">{notice}</p>}
+                    <div className="admin-user-toolbar">
+                        <div className="admin-user-search">
+                            <label htmlFor="admin-user-search">Search users</label>
+                            <input id="admin-user-search" className="account-control" type="search" placeholder="Name or email" value={search} onChange={event => setSearch(event.target.value)} />
+                        </div>
+                        <button className="account-button account-button--secondary" disabled={isLoadingUsers} onClick={fetchUsers}>Refresh users</button>
+                    </div>
+                    <p className="admin-user-count" role="status">{isLoadingUsers ? 'Loading users...' : `${getSortedUsers().length} of ${users.length} users`}</p>
+                    <div className="admin-table-wrap" aria-busy={isLoadingUsers}>
+
                     <table className="admin-table">
                         <thead>
                             <tr>
                                 <th
                                     className="admin-table-header-sortable"
-                                    onClick={() => handleSortChange('name')}
-                                    title="Click to sort"
+                                    aria-sort={sortBy === 'name' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}
                                 >
-                                    <span className="admin-sort-header-content">
+                                    <button className="admin-sort-header-content" onClick={() => handleSortChange('name')}>
                                         Name
                                         {renderSortIndicator('name')}
-                                    </span>
+                                    </button>
                                 </th>
                                 <th>Email</th>
                                 <th
                                     className="admin-table-header-sortable"
-                                    onClick={() => handleSortChange('date_joined')}
-                                    title="Click to sort"
+                                    aria-sort={sortBy === 'date_joined' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}
                                 >
-                                    <span className="admin-sort-header-content">
+                                    <button className="admin-sort-header-content" onClick={() => handleSortChange('date_joined')}>
                                         Date Joined
                                         {renderSortIndicator('date_joined')}
-                                    </span>
+                                    </button>
                                 </th>
                                 <th>Status</th>
                                 <th>Last Online</th>
@@ -323,6 +357,9 @@ function Administration() {
                             </tr>
                         </thead>
                         <tbody>
+                            {!isLoadingUsers && getSortedUsers().length === 0 && (
+                                <tr><td colSpan="8" className="admin-empty-state">{error ? 'User list unavailable. Use Refresh users to retry.' : search.trim() ? 'No users match your search.' : 'No users found.'}</td></tr>
+                            )}
                             {getSortedUsers().map(user => (
                                 <tr key={user.email}>
                                     <td>{user.name}</td>
@@ -352,7 +389,7 @@ function Administration() {
                                             </button>
                                         </td>
                                     ) : (
-                                        <td className="admin-muted">-</td>
+                                        <td><button className="admin-action-btn account-button account-button--danger" disabled title="Change this admin to Regular User before deleting.">Delete</button></td>
                                     )}
                                 </tr>
                             ))}
@@ -411,8 +448,18 @@ function Administration() {
             )}
 
             {roleModalUser && (
-                <div className="admin-modal-overlay" onClick={handleCloseRoleModal}>
-                    <div className="admin-modal account-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-role-title" onClick={(event) => event.stopPropagation()}>
+                <Modal
+                    isOpen
+                    overlayClassName="admin-modal-overlay admin-page"
+                    className="admin-modal account-dialog"
+                    aria={{ labelledby: 'admin-role-title', modal: true }}
+                    ariaHideApp={!!document.getElementById('root')}
+                    appElement={document.getElementById('root') || undefined}
+                    onRequestClose={handleCloseRoleModal}
+                    shouldCloseOnOverlayClick={!isRoleUpdating}
+                    shouldCloseOnEsc={!isRoleUpdating}
+                >
+                    <form onSubmit={event => { event.preventDefault(); handleEditUserRole(); }}>
                         <h2 id="admin-role-title" className="admin-modal-title">Change User Role</h2>
                         <p className="admin-modal-subtitle">
                             {roleModalUser.name} ({roleModalUser.email})
@@ -422,6 +469,7 @@ function Administration() {
                             <label className="admin-role-option">
                                 <input
                                     type="radio"
+                                    disabled={isRoleUpdating}
                                     name="role"
                                     value="regular"
                                     checked={selectedRole === 'regular'}
@@ -432,6 +480,7 @@ function Administration() {
                             <label className="admin-role-option">
                                 <input
                                     type="radio"
+                                    disabled={isRoleUpdating}
                                     name="role"
                                     value="admin"
                                     checked={selectedRole === 'admin'}
@@ -445,6 +494,8 @@ function Administration() {
                             Type <strong>Confirm</strong> to apply this role change
                         </label>
                         <input
+                            autoFocus
+                            disabled={isRoleUpdating}
                             id="admin-role-confirm-input"
                             className="admin-confirm-input account-control"
                             type="text"
@@ -453,36 +504,49 @@ function Administration() {
                             placeholder="Confirm"
                         />
 
-                        {roleModalError && <p className="admin-error admin-modal-error">{roleModalError}</p>}
+                        {roleModalError && <p className="admin-error admin-modal-error" role="alert">{roleModalError}</p>}
 
                         <div className="admin-modal-actions">
-                            <button className="admin-action-btn account-button account-button--secondary" onClick={handleCloseRoleModal}>
+                            <button className="admin-action-btn account-button account-button--secondary" type="button" disabled={isRoleUpdating} onClick={handleCloseRoleModal}>
                                 Cancel
                             </button>
                             <button
                                 className="admin-action-btn admin-action-btn-approve account-button"
-                                onClick={handleEditUserRole}
-                                disabled={isRoleUpdating}
+                                type="submit"
+                                disabled={isRoleUpdating || selectedRole === (roleModalUser.is_admin ? 'admin' : 'regular')}
                             >
                                 {isRoleUpdating ? 'Updating...' : 'Confirm Change'}
                             </button>
                         </div>
-                    </div>
-                </div>
+                    </form>
+                </Modal>
             )}
 
             {deleteModalUser && (
-                <div className="admin-modal-overlay" onClick={handleCloseDeleteModal}>
-                    <div className="admin-modal account-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-delete-title" onClick={(event) => event.stopPropagation()}>
+                <Modal
+                    isOpen
+                    overlayClassName="admin-modal-overlay admin-page"
+                    className="admin-modal account-dialog"
+                    aria={{ labelledby: 'admin-delete-title', modal: true }}
+                    ariaHideApp={!!document.getElementById('root')}
+                    appElement={document.getElementById('root') || undefined}
+                    onRequestClose={handleCloseDeleteModal}
+                    shouldCloseOnOverlayClick={!isDeletingUser}
+                    shouldCloseOnEsc={!isDeletingUser}
+                >
+                    <form onSubmit={event => { event.preventDefault(); handleDeleteUser(); }}>
                         <h2 id="admin-delete-title" className="admin-modal-title">Delete User</h2>
                         <p className="admin-modal-subtitle">
                             {deleteModalUser.name} ({deleteModalUser.email})
                         </p>
 
+                        <p className="admin-modal-subtitle">This permanently removes the account. Users with linked content must have that content reassigned or removed first.</p>
                         <label className="admin-confirm-label" htmlFor="admin-delete-confirm-input">
                             Type <strong>Confirm</strong> to delete this user
                         </label>
                         <input
+                            autoFocus
+                            disabled={isDeletingUser}
                             id="admin-delete-confirm-input"
                             className="admin-confirm-input account-control"
                             type="text"
@@ -491,22 +555,22 @@ function Administration() {
                             placeholder="Confirm"
                         />
 
-                        {deleteModalError && <p className="admin-error admin-modal-error">{deleteModalError}</p>}
+                        {deleteModalError && <p className="admin-error admin-modal-error" role="alert">{deleteModalError}</p>}
 
                         <div className="admin-modal-actions">
-                            <button className="admin-action-btn account-button account-button--secondary" onClick={handleCloseDeleteModal}>
+                            <button className="admin-action-btn account-button account-button--secondary" type="button" disabled={isDeletingUser} onClick={handleCloseDeleteModal}>
                                 Cancel
                             </button>
                             <button
                                 className="admin-action-btn admin-action-btn-danger account-button account-button--danger"
-                                onClick={handleDeleteUser}
+                                type="submit"
                                 disabled={isDeletingUser}
                             >
                                 {isDeletingUser ? 'Deleting...' : 'Confirm Delete'}
                             </button>
                         </div>
-                    </div>
-                </div>
+                    </form>
+                </Modal>
             )}
         </InfoPage>
     );

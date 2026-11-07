@@ -232,7 +232,7 @@
         },
         {
           "type": "text",
-          "text": ", review the users and use the Name or Date Joined column header to sort. Choose "
+          "text": ", search by name or email, refresh the list, and use the Name or Date Joined column header to sort. Choose "
         },
         {
           "type": "strong",
@@ -258,7 +258,7 @@
         },
         {
           "type": "text",
-          "text": " exactly, and apply the change. To delete a non-admin user, choose "
+          "text": " exactly, and apply the change. The last admin must keep the Admin role. To delete a non-admin user, choose "
         },
         {
           "type": "strong",
@@ -284,7 +284,7 @@
         },
         {
           "type": "text",
-          "text": ", and confirm deletion. Admin rows do not offer Delete."
+          "text": ", and confirm deletion. Delete is disabled for admins. Users with linked content must have that content reassigned or removed first."
         }
       ]
     },

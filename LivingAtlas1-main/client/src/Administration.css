@@ -28,7 +28,7 @@
 
 .admin-page .admin-table {
     width: 100%;
-    min-width: 620px;
+    min-width: 1060px;
     border-collapse: collapse;
     font-size: 0.95rem;
     color: #333;
@@ -114,7 +114,7 @@
     gap: 8px;
 }
 
-.admin-page .admin-modal-overlay {
+.admin-modal-overlay {
     position: fixed;
     inset: 0;
     z-index: 1200;
@@ -254,4 +254,53 @@
     .admin-page .admin-modal-actions .account-button {
         flex: 1;
     }
+}
+
+.admin-page.info-page {
+    max-width: 1200px;
+}
+
+.admin-page .admin-user-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px;
+}
+
+.admin-page .admin-user-search {
+    flex: 1;
+    min-width: 200px;
+    max-width: 480px;
+}
+
+.admin-page .admin-user-search label {
+    display: block;
+    margin-bottom: 6px;
+}
+
+.admin-page .admin-user-count {
+    margin: 16px 0 8px;
+    color: var(--account-text);
+}
+
+.admin-page .admin-notice {
+    color: #247344;
+}
+
+.admin-page button.admin-sort-header-content {
+    padding: 0;
+    border: 0;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    cursor: pointer;
+}
+
+.admin-page button.admin-sort-header-content:focus-visible {
+    outline: 2px solid var(--account-accent);
+    outline-offset: 4px;
+}
+
+.admin-page .admin-table .account-button {
+    white-space: nowrap;
 }

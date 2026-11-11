@@ -26,7 +26,7 @@ function popupContent(layer, properties) {
     const title = document.createElement('strong');
     title.textContent = properties.name || layer.label;
     content.appendChild(title);
-    [properties.kind, properties.states, layer.sourceLabel, layer.description].filter(Boolean).forEach(text => {
+    [properties.kind, properties.states, properties.code && `${layer.codeLabel}: ${properties.code}`, layer.sourceLabel, layer.description].filter(Boolean).forEach(text => {
         const paragraph = document.createElement('p');
         paragraph.textContent = text;
         content.appendChild(paragraph);
@@ -68,7 +68,7 @@ export function installBuiltinLayers(map, fetchData = (...args) => fetch(...args
             paint: { 'line-color': layer.color, 'line-opacity': opacity, 'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.8, 8, 2, 13, 4] },
         }] : [{
             id: layer.layerIds[0], type: 'fill', source: sourceId, layout: { visibility },
-            paint: { 'fill-color': layer.color, 'fill-opacity': opacity * (layer.id === 'Forest' ? 0.35 : 0.8) },
+            paint: { 'fill-color': layer.color, 'fill-opacity': opacity * layer.fillOpacity },
         }, {
             id: layer.layerIds[1], type: 'line', source: sourceId, layout: { visibility },
             paint: { 'line-color': layer.color, 'line-width': 1.2, 'line-opacity': opacity },
@@ -121,7 +121,7 @@ export function installBuiltinLayers(map, fetchData = (...args) => fetch(...args
             const feature = event.features?.[0];
             if (!entry.visible || !feature) return;
             popup?.remove();
-            popup = new mapboxgl.Popup({ offset: 12 }).setLngLat(event.lngLat)
+            popup = new mapboxgl.Popup({ offset: 12, maxWidth: '320px', className: 'builtin-layer-popup' }).setLngLat(event.lngLat)
                 .setDOMContent(popupContent(entry.layer, feature.properties || {})).addTo(map);
         };
         const enter = () => { map.getCanvas().style.cursor = 'pointer'; };
@@ -148,7 +148,7 @@ export function installBuiltinLayers(map, fetchData = (...args) => fetch(...args
                 if (!map.getLayer(id)) return;
                 const isFill = layer.geometry === 'polygon' && index === 0;
                 map.setPaintProperty(id, isFill ? 'fill-opacity' : 'line-opacity',
-                    isFill ? opacity * (layer.id === 'Forest' ? 0.35 : 0.8) : opacity);
+                    isFill ? opacity * layer.fillOpacity : opacity);
             }));
         },
         retry(id) {

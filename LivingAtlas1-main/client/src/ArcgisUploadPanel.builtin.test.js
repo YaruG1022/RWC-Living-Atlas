@@ -43,15 +43,38 @@ async function openFolder() {
 
 test('provides three usable new categories with descriptions and an added-only filter', async () => {
     await openFolder();
-    expect(screen.getAllByRole('checkbox')).toHaveLength(5);
+    expect(screen.getAllByRole('checkbox')).toHaveLength(6);
     fireEvent.click(screen.getByRole('checkbox', { name: 'National Forests' }));
     expect(screen.getByRole('checkbox', { name: 'National Forests' })).toBeChecked();
     fireEvent.click(screen.getByRole('button', { name: 'Show only services added to the map' }));
     expect(screen.getAllByRole('checkbox')).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'About National Forests' }));
+    await screen.findByRole('dialog', { name: 'National Forests' });
     expect(screen.getByText(/not tree cover/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Close layer information' }));
     fireEvent.click(screen.getByRole('button', { name: 'Uncheck all layers on map' }));
     expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
     expect(screen.getByRole('button', { name: 'Uncheck all layers on map' })).toBeDisabled();
+});
+
+test('all six built-ins provide a color legend and source details without the site badge', async () => {
+    await openFolder();
+    expect(screen.queryByText('Included with site')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /^About / })).toHaveLength(6);
+    expect(screen.queryByText('About this layer')).not.toBeInTheDocument();
+    for (const [label, source] of [
+        ['Hydrological Boundaries', 'USGS · Watershed Boundary Dataset'],
+        ['City Limits', 'U.S. Census Bureau · TIGERweb'],
+    ]) {
+        const row = screen.getByRole('checkbox', { name: label }).closest('.builtin-layer-row');
+        expect(row.querySelector('.builtin-layer-swatch')).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: `About ${label}` }));
+        await screen.findByRole('dialog', { name: label });
+        expect(screen.getByRole('link', { name: source })).toHaveAttribute('href', expect.stringMatching(/^https:\/\//));
+        fireEvent.click(screen.getByRole('button', { name: 'Close layer information' }));
+        fireEvent.click(screen.getByRole('checkbox', { name: label }));
+        expect(screen.getByRole('checkbox', { name: label })).toBeChecked();
+    }
 });
 
 test('built-in search expands results and includes them in the navigation count', async () => {
@@ -62,6 +85,21 @@ test('built-in search expands results and includes them in the navigation count'
     expect(await screen.findByRole('checkbox', { name: 'National Forests' })).toBeInTheDocument();
     expect(screen.queryByRole('checkbox', { name: 'Major Roads' })).not.toBeInTheDocument();
     await waitFor(() => expect(screen.getByText('1 / 1')).toBeInTheDocument());
+});
+
+test('Rivers is independently selectable from Hydrological Boundaries and searchable', async () => {
+    await openFolder();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Rivers', exact: true }));
+    expect(screen.getByRole('checkbox', { name: 'Rivers', exact: true })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Hydrological Boundaries' })).not.toBeChecked();
+    const search = screen.getByRole('textbox');
+    fireEvent.change(search, { target: { value: 'rivers' } });
+    fireEvent.keyDown(search, { key: 'Enter' });
+    await waitFor(() => expect(screen.getByText('1 / 1')).toBeInTheDocument());
+    expect(screen.getByRole('checkbox', { name: 'Rivers', exact: true })).toBeChecked();
+    expect(screen.queryByRole('checkbox', { name: 'Hydrological Boundaries' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Uncheck all layers on map' }));
+    expect(screen.getByRole('checkbox', { name: 'Rivers', exact: true })).not.toBeChecked();
 });
 
 test('loading errors remain actionable and retry uses the current map', async () => {

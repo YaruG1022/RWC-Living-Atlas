@@ -2,7 +2,7 @@ import React from 'react';
 import Modal from 'react-modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { latestGuiUpdateDate, latestGuiUpdates, previousGuiUpdateDate, previousGuiUpdates, earlierGuiUpdateDate, earlierGuiUpdates, contactGuiUpdateDate, contactGuiUpdates, manualGuiUpdateDate, manualGuiUpdates } from './latestGuiUpdates';
+import { guiReleases } from './latestGuiUpdates';
 
 function ChangelogModal({ isOpen, onClose }) {
     return (
@@ -22,80 +22,22 @@ function ChangelogModal({ isOpen, onClose }) {
             </div>
 
             <div className="onboarding-modal-body changelog-modal-body">
-                <details className="onboarding-section changelog-release" open>
-                    <summary>
-                        <h3>Update Date: {latestGuiUpdateDate}</h3>
-                        <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />
-                    </summary>
-                    <div className="onboarding-section-content">
-                        {latestGuiUpdates.map(group => <React.Fragment key={group.title}>
-                            <h4>{group.title}</h4>
-                            <ul className="changelog-list">
-                                {group.items.map(item => <li key={item}>{item}</li>)}
-                            </ul>
-                        </React.Fragment>)}
-                    </div>
-                </details>
-
-                <details className="onboarding-section changelog-release">
-                    <summary>
-                        <h3>Update Date: {manualGuiUpdateDate}</h3>
-                        <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />
-                    </summary>
-                    <div className="onboarding-section-content">
-                        {manualGuiUpdates.map(group => <React.Fragment key={group.title}>
-                            <h4>{group.title}</h4>
-                            <ul className="changelog-list">
-                                {group.items.map(item => <li key={item}>{item}</li>)}
-                            </ul>
-                        </React.Fragment>)}
-                    </div>
-                </details>
-
-                <details className="onboarding-section changelog-release">
-                    <summary>
-                        <h3>Update Date: {contactGuiUpdateDate}</h3>
-                        <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />
-                    </summary>
-                    <div className="onboarding-section-content">
-                        {contactGuiUpdates.map(group => <React.Fragment key={group.title}>
-                            <h4>{group.title}</h4>
-                            <ul className="changelog-list">
-                                {group.items.map(item => <li key={item}>{item}</li>)}
-                            </ul>
-                        </React.Fragment>)}
-                    </div>
-                </details>
-
-                <details className="onboarding-section changelog-release">
-                    <summary>
-                        <h3>Update Date: {previousGuiUpdateDate}</h3>
-                        <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />
-                    </summary>
-                    <div className="onboarding-section-content">
-                        {previousGuiUpdates.map(group => <React.Fragment key={group.title}>
-                            <h4>{group.title}</h4>
-                            <ul className="changelog-list">
-                                {group.items.map(item => <li key={item}>{item}</li>)}
-                            </ul>
-                        </React.Fragment>)}
-                    </div>
-                </details>
-
-                <details className="onboarding-section changelog-release">
-                    <summary>
-                        <h3>Update Date: {earlierGuiUpdateDate}</h3>
-                        <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />
-                    </summary>
-                    <div className="onboarding-section-content">
-                        {earlierGuiUpdates.map(group => <React.Fragment key={group.title}>
-                            <h4>{group.title}</h4>
-                            <ul className="changelog-list">
-                                {group.items.map(item => <li key={item}>{item}</li>)}
-                            </ul>
-                        </React.Fragment>)}
-                    </div>
-                </details>
+                {guiReleases.map((release, index) => (
+                    <details key={release.date} className="onboarding-section changelog-release" open={index === 0}>
+                        <summary>
+                            <h3>Update Date: {release.date}</h3>
+                            <FontAwesomeIcon icon={faChevronDown} className="onboarding-section-chevron" />
+                        </summary>
+                        <div className="onboarding-section-content">
+                            {release.groups.map(group => <React.Fragment key={group.title}>
+                                <h4>{group.title}</h4>
+                                <ul className="changelog-list">
+                                    {group.items.map(item => <li key={item}>{item}</li>)}
+                                </ul>
+                            </React.Fragment>)}
+                        </div>
+                    </details>
+                ))}
 
                 <details className="onboarding-section changelog-release">
                     <summary>

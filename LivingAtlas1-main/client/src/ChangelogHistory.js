@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './ChangelogHistory.css';
 import InfoPage from './InfoPage';
-import { latestGuiUpdateDate, latestGuiUpdates, previousGuiUpdateDate, previousGuiUpdates, earlierGuiUpdateDate, earlierGuiUpdates, contactGuiUpdateDate, contactGuiUpdates, manualGuiUpdateDate, manualGuiUpdates } from './latestGuiUpdates';
+import { guiReleases } from './latestGuiUpdates';
 
 function ChangelogHistory() {
     const [activeTab, setActiveTab] = useState('latest');
@@ -27,46 +27,16 @@ function ChangelogHistory() {
             <div className="changelog-history-body">
                 {activeTab === 'latest' && (
                     <>
-                        <h2 className="info-page__section-title">Update Date: {latestGuiUpdateDate}</h2>
-                        {latestGuiUpdates.map(group => <React.Fragment key={group.title}>
-                            <h3 className="info-page__subheading">{group.title}</h3>
-                            <ul className="changelog-list">
-                                {group.items.map(item => <li key={item}>{item}</li>)}
-                            </ul>
+                        {guiReleases.map(release => <React.Fragment key={release.date}>
+                            <h2 className="info-page__section-title">Update Date: {release.date}</h2>
+                            {release.groups.map(group => <React.Fragment key={group.title}>
+                                <h3 className="info-page__subheading">{group.title}</h3>
+                                <ul className="changelog-list">
+                                    {group.items.map(item => <li key={item}>{item}</li>)}
+                                </ul>
+                            </React.Fragment>)}
+                            <hr />
                         </React.Fragment>)}
-                        <hr />
-                        <h2 className="info-page__section-title">Update Date: {manualGuiUpdateDate}</h2>
-                        {manualGuiUpdates.map(group => <React.Fragment key={group.title}>
-                            <h3 className="info-page__subheading">{group.title}</h3>
-                            <ul className="changelog-list">
-                                {group.items.map(item => <li key={item}>{item}</li>)}
-                            </ul>
-                        </React.Fragment>)}
-                        <hr />
-                        <h2 className="info-page__section-title">Update Date: {contactGuiUpdateDate}</h2>
-                        {contactGuiUpdates.map(group => <React.Fragment key={group.title}>
-                            <h3 className="info-page__subheading">{group.title}</h3>
-                            <ul className="changelog-list">
-                                {group.items.map(item => <li key={item}>{item}</li>)}
-                            </ul>
-                        </React.Fragment>)}
-                        <hr />
-                        <h2 className="info-page__section-title">Update Date: {previousGuiUpdateDate}</h2>
-                        {previousGuiUpdates.map(group => <React.Fragment key={group.title}>
-                            <h3 className="info-page__subheading">{group.title}</h3>
-                            <ul className="changelog-list">
-                                {group.items.map(item => <li key={item}>{item}</li>)}
-                            </ul>
-                        </React.Fragment>)}
-                        <hr />
-                        <h2 className="info-page__section-title">Update Date: {earlierGuiUpdateDate}</h2>
-                        {earlierGuiUpdates.map(group => <React.Fragment key={group.title}>
-                            <h3 className="info-page__subheading">{group.title}</h3>
-                            <ul className="changelog-list">
-                                {group.items.map(item => <li key={item}>{item}</li>)}
-                            </ul>
-                        </React.Fragment>)}
-                        <hr />
                         <h2 className="info-page__section-title">Update Date: 9/27/2026</h2>
 
                         <h3 className="info-page__subheading">Registration Reliability</h3>

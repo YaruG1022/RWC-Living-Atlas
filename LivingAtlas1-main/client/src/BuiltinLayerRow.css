@@ -7,9 +7,16 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
+    flex-wrap: nowrap;
     gap: 8px;
     margin: 0;
     cursor: pointer;
+}
+
+.builtin-layer-row .builtin-layer-label > span:last-child {
+    flex: 1;
+    min-width: 0;
+    white-space: normal;
 }
 
 .builtin-layer-label input {
@@ -40,15 +47,6 @@
 
 .builtin-layer-info p {
     margin: 6px 0;
-}
-
-.builtin-layer-local {
-    display: inline-block;
-    margin-bottom: 4px;
-    padding: 1px 6px;
-    border-radius: 4px;
-    background: #e8f2e9;
-    color: #275e36;
 }
 
 .builtin-layer-info summary {

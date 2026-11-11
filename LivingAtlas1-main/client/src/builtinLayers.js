@@ -3,10 +3,28 @@
 const naturalEarthCredit = '<a href="https://www.naturalearthdata.com/">Natural Earth</a> (public domain)';
 
 export const BUILTIN_LAYERS = [
-    { id: 'River', label: 'Hydrological Boundaries', layerIds: ['vector-tileset'] },
-    { id: 'Places', label: 'City Limits', layerIds: ['urban-areas-fill', 'urban-areas-outline'] },
     {
-        id: 'Forest', label: 'National Forests', color: '#34834b', geometry: 'polygon',
+        id: 'River', label: 'Hydrological Boundaries', color: '#7063ac', geometry: 'polygon', fillOpacity: 0.25,
+        file: 'watersheds.geojson', layerIds: ['builtin-watershed-fill', 'builtin-watershed-outline'],
+        bounds: [[-125, 41.9], [-110.8, 49.1]],
+        description: 'USGS HUC8 subbasin boundaries intersecting the WA / OR / ID region. Generalized drainage areas, not river channels. Full subbasins can extend across state borders.',
+        sourceLabel: 'USGS · Watershed Boundary Dataset',
+        sourceUrl: 'https://www.usgs.gov/national-hydrography/watershed-boundary-dataset',
+        attribution: '<a href="https://www.usgs.gov/national-hydrography/watershed-boundary-dataset">USGS WBD</a> (public domain)',
+        codeLabel: 'HUC8',
+    },
+    {
+        id: 'Places', label: 'City Limits', color: '#b84f68', geometry: 'polygon', fillOpacity: 0.35,
+        file: 'cities.geojson', layerIds: ['builtin-city-fill', 'builtin-city-outline'],
+        bounds: [[-125, 41.9], [-110.8, 49.1]],
+        description: 'Census TIGERweb incorporated place boundaries for WA / OR / ID. Generalized city and town limits; excludes census-designated places and urban growth areas. Snapshot for reference, not legal boundary determination.',
+        sourceLabel: 'U.S. Census Bureau · TIGERweb',
+        sourceUrl: 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/4',
+        attribution: '<a href="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html">U.S. Census Bureau</a> (public domain)',
+        codeLabel: 'Census GEOID',
+    },
+    {
+        id: 'Forest', label: 'National Forests', color: '#34834b', geometry: 'polygon', fillOpacity: 0.35,
         file: 'forests.geojson', layerIds: ['builtin-forest-fill', 'builtin-forest-outline'],
         bounds: [[-125, 41.9], [-110.8, 49.1]],
         description: 'Selected WA / OR / ID national forest proclaimed boundaries. Generalized boundaries, not tree cover or a complete forest inventory.',
@@ -15,7 +33,7 @@ export const BUILTIN_LAYERS = [
         attribution: 'USFS; <a href="https://github.com/Theodore-Roosevelt-Presidential-Library/PresidentialPublicLands">Theodore Roosevelt Presidential Library</a> (MIT)',
     },
     {
-        id: 'Lake', label: 'Lakes & Reservoirs', color: '#197db4', geometry: 'polygon',
+        id: 'Lake', label: 'Lakes & Reservoirs', color: '#197db4', geometry: 'polygon', fillOpacity: 0.8,
         file: 'lakes.geojson', layerIds: ['builtin-lake-fill', 'builtin-lake-outline'],
         bounds: [[-125, 41.9], [-110.8, 49.1]],
         description: 'Major lakes and reservoirs in the WA / OR / ID region and border areas. Generalized 1:10 million overview; smaller water bodies may be absent.',

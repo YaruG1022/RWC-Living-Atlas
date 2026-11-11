@@ -54,6 +54,23 @@ test('provides three usable new categories with descriptions and an added-only f
     expect(screen.getByRole('button', { name: 'Uncheck all layers on map' })).toBeDisabled();
 });
 
+test('all five built-ins provide a color legend and source details without the site badge', async () => {
+    await openFolder();
+    expect(screen.queryByText('Included with site')).not.toBeInTheDocument();
+    expect(screen.getAllByText('About this layer')).toHaveLength(5);
+    for (const [label, source] of [
+        ['Hydrological Boundaries', 'USGS · Watershed Boundary Dataset'],
+        ['City Limits', 'U.S. Census Bureau · TIGERweb'],
+    ]) {
+        const row = screen.getByRole('checkbox', { name: label }).closest('.builtin-layer-row');
+        expect(row.querySelector('.builtin-layer-swatch')).toBeInTheDocument();
+        fireEvent.click(row.querySelector('summary'));
+        expect(screen.getByRole('link', { name: source })).toHaveAttribute('href', expect.stringMatching(/^https:\/\//));
+        fireEvent.click(screen.getByRole('checkbox', { name: label }));
+        expect(screen.getByRole('checkbox', { name: label })).toBeChecked();
+    }
+});
+
 test('built-in search expands results and includes them in the navigation count', async () => {
     await openFolder();
     const search = screen.getByRole('textbox');

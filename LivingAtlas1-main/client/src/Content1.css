@@ -1231,6 +1231,27 @@
 }
 
 /* Keep imported-feature attributes readable on small viewports. */
+.mapboxgl-popup.builtin-layer-popup {
+  min-width: 0;
+  max-width: calc(100vw - 24px) !important;
+}
+
+.builtin-layer-popup .mapboxgl-popup-content {
+  width: min(320px, calc(100vw - 24px)) !important;
+  min-width: 0 !important;
+  max-width: calc(100vw - 24px) !important;
+  height: auto !important;
+  max-height: min(360px, calc(100vh - 100px)) !important;
+  padding: 12px 28px 12px 12px !important;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.builtin-layer-popup p {
+  margin: 6px 0 0;
+}
+
 .mapboxgl-popup.uploaded-vector-popup {
   min-width: 0;
   max-width: calc(100vw - 24px) !important;

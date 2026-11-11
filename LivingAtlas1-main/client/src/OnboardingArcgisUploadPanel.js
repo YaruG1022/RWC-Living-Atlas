@@ -12,7 +12,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="arcgis-state-folder"]',
         title: 'State Folders',
-        description: 'At the root of the panel, each state appears as a folder. Open Washington, Idaho, Oregon, or Built-in Layers to move into that scope.',
+        description: 'Open Washington, Idaho, Oregon, or Built-in Layers. The five built-in layers include color legends and About this layer details for their sources and coverage.',
         placement: 'left',
     },
     {

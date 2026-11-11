@@ -12,7 +12,6 @@ export default function BuiltinLayerRow({ layer, visible, status, onToggle, sear
             </label>
             {layer.file && (
                 <div className="builtin-layer-info">
-                    <span className="builtin-layer-local">Included with site</span>
                     <details>
                         <summary>About this layer</summary>
                         <p>{layer.description}</p>

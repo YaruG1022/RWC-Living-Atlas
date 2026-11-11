@@ -44,8 +44,8 @@ test('loads each local layer only when enabled, and caches data when toggled aga
         layer.layerIds.forEach(id => expect(map.getLayoutProperty(id, 'visibility')).toBe('none'));
         controller.setVisible(layer.id, true);
     }
-    expect(fetchData).toHaveBeenCalledTimes(3);
-    expect(setLocalBuiltinVisibility(map, 'Places', true)).toBe(false);
+    expect(fetchData).toHaveBeenCalledTimes(5);
+    expect(setLocalBuiltinVisibility(map, 'unknown', true)).toBe(false);
     controller.destroy();
 });
 
@@ -147,5 +147,30 @@ test('opacity applies to already loaded layers and to layers enabled later', asy
     expect(map.getLayer('builtin-roads-line').paint['line-opacity']).toBe(0.5);
     controller.setOpacity(0);
     expect(map.getLayer('builtin-roads-line').paint['line-opacity']).toBe(0);
+    controller.destroy();
+});
+
+test.each(['River', 'Places'])('%s uses local polygons, matching legends and opacity after a basemap change', async id => {
+    const map = createMap();
+    const fetchData = jest.fn(async () => response());
+    const controller = installBuiltinLayers(map, fetchData);
+    const layer = BUILTIN_LAYERS.find(item => item.id === id);
+    controller.setOpacity(0.4);
+    controller.setVisible(id, true);
+    await waitFor(() => expect(getBuiltinLayerStatuses(map)[id].state).toBe('ready'));
+    for (let change = 0; change < 2; change++) {
+        const fill = map.getLayer(layer.layerIds[0]);
+        const outline = map.getLayer(layer.layerIds[1]);
+        expect(fill.paint['fill-color']).toBe(layer.color);
+        expect(fill.paint['fill-opacity']).toBeCloseTo(0.4 * layer.fillOpacity);
+        expect(outline.paint['line-color']).toBe(layer.color);
+        expect(outline.paint['line-opacity']).toBe(0.4);
+        expect(map.getSource(fill.source).type).toBe('geojson');
+        map.style = { sources: {}, layers: [] };
+        map.emit('style.load');
+    }
+    expect(fetchData).toHaveBeenCalledTimes(1);
+    controller.setVisible(id, false);
+    layer.layerIds.forEach(layerId => expect(map.getLayoutProperty(layerId, 'visibility')).toBe('none'));
     controller.destroy();
 });

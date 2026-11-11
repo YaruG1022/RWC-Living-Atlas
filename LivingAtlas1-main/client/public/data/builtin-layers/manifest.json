@@ -46,8 +46,8 @@
     "watersheds": {
       "file": "watersheds.geojson",
       "features": 226,
-      "bytes": 657671,
-      "sha256": "e500233cdd711c8a9826df70364a466a5d3d68f2d3a89a5bcb88b5e73d3bc946",
+      "bytes": 659232,
+      "sha256": "b7a4875053347023871e11256cf174f5463c95097641e4cd19298f4906d8ee96",
       "upstream": [
         "https://hydro.nationalmap.gov/arcgis/rest/services/wbd/MapServer/4?f=json",
         "https://hydro.nationalmap.gov/arcgis/rest/services/wbd/MapServer/4/query?f=json&where=states+LIKE+%27%25WA%25%27+OR+states+LIKE+%27%25OR%25%27+OR+states+LIKE+%27%25ID%25%27&returnIdsOnly=true&geometry=-125%2C41.9%2C-110.8%2C49.1&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects",
@@ -58,13 +58,14 @@
       "limitations": "HUC8 subbasins associated with WA/OR/ID and intersecting the regional extent. Full drainage boundaries, not river channels; not clipped to state borders. Generalized at 0.006 degrees for display.",
       "downloaded": "2026-11-11",
       "serviceLayer": "8-digit HU  (Subbasin)",
-      "geometryToleranceDegrees": 0.006
+      "geometryToleranceDegrees": 0.006,
+      "geometryRepair": "GDAL MakeValid; polygon components retained"
     },
     "cities": {
       "file": "cities.geojson",
       "features": 721,
-      "bytes": 1031878,
-      "sha256": "04171f4d604c30779dbd95c55e95b61fd09355dca021a3364a35ec9141b221ea",
+      "bytes": 1060156,
+      "sha256": "6597ad8011f6e4812eecc9946f681ea63a1d99f68675e3a36e43cb2db926c9f2",
       "upstream": [
         "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/4?f=json",
         "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/4/query?f=json&where=STATE+IN+%28%2716%27%2C%2741%27%2C%2753%27%29&returnIdsOnly=true",
@@ -78,7 +79,8 @@
       "downloaded": "2026-11-11",
       "serviceLayer": "Incorporated Places",
       "geometryToleranceDegrees": 0.001,
-      "serviceDescription": "Incorporated Places; January 1, 2026 vintage"
+      "serviceDescription": "Incorporated Places; January 1, 2026 vintage",
+      "geometryRepair": "GDAL MakeValid; polygon components retained"
     }
   }
 }

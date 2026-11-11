@@ -62,7 +62,10 @@ def feature(identifier, geometry, properties):
 
 def main():
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    manifest = {'schemaVersion': 1, 'selectionExtent': EXTENT, 'coordinateSystem': 'WGS84 / EPSG:4326', 'datasets': {}}
+    manifest_path = OUTPUT / 'manifest.json'
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8')) if manifest_path.exists() else {
+        'schemaVersion': 1, 'selectionExtent': EXTENT, 'coordinateSystem': 'WGS84 / EPSG:4326', 'datasets': {},
+    }
     for name in ['lakes', 'roads']:
         upstream = NE_BASE + f'geojson/ne_10m_{name}.geojson'
         data = json.loads(download(upstream))

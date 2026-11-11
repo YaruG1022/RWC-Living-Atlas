@@ -48,7 +48,10 @@ test('provides three usable new categories with descriptions and an added-only f
     expect(screen.getByRole('checkbox', { name: 'National Forests' })).toBeChecked();
     fireEvent.click(screen.getByRole('button', { name: 'Show only services added to the map' }));
     expect(screen.getAllByRole('checkbox')).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'About National Forests' }));
+    await screen.findByRole('dialog', { name: 'National Forests' });
     expect(screen.getByText(/not tree cover/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Close layer information' }));
     fireEvent.click(screen.getByRole('button', { name: 'Uncheck all layers on map' }));
     expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
     expect(screen.getByRole('button', { name: 'Uncheck all layers on map' })).toBeDisabled();
@@ -57,15 +60,18 @@ test('provides three usable new categories with descriptions and an added-only f
 test('all six built-ins provide a color legend and source details without the site badge', async () => {
     await openFolder();
     expect(screen.queryByText('Included with site')).not.toBeInTheDocument();
-    expect(screen.getAllByText('About this layer')).toHaveLength(6);
+    expect(screen.getAllByRole('button', { name: /^About / })).toHaveLength(6);
+    expect(screen.queryByText('About this layer')).not.toBeInTheDocument();
     for (const [label, source] of [
         ['Hydrological Boundaries', 'USGS · Watershed Boundary Dataset'],
         ['City Limits', 'U.S. Census Bureau · TIGERweb'],
     ]) {
         const row = screen.getByRole('checkbox', { name: label }).closest('.builtin-layer-row');
         expect(row.querySelector('.builtin-layer-swatch')).toBeInTheDocument();
-        fireEvent.click(row.querySelector('summary'));
+        fireEvent.click(screen.getByRole('button', { name: `About ${label}` }));
+        await screen.findByRole('dialog', { name: label });
         expect(screen.getByRole('link', { name: source })).toHaveAttribute('href', expect.stringMatching(/^https:\/\//));
+        fireEvent.click(screen.getByRole('button', { name: 'Close layer information' }));
         fireEvent.click(screen.getByRole('checkbox', { name: label }));
         expect(screen.getByRole('checkbox', { name: label })).toBeChecked();
     }

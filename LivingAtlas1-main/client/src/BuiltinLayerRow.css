@@ -3,6 +3,12 @@
     border-bottom: 1px solid #e4e9ee;
 }
 
+.builtin-layer-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .builtin-layer-row .builtin-layer-label {
     display: flex;
     align-items: center;
@@ -11,6 +17,8 @@
     gap: 8px;
     margin: 0;
     cursor: pointer;
+    flex: 1;
+    min-width: 0;
 }
 
 .builtin-layer-row .builtin-layer-label > span:last-child {
@@ -49,8 +57,87 @@
     margin: 6px 0;
 }
 
-.builtin-layer-info summary {
+.builtin-layer-help-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    padding: 0;
+    border: 1px solid #bfd0e2;
+    border-radius: 50%;
+    background: #fff;
+    color: #27425d;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
     cursor: pointer;
+}
+
+.builtin-layer-help-button:hover {
+    background: #eaf3fc;
+    border-color: #8eabc8;
+}
+
+.builtin-layer-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2200;
+    background: rgba(22, 40, 60, 0.08);
+}
+
+.builtin-layer-dialog {
+    position: fixed;
+    visibility: hidden;
+    box-sizing: border-box;
+    width: 320px;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    overflow-y: auto;
+    border: 1px solid #cbd8e5;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 6px 24px rgba(26, 58, 92, 0.2);
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #263b50;
+    outline: none;
+}
+
+.builtin-layer-dialog-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e3eaf1;
+}
+
+.builtin-layer-dialog-header h3 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.builtin-layer-dialog-body {
+    padding: 12px;
+}
+
+.builtin-layer-dialog-body p {
+    margin: 0 0 10px;
+    overflow-wrap: anywhere;
+}
+
+.builtin-layer-dialog-body a {
+    color: #1d5e96;
 }
 
 .builtin-layer-link {
@@ -68,7 +155,8 @@
 }
 
 .builtin-layer-link:focus-visible,
-.builtin-layer-info summary:focus-visible {
+.builtin-layer-help-button:focus-visible,
+.builtin-layer-dialog-body a:focus-visible {
     outline: 2px solid #1d5e96;
     outline-offset: 2px;
 }

@@ -45,6 +45,9 @@ import {
     getLoadingMsgText
 } from './arcgisUploadMessageUtils';
 import ClearAllLayersButton from './ClearAllLayersButton';
+import BuiltinLayerRow from './BuiltinLayerRow';
+import { BUILTIN_LAYERS, BUILTIN_STATUS_EVENT, matchingBuiltinLayers, builtinSearchMatches } from './builtinLayers';
+import { getBuiltinLayerStatuses, setBuiltinLayerOpacity } from './builtinLayerController';
 import ArcgisUploadPanelOnboarding from './OnboardingArcgisUploadPanel';
 
 // --- State selector ---
@@ -73,11 +76,6 @@ const STATE_ATTRIBUTION = {
 
 // Main component
 
-// Built-in (hardcoded) layers that are not from ArcGIS REST services
-const BUILTIN_LAYERS = [
-    { id: 'River', label: 'Hydrological Boundaries' },
-    { id: 'Places', label: 'City Limits' },
-];
 const BUILTIN_FOLDER_NAME = 'Built-in Layers';
 const LEGACY_PINNED_STORAGE_KEY = 'arcgis_pinned_items';
 
@@ -148,6 +146,24 @@ function ArcgisUploadPanel({
     onNavigateToItemDone,
     onCustomLayerSaved,
 }) {
+    const [builtinStatuses, setBuiltinStatuses] = useState(() => getBuiltinLayerStatuses(window.atlasMapInstance));
+    useEffect(() => {
+        const update = event => setBuiltinStatuses(previous => ({ ...previous, [event.detail.id]: event.detail }));
+        window.addEventListener(BUILTIN_STATUS_EVENT, update);
+        return () => window.removeEventListener(BUILTIN_STATUS_EVENT, update);
+    }, []);
+    const renderBuiltinLayer = layer => (
+        <BuiltinLayerRow
+            key={layer.id}
+            layer={layer}
+            visible={areaVisibility[layer.id]}
+            status={builtinStatuses[layer.id]}
+            onToggle={handleAreaCheckbox}
+            searchMatchId={matchedBuiltinLayers.some(item => item.id === layer.id) ? `builtin-layer-${layer.id}` : undefined}
+            activeMatch={currentMatchId === `builtin-layer-${layer.id}`}
+        />
+    );
+
     // Track selected state
     const [selectedState, setSelectedState] = useState('WA');
 
@@ -203,12 +219,6 @@ function ArcgisUploadPanel({
     const [onboardingStepIndex, setOnboardingStepIndex] = useState(0);
     const onboardingSnapshotRef = useRef(null);
 
-    // Search navigation
-    const matchList = useMemo(
-        () => buildMatchList({ searchResult, allServicesByState: ALL_SERVICES_BY_STATE, stateCodes: STATE_CODES, serviceLayers }),
-        [searchResult, serviceLayers] // eslint-disable-line react-hooks/exhaustive-deps
-    );
-    const { currentIndex: navIndex, total: matchTotal, currentMatchId, goToNext, goToPrev, initNav, resetNav } = useSearchNav(matchList);
     const [expandedStates, setExpandedStates] = useState(new Set()); // Track which state-level folders are expanded
     const [expandedFolders, setExpandedFolders] = useState(new Set());
     // Navigation path for file-explorer style folder browsing: { stateCode: null|string, folder: null|string }
@@ -218,6 +228,17 @@ function ArcgisUploadPanel({
     const [chatbotHighlightTarget, setChatbotHighlightTarget] = useState(null);
     // State for added-only checkbox
     const [showAddedOnly, setShowAddedOnly] = useState(false);
+    const visibleBuiltinLayers = BUILTIN_LAYERS.filter(layer => !showAddedOnly || areaVisibility[layer.id]);
+    const canSearchBuiltins = currentPath.stateCode === null || currentPath.stateCode === '__builtin__' || currentPath.folder === '__builtin__';
+    const matchedBuiltinLayers = canSearchBuiltins && searchResult ? matchingBuiltinLayers(searchResult.keyword, searchType, visibleBuiltinLayers) : [];
+
+    // Search navigation
+    const matchList = useMemo(
+        () => [...buildMatchList({ searchResult, allServicesByState: ALL_SERVICES_BY_STATE, stateCodes: STATE_CODES, serviceLayers }), ...builtinSearchMatches(matchedBuiltinLayers)],
+        [searchResult, serviceLayers, showAddedOnly, areaVisibility, currentPath, searchType] // eslint-disable-line react-hooks/exhaustive-deps
+    );
+    const { currentIndex: navIndex, total: matchTotal, currentMatchId, goToNext, goToPrev, initNav, resetNav } = useSearchNav(matchList);
+
 
     // Opacity slider state (0 to 1)
     const [layerOpacity, setLayerOpacity] = useState(0.7);
@@ -243,6 +264,10 @@ function ArcgisUploadPanel({
     // ran too early (e.g. auto-loading pinned layers right after a page refresh)
     // get re-run and actually add their layers.
     const [mapReadyTick, setMapReadyTick] = useState(0);
+    useEffect(() => {
+        const map = typeof mapInstance === 'function' ? mapInstance() : mapInstance;
+        if (map) setBuiltinLayerOpacity(map, layerOpacity);
+    }, [layerOpacity, mapInstance, mapReadyTick]);
     const mapReadyListenerRef = useRef(false);
 
     // Persistence: track whether saved selections have been loaded for current state/datasource
@@ -566,11 +591,12 @@ function ArcgisUploadPanel({
         activeSearchRef.current = { keyword, searchType: type, scopedServices: newScopedServices, scopedStateCodes: newScopedCodes };
         const result = filterUploadPanelData({ services: newScopedServices, serviceLayers, searchType: type, keyword });
         setSearchResult(result);
-        setExpandedStates(new Set(newScopedCodes));
+        setExpandedStates(new Set([...newScopedCodes, '__builtin__']));
         setExpandedFolders(new Set(result.expandedFolders));
         setExpandedServices(new Set(result.expandedServices));
         setExpandedLayers(new Set(result.expandedLayerKeys));
         const mList = buildMatchList({ searchResult: result, allServicesByState: ALL_SERVICES_BY_STATE, stateCodes: newScopedCodes, serviceLayers });
+        if (canSearchBuiltins) mList.push(...builtinSearchMatches(matchingBuiltinLayers(result.keyword, searchType, visibleBuiltinLayers)));
         initNav(mList);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [ARCGIS_SERVICES.length]); // Re-run search when services list changes (DB loaded)
@@ -644,6 +670,7 @@ function ArcgisUploadPanel({
         setExpandedServices(new Set(result.expandedServices));
         setExpandedLayers(new Set(result.expandedLayerKeys));
         const mList = buildMatchList({ searchResult: result, allServicesByState: ALL_SERVICES_BY_STATE, stateCodes: scopedStateCodes, serviceLayers });
+        if (canSearchBuiltins) mList.push(...builtinSearchMatches(matchingBuiltinLayers(result.keyword, searchType, visibleBuiltinLayers)));
         initNav(mList);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [serviceLayers]);
@@ -1376,6 +1403,7 @@ function ArcgisUploadPanel({
         loadingStates.current = {};
         setIsMapLayerLoading(false);
         clearAllMessages();
+        BUILTIN_LAYERS.forEach(layer => { if (areaVisibility[layer.id]) handleAreaCheckbox?.(layer.id); });
     };
 
     // Layer checkbox logic:
@@ -2105,6 +2133,7 @@ function ArcgisUploadPanel({
 
     // Returns the service list scoped to the current navigation path (state and/or folder)
     const getScopedServices = (path = currentPath) => {
+        if (path.stateCode === '__builtin__' || path.folder === '__builtin__') return [];
         if (path.stateCode !== null && path.stateCode !== '__builtin__') {
             if (path.folder !== null) {
                 // Inside a specific folder: only services in that state + folder
@@ -2119,6 +2148,7 @@ function ArcgisUploadPanel({
 
     // Returns the STATE_CODES subset relevant to the current navigation scope
     const getScopedStateCodes = (path = currentPath) => {
+        if (path.stateCode === '__builtin__' || path.folder === '__builtin__') return [];
         if (path.stateCode !== null && path.stateCode !== '__builtin__') {
             return [path.stateCode];
         }
@@ -2174,11 +2204,12 @@ function ArcgisUploadPanel({
         setSearchResult(result);
         activeSearchRef.current = { keyword, searchType: type, scopedServices: scopedServicesList, scopedStateCodes: scopedCodes };
         // Expand states relevant to scope so results are visible
-        setExpandedStates(new Set(scopedCodes));
+        setExpandedStates(new Set([...scopedCodes, '__builtin__']));
         setExpandedFolders(new Set(result.expandedFolders));
         setExpandedServices(new Set(result.expandedServices));
         setExpandedLayers(new Set(result.expandedLayerKeys));
         const mList = buildMatchList({ searchResult: result, allServicesByState: ALL_SERVICES_BY_STATE, stateCodes: scopedCodes, serviceLayers });
+        if (canSearchBuiltins) mList.push(...builtinSearchMatches(matchingBuiltinLayers(result.keyword, type, visibleBuiltinLayers)));
         initNav(mList);
         // Kick off loading unloaded service layers so layer-name matches aren’t missed
         triggerLayerLoadForSearch(type, scopedServicesList);
@@ -2208,7 +2239,9 @@ function ArcgisUploadPanel({
     );
 
     const renderSearchBar = () => {
-        const searchPlaceholder = currentPath.folder !== null
+        const searchPlaceholder = currentPath.stateCode === '__builtin__' || currentPath.folder === '__builtin__'
+            ? 'Search Built-in Layers…'
+            : currentPath.folder !== null
             ? `Search in "${currentPath.folder}"…`
             : currentPath.stateCode !== null && currentPath.stateCode !== '__builtin__'
                 ? `Search in ${STATE_FULL_NAMES[currentPath.stateCode] || currentPath.stateCode}…`
@@ -2715,7 +2748,7 @@ function ArcgisUploadPanel({
                                     <ClearAllLayersButton
                                         label="Clear"
                                         onClick={handleClearAllLayers}
-                                        disabled={!Object.values(checkedLayerIds).some(ids => Array.isArray(ids) && ids.length > 0)}
+                                        disabled={!Object.values(checkedLayerIds).some(ids => Array.isArray(ids) && ids.length > 0) && !BUILTIN_LAYERS.some(layer => areaVisibility[layer.id])}
                                     />
                                 </div>
                             </div>
@@ -2767,14 +2800,8 @@ function ArcgisUploadPanel({
                         {searchResult ? (
                             /* ── SEARCH MODE: full filtered tree ── */
                             (() => {
-                            const _lk = searchResult.keyword || '';
-                            const _matchBuiltinLayers = searchType === 'service' ? [] :
-                                (searchType === 'folder'
-                                    ? (BUILTIN_FOLDER_NAME.toLowerCase().includes(_lk) ? BUILTIN_LAYERS : [])
-                                    : BUILTIN_LAYERS.filter(l => l.label.toLowerCase().includes(_lk)));
-                            const _showBuiltin = searchType === 'folder'
-                                ? BUILTIN_FOLDER_NAME.toLowerCase().includes(_lk)
-                                : _matchBuiltinLayers.length > 0;
+                            const _matchBuiltinLayers = matchedBuiltinLayers;
+                            const _showBuiltin = _matchBuiltinLayers.length > 0;
                             return (<>
                             {STATE_CODES.map(stateCode => {
                                 const stateData = stateFoldersToShow[stateCode];
@@ -2885,14 +2912,7 @@ function ArcgisUploadPanel({
                                 </div>
                                 {expandedStates.has('__builtin__') && (
                                     <div className="upload-state-folder-content">
-                                        {(searchType === 'folder' ? BUILTIN_LAYERS : _matchBuiltinLayers).map(layer => (
-                                            <div key={layer.id} className="tree-node" style={{ paddingLeft: 18 }}>
-                                                <label className="upload-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 6, cursor: 'pointer' }}>
-                                                    <input type="checkbox" checked={!!areaVisibility[layer.id]} onChange={() => handleAreaCheckbox?.(layer.id)} style={{ marginRight: 4 }} />
-                                                    {layer.label}
-                                                </label>
-                                            </div>
-                                        ))}
+                                        {(searchType === 'folder' ? visibleBuiltinLayers : _matchBuiltinLayers).map(renderBuiltinLayer)}
                                     </div>
                                 )}
                             </div>}
@@ -2951,14 +2971,7 @@ function ArcgisUploadPanel({
                             {/* BUILTIN VIEW */}
                             {currentPath.stateCode === '__builtin__' && (
                                 <div className="upload-state-folder-content">
-                                    {BUILTIN_LAYERS.map(layer => (
-                                        <div key={layer.id} className="tree-node" style={{ paddingLeft: 18 }}>
-                                            <label className="upload-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 6, cursor: 'pointer' }}>
-                                                <input type="checkbox" checked={!!areaVisibility[layer.id]} onChange={() => handleAreaCheckbox?.(layer.id)} style={{ marginRight: 4 }} />
-                                                {layer.label}
-                                            </label>
-                                        </div>
-                                    ))}
+                                    {visibleBuiltinLayers.map(renderBuiltinLayer)}
                                 </div>
                             )}
 
@@ -2991,14 +3004,7 @@ function ArcgisUploadPanel({
                                 <>
                                     {currentPath.folder === '__builtin__' && (
                                         <div className="upload-state-folder-content">
-                                            {BUILTIN_LAYERS.map(layer => (
-                                                <div key={layer.id} className="tree-node" style={{ paddingLeft: 18 }}>
-                                                    <label className="upload-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 6, cursor: 'pointer' }}>
-                                                        <input type="checkbox" checked={!!areaVisibility[layer.id]} onChange={() => handleAreaCheckbox?.(layer.id)} style={{ marginRight: 4 }} />
-                                                        {layer.label}
-                                                    </label>
-                                                </div>
-                                            ))}
+                                            {visibleBuiltinLayers.map(renderBuiltinLayer)}
                                         </div>
                                     )}
 

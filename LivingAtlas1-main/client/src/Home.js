@@ -15,6 +15,7 @@ import './PanelControls.css';
 import ArcgisUploadPanel from './ArcgisUploadPanel';
 import CustomLayersPanel from './CustomLayersPanel';
 import { applyAreaVisibility } from './AreaFilter';
+import { defaultAreaVisibility } from './builtinLayers';
 import { showAll } from "./Filter.js";
 import { faCommentDots } from '@fortawesome/free-solid-svg-icons';
 import { faBell, faMap, faObjectGroup, faInfoCircle, faEarthAmericas, faWater } from '@fortawesome/free-solid-svg-icons';
@@ -1059,11 +1060,7 @@ function Home(props) {
     });
 
     // Colored area (vector tile) visibility state
-    const [areaVisibility, setAreaVisibility] = useState({
-        River: false,
-        Watershed: false,
-        Places: false,
-    });
+    const [areaVisibility, setAreaVisibility] = useState(defaultAreaVisibility);
 
     // Helper to show/hide markers by class
     const updateLayerVisibility = (visibility) => {

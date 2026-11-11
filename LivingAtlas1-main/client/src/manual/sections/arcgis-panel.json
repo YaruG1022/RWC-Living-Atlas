@@ -235,7 +235,7 @@
         },
         {
           "type": "text",
-          "text": "are separate from state services and your saved Custom Layers. Enable Hydrological Boundaries or City Limits there, then click a visible feature to inspect its name, identifiers, or area information."
+          "text": " are separate from state services and your saved Custom Layers. In addition to Hydrological Boundaries and City Limits, enable National Forests, Lakes & Reservoirs, or Major Roads. The three new layers are included with the site and loaded on demand. They cover the WA / OR / ID region and border areas using generalized snapshot data. National Forests shows selected proclaimed forest boundaries, not tree cover. Open About this layer for sources and coverage, or click a visible feature for details. Clear unchecks built-in and ArcGIS layers; Added limits the list to selected layers."
         }
       ]
     },

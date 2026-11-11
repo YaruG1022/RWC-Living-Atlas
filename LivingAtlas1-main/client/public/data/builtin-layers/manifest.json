@@ -81,6 +81,17 @@
       "geometryToleranceDegrees": 0.001,
       "serviceDescription": "Incorporated Places; January 1, 2026 vintage",
       "geometryRepair": "GDAL MakeValid; polygon components retained"
+    },
+    "rivers": {
+      "file": "rivers.geojson",
+      "features": 23,
+      "bytes": 97423,
+      "sha256": "128d9ceb19120a4a295e8df494912b19a6aa165119845e56b2f8983e3ff3b8b9",
+      "upstream": [
+        "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/ca96624a56bd078437bca8184e78163e5039ad19/geojson/ne_10m_rivers_lake_centerlines.geojson"
+      ],
+      "license": "Public domain",
+      "limitations": "Generalized 1:10 million overview. Extent-selected features may cross the WA/OR/ID region. Not a complete inventory or navigation data."
     }
   }
 }

@@ -66,8 +66,9 @@ def main():
     manifest = json.loads(manifest_path.read_text(encoding='utf-8')) if manifest_path.exists() else {
         'schemaVersion': 1, 'selectionExtent': EXTENT, 'coordinateSystem': 'WGS84 / EPSG:4326', 'datasets': {},
     }
-    for name in ['lakes', 'roads']:
-        upstream = NE_BASE + f'geojson/ne_10m_{name}.geojson'
+    for name in ['lakes', 'roads', 'rivers']:
+        upstream_name = 'rivers_lake_centerlines' if name == 'rivers' else name
+        upstream = NE_BASE + f'geojson/ne_10m_{upstream_name}.geojson'
         data = json.loads(download(upstream))
         selected = []
         for index, item in enumerate(data['features']):

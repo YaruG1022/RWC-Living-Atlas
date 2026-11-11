@@ -2,13 +2,14 @@
 
 These committed GeoJSON files are served by the application at
 `/data/builtin-layers/`. Checking a new layer never downloads GIS data from
-Mapbox, Azure, GitHub, ArcGIS, or another external host. This applies to all five
+Mapbox, Azure, GitHub, ArcGIS, or another external host. This applies to all six
 built-in overlays, including Hydrological Boundaries and City Limits. Basemaps
 keep their own sources; these vector overlays also work on raster basemaps.
 
 | Layer | Features | Dataset and scope |
 | --- | ---: | --- |
 | Hydrological Boundaries | 226 | USGS WBD HUC8 subbasins associated with WA, OR, or ID and intersecting the regional extent. Full subbasins can cross state borders. |
+| Rivers | 23 | Natural Earth 1:10 million major river and connecting lake-centerline features intersecting the regional extent. Includes Columbia, Snake and Willamette rivers. |
 | City Limits | 721 | Census TIGERweb incorporated places in WA, OR, and ID. Includes cities and towns, excludes census-designated places and urban growth areas. |
 | National Forests | 36 | Selected simplified proclaimed USFS national forest boundaries associated with WA, OR, or ID. Full forest units can extend across state borders. |
 | Lakes & Reservoirs | 14 | Natural Earth 1:10 million lake/reservoir polygons intersecting the regional extent. |
@@ -25,10 +26,14 @@ legal-boundary, parcel-ownership, or forest-canopy data.
 `manifest.json` records pinned upstream URLs, feature counts, byte counts,
 SHA-256 hashes, coordinate system, and coverage limitations.
 
-- **Lakes/roads:** Natural Earth vector data, pinned repository revision
+- **Lakes/roads/rivers:** Natural Earth vector data, pinned repository revision
   `ca96624a56bd078437bca8184e78163e5039ad19`.
   Original source: https://github.com/nvkelso/natural-earth-vector
   Public domain; complete terms/credits in `NATURAL-EARTH-LICENSE.md`.
+  Rivers uses `ne_10m_rivers_lake_centerlines`, including 16 river and 7 lake
+  centerline features. Features can extend beyond the extent; small streams and
+  tributaries are not comprehensively represented. This is a river-line overlay,
+  independently selectable from the HUC8 drainage-area polygons.
 - **Forests:** USFS Original Proclaimed National Forests geometry, obtained
   through the Theodore Roosevelt Presidential Library's simplified boundary
   collection at revision `2cfc36874b526e6dfc6fe38ad4aeb9b50da62f02`.

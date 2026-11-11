@@ -28,8 +28,13 @@ for (const [name, dataset] of Object.entries(manifest.datasets)) {
             assert.equal(feature.type, 'Feature');
             assert(feature.properties.name && feature.properties.source && feature.properties.kind);
             const geometry = feature.geometry;
-            assert((name === 'roads' ? ['LineString', 'MultiLineString'] : ['Polygon', 'MultiPolygon']).includes(geometry.type));
+            const isLine = ['roads', 'rivers'].includes(name);
+            assert((isLine ? ['LineString', 'MultiLineString'] : ['Polygon', 'MultiPolygon']).includes(geometry.type));
             assert(geometry.coordinates.length > 0, 'Geometry must not be empty');
+            if (isLine) {
+                const lines = geometry.type === 'LineString' ? [geometry.coordinates] : geometry.coordinates;
+                assert(lines.every(line => line.length >= 2), 'Lines need at least two positions');
+            }
             for (const [lon, lat] of points(geometry.coordinates)) {
                 assert(Number.isFinite(lon) && lon >= -180 && lon <= 180);
                 assert(Number.isFinite(lat) && lat >= -90 && lat <= 90);
@@ -49,6 +54,15 @@ test('all snapshot licenses ship with the same-origin assets', () => {
     assert.match(fs.readFileSync(path.join(root, 'NATURAL-EARTH-LICENSE.md'), 'utf8'), /public domain/i);
     assert.match(fs.readFileSync(path.join(root, 'FORESTS-LICENSE.txt'), 'utf8'), /MIT License/);
     assert.match(fs.readFileSync(path.join(root, 'BOUNDARIES-LICENSE.md'), 'utf8'), /public domain/);
+});
+
+test('rivers snapshot includes major regional rivers and lake centerlines', () => {
+    const rivers = JSON.parse(fs.readFileSync(path.join(root, 'rivers.geojson'))).features;
+    for (const name of ['Columbia', 'Snake', 'Willamette']) {
+        assert(rivers.some(item => item.properties.name === name));
+    }
+    assert(rivers.some(item => item.properties.kind === 'Lake Centerline'));
+    assert(rivers.every(item => ['River', 'Lake Centerline'].includes(item.properties.kind)));
 });
 
 test('boundary snapshots retain HUC8/GEOID identifiers and cover all three states', () => {

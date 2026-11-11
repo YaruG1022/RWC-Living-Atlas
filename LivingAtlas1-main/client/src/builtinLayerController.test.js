@@ -44,7 +44,7 @@ test('loads each local layer only when enabled, and caches data when toggled aga
         layer.layerIds.forEach(id => expect(map.getLayoutProperty(id, 'visibility')).toBe('none'));
         controller.setVisible(layer.id, true);
     }
-    expect(fetchData).toHaveBeenCalledTimes(5);
+    expect(fetchData).toHaveBeenCalledTimes(6);
     expect(setLocalBuiltinVisibility(map, 'unknown', true)).toBe(false);
     controller.destroy();
 });
@@ -127,7 +127,7 @@ test('popups render source properties as text and cleanup removes handlers and a
 });
 
 test('the catalog preserves legacy IDs and uses unique overlay IDs for every new category', () => {
-    expect(BUILTIN_LAYERS.map(layer => layer.id)).toEqual(['River', 'Places', 'Forest', 'Lake', 'Roads']);
+    expect(BUILTIN_LAYERS.map(layer => layer.id)).toEqual(['River', 'Rivers', 'Places', 'Forest', 'Lake', 'Roads']);
     const ids = BUILTIN_LAYERS.flatMap(layer => layer.layerIds);
     expect(new Set(ids).size).toBe(ids.length);
     expect(LOCAL_BUILTIN_LAYERS.every(layer => !layer.file.includes('://'))).toBe(true);

@@ -106,7 +106,8 @@ export const latestGuiUpdates = [
     {
         title: 'Consistent Built-in Boundary Layers',
         items: [
-            'Hydrological Boundaries now uses USGS HUC8 subbasins, and City Limits uses Census incorporated city and town boundaries across Washington, Oregon and Idaho. All five built-in overlays load from the site.',
+            'Hydrological Boundaries now uses USGS HUC8 subbasins, and City Limits uses Census incorporated city and town boundaries across Washington, Oregon and Idaho. All six built-in overlays load from the site.',
+            'Added Rivers with blue line styling, source details and feature popups. Shows major regional rivers and lake connections from Natural Earth, independently from Hydrological Boundaries.',
             'Added matching color legends and About this layer details for both boundary layers, unified their translucent fill and outline styling, and removed the Included with site badges.',
         ],
     },

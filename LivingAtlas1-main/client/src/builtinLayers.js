@@ -14,6 +14,14 @@ export const BUILTIN_LAYERS = [
         codeLabel: 'HUC8',
     },
     {
+        id: 'Rivers', label: 'Rivers', color: '#2563a6', geometry: 'line',
+        file: 'rivers.geojson', layerIds: ['builtin-rivers-line'],
+        bounds: [[-125, 41.9], [-110.8, 49.1]],
+        description: 'Major rivers and connecting lake centerlines in the WA / OR / ID region and border areas. Generalized 1:10 million overview; smaller rivers and tributaries may be absent.',
+        sourceLabel: 'Natural Earth · Public domain', sourceUrl: 'https://www.naturalearthdata.com/',
+        attribution: naturalEarthCredit,
+    },
+    {
         id: 'Places', label: 'City Limits', color: '#b84f68', geometry: 'polygon', fillOpacity: 0.35,
         file: 'cities.geojson', layerIds: ['builtin-city-fill', 'builtin-city-outline'],
         bounds: [[-125, 41.9], [-110.8, 49.1]],

@@ -6,7 +6,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '.custom-layers-panel',
         title: 'Custom Layers Panel',
-        description: 'This panel lets you organize saved ArcGIS layers and uploaded files (GeoJSON, KML, Shapefile) into folders, browse services, and manage layer settings.',
+        description: 'This panel lets you organize saved ArcGIS layers and uploaded GIS ZIPs (File Geodatabase or Shapefile) and StreamStats files (GeoJSON, KML, Shapefile ZIP) into folders, browse services, and manage layer settings.',
         placement: 'left',
     },
     {
@@ -54,7 +54,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="custom-layers-panel-actions"]',
         title: 'Panel Actions',
-        description: 'The compact row groups Folder, Upload, Added and Clear. Upload imports GeoJSON, KML or a zipped Shapefile; Added shows only loaded items; Clear removes active layers from the map. If the library fails to load, use Retry. Existing saved layers remain in your account.',
+        description: 'The compact row groups Folder, Upload, Added and Clear. Upload opens a nearby menu for GIS ZIPs or the three StreamStats formats. Imported layers keep attributes, are saved to your account, and display automatically; Added shows only loaded items; Clear removes active layers from the map. If the library fails to load, use Retry. Existing saved layers remain in your account.',
         placement: 'left',
     },
     {

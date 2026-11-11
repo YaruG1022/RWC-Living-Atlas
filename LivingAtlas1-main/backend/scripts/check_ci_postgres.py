@@ -95,6 +95,39 @@ class PostgreSQLContracts(unittest.TestCase):
                 return await client.request(method, path, **kwargs)
         return asyncio.run(send())
 
+    def test_gis_conversion_saves_and_restores_uploaded_geometry(self):
+        import io
+        import json
+        from tempfile import TemporaryDirectory
+        from zipfile import ZipFile, ZIP_DEFLATED
+        import fiona
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            with fiona.open(root / "fixture.gdb", "w", driver="OpenFileGDB", layer="Areas", crs="EPSG:3857", schema={"geometry": "Point", "properties": {"name": "str"}}) as output:
+                output.write({"geometry": {"type": "Point", "coordinates": [-13600000, 5900000]}, "properties": {"name": "Synthetic GIS fixture"}})
+            zipped = io.BytesIO()
+            with ZipFile(zipped, "w", ZIP_DEFLATED) as archive:
+                for file in root.rglob("*"):
+                    if file.is_file():
+                        archive.write(file, file.relative_to(root).as_posix())
+            response = self.request("POST", "/arcgis/custom-layers/import-gis", files={"file": ("fixture.zip", zipped.getvalue(), "application/zip")})
+        self.assertEqual(response.status_code, 200, response.text)
+        geojson = response.json()["layers"][0]["geojson"]
+        self.assertTrue(-123 < geojson["features"][0]["geometry"]["coordinates"][0] < -122)
+        response = self.request("POST", "/arcgis/custom-layers/save", json={
+            "user_email": "ci_owner@example.invalid", "service_key": "gis-roundtrip", "label": "GIS fixture", "url": "local://gis-roundtrip",
+            "type": "uploaded", "geojson": json.dumps(geojson),
+        })
+        self.assertEqual(response.status_code, 200, response.text)
+        try:
+            response = self.request("GET", "/arcgis/custom-layers/geojson", params={"user_email": "ci_owner@example.invalid", "service_key": "gis-roundtrip"})
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertEqual(response.json()["geojson"], geojson)
+            response = self.request("GET", "/arcgis/custom-layers", params={"user_email": "ci_owner@example.invalid"})
+            self.assertTrue(any(row["key"] == "gis-roundtrip" and row["type"] == "uploaded" for row in response.json()))
+        finally:
+            self.request("DELETE", "/arcgis/custom-layers", json={"user_email": "ci_owner@example.invalid", "service_key": "gis-roundtrip"})
+
     def test_parallel_role_changes_keep_at_least_one_admin(self):
         with self.database.conn, self.database.conn.cursor() as cursor:
             cursor.execute("INSERT INTO users (userid, username, email, is_admin, hashedpassword, salt) VALUES (201, 'First admin', 'first-admin@example.invalid', TRUE, 'fixture', %s), (202, 'Second admin', 'second-admin@example.invalid', TRUE, 'fixture', %s)", (b"fixture", b"fixture"))

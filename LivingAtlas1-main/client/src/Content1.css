@@ -1229,3 +1229,17 @@
   font-size: 0.8rem;
   line-height: 1.35;
 }
+
+/* Keep imported-feature attributes readable on small viewports. */
+.mapboxgl-popup.uploaded-vector-popup {
+  min-width: 0;
+  max-width: calc(100vw - 24px) !important;
+}
+
+.uploaded-vector-popup .mapboxgl-popup-content {
+  width: min(420px, calc(100vw - 24px)) !important;
+  min-width: 0 !important;
+  max-width: calc(100vw - 24px) !important;
+  height: min(350px, calc(100vh - 88px)) !important;
+  max-height: calc(100vh - 88px) !important;
+}

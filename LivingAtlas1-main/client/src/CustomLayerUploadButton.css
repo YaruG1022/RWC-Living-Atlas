@@ -1,0 +1,56 @@
+.custom-layer-upload-menu {
+    position: fixed;
+    z-index: 2200;
+    width: 292px;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    overflow-y: auto;
+    padding: 6px;
+    border: 1px solid #cbd8e5;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 6px 24px rgba(26, 58, 92, 0.2);
+    font-family: inherit;
+    font-size: 13px;
+    color: #263b50;
+}
+
+.custom-layer-upload-menu [role="group"] + [role="group"] {
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px solid #e3eaf1;
+}
+
+.custom-layer-upload-group-title {
+    padding: 5px 9px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #586b7d;
+}
+
+.custom-layer-upload-menu button {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 9px;
+    border: 0;
+    border-radius: 4px;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    cursor: pointer;
+}
+
+.custom-layer-upload-menu button small {
+    display: block;
+    margin-top: 3px;
+    color: #586b7d;
+}
+
+.custom-layer-upload-menu button:hover,
+.custom-layer-upload-menu button:focus-visible {
+    outline: 2px solid #3672b0;
+    outline-offset: -2px;
+    background: #eaf3fc;
+}

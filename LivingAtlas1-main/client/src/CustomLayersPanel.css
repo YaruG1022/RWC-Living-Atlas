@@ -597,3 +597,22 @@
 .drag-handle:active {
     cursor: grabbing;
 }
+
+.custom-layer-upload-feedback {
+    padding: 0 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.custom-layer-upload-feedback:empty {
+    display: none;
+}
+
+.custom-layer-upload-feedback p {
+    margin: 8px 0;
+}
+
+.custom-layer-upload-error {
+    color: #a32620;
+}

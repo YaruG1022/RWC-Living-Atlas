@@ -20,8 +20,9 @@ import { useLayerContextMenu, LayerContextMenuPopup } from './LayerContextMenu';
 import { ServiceInfoModal, LayerInfoModal } from './ArcgisInfoModals';
 import './CustomLayersPanel.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faSearch, faFolderPlus, faChevronUp, faChevronDown, faQuestion, faEllipsisV, faPlay, faEye, faUpload } from '@fortawesome/free-solid-svg-icons';
-import { parseGeoFile } from './geoFileUtils';
+import { faTimes, faSearch, faFolderPlus, faChevronUp, faChevronDown, faQuestion, faEllipsisV, faPlay, faEye } from '@fortawesome/free-solid-svg-icons';
+import CustomLayerUploadButton from './CustomLayerUploadButton';
+import { readCustomLayerFile, uploadedGeojsonBounds, UPLOAD_FORMATS } from './customLayerUpload';
 import { faFolder } from '@fortawesome/free-regular-svg-icons';
 import ClearAllLayersButton from './ClearAllLayersButton';
 import CustomLayersPanelOnboarding from './OnboardingCustomLayersPanel';
@@ -114,6 +115,9 @@ function CustomLayersPanel({
     const onboardingSnapshotRef = useRef(null);
 
     const prevCheckedLayerIds = useRef({});
+    const checkedLayerIdsRef = useRef(checkedLayerIds);
+    checkedLayerIdsRef.current = checkedLayerIds;
+    const [mapReadyTick, setMapReadyTick] = useState(0);
     const activeSearchRef = useRef(null); // { keyword, searchType } — tracks active search for auto re-run when layers load
     const loadedKeyRef = useRef(null); // tracks "userEmail:refreshKey" for which data is loaded
 
@@ -124,7 +128,11 @@ function CustomLayersPanel({
     // here so toggling a layer off and on again doesn't refetch it.
     const uploadedGeojsonCache = useRef({});
 
-    const uploadInputRef = useRef(null);
+    const uploadInputsRef = useRef({});
+    const uploadInFlightRef = useRef(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadError, setUploadError] = useState('');
+    const [uploadNotice, setUploadNotice] = useState('');
 
     // Pin state (separate storage key from upload panel)
     const PINNED_STORAGE_KEY = 'custom_layers_pinned_items';
@@ -521,6 +529,12 @@ function CustomLayersPanel({
     useEffect(() => {
         const map = mapInstance && mapInstance();
         if (!map) return;
+        let active = true;
+        const mapReady = () => { if (active) setMapReadyTick(value => value + 1); };
+        if (map.isStyleLoaded && !map.isStyleLoaded()) {
+            map.once('idle', mapReady);
+            return () => { active = false; map.off('idle', mapReady); };
+        }
 
         customServices.forEach(service => {
             // --- UPLOADED FILE LAYERS (GeoJSON/KML/Shapefile) ---
@@ -531,14 +545,20 @@ function CustomLayersPanel({
                 const isOn = currChecked.length > 0;
                 if (wasOn && !isOn) {
                     removeUploadedVectorLayer(map, service.key);
-                } else if (!wasOn && isOn) {
+                } else if (isOn && !map.getSource(uploadedSourceId(service.key))) {
                     getUploadedGeojson(service.key).then(geojson => {
                         // The fetch is async, so re-check that the layer is still
                         // checked and not already on the map before drawing it.
-                        const stillOn = (prevCheckedLayerIds.current[service.key] || []).length > 0;
+                        const stillOn = active && (checkedLayerIdsRef.current[service.key] || []).length > 0;
                         if (!geojson || !stillOn || map.getSource(uploadedSourceId(service.key))) return;
+                        if (map.isStyleLoaded && !map.isStyleLoaded()) {
+                            map.once('idle', mapReady);
+                            return;
+                        }
                         addUploadedVectorLayer(map, service, geojson, layerOpacity);
                     }).catch(err => {
+                        if (!active) return;
+                        setUploadError(`Could not display "${service.label}". Uncheck and select it again to retry. ${err.message || ''}`);
                         console.warn('[CustomLayersPanel] Failed to add uploaded layer to map:', err);
                     });
                 }
@@ -671,8 +691,9 @@ function CustomLayersPanel({
             prevCheckedLayerIds.current[service.key] = currChecked;
             prevCheckedLayerIds.current[`${service.key}_sublayers`] = JSON.parse(JSON.stringify(serviceSublayers));
         });
+        return () => { active = false; map.off?.('idle', mapReady); };
         // eslint-disable-next-line
-    }, [checkedLayerIds, serviceLayers, checkedSublayerIds]);
+    }, [checkedLayerIds, serviceLayers, checkedSublayerIds, mapReadyTick]);
 
     // Clear all layers from map:
     const handleClearAllLayers = () => {
@@ -1143,29 +1164,45 @@ function CustomLayersPanel({
         handleLayerDragEnd();
     }, [dragLayerItem, serviceLayers, layerOrder, userEmail, handleLayerDragEnd]);
 
-    // --- File upload (GeoJSON / KML / Shapefile ZIP) ---
-    const handleFileUpload = async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        e.target.value = '';
+    // Import all spatial layers, preserve their attributes, and display them immediately.
+    const handleFileUpload = async (event, format) => {
+        const file = event.target.files?.[0];
+        event.target.value = '';
+        if (!file || uploadInFlightRef.current) return;
+        uploadInFlightRef.current = true;
+        setIsUploading(true);
+        setUploadError('');
+        setUploadNotice('');
+        const saved = [];
+        const folder = currentPath || 'Root';
         try {
-            const geojson = await parseGeoFile(file);
-            const key = `uploaded_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-            const label = file.name.replace(/\.(geojson|json|kml|zip)$/i, '');
-            const folder = currentPath || 'Root';
-            const newService = { key, label, url: `local://${key}`, type: 'uploaded', folder, sort_order: Date.now(), state: '' };
-            await saveCustomLayer(userEmail, { ...newService, geojson });
-            uploadedGeojsonCache.current[key] = geojson;
-            unstable_batchedUpdates(() => {
-                setCustomServices(prev => [...prev, newService]);
-                setServiceLayers(prev => ({ ...prev, [key]: [{ id: 0, name: label, type: 'Feature Layer' }] }));
-                setCheckedLayerIds(prev => ({ ...prev, [key]: [] }));
-                setCheckedSublayerIds(prev => ({ ...prev, [key]: {} }));
-                setServiceLayerAdded(prev => ({ ...prev, [key]: false }));
-            });
-            showStatus(`Uploaded "${label}"`);
-        } catch (err) {
-            showStatus(`Upload failed: ${err.message}`);
+            const result = await readCustomLayerFile(file, format);
+            const basename = file.name.replace(/\.(geojson|json|kml|zip)$/i, '');
+            for (const layer of result.layers) {
+                const key = `uploaded_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+                const label = result.layers.length === 1 ? basename : `${basename} — ${layer.name}`;
+                const service = { key, label, url: `local://${key}`, type: 'uploaded', folder, sort_order: Date.now(), state: '' };
+                await saveCustomLayer(userEmail, { ...service, geojson: layer.geojson });
+                uploadedGeojsonCache.current[key] = layer.geojson;
+                saved.push({ service, geojson: layer.geojson });
+                unstable_batchedUpdates(() => {
+                    setCustomServices(previous => [...previous, service]);
+                    setServiceLayers(previous => ({ ...previous, [key]: [{ id: 0, name: label, type: 'Feature Layer' }] }));
+                    setCheckedLayerIds(previous => ({ ...previous, [key]: [0] }));
+                    setCheckedSublayerIds(previous => ({ ...previous, [key]: {} }));
+                    setServiceLayerAdded(previous => ({ ...previous, [key]: true }));
+                });
+            }
+            setUploadNotice(`Uploaded ${saved.length} layer${saved.length === 1 ? '' : 's'} from "${file.name}". ${(result.warnings || []).join(' ')}`);
+        } catch (error) {
+            const message = error.response?.data?.detail || error.message || 'Please try again.';
+            setUploadError(`${saved.length ? `${saved.length} layer(s) were saved before the upload stopped. ` : ''}Upload failed: ${message}`);
+        } finally {
+            const bounds = uploadedGeojsonBounds(saved.map(item => item.geojson));
+            const map = typeof mapInstance === 'function' ? mapInstance() : mapInstance;
+            if (bounds && map?.fitBounds) map.fitBounds(bounds, { padding: 50, maxZoom: 13, duration: 800 });
+            uploadInFlightRef.current = false;
+            setIsUploading(false);
         }
     };
 
@@ -1563,22 +1600,12 @@ function CustomLayersPanel({
                             <FontAwesomeIcon icon={faFolderPlus} />
                             <span>Folder</span>
                         </button>
-                        <button
-                            className="clear-all-layers-btn custom-layers-panel-upload-btn"
-                            onClick={() => uploadInputRef.current?.click()}
-                            title="Upload GeoJSON, KML, or Shapefile (.zip)"
-                            aria-label="Upload GeoJSON, KML, or Shapefile (.zip)"
-                        >
-                            <FontAwesomeIcon icon={faUpload} />
-                            <span>Upload</span>
-                        </button>
-                        <input
-                            ref={uploadInputRef}
-                            type="file"
-                            accept=".geojson,.json,.kml,.zip"
-                            style={{ display: 'none' }}
-                            onChange={handleFileUpload}
-                        />
+                        <CustomLayerUploadButton busy={isUploading} disabled={isUploading || isLoading || !!loadError} onSelect={format => uploadInputsRef.current[format]?.click()} />
+                        {UPLOAD_FORMATS.map(option => (
+                            <input key={option.id} ref={element => { uploadInputsRef.current[option.id] = element; }}
+                                type="file" accept={option.accept} aria-label={`Upload ${option.label}`} style={{ display: 'none' }}
+                                disabled={isUploading} onChange={event => handleFileUpload(event, option.id)} />
+                        ))}
                         <button
                             type="button"
                             data-onboarding-target="custom-layers-show-added-button"
@@ -1624,6 +1651,12 @@ function CustomLayersPanel({
                         />
                     </div>
                 </div>
+            </div>
+
+            <div className="custom-layer-upload-feedback">
+                {isUploading && <p role="status">Reading and saving layer data…</p>}
+                {uploadError && <p role="alert" className="custom-layer-upload-error">{uploadError}</p>}
+                {!isUploading && uploadNotice && <p role="status">{uploadNotice}</p>}
             </div>
 
             {isLoading && (

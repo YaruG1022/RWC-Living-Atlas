@@ -1,0 +1,2 @@
+# Preserve snapshot checksums in Windows checkouts as well as Linux CI.
+LivingAtlas1-main/client/public/data/builtin-layers/*.geojson text eol=lf

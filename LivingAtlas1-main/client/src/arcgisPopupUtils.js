@@ -73,7 +73,10 @@ export async function showArcgisPopup(e, layer) {
     const offsetX = 20 - stackIndex * stackOffset;
     const offsetY = 20 + stackIndex * stackOffset;
 
-    const popup = new mapboxgl.Popup({ offset: [offsetX, offsetY], closeButton: true, anchor: 'bottom' })
+    // Uploaded GIS attributes may be opened near any edge of the map. Let
+    // Mapbox choose their anchor so the title and close button stay accessible.
+    const popup = new mapboxgl.Popup({ offset: [offsetX, offsetY], closeButton: true,
+        ...(serviceUrl ? { anchor: 'bottom' } : { className: 'uploaded-vector-popup', maxWidth: '420px' }) })
       .setLngLat(e.lngLat)
       .setHTML(html)
       .addTo(e.target._map || e.target);

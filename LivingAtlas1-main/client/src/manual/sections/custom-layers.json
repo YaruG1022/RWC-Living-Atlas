@@ -23,7 +23,7 @@
       "content": [
         {
           "type": "text",
-          "text": "The Custom Layers Panel is your personal library of saved map layers. Add ArcGIS services here from the ArcGIS Upload Panel, or upload your own GeoJSON, KML, and Shapefile (.zip) files directly. Organize layers into folders, reorder them by dragging, and pin items to auto-load every time you open the panel. Login is required to use this panel."
+          "text": "The Custom Layers Panel is your personal library of saved map layers. Add ArcGIS services here from the ArcGIS Upload Panel, or upload GIS ZIP data (File Geodatabase or Shapefile) and StreamStats data (GeoJSON, KML, or Shapefile ZIP) directly. Organize layers into folders, reorder them by dragging, and pin items to auto-load every time you open the panel. Login is required to use this panel."
         }
       ]
     },
@@ -371,7 +371,7 @@
         },
         {
           "type": "text",
-          "text": " in one place. Hover buttons for their full labels. Upload File imports a GeoJSON, KML, or Shapefile (.zip) file as a new layer. Show Added Only collapses the list to services with at least one active layer, while Clear All removes all checked layers from the map in one click."
+          "text": " in one place. Hover buttons for their full labels. Upload opens a nearby menu. Choose GIS data (.zip) for a zipped File Geodatabase (.gdb folder) or Shapefile, or choose a StreamStats format: GeoJSON, KML, or Shapefile ZIP. Shapefile ZIPs need matching .shp, .shx, .dbf and .prj files. Imported feature classes become separate layers in the current folder, keep their attributes, are saved to your account and appear on the map automatically. GIS coordinates are converted to WGS84 longitude/latitude. The upload limit is 25 MB; simplify or split datasets that exceed the displayed conversion limits. Show Added Only collapses the list to services with at least one active layer, while Clear All removes all checked layers from the map in one click."
         }
       ]
     },

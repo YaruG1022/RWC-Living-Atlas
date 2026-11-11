@@ -57,3 +57,6 @@ wsproto==1.0.0
 
 Pillow>=11.3.0,<13
 pyvips[binary]>=3.0,<4
+
+# Binary wheels bundle GDAL/PROJ, including read-only File Geodatabase support.
+Fiona==1.10.1

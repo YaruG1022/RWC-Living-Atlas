@@ -101,108 +101,106 @@ export const manualGuiUpdates = [
     },
 ];
 
-export const latestGuiUpdateDate = '11/11/2026';
+// Release dates are editorial dates, shared by both update surfaces.
+export const latestGuiUpdateDate = '11/6/2026';
 export const latestGuiUpdates = [
     {
-        title: 'Consistent Built-in Boundary Layers',
+        title: 'Administration and User Management',
         items: [
-            'Hydrological Boundaries now uses USGS HUC8 subbasins, and City Limits uses Census incorporated city and town boundaries across Washington, Oregon and Idaho. All six built-in overlays load from the site.',
-            'Added Rivers with blue line styling, source details and feature popups. Shows major regional rivers and lake connections from Natural Earth, independently from Hydrological Boundaries.',
-            'Moved built-in layer information into nearby dialogs opened from small question-mark buttons beside each layer. Close with X, Escape or an outside click.',
-            'Added matching color legends and About this layer details for both boundary layers, unified their translucent fill and outline styling, and removed the Included with site badges.',
+            'Admin pages now restore the signed-in session after a refresh. Improved User Management with search, clearer loading and error messages, and reliable role changes and user deletion.',
+            'Added confirmation and safeguards for administrative actions, including protecting the last administrator account.',
         ],
     },
     {
-        title: 'Project Contacts and Upload Recovery',
+        title: 'Built-in Layers and Layer Information',
         items: [
-            'Contact Email can belong to someone other than the signed-in creator. Creating or editing a contact no longer requires it to match the account email or username; project ownership stays with the creator.',
-            'Upload errors now explain the problem so you can correct the form or retry the failed image.',
+            'Added National Forests, Lakes & Reservoirs, Major Roads and Rivers. All six built-in overlays now load regional snapshots from the site, with no separate map-data hosting service required.',
+            'Hydrological Boundaries now shows USGS HUC8 drainage areas, and City Limits shows Census incorporated cities and towns across Washington, Oregon and Idaho. Rivers separately shows major river lines and lake connections.',
+            'Unified color legends, map styling, opacity, feature popups, searching, Added and Clear. Selected overlays return after switching basemaps, including raster basemaps.',
+            'Replaced inline layer descriptions with small circular question-mark buttons. Information dialogs open nearby with coverage, source links and Zoom to region; they fit smaller screens and support Escape, outside-click closing and keyboard navigation.',
         ],
     },
     {
-        title: 'Larger Images and Framing',
+        title: 'GIS Uploads in Custom Layers',
         items: [
-            'Gallery uploads now accept PNG, JPG, WebP, GIF and BMP originals up to 50 MiB and 160 megapixels each (compressed BMPs: up to 40 MP). Originals are preserved and smaller display images are prepared automatically.',
-            'Images fill their frames by default. Use the pencil icon to drag, zoom, reset or show the full image. The image viewer shows the uncropped display image and links to the original. Fixed the framing drag crash.',
-            'Uploads show progress and let you retry failed images while keeping completed uploads and the created project. Removed legacy default logos from galleries, fixed overlapping upload instructions and updated framing controls to pencil icons.',
+            'Added an Upload menu for GIS ZIP files containing a File Geodatabase or Shapefile, and StreamStats data in GeoJSON/JSON, KML or Shapefile ZIP format.',
+            'Imported GIS features retain their attributes and are converted to map coordinates. Uploaded layers are saved in Custom Layers, display on the map and return after reloading.',
+            'Added upload progress, actionable errors and attribute popups. Updated the manual and guided instructions for the new layer and upload workflows.',
+        ],
+    },
+];
+
+// Newest first. Earlier September releases remain in their existing sections.
+export const guiReleases = [
+    { date: latestGuiUpdateDate, groups: latestGuiUpdates },
+    {
+        date: '10/26/2026',
+        groups: [
+            {
+                title: 'Azure Services and Automatic Deployment',
+                items: [
+                    'Moved the main backend and Atlas Helper chatbot from Render to Azure, and updated the Netlify frontend to use the Azure services.',
+                    'Set up GitHub Actions to deploy each service automatically when relevant changes reach main.',
+                    'Fixed the main backend’s API documentation error and made the chatbot report the deployed version correctly.',
+                ],
+            },
         ],
     },
     {
-        title: 'Personal Linked Layer Display',
-        items: [
-            'Each viewer now has independent show/hide settings for every project’s linked ArcGIS and custom layers. Signed-in choices are saved per account; visitor choices stay in this browser.',
-            'Changing a checkbox never changes another viewer’s settings, including when the creator or an admin toggles it. New viewers start with layers hidden; all public project associations remain available to enable.',
+        date: '10/24/2026',
+        groups: [
+            {
+                title: 'Project Contacts and Image Uploads',
+                items: [
+                    'Fixed contact-email upload failures. Project contacts can use an email different from the signed-in account while ownership remains with the creator.',
+                    'Improved large-image uploads with resized display copies, progress tracking and retries that keep completed uploads. Originals are preserved; supported images can be up to 50 MiB and 160 megapixels.',
+                    'Added image framing, drag and zoom controls, fixed the dragging crash, and cleaned up image placeholders, upload instructions and controls.',
+                ],
+            },
+            {
+                title: 'Project Editing and Custom Layers',
+                items: [
+                    'Improved Custom Layers saving, library-load error messages and retry controls.',
+                    'Enabled switching between Point, Polygon and Image locations in project details. Cancel restores the previous location, and Save commits the new one.',
+                    'Added unsaved-change warnings when leaving project editing through Close, an outside click or Escape, including pending files and metadata edits.',
+                    'Each viewer now has independent linked-layer display settings. Signed-in choices are saved per account, visitor choices stay in the browser, and one viewer’s selection does not change another’s.',
+                ],
+            },
+            {
+                title: 'Updated Guides',
+                items: [
+                    'Updated guided tours and manual examples for contacts, larger image uploads, framing, retries, location conversion, unsaved changes and personal linked-layer display settings.',
+                ],
+            },
         ],
     },
     {
-        title: 'Unsaved Project Changes',
-        items: [
-            'Closing Learn More with the Close button, outside click or Escape now consistently confirms unsaved edits, including funding, organization, visibility and pending files. Canceling the confirmation keeps your draft; confirming discards it and closes the modal.',
+        date: '10/18/2026',
+        groups: [
+            {
+                title: 'Consistent Pages and Project Panels',
+                items: [
+                    'Unified account and information pages with the User Manual’s typography, blue headings, light panels and consistent controls.',
+                    'Improved project panels, filters and scrollbars, with consistent Project terminology, compact actions and a Filter menu that stays visible beside narrow panels.',
+                ],
+            },
+            {
+                title: 'Watershed and Detail Controls',
+                items: [
+                    'Improved watershed tools with an immediate pour-point preview, coordinates, cancellation and clearing, and a compact menu for saving basins as custom layers or polygons.',
+                    'Refined project-detail controls and unsaved-change notices, and matched Help, Tutorial and Close buttons to the rest of the interface.',
+                ],
+            },
+            {
+                title: 'Release Notes, Guides and Atlas Helper',
+                items: [
+                    'Updated release notes, guided tours and the user manual to match the interface changes, and confirmed Atlas Helper uses the latest published manual.',
+                ],
+            },
         ],
     },
-    {
-        title: 'Project Location Editing',
-        items: [
-            'All project types can now switch between Point, Polygon and Image in Learn More edit mode. The current type is disabled. Cancel restores the prior location, and the main Save commits the new one.',
-            'Switching type closes map project popups and hides the old marker or overlay while placing the new location. Temporarily hid the floating Projects collapse arrow and removed the extra contact-email hint from Create Project.',
-        ],
-    },
-    {
-        title: 'Custom Layers Reliability',
-        items: [
-            'Fixed intermittent failures when saving layers while the library is loading or refreshing.',
-            'Failed library loads now show an error and Retry instead of an empty library. Save errors explain how to recover; after a timeout, check the library before saving again.',
-        ],
-    },
-    {
-        title: 'Updated Guides',
-        items: [
-            'Updated guided tours and manual examples for project contacts, larger image uploads, framing, retries, location conversion, unsaved-change confirmation and personal linked-layer display settings.',
-        ],
-    },
-    {
-        title: 'Project Detail Toolbar',
-        items: [
-            'Moved the unsaved-changes notice beside Delete with a subtle gray-blue background, and matched Help, Tutorial and Close icons and buttons to the rest of the interface.',
-        ],
-    },
-    {
-        title: 'Watershed Panel Improvements',
-        items: [
-            'Show the selected pour point immediately while StreamStats runs, with coordinates in a small map popup and safe cancellation and clearing.',
-            'Matched the watershed panel controls to the other map panels and grouped custom-layer and polygon saving under one compact Save menu.',
-        ],
-    },
-    {
-        title: 'Project Terminology',
-        items: [
-            'Renamed the browsing panel and its controls, project details, creation dialog and guided tours to use Project instead of Card.',
-        ],
-    },
-    {
-        title: 'Project Filter Menu',
-        items: [
-            'Kept the Filter menu fully visible beyond narrow project panels, with screen-aware placement and scrolling on shorter screens.',
-        ],
-    },
-    {
-        title: 'Consistent Panel Scrollbars',
-        items: [
-            'Made the Projects scrollbar slimmer and matched the Basemaps and ArcGIS panel scrollbars to its neutral gray appearance.',
-        ],
-    },
-    {
-        title: 'Consistent Account Pages',
-        items: [
-            'Matched Login, Request Access, Switch Accounts, Profile and Administration to the User Manual typography, blue headings, light panels and form controls.',
-            'Unified account dialogs, editing actions and management tables while preserving account workflows and confirmation checks.',
-        ],
-    },
-    {
-        title: 'Consistent Information Pages',
-        items: [
-            'Unified About, Contact and Update History using the original User Manual typography, blue headings, light blue dividers and link styles.',
-            'Restored the complete original User Manual styling, including its title, navigation and examples.',
-        ],
-    },
+    { date: manualGuiUpdateDate, groups: manualGuiUpdates },
+    { date: contactGuiUpdateDate, groups: contactGuiUpdates },
+    { date: previousGuiUpdateDate, groups: previousGuiUpdates },
+    { date: earlierGuiUpdateDate, groups: earlierGuiUpdates },
 ];

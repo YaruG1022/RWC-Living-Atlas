@@ -33,6 +33,8 @@ jobs:
         run: npm test -- --watchAll=false --runInBand
         env:
           CI: 'true'
+      - name: Validate bundled built-in GIS data
+        run: node --test scripts/builtin-layers/data.test.cjs
       - name: Check manual export contracts
         run: node --test scripts/export-manual.test.cjs
       - name: Build production client and capture offline manual examples

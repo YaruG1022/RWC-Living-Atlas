@@ -1,0 +1,76 @@
+.builtin-layer-row {
+    padding: 10px 12px 10px 18px;
+    border-bottom: 1px solid #e4e9ee;
+}
+
+.builtin-layer-row .builtin-layer-label {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.builtin-layer-label input {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.builtin-layer-swatch {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    border: 1px solid var(--builtin-color);
+    border-radius: 2px;
+    background: var(--builtin-color);
+}
+
+.builtin-layer-swatch--line {
+    height: 3px;
+    border-radius: 0;
+}
+
+.builtin-layer-info {
+    margin: 6px 0 0 22px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #4b5a67;
+}
+
+.builtin-layer-info p {
+    margin: 6px 0;
+}
+
+.builtin-layer-local {
+    display: inline-block;
+    margin-bottom: 4px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #e8f2e9;
+    color: #275e36;
+}
+
+.builtin-layer-info summary {
+    cursor: pointer;
+}
+
+.builtin-layer-link {
+    padding: 0;
+    border: 0;
+    color: #1d5e96;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.builtin-layer-error {
+    color: #a32620;
+}
+
+.builtin-layer-link:focus-visible,
+.builtin-layer-info summary:focus-visible {
+    outline: 2px solid #1d5e96;
+    outline-offset: 2px;
+}

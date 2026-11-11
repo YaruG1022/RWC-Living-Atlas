@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "selectionExtent": [
+    -125,
+    41.9,
+    -110.8,
+    49.1
+  ],
+  "coordinateSystem": "WGS84 / EPSG:4326",
+  "datasets": {
+    "lakes": {
+      "file": "lakes.geojson",
+      "features": 14,
+      "bytes": 15895,
+      "sha256": "f4e6ec0a1c563855cb1bb2fb846c0ebb8bffa498cfea67128ec3b4250a6fccb8",
+      "upstream": [
+        "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/ca96624a56bd078437bca8184e78163e5039ad19/geojson/ne_10m_lakes.geojson"
+      ],
+      "license": "Public domain",
+      "limitations": "Generalized 1:10 million overview. Extent-selected features may cross the WA/OR/ID region. Not a complete inventory or navigation data."
+    },
+    "roads": {
+      "file": "roads.geojson",
+      "features": 352,
+      "bytes": 179812,
+      "sha256": "e0f805967e654a4127f979cce3ceab4763be39624e5fb30a54cad91d5c2beab6",
+      "upstream": [
+        "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/ca96624a56bd078437bca8184e78163e5039ad19/geojson/ne_10m_roads.geojson"
+      ],
+      "license": "Public domain",
+      "limitations": "Generalized 1:10 million overview. Extent-selected features may cross the WA/OR/ID region. Not a complete inventory or navigation data."
+    },
+    "forests": {
+      "file": "forests.geojson",
+      "features": 36,
+      "bytes": 199610,
+      "sha256": "5b400d04350e3933067784a5de881404445c3f21c7c92ae1bf948064fb5884c8",
+      "upstream": [
+        "https://raw.githubusercontent.com/Theodore-Roosevelt-Presidential-Library/PresidentialPublicLands/2cfc36874b526e6dfc6fe38ad4aeb9b50da62f02/data/lands.geojson",
+        "https://raw.githubusercontent.com/Theodore-Roosevelt-Presidential-Library/PresidentialPublicLands/2cfc36874b526e6dfc6fe38ad4aeb9b50da62f02/data/sites.json",
+        "https://apps.fs.usda.gov/arcx/rest/services/EDW/EDW_ProclaimedForestBoundaries_01/MapServer/0"
+      ],
+      "license": "MIT (mirror); original USFS federal data",
+      "limitations": "Selected simplified proclaimed national forest boundaries, via a historical-land-lineage collection. Not canopy coverage, ownership parcels, historical 1909 borders, or a complete/current forest inventory. Names can identify component forests."
+    }
+  }
+}

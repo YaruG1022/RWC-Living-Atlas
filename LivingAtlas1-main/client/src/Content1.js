@@ -8,6 +8,7 @@ import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import updateMarkers from './PolygonFiltering.js';
+import { installBuiltinLayers } from './builtinLayerController';
 import { showAll } from './Filter';
 import api from './api.js';
 import PolygonDrawingModal from './PolygonDrawingModal';
@@ -751,6 +752,7 @@ const Content1 = (props) => {
 
     window.atlasMapInstance = map;
     mapRef.current = map;
+    const builtinLayers = installBuiltinLayers(map);
 
     // INITIAL bounds sync
     let b = map.getBounds();
@@ -1716,6 +1718,8 @@ const Content1 = (props) => {
       window.cancelAnimationFrame(creditSyncRafId);
       map.off('load', syncBottomRightMeta);
       closeMarkerPopup();
+
+      builtinLayers.destroy();
 
       // Clean up map instance on unmount.
       // Keep this lifecycle tied to mount/unmount rather than auth state to avoid

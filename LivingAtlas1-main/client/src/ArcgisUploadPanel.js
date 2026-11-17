@@ -1,3 +1,4 @@
+import { showAppAlert, showAppConfirm } from './appDialogs';
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { addArcgisVectorLayer } from './arcgisVectorUtils';
@@ -1578,7 +1579,7 @@ function ArcgisUploadPanel({
             ? `Remove "${service.label}" and its ${layersToRemove.length} selected layer(s) from the map?`
             : `Remove "${service.label}" from available services?`;
         
-        if (!window.confirm(confirmMessage)) {
+        if (!await showAppConfirm(confirmMessage)) {
             return;
         }
 
@@ -1701,14 +1702,14 @@ function ArcgisUploadPanel({
                 }
             }
             
-            alert(errorMessage);
+            showAppAlert(errorMessage);
         }
     };
 
     // Handle folder rename
     const handleFolderRename = async (oldFolderName, newFolderName) => {
         if (!newFolderName || newFolderName.trim() === '') {
-            alert('Folder name cannot be empty');
+            showAppAlert('Folder name cannot be empty');
             return;
         }
 
@@ -1747,14 +1748,14 @@ function ArcgisUploadPanel({
             
         } catch (error) {
             console.error('Failed to rename folder:', error);
-            alert(`Failed to rename folder: ${error.message || 'Unknown error'}`);
+            showAppAlert(`Failed to rename folder: ${error.message || 'Unknown error'}`);
         }
     };
 
     // Handle service rename
     const handleServiceRename = async (serviceKey, newLabel) => {
         if (!newLabel || newLabel.trim() === '') {
-            alert('Service name cannot be empty');
+            showAppAlert('Service name cannot be empty');
             return;
         }
 
@@ -1773,7 +1774,7 @@ function ArcgisUploadPanel({
             
         } catch (error) {
             console.error('Failed to rename service:', error);
-            alert(`Failed to rename service: ${error.message || 'Unknown error'}`);
+            showAppAlert(`Failed to rename service: ${error.message || 'Unknown error'}`);
         }
     };
 
@@ -2451,7 +2452,7 @@ function ArcgisUploadPanel({
             showFinishedMessage(`Saved "${data.service.label}" to Custom Layers`);
             onCustomLayerSaved?.();
         } catch (err) {
-            alert(`Failed to save: ${err.message}`);
+            showAppAlert(`Failed to save: ${err.message}`);
         }
     };
 
@@ -2475,7 +2476,7 @@ function ArcgisUploadPanel({
             onCustomLayerSaved?.();
             return `Saved "${layerInfoOpen.layerName}" to Custom Layers`;
         } catch (err) {
-            alert(`Failed to save: ${err.message}`);
+            showAppAlert(`Failed to save: ${err.message}`);
         }
     };
 
@@ -2494,7 +2495,7 @@ function ArcgisUploadPanel({
             onCustomLayerSaved?.();
             return `Saved "${currentService.label}" to Custom Layers`;
         } catch (err) {
-            alert(`Failed to save: ${err.message}`);
+            showAppAlert(`Failed to save: ${err.message}`);
         }
     };
 

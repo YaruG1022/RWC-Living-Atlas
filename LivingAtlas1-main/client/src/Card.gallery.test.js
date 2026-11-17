@@ -1,3 +1,5 @@
+jest.mock('./appDialogs', () => ({ showAppAlert: jest.fn(), showAppConfirm: jest.fn() }));
+import { showAppAlert, showAppConfirm } from './appDialogs';
 import React from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import Card from './Card';
@@ -29,8 +31,8 @@ beforeEach(() => {
     fetchUserPreferences.mockResolvedValue({});
     toggleSharedCardLayer.mockResolvedValue();
     api.patch.mockResolvedValue({data:{}});
-    window.alert = jest.fn();
-    window.confirm = jest.fn(() => true);
+    showAppAlert.mockReset().mockResolvedValue(true);
+    showAppConfirm.mockReset().mockResolvedValue(true);
     localStorage.setItem('email', 'fixture@example.invalid');
     savedCard = { cardID: 101, title: 'Gallery fixture', username: 'fixture', email: 'fixture@example.invalid', name: 'Fixture', category: 'River', latitude: 46, longitude: -117, images: originalImages, gallery_layout: 'grid-3' };
     api.get.mockImplementation(url => Promise.resolve({ data: url.startsWith('/cardImages/')
@@ -168,7 +170,7 @@ test('a contact email does not grant permission to edit the project', async () =
     fireEvent.click(container.querySelector('.card'));
     expect(await screen.findByText(savedCard.contact_email, { exact: false })).toBeTruthy();
     fireEvent.click(await screen.findByRole('button', { name: 'Edit project in Learn More modal', exact: true }));
-    expect(window.alert).toHaveBeenCalledWith(expect.stringContaining("You don't have permission to edit"));
+    expect(showAppAlert).toHaveBeenCalledWith(expect.stringContaining("You don't have permission to edit"));
     expect(screen.getByRole('dialog').querySelector('input[name="contact_email"]')).toBeNull();
 });
 
@@ -187,9 +189,9 @@ test('location preview closes details and uses the existing locate callback', as
 test('canceling draft discard keeps details open when locating from the preview', async () => {
     await editCard();
     fireEvent.change(screen.getByRole('dialog').querySelector('input[name="title"]'), { target: { value: 'Unsaved title' } });
-    window.confirm.mockReturnValue(false);
+    showAppConfirm.mockResolvedValue(false);
     fireEvent.click(screen.getByRole('button', { name: 'Locate this location on map' }));
-    await waitFor(() => expect(window.confirm).toHaveBeenCalled());
+    await waitFor(() => expect(showAppConfirm).toHaveBeenCalled());
     expect(screen.getByRole('dialog')).toBeTruthy();
 });
 
@@ -215,7 +217,7 @@ test('a failed attachment save preserves the batch for retry and cancel clears t
     fireEvent.change(screen.getByLabelText('Add files'), { target: { files: [new File(['one'], 'report.txt'), new File(['two'], 'data.csv')] } });
     api.post.mockRejectedValueOnce({ response: { data: { detail: 'File upload failed' }, status: 500 } });
     fireEvent.click(screen.getByRole('button', { name: 'Save', exact: true }));
-    await waitFor(() => expect(window.alert).toHaveBeenCalledWith('Error: File upload failed'));
+    await waitFor(() => expect(showAppAlert).toHaveBeenCalledWith('Error: File upload failed'));
     expect(screen.getByRole('status').textContent).toContain('2 files ready');
     await waitFor(() => expect(screen.getByRole('button', { name: 'Cancel', exact: true }).disabled).toBe(false));
     fireEvent.click(screen.getByRole('button', { name: 'Cancel', exact: true }));
@@ -296,7 +298,7 @@ test('map popup editing preserves owner permissions', () => {
     localStorage.setItem('email', 'other@example.invalid');
     localStorage.setItem('isAdmin', 'false');
     render(<Card formData={savedCard} isLoggedIn forceOpenLearnMoreSignal={101} forceEditLocation />);
-    expect(window.alert).toHaveBeenCalledWith(expect.stringContaining("don't have permission"));
+    expect(showAppAlert).toHaveBeenCalledWith(expect.stringContaining("don't have permission"));
     expect(screen.queryByTestId('coordinate-editor')).toBeNull();
     expect(screen.queryByTestId('shape-editor')).toBeNull();
 });
@@ -384,7 +386,7 @@ test('cancel restores layout, image order and staged deletion without database w
     fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'multi' } });
     fireEvent.click(within(gallery).getByRole('button', { name: 'Move image 2 earlier' }));
     fireEvent.click(within(gallery).getByRole('button', { name: 'Delete image 3' }));
-    expect(within(gallery).getAllByRole('img')).toHaveLength(2);
+    await waitFor(() => expect(within(gallery).getAllByRole('img')).toHaveLength(2));
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     await waitFor(() => expect(screen.queryByLabelText('Image layout')).toBeNull());
     expect(within(gallery).getAllByRole('img').map(image => image.getAttribute('src'))).toEqual(originalImages.map(image => image.url));
@@ -438,7 +440,7 @@ test('failed order save keeps the draft open and allows retry', async () => {
     api.put.mockRejectedValueOnce(new Error('Fixture failure'));
     const errors = jest.spyOn(console, 'error').mockImplementation(() => {});
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-    await waitFor(() => expect(window.alert).toHaveBeenCalledWith('Image order could not be saved. Please try saving again.'));
+    await waitFor(() => expect(showAppAlert).toHaveBeenCalledWith('Image order could not be saved. Please try saving again.'));
     expect(screen.getByLabelText('Image layout').value).toBe('multi');
     await waitFor(() => expect(screen.getByRole('button', { name: 'Save' }).disabled).toBe(false));
     errors.mockRestore();

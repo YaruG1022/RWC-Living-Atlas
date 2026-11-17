@@ -1,3 +1,4 @@
+import { showAppAlert } from './appDialogs';
 import {hide, show, showAll} from "./Filter.js";
 import {allMarkers, blueMarkers, greenMarkers, yellowMarkers, draw} from "./Content1.js";
 import {Point,checkInside} from "./PolygonBuilder.js";
@@ -99,7 +100,7 @@ function updateMarkers(e) {
     else {
         answer.innerHTML = '';
         if (e.type !== 'draw.delete')
-        alert('Click the map to draw a polygon.');
+        showAppAlert('Click the map to draw a polygon.');
         showAll();
     }
 }

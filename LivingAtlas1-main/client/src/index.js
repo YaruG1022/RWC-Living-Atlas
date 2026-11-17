@@ -4,13 +4,14 @@ import Modal from 'react-modal';
 import './tokens.css';
 import './index.css';
 import App from './App';
+import AppDialogHost from './AppDialogHost';
 import reportWebVitals from './reportWebVitals';
 
 Modal.setAppElement('#root');
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <App />
+  <><App /><AppDialogHost /></>
 );
 
 // If you want to start measuring performance in your app, pass a function

@@ -1,3 +1,4 @@
+import { showAppAlert } from './appDialogs';
 import React from 'react';
 import { useState } from 'react';
 import Modal from 'react-modal';
@@ -74,7 +75,7 @@ function LayerPanel({
             {
                 if (curLocationCoordinates.lat === 0 && curLocationCoordinates.lng === 0)
                 {
-                    alert("Please turn on your current location to use this feature");
+                    showAppAlert("Please turn on your current location to use this feature");
                 }
                 else
                 {
@@ -86,7 +87,7 @@ function LayerPanel({
             {
                 if (searchLocationCoordinates.lat === 0 && searchLocationCoordinates.lng === 0)
                 {
-                    alert("Please search a location using the search bar to use this feature");
+                    showAppAlert("Please search a location using the search bar to use this feature");
                 }
                 else
                 {

@@ -1,3 +1,4 @@
+import { showAppAlert, showAppConfirm, showAppPrompt } from './appDialogs';
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { createPortal, unstable_batchedUpdates } from "react-dom";
 import api from './api';
@@ -1208,12 +1209,18 @@ function CustomLayersPanel({
 
     // --- Folder management ---
     const handleCreateFolder = async () => {
-        const name = prompt('Enter new folder name:');
+        const name = await showAppPrompt('Create a folder in your layer library.', {
+            title: 'New Folder',
+            inputLabel: 'Folder name',
+            confirmLabel: 'Create Folder',
+            validate: value => !value.trim() ? 'Enter a folder name.'
+                : folderNames.includes(value.trim()) ? 'A folder with this name already exists.' : '',
+        });
         if (!name || !name.trim()) return;
         const trimmed = name.trim();
         // Check if folder already exists
         if (folderNames.includes(trimmed)) {
-            alert('A folder with this name already exists.');
+            showAppAlert('A folder with this name already exists.');
             return;
         }
         try {
@@ -1222,6 +1229,7 @@ function CustomLayersPanel({
             setExpandedFolders(prev => new Set(prev).add(trimmed));
         } catch (err) {
             console.warn('[CustomLayersPanel] Failed to create folder:', err);
+            showAppAlert('The folder could not be created. Please try again.', { title: 'New Folder' });
         }
     };
 
@@ -1231,7 +1239,7 @@ function CustomLayersPanel({
         const msg = services.length > 0
             ? `Delete folder "${folderName}"? Its ${services.length} service(s) will be moved to Root.`
             : `Delete empty folder "${folderName}"?`;
-        if (!window.confirm(msg)) return;
+        if (!await showAppConfirm(msg)) return;
         try {
             await deleteCustomFolder(userEmail, folderName);
             // Move local services to Root
@@ -1246,6 +1254,7 @@ function CustomLayersPanel({
             });
         } catch (err) {
             console.warn('[CustomLayersPanel] Failed to delete folder:', err);
+            showAppAlert('The folder could not be deleted. Please try again.', { title: 'Delete Folder' });
         }
     };
 
@@ -1398,7 +1407,7 @@ function CustomLayersPanel({
         const email = localStorage.getItem('email') || '';
         if (!email) {
             // Show login prompt if available
-            alert('Please log in to save layers');
+            showAppAlert('Please log in to save layers');
             return;
         }
         try {
@@ -1412,7 +1421,7 @@ function CustomLayersPanel({
             await saveCustomLayer(email, layerToSave);
             return `Saved "${layerInfoOpen.layerName}" to Custom Layers`;
         } catch (err) {
-            alert(`Failed to save: ${err.message}`);
+            showAppAlert(`Failed to save: ${err.message}`);
         }
     };
 
@@ -1420,7 +1429,7 @@ function CustomLayersPanel({
         if (!serviceInfoOpenKey) return;
         const email = localStorage.getItem('email') || '';
         if (!email) {
-            alert('Please log in to save services');
+            showAppAlert('Please log in to save services');
             return;
         }
         try {
@@ -1429,7 +1438,7 @@ function CustomLayersPanel({
             await saveCustomLayer(email, currentService);
             return `Saved "${currentService.label}" to Custom Layers`;
         } catch (err) {
-            alert(`Failed to save: ${err.message}`);
+            showAppAlert(`Failed to save: ${err.message}`);
         }
     };
 

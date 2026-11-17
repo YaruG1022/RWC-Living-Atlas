@@ -21,7 +21,7 @@ Functional UI change only. No backend, schema, service-address or production-con
 
 | Check | Workload and success criterion | Result |
 | --- | --- | --- |
-| Component regressions | Nine suites, 98 unique assertions: dialog queue/results, validation, nested ReactModal accessibility, folders, cards/gallery/close protection, uploads, layer info, manual and release history | Passed across targeted runs |
+| Component regressions | Nine suites, 99 unique assertions: dialog queue/results, validation, nested ReactModal accessibility, keyboard isolation, folders, cards/gallery/close protection, uploads, layer info, manual and release history | Passed across targeted runs |
 | Manual export contract | `node --test scripts/export-manual.test.cjs`; reproducible bundle/checksums | 1 passed |
 | Manual export | `node scripts/export-manual.cjs` | 21 chapters, 347 blocks |
 | Production bundler | `CI=false node node_modules/react-scripts/bin/react-scripts.js build` | Passed with existing lint/CSS/bundle-size warnings. A new redundant-role warning was removed; the two new modules pass ESLint. Full postbuild manual capture is deferred to CI because local packaged Chromium dependencies are absent. |
@@ -38,7 +38,7 @@ $env:CI='true'
 node node_modules/react-scripts/bin/react-scripts.js test --watchAll=false --runInBand --transformIgnorePatterns 'node_modules/(?!axios)/' --runTestsByPath src/AppDialogHost.test.js src/CustomLayersPanel.test.js src/BuiltinLayerRow.test.js src/Card.close.test.js src/Card.gallery.test.js src/Card.location.test.js src/FormModal.test.js src/Changelog.test.js src/UserManual.test.js
 ```
 
-Raw fixture-only Jest results are ignored under `LivingAtlas1-main/backend/.local-postgres/`: `ui-dialog-tests-first-run.json`, `ui-dialog-manual-tests.json`, `ui-dialog-host-final.json`. CI runs the entire frontend suite and complete production build, including offline manual screenshots, on the PR.
+Raw fixture-only Jest results are ignored under `LivingAtlas1-main/backend/.local-postgres/`: `ui-dialog-tests-first-run.json`, `ui-dialog-manual-tests.json`, `ui-dialog-host-final.json`, `ui-dialog-keyboard-final.json`. CI runs the entire frontend suite and complete production build, including offline manual screenshots, on the PR.
 
 ## Failures and corrections
 
@@ -46,6 +46,7 @@ Raw fixture-only Jest results are ignored under `LivingAtlas1-main/backend/.loca
 2. The expanded run passed 90 assertions but could not load UserManual: the direct Node command omitted the existing npm script's Axios transformation option. Retrying with `--transformIgnorePatterns` passed all eight manual assertions. No application workaround was added.
 3. Browser check: closing a disconnected HTML dialog did not restore focus. The host now closes it before resolving/removing the request. Escape and Cancel were retested.
 4. Browser check: rendering inside `#root` inherited ReactModal's `aria-hidden` while a card was open. The host now portals to `document.body`; real-browser cancel and nested-modal regression checks passed.
+5. Review identified keyboard events reaching background editor shortcuts and a capture-phase tutorial listener. Dialogs now stop keydown propagation, and the tutorial ignores dialog targets. The regression covers Ctrl+Z/Y, Escape and arrow keys without suppressing normal input behavior. Its first fixture omitted the existing `isModalOpen` precondition, so the tutorial closed itself on mount; the corrected fixture includes an open card.
 
 ## Limits and release impact
 

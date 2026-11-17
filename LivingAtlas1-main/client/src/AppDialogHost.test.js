@@ -2,6 +2,7 @@ import React from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import AppDialogHost from './AppDialogHost';
 import Modal from 'react-modal';
+import OnboardingLearnMore from './OnboardingLearnMore';
 import { showAppAlert, showAppConfirm, showAppPrompt } from './appDialogs';
 
 // JSDOM has no top layer; real-browser checks cover inertness, focus trapping and restoration.
@@ -106,5 +107,27 @@ test('a confirmation stays accessible above an existing ReactModal', async () =>
     } finally {
         view.unmount();
         root.remove();
+    }
+});
+
+test('dialog keyboard input does not trigger background shortcuts or the capture-phase tutorial', () => {
+    const backgroundShortcut = jest.fn();
+    const closeTutorial = jest.fn();
+    document.addEventListener('keydown', backgroundShortcut);
+    const view = render(<><OnboardingLearnMore isOpen isModalOpen onClose={closeTutorial} /><AppDialogHost /></>);
+    try {
+        act(() => { showAppPrompt('Enter a name.'); });
+        const input = screen.getByRole('textbox');
+        for (const key of ['z', 'y', 'Escape', 'ArrowLeft', 'ArrowRight']) {
+            const event = new KeyboardEvent('keydown', { key, ctrlKey: key === 'z' || key === 'y', bubbles: true, cancelable: true });
+            fireEvent(input, event);
+            expect(event.defaultPrevented).toBe(false);
+        }
+        expect(backgroundShortcut).not.toHaveBeenCalled();
+        expect(closeTutorial).not.toHaveBeenCalled();
+        expect(screen.getByRole('textbox')).toHaveFocus();
+    } finally {
+        document.removeEventListener('keydown', backgroundShortcut);
+        view.unmount();
     }
 });

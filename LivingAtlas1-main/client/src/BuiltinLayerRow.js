@@ -9,11 +9,11 @@ export default function BuiltinLayerRow({ layer, visible, status, onToggle, sear
     const dialogId = useId();
     return (
         <div className={`tree-node builtin-layer-row${activeMatch ? ' search-nav-current' : ''}`} data-search-match-id={searchMatchId}>
-            <div className="builtin-layer-controls">
-                <label className="upload-item builtin-layer-label">
+            <div className="upload-layer-row builtin-layer-controls">
+                <label className="builtin-layer-label">
                     <input type="checkbox" checked={!!visible} onChange={() => onToggle?.(layer.id)} />
                     {layer.color && <span className={`builtin-layer-swatch${layer.geometry === 'line' ? ' builtin-layer-swatch--line' : ''}`} style={{ '--builtin-color': layer.color }} aria-hidden="true" />}
-                    <span>{layer.label}</span>
+                    <span className="upload-layer-name" title={layer.label}>{layer.label}</span>
                 </label>
                 <button ref={helpRef} type="button" className="builtin-layer-help-button" aria-label={`About ${layer.label}`}
                     title={`About ${layer.label}`} aria-haspopup="dialog" aria-expanded={infoOpen} aria-controls={infoOpen ? dialogId : undefined}

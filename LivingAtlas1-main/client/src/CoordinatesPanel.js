@@ -1,3 +1,4 @@
+import { showAppAlert } from './appDialogs';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
@@ -562,7 +563,7 @@ function CoordinatesPanel({ initialPoints = [], onSave, onCancel, enableServiceP
             }))
             .filter(p => !isNaN(p.lat) && !isNaN(p.lng) && p.lat >= -90 && p.lat <= 90 && p.lng >= -180 && p.lng <= 180);
         if (cleaned.length < 1) {
-            alert('Add at least one valid point before saving.');
+            showAppAlert('Add at least one valid point before saving.');
             return;
         }
         onSave?.(cleaned);

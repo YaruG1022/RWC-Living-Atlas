@@ -1,3 +1,4 @@
+import { showAppAlert, showAppConfirm } from './appDialogs';
 import { appendDescriptionFileTokens } from './descriptionAttachments';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ReactDOM from 'react-dom';
@@ -404,7 +405,7 @@ function Card(props) {
         setIsEditModalOpen(true);
     };
 
-    const handleDelete = (e) => {
+    const handleDelete = async (e) => {
         e.stopPropagation();
 
         if (!props.isLoggedIn && !isLearnMoreOnboardingOpen) {
@@ -413,7 +414,7 @@ function Card(props) {
         }
 
         if (!formData.username || !formData.title) {
-            alert("Missing username or title — cannot delete project.");
+            showAppAlert("Missing username or title — cannot delete project.");
             return;
         }
 
@@ -421,11 +422,11 @@ function Card(props) {
         const cardOwnerEmail = formData.email || '';
         const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('isAdmin')); } catch { return false; } })();
         if (!isAdmin && viewerEmail && cardOwnerEmail && viewerEmail !== cardOwnerEmail) {
-            alert("You don't have permission to delete this project. Only the project's creator or an admin can delete it.");
+            showAppAlert("You don't have permission to delete this project. Only the project's creator or an admin can delete it.");
             return;
         }
 
-        if (!window.confirm("Are you sure you want to delete this project?")) return;
+        if (!await showAppConfirm("Are you sure you want to delete this project?")) return;
 
         api.delete(`/deleteCard`, {
             params: {
@@ -434,8 +435,8 @@ function Card(props) {
                 requester_email: viewerEmail,
             }
         })
-        .then(() => {
-            alert("Project deleted successfully.");
+        .then(async () => {
+            await showAppAlert("Project deleted successfully.");
             if (typeof props.onCardDelete === "function") {
                 props.onCardDelete(true);
             } else {
@@ -444,7 +445,7 @@ function Card(props) {
         })
         .catch((error) => {
             console.error("Delete failed:", error);
-            alert("Failed to delete the project.");
+            showAppAlert("Failed to delete the project.");
         });
     };
 
@@ -661,13 +662,13 @@ function Card(props) {
 
         if (!cardID) {
             console.error("Missing cardID");
-            alert("Error: Cannot favorite this project — missing project ID.");
+            showAppAlert("Error: Cannot favorite this project — missing project ID.");
             return;
         }
 
         if (!username) {
             console.error("Missing username");
-            alert("Error: Cannot favorite this project — missing username.");
+            showAppAlert("Error: Cannot favorite this project — missing username.");
             return;
         }
 
@@ -713,24 +714,24 @@ function Card(props) {
         for (const field of requiredFields) {
             const value = formData[field];
             if (value === undefined || value === null || value.toString().trim() === '') {
-                alert(`Please fill out the ${field} field.`);
+                showAppAlert(`Please fill out the ${field} field.`);
                 return false;
             }
             if (field === 'latitude' && (Number(value) < -90 || Number(value) > 90)) {
-                alert('Latitude must be between -90 and 90.');
+                showAppAlert('Latitude must be between -90 and 90.');
                 return false;
             }
             if (field === 'longitude' && (Number(value) < -180 || Number(value) > 180)) {
-                alert('Longitude must be between -180 and 180.');
+                showAppAlert('Longitude must be between -180 and 180.');
                 return false;
             }
         }
         if (isPolygonCard && (!Array.isArray(formData.polygon_vertices) || formData.polygon_vertices.length < 3)) {
-            alert('Polygon projects must keep at least 3 points.');
+            showAppAlert('Polygon projects must keep at least 3 points.');
             return false;
         }
         if (isImageCard && (!Array.isArray(formData.polygon_vertices) || formData.polygon_vertices.length < 4)) {
-            alert('Image projects must keep 4 corner points.');
+            showAppAlert('Image projects must keep 4 corner points.');
             return false;
         }
         return true;
@@ -742,7 +743,7 @@ function Card(props) {
 
     // Extra guard for username and name
     if (!formData.username?.trim() || !formData.name?.trim()) {
-        alert("Both Username and name are required.");
+        showAppAlert("Both Username and name are required.");
         return;
     }
 
@@ -752,7 +753,7 @@ function Card(props) {
             await api.get(`/profileAccount?username=${encodeURIComponent(formData.username)}`);
         } catch (error) {
             if (error.response?.status === 404) {
-                alert(`Project Creator "${formData.username}" does not exist. Please use a valid username.`);
+                showAppAlert(`Project Creator "${formData.username}" does not exist. Please use a valid username.`);
                 return;
             }
         }
@@ -911,7 +912,7 @@ function Card(props) {
     setLoading(true);
     try {
         await api.post("/uploadForm", formDataToSend);
-        alert("Project Information Saved.");
+        showAppAlert("Project Information Saved.");
         isEditingRef.current = !closeEditModal; // Keep learn-more drafts protected through image saves.
         if (closeEditModal) {
             setIsEditModalOpen(false);
@@ -952,7 +953,7 @@ function Card(props) {
             message: error.message
         });
         
-        alert(errorMessage);
+        showAppAlert(errorMessage);
         return false;
     } finally {
         setLoading(false);
@@ -1147,7 +1148,7 @@ function Card(props) {
         const _cardOwnerEmail = formData.email || '';
         const _isAdmin = (() => { try { return JSON.parse(localStorage.getItem('isAdmin')); } catch { return false; } })();
         if (!_isAdmin && _viewerEmail && _cardOwnerEmail && _viewerEmail !== _cardOwnerEmail) {
-            alert("You don't have permission to edit this project. Only the project's creator or an admin can edit it.");
+            showAppAlert("You don't have permission to edit this project. Only the project's creator or an admin can edit it.");
             return false;
         }
         setLearnMoreBackup({ ...formData });
@@ -1278,7 +1279,7 @@ function Card(props) {
     const handleLearnMoreEditSave = async (e) => {
         e.stopPropagation();
         if (loading || isImageMutationLoading) return;
-        if (imageUploadJobs.some(job => job.status === 'failed')) { alert('Retry or remove failed uploads before saving.'); return; }
+        if (imageUploadJobs.some(job => job.status === 'failed')) { showAppAlert('Retry or remove failed uploads before saving.'); return; }
         setIsImageMutationLoading(true);
         try {
             const serializedLink = serializeLinks(learnMoreLinks);
@@ -1292,14 +1293,14 @@ function Card(props) {
                     await applyPendingImageDeletes();
                 } catch (error) {
                     console.error('Failed to apply pending image deletions:', error);
-                    alert('Some selected images could not be deleted. Please try saving again.');
+                    showAppAlert('Some selected images could not be deleted. Please try saving again.');
                     return;
                 }
                 try {
                     await applyImageReordering();
                 } catch (error) {
                     console.error('Failed to apply image reordering:', error);
-                    alert('Image order could not be saved. Please try saving again.');
+                    showAppAlert('Image order could not be saved. Please try saving again.');
                     return;
                 }
                 isEditingRef.current = false;
@@ -1375,7 +1376,7 @@ function Card(props) {
         if (loading || isImageMutationLoading) return false;
 
         if (hasUnsavedChanges) {
-            const confirmed = window.confirm('You have unsaved changes. Discard them and close?');
+            const confirmed = await showAppConfirm('You have unsaved changes. Discard them and close?');
             if (!confirmed) return false;
         }
 
@@ -1554,7 +1555,7 @@ function Card(props) {
 
         if (!isLearnMoreEditMode || isImageMutationLoading) return;
         if ((formData.images || []).length >= MAX_CARD_IMAGES) {
-            alert(`A project can have at most ${MAX_CARD_IMAGES} images.`);
+            showAppAlert(`A project can have at most ${MAX_CARD_IMAGES} images.`);
             return;
         }
 
@@ -1593,7 +1594,7 @@ function Card(props) {
                 } catch (error) {
                     const message = imageUploadError(error);
                     patchJob(job.id, { status: 'failed', error: message });
-                    alert(message);
+                    showAppAlert(message);
                 }
             }
         } finally {
@@ -1608,8 +1609,8 @@ function Card(props) {
         const files = Array.from(event.target.files || []);
         event.target.value = '';
         if (!files.length || uploadRunning.current) return;
-        if (!(formData.cardID || props.cardID)) { alert('Save your project before adding images.'); return; }
-        if ((formData.images || []).length + files.length > MAX_CARD_IMAGES) { alert(`A project can have at most ${MAX_CARD_IMAGES} images.`); return; }
+        if (!(formData.cardID || props.cardID)) { showAppAlert('Save your project before adding images.'); return; }
+        if ((formData.images || []).length + files.length > MAX_CARD_IMAGES) { showAppAlert(`A project can have at most ${MAX_CARD_IMAGES} images.`); return; }
         const jobs = files.map(file => ({ id: uploadToken(), file, status: 'queued' }));
         setImageUploadJobs(prev => [...prev.filter(job => job.status !== 'done'), ...jobs]);
         await runImageUploads(jobs);
@@ -1620,7 +1621,7 @@ function Card(props) {
 
         if (isImageMutationLoading) return;
 
-        if (!window.confirm('Delete this image?')) return;
+        if (!await showAppConfirm('Delete this image?')) return;
         let imageID = resolveImageServerID(image);
         // A modal opened before the cover migration may still hold a fallback.
         if (!imageID) {
@@ -1629,12 +1630,12 @@ function Card(props) {
                 const record = (response.data?.images || []).find(item => resolveImageUrl(item.url) === image.url);
                 imageID = resolveImageServerID(record);
             } catch (error) {
-                alert('Could not refresh this image. Please try again.');
+                showAppAlert('Could not refresh this image. Please try again.');
                 return;
             }
         }
         if (!imageID) {
-            alert('This image is no longer available. Please reopen the project.');
+            showAppAlert('This image is no longer available. Please reopen the project.');
             return;
         }
         setPendingDeletedImageIDs(prev => [...new Set([...prev, imageID])]);
@@ -1722,15 +1723,15 @@ function Card(props) {
         );
     };
 
-    const handleDeleteSelectedAllImages = (e) => {
+    const handleDeleteSelectedAllImages = async (e) => {
         e.stopPropagation();
 
         if (!selectedAllImageIDs.length) {
-            alert('Please select image(s) first.');
+            showAppAlert('Please select image(s) first.');
             return;
         }
 
-        if (!window.confirm(`Delete ${selectedAllImageIDs.length} selected image(s)?`)) return;
+        if (!await showAppConfirm(`Delete ${selectedAllImageIDs.length} selected image(s)?`)) return;
 
         const selectedSet = new Set(selectedAllImageIDs);
         const isSelectedImage = (img) => {
@@ -1947,7 +1948,7 @@ function Card(props) {
                                     className="learn-more-modal-toolbar-btn cancel"
                                     onClick={async (e) => {
                                         if (hasUnsavedChanges) {
-                                            const confirmed = window.confirm('You have unsaved changes. Discard them?');
+                                            const confirmed = await showAppConfirm('You have unsaved changes. Discard them?');
                                             if (!confirmed) return;
                                         }
                                         await handleLearnMoreEditCancel(e);
@@ -2379,7 +2380,7 @@ function Card(props) {
                                                 type="button"
                                                 className="learn-more-file-edit-delete-btn"
                                                 onClick={async () => {
-                                                    if (!window.confirm(`Delete file "${file.filename}"?`)) return;
+                                                    if (!await showAppConfirm(`Delete file "${file.filename}"?`)) return;
                                                     try {
                                                         await api.delete(`/deleteFile?fileID=${file.fileid}`);
                                                         const filterOut = (f) => f.fileid !== file.fileid;
@@ -2387,7 +2388,7 @@ function Card(props) {
                                                         setLearnMoreBackup((prev) => prev ? { ...prev, files: (prev.files || []).filter(filterOut) } : prev);
                                                     } catch (err) {
                                                         console.error('Error deleting file:', err);
-                                                        alert('Failed to delete file.');
+                                                        showAppAlert('Failed to delete file.');
                                                     }
                                                 }}
                                             >
@@ -3017,7 +3018,7 @@ function Card(props) {
                                             type="button"
                                             onClick={async () => {
                                                 if (
-                                                    window.confirm(
+                                                    await showAppConfirm(
                                                         `Delete file "${file.filename}"?`
                                                     )
                                                 ) {
@@ -3025,7 +3026,7 @@ function Card(props) {
                                                         await api.delete(
                                                             `/deleteFile?fileID=${file.fileid}`
                                                         );
-                                                        alert(`Deleted ${file.filename}`);
+                                                        showAppAlert(`Deleted ${file.filename}`);
                                                         setFormData((prev) => ({
                                                             ...prev,
                                                             files: prev.files.filter(
@@ -3038,7 +3039,7 @@ function Card(props) {
                                                             "Error deleting file:",
                                                             err
                                                         );
-                                                        alert("Failed to delete file.");
+                                                        showAppAlert("Failed to delete file.");
                                                     }
                                                 }
                                             }}

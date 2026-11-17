@@ -1,3 +1,5 @@
+jest.mock('./appDialogs', () => ({ showAppAlert: jest.fn(), showAppConfirm: jest.fn() }));
+import { showAppAlert, showAppConfirm } from './appDialogs';
 import React from 'react';
 import Modal from 'react-modal';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
@@ -22,7 +24,7 @@ jest.mock('./OnboardingLearnMore', () => ({__esModule:true,default:({isOpen,onCl
 let appRoot, card;
 beforeEach(() => {
     jest.clearAllMocks(); localStorage.clear(); localStorage.setItem('email','fixture@example.invalid');
-    window.confirm=jest.fn(()=>false); window.alert=jest.fn();
+    showAppConfirm.mockReset().mockResolvedValue(false); showAppAlert.mockReset().mockResolvedValue(true);
     fetchAllArcgisServices.mockResolvedValue([]); fetchUserPreferences.mockResolvedValue({});
     appRoot=document.createElement('div'); document.body.append(appRoot); Modal.setAppElement(appRoot);
     card={cardID:101,title:'Close fixture',username:'fixture',name:'Fixture',email:'fixture@example.invalid',category:'River',
@@ -57,11 +59,11 @@ test.each(['button','overlay','escape'])('closing via %s confirms, keeps edits w
     const input=screen.getByRole('dialog').querySelector('input[name="funding"]');
     fireEvent.change(input,{target:{value:'Unsaved funding'}});
     close(via);
-    expect(window.confirm).toHaveBeenCalledTimes(1);
-    expect(window.confirm).toHaveBeenCalledWith('You have unsaved changes. Discard them and close?');
+    expect(showAppConfirm).toHaveBeenCalledTimes(1);
+    expect(showAppConfirm).toHaveBeenCalledWith('You have unsaved changes. Discard them and close?');
     expect(screen.getByRole('dialog')).toBeInTheDocument(); expect(input.value).toBe('Unsaved funding');
     expect(api.post).not.toHaveBeenCalled();
-    window.confirm.mockReturnValue(true); close(via);
+    showAppConfirm.mockResolvedValue(true); close(via);
     await waitFor(()=>expect(screen.queryByRole('dialog')).toBeNull());
     expect(api.post).not.toHaveBeenCalled();
     fireEvent.click(appRoot.querySelector('.card'));
@@ -75,14 +77,14 @@ test.each(['org','is_public','filesToUpload'])('%s changes trigger close protect
     if(field==='is_public') fireEvent.change(screen.getByDisplayValue('Public (visible to everyone)'),{target:{value:'false'}});
     if(field==='filesToUpload') fireEvent.change(screen.getByLabelText('Add files'),{target:{files:[new File(['report'],'report.txt')]}});
     close('button');
-    expect(window.confirm).toHaveBeenCalledTimes(1); expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(showAppConfirm).toHaveBeenCalledTimes(1); expect(screen.getByRole('dialog')).toBeInTheDocument();
     if(field==='filesToUpload') expect(screen.getByRole('status')).toHaveTextContent('1 file ready');
 });
 
 test.each([false,true])('no confirmation without edits (edit mode: %s)',async edit=>{
     await open(edit); close('button');
     await waitFor(()=>expect(screen.queryByRole('dialog')).toBeNull());
-    expect(window.confirm).not.toHaveBeenCalled();
+    expect(showAppConfirm).not.toHaveBeenCalled();
 });
 
 test('restoring a field to its saved value removes the close warning',async()=>{
@@ -91,7 +93,7 @@ test('restoring a field to its saved value removes the close warning',async()=>{
     fireEvent.change(input,{target:{value:'Temporary'}});
     fireEvent.change(input,{target:{value:'Original funding'}});
     close('overlay'); await waitFor(()=>expect(screen.queryByRole('dialog')).toBeNull());
-    expect(window.confirm).not.toHaveBeenCalled();
+    expect(showAppConfirm).not.toHaveBeenCalled();
 });
 
 test('closing still protects a draft after a tutorial returns to view mode',async()=>{
@@ -102,8 +104,8 @@ test('closing still protects a draft after a tutorial returns to view mode',asyn
     fireEvent.click(screen.getByRole('button',{name:'Finish tutorial'}));
     await screen.findByRole('button',{name:'Edit project in Learn More modal'});
     close('button');
-    expect(window.confirm).toHaveBeenCalledTimes(1);
+    expect(showAppConfirm).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    window.confirm.mockReturnValue(true); close('button');
+    showAppConfirm.mockResolvedValue(true); close('button');
     await waitFor(()=>expect(screen.queryByRole('dialog')).toBeNull());
 });

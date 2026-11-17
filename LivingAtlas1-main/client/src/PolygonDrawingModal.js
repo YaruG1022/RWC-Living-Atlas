@@ -1,3 +1,4 @@
+import { showAppAlert } from './appDialogs';
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import mapboxgl from 'mapbox-gl';
@@ -780,7 +781,7 @@ const PolygonDrawingModal = ({ onSave, onCancel, initialVertices, initialLineSty
     const handleNewPolygon = useCallback(() => {
         if (isImageMode) return;
         if (verticesRef.current.length < 3) {
-            alert('Please add at least 3 points to the current polygon before starting a new one.');
+            showAppAlert('Please add at least 3 points to the current polygon before starting a new one.');
             return;
         }
         saveToHistoryRef.current?.();
@@ -2142,12 +2143,12 @@ const PolygonDrawingModal = ({ onSave, onCancel, initialVertices, initialLineSty
         if (!file) return;
         const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
         if (!allowed.includes((file.type || '').toLowerCase()) && !/\.(png|jpe?g|webp|gif)$/i.test(file.name || '')) {
-            alert('Supports PNG, JPG, GIF, WebP only.');
+            showAppAlert('Supports PNG, JPG, GIF, WebP only.');
             e.target.value = '';
             return;
         }
         if (file.size > 5 * 1024 * 1024) {
-            alert('Image exceeds 5 MB limit.');
+            showAppAlert('Image exceeds 5 MB limit.');
             e.target.value = '';
             return;
         }
@@ -2430,7 +2431,7 @@ const PolygonDrawingModal = ({ onSave, onCancel, initialVertices, initialLineSty
             );
             const placedSlots = updatedSlots.filter(s => s.vertices.length >= 4);
             if (placedSlots.length === 0) {
-                alert('Please add and place at least one image (click the map to position it).');
+                showAppAlert('Please add and place at least one image (click the map to position it).');
                 return;
             }
             const firstVerts = placedSlots[0].vertices;
@@ -2468,7 +2469,7 @@ const PolygonDrawingModal = ({ onSave, onCancel, initialVertices, initialLineSty
             lineStyle: r.lineStyle,
         }));
         if (allRings.length === 0) {
-            alert('A polygon needs at least 3 points.');
+            showAppAlert('A polygon needs at least 3 points.');
             return;
         }
         // Compute centroid from all vertices across all rings

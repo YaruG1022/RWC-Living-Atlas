@@ -209,6 +209,7 @@ function LearnMoreOnboarding({ isOpen, onClose, isModalOpen, onStepChange }) {
         if (!isOpen) return;
 
         const handleKeyDown = (event) => {
+            if (event.target?.closest?.('.app-dialog')) return;
             if (event.key === 'ArrowLeft') {
                 event.preventDefault();
                 goPrev();

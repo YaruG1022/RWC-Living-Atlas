@@ -1,11 +1,13 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import CustomLayersPanel from './CustomLayersPanel';
-import { fetchCustomFolders, fetchCustomLayers, fetchVisibleCustomLayerServiceKeys } from './arcgisServicesDb';
+import AppDialogHost from './AppDialogHost';
+import { createCustomFolder, fetchCustomFolders, fetchCustomLayers, fetchVisibleCustomLayerServiceKeys } from './arcgisServicesDb';
 
 jest.mock('./api', () => ({}));
 jest.mock('./arcgisServicesDb', () => ({
     fetchCustomLayers: jest.fn(), fetchCustomFolders: jest.fn(), fetchVisibleCustomLayerServiceKeys: jest.fn(),
+    createCustomFolder: jest.fn(),
 }));
 jest.mock('./arcgisVectorUtils', () => ({}));
 jest.mock('./uploadedVectorUtils', () => ({}));
@@ -21,6 +23,37 @@ beforeEach(() => {
     fetchCustomLayers.mockReset().mockResolvedValue([]);
     fetchCustomFolders.mockReset().mockResolvedValue([]);
     fetchVisibleCustomLayerServiceKeys.mockReset().mockResolvedValue([]);
+    createCustomFolder.mockReset().mockResolvedValue({ sort_order: 0 });
+});
+
+test('New Folder uses the app dialog, validates names and writes only after confirmation', async () => {
+    HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
+    HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
+    const nativePrompt = jest.spyOn(window, 'prompt');
+    fetchCustomFolders.mockResolvedValue([{ folder_name: 'Existing', sort_order: 0 }]);
+    try {
+        render(<><CustomLayersPanel isOpen onClose={() => {}} /><AppDialogHost /></>);
+        await screen.findByText('Existing');
+        fireEvent.click(screen.getByRole('button', { name: 'New Folder' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Create Folder' }));
+        expect(screen.getByRole('alert')).toHaveTextContent('Enter a folder name.');
+        fireEvent.change(screen.getByLabelText('Folder name'), { target: { value: 'Existing' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Create Folder' }));
+        expect(screen.getByRole('alert')).toHaveTextContent('already exists');
+        expect(createCustomFolder).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+        expect(createCustomFolder).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByRole('button', { name: 'New Folder' }));
+        fireEvent.change(screen.getByLabelText('Folder name'), { target: { value: '  Rivers  ' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Create Folder' }));
+        await waitFor(() => expect(createCustomFolder).toHaveBeenCalledWith('probe@example.invalid', 'Rivers'));
+        await screen.findByText('Rivers');
+        expect(nativePrompt).not.toHaveBeenCalled();
+    } finally {
+        nativePrompt.mockRestore();
+        delete HTMLDialogElement.prototype.showModal;
+        delete HTMLDialogElement.prototype.close;
+    }
 });
 
 test('a failed load shows a retry action rather than an empty library, and retry can recover', async () => {

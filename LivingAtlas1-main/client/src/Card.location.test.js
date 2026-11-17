@@ -1,3 +1,5 @@
+jest.mock('./appDialogs', () => ({ showAppAlert: jest.fn(), showAppConfirm: jest.fn() }));
+import { showAppAlert, showAppConfirm } from './appDialogs';
 import React from 'react';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import Card from './Card';
@@ -34,7 +36,7 @@ let card, marker, other, map, visibility, sync;
 beforeEach(() => {
     jest.clearAllMocks(); localStorage.clear(); localStorage.setItem('email','fixture@example.invalid');
     fetchAllArcgisServices.mockResolvedValue([]); fetchUserPreferences.mockResolvedValue({});
-    window.alert=jest.fn(); window.confirm=jest.fn(()=>true);
+    showAppAlert.mockReset().mockResolvedValue(true); showAppConfirm.mockReset().mockResolvedValue(true);
     card={cardID:101,title:'Location fixture',username:'fixture',name:'Fixture',email:'fixture@example.invalid',category:'River',latitude:46,longitude:-117,
         location_type:'point',polygon_vertices:vertices,images:[],thumbnail_link:'/old-overlay.png'};
     api.get.mockImplementation(url=>Promise.resolve({data:url.startsWith('/cardImages/')?{images:[]}:url.startsWith('/allCards')?{data:[card]}:{data:[]}}));

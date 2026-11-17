@@ -1,3 +1,5 @@
+jest.mock('./appDialogs', () => ({ showAppAlert: jest.fn(), showAppConfirm: jest.fn() }));
+import { showAppAlert } from './appDialogs';
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import FormModal from './FormModal';
@@ -24,7 +26,7 @@ const submit = () => fireEvent.submit(screen.getByRole('dialog').querySelector('
 
 beforeEach(() => {
     jest.clearAllMocks();
-    window.alert = jest.fn();
+    showAppAlert.mockReset().mockResolvedValue(true);
     api.post.mockResolvedValue({ data: { card_id: 101 } });
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -43,7 +45,7 @@ test('uses the current account when login arrives after the modal mounted', asyn
     expect(payload.get('username')).toBe(account.username);
     expect(payload.get('email')).toBe(account.email);
     expect(payload.get('contact_email')).toBe(account.email);
-    await waitFor(() => expect(window.alert).toHaveBeenCalledWith('Upload Successful'));
+    await waitFor(() => expect(showAppAlert).toHaveBeenCalledWith('Upload Successful'));
 });
 
 test('switching accounts uses the new username and email together', async () => {
@@ -62,7 +64,7 @@ test.each([{ username: account.username }, { email: account.email }, {}])('missi
     fillProject();
     submit();
     expect(api.post).not.toHaveBeenCalled();
-    expect(window.alert.mock.calls[0][0]).toContain('sign in again');
+    expect(showAppAlert.mock.calls[0][0]).toContain('sign in again');
 });
 
 test.each([
@@ -76,11 +78,11 @@ test.each([
     render(view({ ...account, onRequestClose }));
     fillProject();
     submit();
-    await waitFor(() => expect(window.alert).toHaveBeenCalledWith(`Upload failed: ${message}`));
+    await waitFor(() => expect(showAppAlert).toHaveBeenCalledWith(`Upload failed: ${message}`));
     expect(field('title').value).toBe('River project');
     expect(onRequestClose).not.toHaveBeenCalled();
     submit();
-    await waitFor(() => expect(window.alert).toHaveBeenCalledWith('Upload Successful'));
+    await waitFor(() => expect(showAppAlert).toHaveBeenCalledWith('Upload Successful'));
     expect(onRequestClose).toHaveBeenCalledTimes(1);
 });
 
@@ -133,7 +135,7 @@ test('large images get bounded previews; partial uploads retry only failures wit
     expect(screen.getByText(/Project created. Some images failed/)).toBeTruthy();
     const token = api.post.mock.calls.find(([url, body]) => url === '/uploadCardImage' && body.get('image').name === 'second.png')[1].get('upload_token');
     fireEvent.click(retry);
-    await waitFor(() => expect(window.alert).toHaveBeenCalledWith('Upload Successful'));
+    await waitFor(() => expect(showAppAlert).toHaveBeenCalledWith('Upload Successful'));
     expect(api.post.mock.calls.filter(([url]) => url === '/uploadForm')).toHaveLength(1);
     const uploads = api.post.mock.calls.filter(([url]) => url === '/uploadCardImage');
     expect(uploads.map(([, body]) => body.get('image').name)).toEqual(['first.png', 'second.png', 'second.png']);

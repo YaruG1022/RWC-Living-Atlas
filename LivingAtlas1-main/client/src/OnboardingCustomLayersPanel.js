@@ -12,7 +12,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="custom-layers-new-folder-button"]',
         title: 'New Folder',
-        description: 'The compact Folder button creates a new folder for your saved custom layers. Hover buttons to read their full action labels.',
+        description: 'Click Folder to open New Folder. Enter a unique name and choose Create Folder. Empty or duplicate names show a message beside the input. Cancel or Escape closes the dialog without creating a folder.',
         placement: 'left',
     },
     {

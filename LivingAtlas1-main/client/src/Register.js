@@ -1,3 +1,4 @@
+import { showAppAlert } from './appDialogs';
 import React, { useState } from 'react';
 import './AccountPage.css';
 import './Register.css';
@@ -45,7 +46,7 @@ function Register({ closeRegister }) {
         } catch (error) {
             setMessage('An error occurred. Please try again later.');
             console.error('There was an error!', error);
-            alert(error);
+            showAppAlert(error);
         }
     };
     const handleNameChange = (e) => {

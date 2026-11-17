@@ -1,3 +1,4 @@
+import { showAppAlert } from './appDialogs';
 import { appendDescriptionFileTokens } from './descriptionAttachments';
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
@@ -226,7 +227,7 @@ const FormModal = (props) => {
 
         for (let file of files) {
             if (file.size > MAX_FILE_SIZE) {
-                alert(`File "${file.name}" exceeds ${MAX_FILE_SIZE / 1024 / 1024} MB`);
+                showAppAlert(`File "${file.name}" exceeds ${MAX_FILE_SIZE / 1024 / 1024} MB`);
                 continue;
             }
             validFiles.push(file);
@@ -255,11 +256,11 @@ const FormModal = (props) => {
         const generation = previewGeneration.current;
         const files = Array.from(event.target.files || []);
         event.target.value = '';
-        if (imageJobs.length + files.length > 30) { alert('A project can have at most 30 images.'); return; }
+        if (imageJobs.length + files.length > 30) { showAppAlert('A project can have at most 30 images.'); return; }
         const jobs = [];
         for (const file of files) {
             try { validateImage(file); }
-            catch (error) { alert(`${file.name}: ${error.message}`); continue; }
+            catch (error) { showAppAlert(`${file.name}: ${error.message}`); continue; }
             jobs.push({ id: uploadToken(), file, url: '', status: 'queued', presentation: defaultPresentation() });
         }
         setImageJobs(prev => [...prev, ...jobs]);
@@ -310,7 +311,7 @@ const FormModal = (props) => {
         const wasCreated = Boolean(createdCardRef.current);
         const formErrors = validateForm();
         if (formErrors.length > 0) {
-            alert(formErrors.join("\n"));
+            showAppAlert(formErrors.join("\n"));
             return;
         }
 
@@ -491,7 +492,7 @@ const FormModal = (props) => {
                 return;
             }
             handleCloseModal();
-            alert("Upload Successful");
+            showAppAlert("Upload Successful");
             window.dispatchEvent(new CustomEvent('atlas:card-uploaded'));
         })
         .catch(error => {
@@ -507,7 +508,7 @@ const FormModal = (props) => {
                 ? 'Please try again. If the problem continues, contact support.'
                 : 'Unable to reach the server. Check your connection and try again.');
             setUploadMessage(message);
-            alert(`Upload failed: ${message}`);
+            showAppAlert(`Upload failed: ${message}`);
         }).finally(() => { submitRunning.current = false; setIsSubmitting(false); });
     };
 

@@ -1,3 +1,4 @@
+import { showAppAlert, showAppConfirm } from './appDialogs';
 import React, { useState, useEffect } from 'react';
 import './RemovedServicesPanel.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -163,7 +164,7 @@ function RemovedServicesPanel({ isOpen, onClose, isAdmin = false }) {
     };
 
     const handleRestore = async (service) => {
-        if (!window.confirm(`Are you sure you want to restore "${service.label}" to active services?`)) {
+        if (!await showAppConfirm(`Are you sure you want to restore "${service.label}" to active services?`)) {
             return;
         }
 
@@ -175,7 +176,7 @@ function RemovedServicesPanel({ isOpen, onClose, isAdmin = false }) {
             setRemovedServices(prev => prev.filter(s => s.key !== service.key));
             
             // Show success message
-            alert(`Service "${service.label}" has been successfully restored to active services.`);
+            showAppAlert(`Service "${service.label}" has been successfully restored to active services.`);
             
         } catch (error) {
             console.error('Error restoring service:', error);
@@ -197,14 +198,14 @@ function RemovedServicesPanel({ isOpen, onClose, isAdmin = false }) {
                 errorMessage += 'Please try again later.';
             }
             
-            alert(errorMessage);
+            showAppAlert(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
     const handlePermanentDelete = async (service) => {
-        if (!window.confirm(`Are you sure you want to permanently delete "${service.label}"? This action cannot be undone.`)) {
+        if (!await showAppConfirm(`Are you sure you want to permanently delete "${service.label}"? This action cannot be undone.`)) {
             return;
         }
 
@@ -216,7 +217,7 @@ function RemovedServicesPanel({ isOpen, onClose, isAdmin = false }) {
             setRemovedServices(prev => prev.filter(s => s.key !== service.key));
             
             // Show success message
-            alert(`Service "${service.label}" has been permanently deleted.`);
+            showAppAlert(`Service "${service.label}" has been permanently deleted.`);
             
         } catch (error) {
             console.error('Error permanently deleting service:', error);
@@ -231,14 +232,14 @@ function RemovedServicesPanel({ isOpen, onClose, isAdmin = false }) {
                 errorMessage += 'Please try again later.';
             }
             
-            alert(errorMessage);
+            showAppAlert(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
     const clearAllRemoved = async () => {
-        if (!window.confirm('Are you sure you want to clear all removed services? This action cannot be undone.')) {
+        if (!await showAppConfirm('Are you sure you want to clear all removed services? This action cannot be undone.')) {
             return;
         }
 
@@ -250,7 +251,7 @@ function RemovedServicesPanel({ isOpen, onClose, isAdmin = false }) {
             setRemovedServices([]);
             
             // Show success message with count
-            alert(`Successfully cleared ${result.count} removed service(s).`);
+            showAppAlert(`Successfully cleared ${result.count} removed service(s).`);
             
         } catch (error) {
             console.error('Error clearing all removed services:', error);
@@ -263,7 +264,7 @@ function RemovedServicesPanel({ isOpen, onClose, isAdmin = false }) {
                 errorMessage += 'Please try again later.';
             }
             
-            alert(errorMessage);
+            showAppAlert(errorMessage);
         } finally {
             setLoading(false);
         }

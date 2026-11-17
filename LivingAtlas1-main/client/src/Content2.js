@@ -1,3 +1,4 @@
+import { showAppAlert } from './appDialogs';
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import './Content2.css';
@@ -295,7 +296,7 @@ function Content2(props) {
         if (nextSortMode === 'ClosestToMe') {
             const { lat, lng } = curLocationCoordinates;
             if (!lat && !lng) {
-                alert('Please turn on your current location to use this sorting method.');
+                showAppAlert('Please turn on your current location to use this sorting method.');
                 return;
             }
             setSortMode(nextSortMode);
@@ -306,7 +307,7 @@ function Content2(props) {
         if (nextSortMode === 'ClosestToPin') {
             const { lat, lng } = searchLocationCoordinates;
             if (!lat && !lng) {
-                alert('Please search a location on the map first to use this sorting method.');
+                showAppAlert('Please search a location on the map first to use this sorting method.');
                 return;
             }
             setSortMode(nextSortMode);

@@ -109,7 +109,7 @@ export const latestGuiUpdates = [
         items: [
             'Built-in layers now use the same compact row layout as layers in state folders, while retaining color legends and information buttons.',
             'Replaced browser alerts, confirmations and name prompts with dialogs styled to match the panels. New Folder keeps empty or duplicate-name errors beside the input. Cancel or Escape leaves the action unapplied.',
-            'Checked the October 14–November 6 changes against the manual and guided tours. Updated contact-email examples, sign-in restoration, image format limits, and built-in/custom-layer guidance where details were missing.',
+            'Updated contact-email examples, sign-in restoration, image format limits, and built-in/custom-layer guidance where details were missing.',
         ],
     },
 ];

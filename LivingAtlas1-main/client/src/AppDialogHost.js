@@ -42,7 +42,7 @@ function AppDialog({ dialog }) {
     };
 
     return (
-        <dialog ref={ref} className="app-dialog" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={messageId}
+        <dialog ref={ref} className="app-dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={messageId}
             onCancel={event => { event.preventDefault(); cancel(); }}>
             <form onSubmit={submit}>
                 <header className="app-dialog-header">

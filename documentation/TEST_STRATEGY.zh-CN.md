@@ -72,6 +72,8 @@ flowchart TD
 
 第 2～11 步已增加内容/引用验证、React 手册与来源组件测试、发布门槛 unittest、机器人导入/版本切换/故障/来源 API 测试。当前离线回归通过；Pinecone、模型和实时外部服务为替身，未进行生产索引切换、部署或真实模型评估。文字迁移历史见 [第 2～8 步报告](MANUAL_KNOWLEDGE_TEST_REPORT.zh-CN.md)。本轮增加真实 Playwright 截图与图库状态、图像版本/校验/缺失/模型失败回退、视觉调用预算、中文请求、成本未知判定和发布评估；实际部署状态见 [第 9～11 步报告](MANUAL_VISUAL_RELEASE_TEST_REPORT.zh-CN.md)。
 
+本地界面验证（UI verification）：2026-11-16 完成内置图层（built-in layer）样式统一和应用内弹窗（in-app dialog）检查，覆盖取消、名称校验（validation）、消息队列（message queue）、嵌套弹窗（nested dialog）与焦点恢复（focus restoration）。相关组件测试（component test）共 98 项通过，详情及首次失败记录见[本轮证据](reviews/layer-style-app-dialogs/README.md)。
+
 ## 5. 下一阶段测试矩阵
 
 | 类型 | 优先级 | 候选场景与可判定结果 | 推荐自动化层 |

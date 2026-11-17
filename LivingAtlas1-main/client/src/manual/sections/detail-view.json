@@ -382,7 +382,7 @@
         },
         {
           "type": "text",
-          "text": " uploads one or more images, up to 30 total, with progress and per-image retry. Originals up to 50 MiB and 160 MP are supported (compressed BMPs: up to 40 MP); large pixel dimensions are reduced for display without cropping the original. Animated GIF originals stay available; display previews use the first frame. Add New Image and Delete Selected sit beside Back to Learn More at the top. Save pending deletions before uploading if the stored project is at the limit. Save commits changes; Cancel discards them."
+          "text": " uploads one or more images, up to 30 total, with progress and per-image retry. Originals up to 50 MiB and 160 MP are supported (BMPs: up to 40 MP); large pixel dimensions are reduced for display without cropping the original. Animated GIF originals stay available; display previews use the first frame. Add New Image and Delete Selected sit beside Back to Learn More at the top. Save pending deletions before uploading if the stored project is at the limit. Save commits changes; Cancel discards them."
         },
         {
           "type": "text",

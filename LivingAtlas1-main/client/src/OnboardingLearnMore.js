@@ -44,7 +44,7 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-image-area"]',
         title: 'Edit Mode - See All Images',
-        description: 'See all N images holds up to 30 images. Numbered checkboxes choose six main images; separate top-right circles select deletions. Add New Image accepts up to 50 MiB / 160 MP each (compressed BMP: 40 MP), with progress and retry. The pencil adjusts framing; Save commits changes.',
+        description: 'See all N images holds up to 30 images. Numbered checkboxes choose six main images; separate top-right circles select deletions. Add New Image accepts up to 50 MiB / 160 MP each (BMP: 40 MP), with progress and retry. The pencil adjusts framing; Save commits changes.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-image-area"]',
     },

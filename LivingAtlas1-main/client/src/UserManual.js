@@ -1382,7 +1382,7 @@ function UserManual() {
               <div className="learn-more-fields-grid">
                 <p><strong>Author:</strong> Jane Smith</p>
                 <p><strong>Project Creator:</strong> jsmith</p>
-                <p><strong>Email:</strong> j.smith@cereo.edu</p>
+                <p><strong>Contact Email:</strong> research-contact@example.org</p>
                 <p><strong>Funding:</strong> NSF Grant #12345</p>
                 <p><strong>Organization:</strong> Rivers, Watersheds, Communities (RWC)</p>
               </div>
@@ -1601,7 +1601,7 @@ function UserManual() {
                 <div className="learn-more-fields-grid">
                   <p><strong>Author:</strong> Jane Smith</p>
                   <p><strong>Project Creator:</strong> jsmith</p>
-                  <p><strong>Email:</strong> j.smith@cereo.edu</p>
+                  <p><strong>Contact Email:</strong> research-contact@example.org</p>
                   <p><strong>Funding:</strong> NSF Grant #12345</p>
                   <p><strong>Organization:</strong> Rivers, Watersheds, Communities (RWC)</p>
                 </div>
@@ -1625,6 +1625,10 @@ function UserManual() {
                   <div className="learn-more-field-cell">
                     <p><strong>Project Creator:</strong></p>
                     <input className="learn-more-inline-input learn-more-inline-readonly" type="text" defaultValue="jsmith" readOnly disabled style={{ marginBottom: 0 }} />
+                  </div>
+                  <div className="learn-more-field-cell">
+                    <p><strong>Contact Email:</strong></p>
+                    <input className="learn-more-inline-input" type="email" defaultValue="research-contact@example.org" readOnly style={{ marginBottom: 0 }} />
                   </div>
                 </div>
               </div>

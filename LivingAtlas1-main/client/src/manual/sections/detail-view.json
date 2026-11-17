@@ -428,7 +428,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Dataset metadata is laid out in a two-column grid: Author, Project Creator, Email, Funding, and Organization. Point coordinates appear in Map location. In edit mode metadata fields become editable inputs; Project Creator is read-only and cannot be changed."
+          "text": "Dataset metadata is laid out in a two-column grid: Author, Project Creator, Contact Email, Funding, and Organization. Contact Email can differ from the signed-in creator's account email; changing it does not transfer ownership. Point coordinates appear in Map location. In edit mode metadata fields become editable inputs; Project Creator is read-only and cannot be changed."
         }
       ]
     },
@@ -462,7 +462,7 @@
         },
         {
           "type": "text",
-          "text": " field has a grey background indicating it is read-only. The "
+          "text": " field has a grey background indicating it is read-only. Contact Email is editable and may belong to another contact person; the project remains owned by its creator. The "
         },
         {
           "type": "strong",

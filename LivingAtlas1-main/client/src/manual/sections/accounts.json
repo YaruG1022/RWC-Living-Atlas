@@ -158,7 +158,7 @@
           "content": [
             {
               "type": "text",
-              "text": "After a successful login, the app returns to Home. If login fails, check your credentials and whether your account request was approved."
+              "text": "After a successful login, the app returns to Home. Refreshing the page restores your signed-in account, including access to Administration for administrators. If your saved sign-in is unavailable, log in again. If login fails, check your credentials and whether your account request was approved."
             }
           ]
         }

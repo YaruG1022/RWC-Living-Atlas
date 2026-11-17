@@ -44,14 +44,14 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-image-area"]',
         title: 'Edit Mode - See All Images',
-        description: 'See all N images holds up to 30 images. Numbered checkboxes choose six main images; separate top-right circles select deletions. Add New Image accepts up to 50 MiB / 160 MP each with progress and retry. The pencil adjusts framing; Save commits changes.',
+        description: 'See all N images holds up to 30 images. Numbered checkboxes choose six main images; separate top-right circles select deletions. Add New Image accepts up to 50 MiB / 160 MP each (compressed BMP: 40 MP), with progress and retry. The pencil adjusts framing; Save commits changes.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-image-area"]',
     },
     {
         selector: '[data-onboarding-target="learn-more-text-area"]',
         title: 'Edit Mode - Fields Editing',
-        description: 'Edit metadata and links here. In Description, Link inserts or edits a URL and display text; File inserts an existing attachment or multiple new files at the cursor. New files upload on Save. Tags are removable chips; Visibility sets Public or Private.',
+        description: 'Edit metadata and links; Contact Email does not change ownership. In Description, Link inserts or edits a URL and display text; File inserts an existing attachment or multiple new files at the cursor. New files upload on Save. Tags are removable chips; Visibility sets Public or Private.',
         placement: 'left',
         scrollTo: '[data-onboarding-target="learn-more-text-area"]',
     },

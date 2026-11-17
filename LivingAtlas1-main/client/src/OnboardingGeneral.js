@@ -66,7 +66,7 @@ const STEP_DEFINITIONS = [
     {
         selector: '[data-onboarding-target="navbar-auth-link"].profile-button',
         title: 'Account Area',
-        description: 'Open your avatar menu for Profile, Switch Account, and Logout. Administrators also have an Administration option.',
+        description: 'Open your avatar menu for Profile, Switch Account, and Logout. Your signed-in account is restored after a page refresh. Administrators also have an Administration option; see Profile & Administration in the manual for role-change and deletion safeguards.',
         placement: 'bottom',
     },
     {

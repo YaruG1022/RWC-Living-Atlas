@@ -69,8 +69,8 @@ function GeneralOnboardingModal({ isOpen, onClose, onPlay }) {
                         <li><SidebarIcon icon={faMapLocationDot} /><span><strong>Explore the interactive map</strong>: pan, zoom, and click markers, polygons, and image overlays to discover environmental resources.</span></li>
                         <li><SidebarIcon icon={faSearch} /><span><strong>Find app features</strong>: use the sidebar search to find tools by keyword and open them from the results. Use the search on the map to find places, addresses, or coordinates.</span></li>
                         <li><SidebarIcon icon={faClone} /><span><strong>Browse projects</strong>: each project is a geographically located resource (e.g., a monitoring station or dataset) with descriptions, images, files, and links. Search, sort, and filter projects by category, tag, or keyword.</span></li>
-                        <li><SidebarIcon icon={faEarthAmericas} /><span><strong>Load GIS layers</strong>: browse ArcGIS services, add layers to the map, and filter time-aware layers.</span></li>
-                        <li><SidebarIcon icon={faObjectGroup} /><span><strong>Add custom layers</strong>: organize and render your own layers with folders, pinning, and ordering.</span></li>
+                        <li><SidebarIcon icon={faEarthAmericas} /><span><strong>Load GIS layers</strong>: browse state ArcGIS services or the six regional Built-in Layers. Use each built-in layer's question-mark button for sources and coverage; filter time-aware ArcGIS layers where supported.</span></li>
+                        <li><SidebarIcon icon={faObjectGroup} /><span><strong>Add custom layers</strong>: save ArcGIS layers or upload GIS ZIPs and StreamStats files, then organize them with folders, pinning, and ordering. A library-load error offers Retry without deleting saved layers.</span></li>
                         <li><SidebarIcon icon={faMap} /><span><strong>Switch basemaps</strong>: choose the background map style that best suits your needs.</span></li>
                         <li><SidebarIcon icon={faWater} /><span><strong>Delineate watersheds</strong>: show StreamStats rivers, delineate a basin, then open Save to choose a custom layer or polygon project.</span></li>
                         <li><SidebarIcon icon={faUser} /><span><strong>Sign in for more</strong>: bookmark (favorite) projects, and if authorized, create and manage your own projects.</span></li>
@@ -87,7 +87,7 @@ function GeneralOnboardingModal({ isOpen, onClose, onPlay }) {
                         <li><strong>Contact</strong>: find project contact information.</li>
                         <li><strong>Updates</strong>: browse the full update history.</li>
                         <li><strong>User Manual</strong>: read detailed instructions for the app's tools.</li>
-                        <li><strong>Register / Login</strong>: create an account or sign in. Once signed in, open your avatar menu for Profile, Switch Account, and Logout; administrators also see Administration.</li>
+                        <li><strong>Register / Login</strong>: request account access or sign in. Refreshing the page restores your signed-in account. Open your avatar menu for Profile, Switch Account, and Logout; administrators also see Administration.</li>
                     </ul>
                 </GuideSection>
 

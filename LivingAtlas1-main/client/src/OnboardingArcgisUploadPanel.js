@@ -12,7 +12,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="arcgis-state-folder"]',
         title: 'State Folders',
-        description: 'Open Washington, Idaho, Oregon, or Built-in Layers. Each built-in layer has a color legend and a small question-mark button on the right. Click it for a nearby dialog with sources, coverage and Zoom to region. Rivers shows river lines; Hydrological Boundaries shows drainage areas.',
+        description: 'Open WA, ID, OR, or Built-in Layers. The six built-ins load regional snapshots from this site and return after switching basemaps. Each has a color legend and a ? button for sources, coverage and Zoom to region. Rivers shows channels; Hydrological Boundaries shows drainage areas.',
         placement: 'left',
     },
     {

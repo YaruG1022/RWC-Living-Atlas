@@ -382,7 +382,7 @@
         },
         {
           "type": "text",
-          "text": " uploads one or more images, up to 30 total, with progress and per-image retry. Originals up to 50 MiB and 160 MP are supported (compressed BMPs: up to 40 MP); large pixel dimensions are reduced for display without cropping the original. Animated GIF originals stay available; display previews use the first frame. Add New Image and Delete Selected sit beside Back to Learn More at the top. Save pending deletions before uploading if the stored project is at the limit. Save commits changes; Cancel discards them."
+          "text": " uploads one or more images, up to 30 total, with progress and per-image retry. Originals up to 50 MiB and 160 MP are supported (BMPs: up to 40 MP); large pixel dimensions are reduced for display without cropping the original. Animated GIF originals stay available; display previews use the first frame. Add New Image and Delete Selected sit beside Back to Learn More at the top. Save pending deletions before uploading if the stored project is at the limit. Save commits changes; Cancel discards them."
         },
         {
           "type": "text",
@@ -428,7 +428,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Dataset metadata is laid out in a two-column grid: Author, Project Creator, Email, Funding, and Organization. Point coordinates appear in Map location. In edit mode metadata fields become editable inputs; Project Creator is read-only and cannot be changed."
+          "text": "Dataset metadata is laid out in a two-column grid: Author, Project Creator, Contact Email, Funding, and Organization. Contact Email can differ from the signed-in creator's account email; changing it does not transfer ownership. Point coordinates appear in Map location. In edit mode metadata fields become editable inputs; Project Creator is read-only and cannot be changed."
         }
       ]
     },
@@ -462,7 +462,7 @@
         },
         {
           "type": "text",
-          "text": " field has a grey background indicating it is read-only. The "
+          "text": " field has a grey background indicating it is read-only. Contact Email is editable and may belong to another contact person; the project remains owned by its creator. The "
         },
         {
           "type": "strong",

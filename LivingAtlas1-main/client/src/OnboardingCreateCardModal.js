@@ -24,7 +24,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="create-card-image-upload"]',
         title: 'Image Upload Area',
-        description: 'Choose gallery images up to 50 MiB and 160 megapixels each; see Help for format limits. Originals are kept. Use the pencil to position, zoom or show the full image. For Image Overlay projects, map images are separate from gallery images.',
+        description: 'Choose gallery images up to 50 MiB and 160 megapixels each (BMP: 40 MP). Originals are kept. Use the pencil to position, zoom or show the full image. For Image Overlay projects, map images are separate from gallery images.',
         placement: 'left',
     },
     {

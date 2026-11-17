@@ -102,13 +102,14 @@ export const manualGuiUpdates = [
 ];
 
 // Release dates are editorial dates, shared by both update surfaces.
-export const latestGuiUpdateDate = '11/16/2026';
+export const latestGuiUpdateDate = '11/14/2026';
 export const latestGuiUpdates = [
     {
         title: 'Layer Rows and In-App Dialogs',
         items: [
             'Built-in layers now use the same compact row layout as layers in state folders, while retaining color legends and information buttons.',
             'Replaced browser alerts, confirmations and name prompts with dialogs styled to match the panels. New Folder keeps empty or duplicate-name errors beside the input. Cancel or Escape leaves the action unapplied.',
+            'Checked the October 14–November 6 changes against the manual and guided tours. Updated contact-email examples, sign-in restoration, image format limits, and built-in/custom-layer guidance where details were missing.',
         ],
     },
 ];

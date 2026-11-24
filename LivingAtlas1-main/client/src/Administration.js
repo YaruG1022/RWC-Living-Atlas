@@ -1,9 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from './api.js';
 import Modal from 'react-modal';
 import './Administration.css';
 import InfoPage from './InfoPage';
 import './AccountPage.css';
+import AdminUserFilters, { DEFAULT_USER_FILTERS, hasUserFilters } from './AdminUserFilters';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DATE_SORT_FIELDS = { date_joined: 'created_at', last_sign_in: 'last_online_at' };
+
+function dateTimestamp(value) {
+    if (typeof value !== 'string' || !value.trim()) return null;
+    const timestamp = Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00` : value);
+    return Number.isFinite(timestamp) ? timestamp : null;
+}
+
+function joinedDateBounds(filters, now) {
+    if (filters.dateJoined === 'any') return null;
+    if (filters.dateJoined === 'custom') {
+        const until = new Date(dateTimestamp(filters.endDate));
+        until.setDate(until.getDate() + 1);
+        return [dateTimestamp(filters.startDate), until.getTime()];
+    }
+    const today = new Date(now);
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const day = today.getDate();
+    return [
+        new Date(year, month, day - Number(filters.dateJoined) + 1).getTime(),
+        new Date(year, month, day + 1).getTime(),
+    ];
+}
+
+function matchesLastSignIn(value, range, now) {
+    if (range === 'any') return true;
+    const timestamp = dateTimestamp(value);
+    if (range === 'missing') return timestamp === null;
+    if (timestamp === null) return false;
+    if (range === 'older') return timestamp < now - 30 * DAY_MS;
+    return timestamp >= now - Number(range) * DAY_MS && timestamp <= now;
+}
 
 function managementError(error) {
     return error.response?.data?.detail || error.response?.data?.error || error.message || 'Please try again.';
@@ -32,39 +68,29 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
     const [isDeletingUser, setIsDeletingUser] = useState(false);
     const [isLoadingUsers, setIsLoadingUsers] = useState(true);
     const [search, setSearch] = useState('');
+    const [userFilters, setUserFilters] = useState(DEFAULT_USER_FILTERS);
     const [notice, setNotice] = useState('');
     const [sortBy, setSortBy] = useState('name');
     const [sortOrder, setSortOrder] = useState('asc');
+    const userSearch = useRef(null);
+    const userActionTrigger = useRef(null);
 
     const currentEmail = (accountEmail || localStorage.getItem('email') || '').trim().toLowerCase();
-    const isCurrentUserLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-
-    const getUserOnlineState = (user) => {
-        if (typeof user?.is_online === 'boolean') return user.is_online;
-        if (typeof user?.online === 'boolean') return user.online;
-        if (typeof user?.status === 'string') {
-            return user.status.trim().toLowerCase() === 'online';
-        }
-        const userEmail = (user?.email || '').trim().toLowerCase();
-        return isCurrentUserLoggedIn && userEmail !== '' && userEmail === currentEmail;
-    };
 
     const formatJoinedDate = (rawDate) => {
-        if (!rawDate) return 'N/A';
-        const date = new Date(rawDate);
-        if (Number.isNaN(date.getTime())) return 'N/A';
-        return date.toLocaleDateString('en-US', {
+        const timestamp = dateTimestamp(rawDate);
+        if (timestamp === null) return 'N/A';
+        return new Date(timestamp).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
         });
     };
 
-    const formatLastOnline = (rawDate) => {
-        if (!rawDate) return 'N/A';
-        const date = new Date(rawDate);
-        if (Number.isNaN(date.getTime())) return 'N/A';
-        return date.toLocaleString('en-US', {
+    const formatLastSignIn = (rawDate) => {
+        const timestamp = dateTimestamp(rawDate);
+        if (timestamp === null) return 'No sign-in recorded';
+        return new Date(timestamp).toLocaleString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -78,28 +104,48 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
             setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
         } else {
             setSortBy(column);
-            setSortOrder('asc');
+            setSortOrder(column === 'last_sign_in' ? 'desc' : 'asc');
         }
     };
 
     const getSortedUsers = () => {
         const query = search.trim().toLowerCase();
-        const sorted = users.filter(user => `${user.name} ${user.email}`.toLowerCase().includes(query));
+        const now = Date.now();
+        const joinedBounds = joinedDateBounds(userFilters, now);
+        const sorted = users.filter(user => {
+            if (!`${user.name || ''} ${user.email || ''}`.toLowerCase().includes(query)) return false;
+            if (userFilters.role !== 'all' && Boolean(user.is_admin) !== (userFilters.role === 'admin')) return false;
+            if (!matchesLastSignIn(user.last_online_at, userFilters.lastSignIn, now)) return false;
+            if (!joinedBounds) return true;
+            const joined = dateTimestamp(user.created_at);
+            return joined !== null && joined >= joinedBounds[0] && joined < joinedBounds[1];
+        });
+        const dateField = DATE_SORT_FIELDS[sortBy];
         sorted.sort((a, b) => {
-            let aVal, bVal;
-            if (sortBy === 'name') {
-                aVal = (a.name || '').toLowerCase();
-                bVal = (b.name || '').toLowerCase();
-            } else if (sortBy === 'date_joined') {
-                aVal = new Date(a.created_at || 0).getTime();
-                bVal = new Date(b.created_at || 0).getTime();
+            const aVal = dateField ? dateTimestamp(a[dateField]) : (a.name || '').toLowerCase();
+            const bVal = dateField ? dateTimestamp(b[dateField]) : (b.name || '').toLowerCase();
+            if (aVal !== bVal) {
+                if (aVal === null) return 1;
+                if (bVal === null) return -1;
+                return (aVal < bVal ? -1 : 1) * (sortOrder === 'asc' ? 1 : -1);
             }
-            if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
-            if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
-            return 0;
+            return (a.email || '').localeCompare(b.email || '');
         });
         return sorted;
     };
+
+    const renderSortableHeader = (column, label) => (
+        <th
+            scope="col"
+            className="admin-table-header-sortable"
+            aria-sort={sortBy === column ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}
+        >
+            <button type="button" className="admin-sort-header-content" onClick={() => handleSortChange(column)}>
+                {label}
+                {renderSortIndicator(column)}
+            </button>
+        </th>
+    );
 
     const renderSortIndicator = (column) => {
         const direction = sortBy === column ? sortOrder : null;
@@ -166,7 +212,8 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
         }
     };
 
-    const handleOpenDeleteModal = (user) => {
+    const handleOpenDeleteModal = (user, trigger) => {
+        userActionTrigger.current = trigger;
         setNotice('');
         setDeleteModalUser(user);
         setDeleteConfirmText('');
@@ -192,7 +239,8 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
         }
     };
 
-    const handleOpenRoleModal = (user) => {
+    const handleOpenRoleModal = (user, trigger) => {
+        userActionTrigger.current = trigger;
         setNotice('');
         setRoleModalUser(user);
         setSelectedRole(user.is_admin ? 'admin' : 'regular');
@@ -281,6 +329,25 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
 
     
 
+    const hasFilters = hasUserFilters(userFilters);
+    const hasSearch = Boolean(search.trim());
+    const visibleUsers = activeTab === 'manage-users' ? getSortedUsers() : [];
+    const emptyUserList = !error && users.length > 0 && (hasSearch || hasFilters);
+    const resetSearchAndFilters = () => {
+        setSearch('');
+        setUserFilters(DEFAULT_USER_FILTERS);
+        userSearch.current?.focus();
+    };
+    const restoreUserActionFocus = () => {
+        const trigger = userActionTrigger.current;
+        // The dialog can close before React removes the row from the DOM.
+        window.requestAnimationFrame(() => {
+            if (!trigger?.isConnected && document.activeElement === document.body) {
+                userSearch.current?.focus();
+            }
+        });
+    };
+
     return (
         <InfoPage title="Administration" className="admin-page account-page">
 
@@ -317,85 +384,73 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
                     <h2 className="admin-section-title account-section-title">User Management</h2>
                     {error && <p className="admin-error" role="alert">{error}</p>}
                     {notice && <p className="admin-notice" role="status">{notice}</p>}
-                    <div className="admin-user-toolbar">
-                        <div className="admin-user-search">
-                            <label htmlFor="admin-user-search">Search users</label>
-                            <input id="admin-user-search" className="account-control" type="search" placeholder="Name or email" value={search} onChange={event => setSearch(event.target.value)} />
-                        </div>
-                        <button className="account-button account-button--secondary" disabled={isLoadingUsers} onClick={fetchUsers}>Refresh users</button>
-                    </div>
-                    <p className="admin-user-count" role="status">{isLoadingUsers ? 'Loading users...' : `${getSortedUsers().length} of ${users.length} users`}</p>
-                    <div className="admin-table-wrap" aria-busy={isLoadingUsers}>
-
-                    <table className="admin-table">
-                        <thead>
-                            <tr>
-                                <th
-                                    className="admin-table-header-sortable"
-                                    aria-sort={sortBy === 'name' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}
-                                >
-                                    <button className="admin-sort-header-content" onClick={() => handleSortChange('name')}>
-                                        Name
-                                        {renderSortIndicator('name')}
-                                    </button>
-                                </th>
-                                <th>Email</th>
-                                <th
-                                    className="admin-table-header-sortable"
-                                    aria-sort={sortBy === 'date_joined' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}
-                                >
-                                    <button className="admin-sort-header-content" onClick={() => handleSortChange('date_joined')}>
-                                        Date Joined
-                                        {renderSortIndicator('date_joined')}
-                                    </button>
-                                </th>
-                                <th>Status</th>
-                                <th>Last Online</th>
-                                <th>Role</th>
-                                <th>Edit</th>
-                                <th>Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {!isLoadingUsers && getSortedUsers().length === 0 && (
-                                <tr><td colSpan="8" className="admin-empty-state">{error ? 'User list unavailable. Use Refresh users to retry.' : search.trim() ? 'No users match your search.' : 'No users found.'}</td></tr>
-                            )}
-                            {getSortedUsers().map(user => (
-                                <tr key={user.email}>
-                                    <td>{user.name}</td>
-                                    <td>{user.email}</td>
-                                    <td>{formatJoinedDate(user.created_at)}</td>
-                                    <td>
-                                        <span className={`admin-status ${getUserOnlineState(user) ? 'admin-status-online' : 'admin-status-offline'}`}>
-                                            <span className="admin-status-dot" aria-hidden="true" />
-                                            {getUserOnlineState(user) ? 'Online' : 'Offline'}
-                                        </span>
-                                    </td>
-                                    <td>{formatLastOnline(user.last_online_at)}</td>
-                                    <td>
-                                        <span className={`admin-badge ${user.is_admin ? 'admin-badge-admin' : 'admin-badge-user'}`}>
-                                            {user.is_admin ? 'Admin' : 'Regular User'}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button className="admin-action-btn account-button account-button--secondary" onClick={() => handleOpenRoleModal(user)}>
-                                            Change Role
-                                        </button>
-                                    </td>
-                                    {!user.is_admin ? (
-                                        <td>
-                                            <button className="admin-action-btn admin-action-btn-danger account-button account-button--danger" onClick={() => handleOpenDeleteModal(user)}>
-                                                Delete
-                                            </button>
-                                        </td>
-                                    ) : (
-                                        <td><button className="admin-action-btn account-button account-button--danger" disabled title="Change this admin to Regular User before deleting.">Delete</button></td>
-                                    )}
+                    <AdminUserFilters
+                        search={search}
+                        searchRef={userSearch}
+                        setSearch={setSearch}
+                        filters={userFilters}
+                        setFilters={setUserFilters}
+                        onRefresh={fetchUsers}
+                        isLoading={isLoadingUsers}
+                        listAvailable={!error || users.length > 0}
+                        total={users.length}
+                        matches={visibleUsers.length}
+                    />
+                    <div className="admin-table-wrap" role="region" aria-label="Users table" tabIndex={0} aria-busy={isLoadingUsers}>
+                        <table className="admin-table admin-users-table">
+                            <thead>
+                                <tr>
+                                    {renderSortableHeader('name', 'Name')}
+                                    <th scope="col">Email</th>
+                                    <th scope="col">Role</th>
+                                    {renderSortableHeader('date_joined', 'Date joined')}
+                                    {renderSortableHeader('last_sign_in', 'Last sign-in')}
+                                    <th scope="col">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {visibleUsers.map(user => (
+                                    <tr key={user.email}>
+                                        <td>{user.name}</td>
+                                        <td>{user.email}</td>
+                                        <td>
+                                            <span className={`admin-badge ${user.is_admin ? 'admin-badge-admin' : 'admin-badge-user'}`}>
+                                                {user.is_admin ? 'Admin' : 'Regular User'}
+                                            </span>
+                                        </td>
+                                        <td>{formatJoinedDate(user.created_at)}</td>
+                                        <td>{formatLastSignIn(user.last_online_at)}</td>
+                                        <td>
+                                            <div className="admin-actions-inline">
+                                                <button type="button" className="admin-action-btn account-button account-button--secondary" onClick={event => handleOpenRoleModal(user, event.currentTarget)}>
+                                                    Change Role
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="admin-action-btn admin-action-btn-danger account-button account-button--danger"
+                                                    disabled={user.is_admin}
+                                                    title={user.is_admin ? 'Change this admin to Regular User before deleting.' : undefined}
+                                                    onClick={event => handleOpenDeleteModal(user, event.currentTarget)}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
+                    {!isLoadingUsers && visibleUsers.length === 0 && (
+                        <div className="admin-empty-state admin-user-empty">
+                            {error ? 'User list unavailable. Use Refresh users to retry.' : emptyUserList ? (
+                                <>
+                                    <span>{hasFilters ? 'No users match your search and filters.' : 'No users match your search.'}</span>
+                                    <button type="button" className="account-link" onClick={resetSearchAndFilters}>Reset search and filters</button>
+                                </>
+                            ) : 'No users found.'}
+                        </div>
+                    )}
                 </section>
             )}
 
@@ -456,6 +511,7 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
                     ariaHideApp={!!document.getElementById('root')}
                     appElement={document.getElementById('root') || undefined}
                     onRequestClose={handleCloseRoleModal}
+                    onAfterClose={restoreUserActionFocus}
                     shouldCloseOnOverlayClick={!isRoleUpdating}
                     shouldCloseOnEsc={!isRoleUpdating}
                 >
@@ -531,6 +587,7 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
                     ariaHideApp={!!document.getElementById('root')}
                     appElement={document.getElementById('root') || undefined}
                     onRequestClose={handleCloseDeleteModal}
+                    onAfterClose={restoreUserActionFocus}
                     shouldCloseOnOverlayClick={!isDeletingUser}
                     shouldCloseOnEsc={!isDeletingUser}
                 >

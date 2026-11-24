@@ -30,13 +30,132 @@ test('searches users, reports empty matches, and sorts accessibly', async () => 
     await screen.findByText(member.email);
     userEvent.type(screen.getByRole('searchbox'), 'MEMBER');
     expect(screen.queryByText(admin.email)).not.toBeInTheDocument();
-    expect(screen.getByText('1 of 2 users')).toBeInTheDocument();
+    expect(screen.getByText('Showing 1 of 2 users')).toBeInTheDocument();
     userEvent.type(screen.getByRole('searchbox'), 'missing');
     expect(screen.getByText('No users match your search.')).toBeInTheDocument();
     userEvent.clear(screen.getByRole('searchbox'));
     userEvent.click(screen.getByRole('button', { name: 'Name' }));
     expect(screen.getByRole('columnheader', { name: 'Name' })).toHaveAttribute('aria-sort', 'descending');
     expect(within(screen.getByText(admin.email).closest('tr')).getByRole('button', { name: 'Delete' })).toBeDisabled();
+});
+
+test('combines email search with role and sign-in filters and clears only the filters', async () => {
+    const daysAgo = days => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    const externalAdmin = { ...admin, email: 'admin@example.net', last_online_at: daysAgo(3) };
+    const legacyAdmin = { ...admin, name: 'Legacy Admin', email: 'legacy@example.invalid', last_online_at: null };
+    const recentMember = { ...member, last_online_at: daysAgo(15) };
+    const olderMember = { ...member, name: 'Older Member', email: 'older@example.invalid', last_online_at: daysAgo(45) };
+    api.post.mockResolvedValueOnce({ data: { users: [externalAdmin, legacyAdmin, recentMember, olderMember] } });
+    render(<Administration />);
+    await screen.findByText(externalAdmin.email);
+
+    const role = screen.getByRole('combobox', { name: 'Role' });
+    const lastSignIn = screen.getByRole('combobox', { name: 'Last sign-in' });
+    const search = screen.getByRole('searchbox');
+    userEvent.selectOptions(role, 'admin');
+    userEvent.selectOptions(lastSignIn, '7');
+    expect(screen.getByText('Showing 1 of 4 users')).toBeInTheDocument();
+    expect(screen.getByText(externalAdmin.email)).toBeInTheDocument();
+
+    userEvent.type(search, 'example.invalid');
+    expect(screen.getByText('No users match your search and filters.')).toBeInTheDocument();
+    userEvent.selectOptions(lastSignIn, 'missing');
+    expect(screen.getByText(legacyAdmin.email)).toBeInTheDocument();
+
+    userEvent.selectOptions(role, 'regular');
+    userEvent.selectOptions(lastSignIn, '30');
+    expect(screen.getByText(recentMember.email)).toBeInTheDocument();
+    expect(screen.queryByText(olderMember.email)).not.toBeInTheDocument();
+    userEvent.selectOptions(lastSignIn, 'older');
+    expect(screen.getByText(olderMember.email)).toBeInTheDocument();
+    expect(screen.queryByText(recentMember.email)).not.toBeInTheDocument();
+
+    userEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+    expect(search).toHaveValue('example.invalid');
+    expect(screen.getByText('Showing 3 of 4 users')).toBeInTheDocument();
+    expect(screen.queryByText(externalAdmin.email)).not.toBeInTheDocument();
+});
+
+test('applies a custom date joined range through the end of the selected local day', async () => {
+    const users = [
+        { ...admin, created_at: new Date(2025, 10, 1, 0, 0).toISOString() },
+        { ...member, created_at: new Date(2025, 10, 2, 23, 59).toISOString() },
+        { ...member, email: 'before@example.invalid', created_at: new Date(2025, 9, 31, 23, 59).toISOString() },
+        { ...member, email: 'after@example.invalid', created_at: new Date(2025, 10, 3, 0, 0).toISOString() },
+    ];
+    api.post.mockResolvedValueOnce({ data: { users } });
+    render(<Administration />);
+    await screen.findByText(member.email);
+
+    userEvent.click(screen.getByRole('button', { name: /More filters/i }));
+    const dialog = within(screen.getByRole('dialog', { name: 'Filter users' }));
+    userEvent.selectOptions(dialog.getByRole('combobox', { name: 'Date joined' }), 'custom');
+    fireEvent.change(dialog.getByLabelText('Start date'), { target: { value: '2025-11-01' } });
+    fireEvent.change(dialog.getByLabelText('End date'), { target: { value: '2025-11-02' } });
+    userEvent.click(dialog.getByRole('button', { name: 'Apply filters' }));
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByText('Showing 2 of 4 users')).toBeInTheDocument();
+    expect(screen.getByText(admin.email)).toBeInTheDocument();
+    expect(screen.getByText(member.email)).toBeInTheDocument();
+    expect(screen.queryByText('before@example.invalid')).not.toBeInTheDocument();
+    expect(screen.queryByText('after@example.invalid')).not.toBeInTheDocument();
+});
+
+test('applies mobile filter changes only when confirmed', async () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = () => ({ matches: true });
+    try {
+        render(<Administration />);
+        await screen.findByText(member.email);
+        expect(screen.queryByRole('combobox', { name: 'Role' })).not.toBeInTheDocument();
+        const filterButton = screen.getByRole('button', { name: 'Filters' });
+        userEvent.click(filterButton);
+        let dialog = within(screen.getByRole('dialog', { name: 'Filter users' }));
+        userEvent.selectOptions(dialog.getByRole('combobox', { name: 'Role' }), 'admin');
+        userEvent.click(dialog.getByRole('button', { name: 'Cancel' }));
+        expect(screen.getByText(member.email)).toBeInTheDocument();
+
+        userEvent.click(filterButton);
+        dialog = within(screen.getByRole('dialog', { name: 'Filter users' }));
+        const role = dialog.getByRole('combobox', { name: 'Role' });
+        expect(role).toHaveValue('all');
+        userEvent.selectOptions(role, 'admin');
+        userEvent.click(dialog.getByRole('button', { name: 'Apply filters' }));
+        expect(screen.getByRole('button', { name: 'Filters (1)' })).toBeInTheDocument();
+        expect(screen.queryByText(member.email)).not.toBeInTheDocument();
+    } finally {
+        window.matchMedia = originalMatchMedia;
+    }
+});
+
+test('sorts recorded sign-ins both ways and keeps missing and invalid timestamps last', async () => {
+    const legacyEmail = 'legacy@example.invalid';
+    const invalidEmail = 'invalid@example.invalid';
+    const users = [
+        { ...admin, last_online_at: '2025-09-01T12:00:00Z' },
+        { ...member, last_online_at: '2025-11-01T12:00:00Z' },
+        { ...member, email: legacyEmail, last_online_at: null },
+        { ...member, email: invalidEmail, last_online_at: 'invalid date' },
+    ];
+    api.post.mockResolvedValueOnce({ data: { users } });
+    render(<Administration />);
+    await screen.findByText(member.email);
+
+    const sortedEmails = () => screen.getAllByRole('cell', { name: /@example\.invalid$/ }).map(cell => cell.textContent);
+    const column = screen.getByRole('columnheader', { name: 'Last sign-in' });
+    const sort = within(column).getByRole('button', { name: 'Last sign-in' });
+    expect(screen.queryByRole('columnheader', { name: /^(Status|Last Online)$/i })).not.toBeInTheDocument();
+
+    userEvent.click(sort);
+    expect(column).toHaveAttribute('aria-sort', 'descending');
+    expect(sortedEmails().slice(0, 2)).toEqual([member.email, admin.email]);
+    expect(sortedEmails().slice(2).sort()).toEqual([invalidEmail, legacyEmail]);
+
+    userEvent.click(sort);
+    expect(column).toHaveAttribute('aria-sort', 'ascending');
+    expect(sortedEmails().slice(0, 2)).toEqual([admin.email, member.email]);
+    expect(sortedEmails().slice(2).sort()).toEqual([invalidEmail, legacyEmail]);
 });
 
 test('updates the selected role without refetching and restores focus', async () => {

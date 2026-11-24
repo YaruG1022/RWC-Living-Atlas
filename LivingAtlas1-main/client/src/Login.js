@@ -21,30 +21,12 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
     const [submitemail, setsubmitEmail] = useState('');
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
     const [showForgotPasswordForm, setShowForgotPasswordForm] = useState(false);
-    const [redirectCountdown, setRedirectCountdown] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [challenge, setChallenge] = useState(null);
-    const countdownRef = useRef(null);
     const loginRequest = useRef(null);
     const history = useHistory();
 
-    // Cancel redirect if user navigates away manually
-    useEffect(() => {
-        const unlisten = history.listen(() => {
-            if (countdownRef.current) {
-                clearInterval(countdownRef.current);
-                countdownRef.current = null;
-                setRedirectCountdown(null);
-            }
-        });
-        return () => {
-            unlisten();
-            loginRequest.current?.abort();
-            if (countdownRef.current) {
-                clearInterval(countdownRef.current);
-            }
-        };
-    }, [history]);
+    useEffect(() => () => loginRequest.current?.abort(), []);
 
     const finishLogin = (data) => {
         const accountData = data['Account Information'];
@@ -78,21 +60,7 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
         setUsername(name);
         setEmail(accountEmail);
         setIsAdmin(resolvedIsAdmin);
-        setMessage('Successfully logged in!');
-
-        setRedirectCountdown(3);
-        let count = 3;
-        countdownRef.current = setInterval(() => {
-            count -= 1;
-            if (count <= 0) {
-                clearInterval(countdownRef.current);
-                countdownRef.current = null;
-                setRedirectCountdown(null);
-                history.push('/');
-            } else {
-                setRedirectCountdown(count);
-            }
-        }, 1000);
+        history.push('/');
     };
 
     const cancelVerification = () => {
@@ -103,7 +71,7 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
 
     const handleLogin = async (event) => {
         event.preventDefault();
-        if (loginRequest.current || countdownRef.current) return;
+        if (loginRequest.current) return;
 
         const controller = new AbortController();
         const previousToken = getSessionToken(false);
@@ -119,7 +87,7 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
             });
             if (controller.signal.aborted) return;
             if (data.two_factor_required && data.challenge_id) {
-                setChallenge({ challengeId: data.challenge_id, headers });
+                setChallenge({ challengeId: data.challenge_id, resendAfter: data.resend_after, headers });
                 setShowForgotPasswordForm(false);
             } else {
                 finishLogin(data);
@@ -169,7 +137,7 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
                 {challenge ? (
                     <EmailVerificationForm
                         {...challenge}
-                        endpoint="/profileAccount/verify"
+                        challengeEndpoint="/profileAccount"
                         onVerified={finishLogin}
                         onCancel={cancelVerification}
                         cancelLabel="Back to login"
@@ -186,7 +154,7 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
                                     autoComplete="username"
                                     value={submitemail}
                                     onChange={(e) => setsubmitEmail(e.target.value)}
-                                    disabled={isSubmitting || redirectCountdown !== null}
+                                    disabled={isSubmitting}
                                     required
                                 />
                             </div>
@@ -200,12 +168,12 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
                                     autoComplete="current-password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    disabled={isSubmitting || redirectCountdown !== null}
+                                    disabled={isSubmitting}
                                     required
                                 />
                             </div>
 
-                            <button className="login-primary-btn account-button" type="submit" disabled={isSubmitting || redirectCountdown !== null}>
+                            <button className="login-primary-btn account-button" type="submit" disabled={isSubmitting}>
                                 {isSubmitting ? 'Signing in…' : 'Login'}
                             </button>
                         </form>
@@ -243,14 +211,7 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
                 )}
 
                 <div role="status">
-                    {message && (
-                        <p className="login-message">
-                            {message}
-                            {redirectCountdown !== null && (
-                                <span> Redirecting in {redirectCountdown}...</span>
-                            )}
-                        </p>
-                    )}
+                    {message && <p className="login-message">{message}</p>}
                 </div>
             </div>
         </InfoPage>

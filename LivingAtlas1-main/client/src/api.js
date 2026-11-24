@@ -11,6 +11,7 @@ const sessionPaths = new Set([
   '/reset-password',
   '/account/two-factor',
   '/account/two-factor/verify',
+  '/account/two-factor/resend',
   '/deleteCard',
   '/uploadForm',
   '/cards/generate-description',

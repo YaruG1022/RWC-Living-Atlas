@@ -22,24 +22,26 @@ from sessions import hash_password
 async def check_two_factor(client, db, account_module, user_id, email, other_email, password):
     setting_url = '/account/two-factor'
     setting_verify_url = f'{setting_url}/verify'
+    setting_resend_url = f'{setting_url}/resend'
     login_url = '/profileAccount'
     login_verify_url = f'{login_url}/verify'
+    login_resend_url = f'{login_url}/resend'
     credentials = {'email': email, 'password': password}
     enable = {'enabled': True, 'password': password}
     disable = {'enabled': False, 'password': password}
     signed_in = authorization(await sign_in(client, email, password))
     other_signed_in = authorization(await sign_in(client, other_email, password))
 
-    def advance_challenge_clock(purpose='login', expire=False):
+    def advance_challenge_clock(purpose='login', expire=False, remaining_seconds=None):
         with db, db.cursor() as cursor:
             cursor.execute(
                 """
                 UPDATE EmailTwoFactorChallenges SET NextSendAt = statement_timestamp(),
-                    ExpiresAt = CASE WHEN %s THEN statement_timestamp() ELSE ExpiresAt END,
+                    ExpiresAt = COALESCE(statement_timestamp() + %s::INT * interval '1 second', ExpiresAt),
                     AttemptWindowEndsAt = CASE WHEN %s THEN statement_timestamp() ELSE AttemptWindowEndsAt END
                 WHERE UserID = %s AND Purpose = %s
                 """,
-                (expire, expire, user_id, purpose),
+                (0 if expire else remaining_seconds, expire, user_id, purpose),
             )
             assert cursor.rowcount == 1, 'Expected one synthetic challenge'
 
@@ -55,14 +57,15 @@ async def check_two_factor(client, db, account_module, user_id, email, other_ema
             )
             return cursor.fetchone()
 
-    def mailed_code(response, sender):
+    def mailed_code(response, sender, max_expiry=600):
         expect_status(response, 202)
         challenge = response.json()
         recipient, _, body = sender.call_args.args
         code = re.search(r'<strong>([0-9]{6})</strong>', body).group(1)
         assert recipient == email
         assert 'session_token' not in challenge and 'Account Information' not in challenge
-        assert code not in response.text and challenge['expires_in'] == 600
+        assert code not in response.text and 0 < challenge['expires_in'] <= max_expiry
+        assert challenge['resend_after'] == 60
         assert response.headers['cache-control'] == 'no-store'
         return {'challenge_id': challenge['challenge_id'], 'code': code}
 
@@ -85,11 +88,27 @@ async def check_two_factor(client, db, account_module, user_id, email, other_ema
         challenge = mailed_code(await client.put(setting_url, headers=signed_in, json=enable), sender)
         expect_status(await client.post(setting_verify_url, headers=other_signed_in, json=challenge), 410)
         expect_status(await client.post(login_verify_url, json=challenge), 410)
+        resend_request = {'challenge_id': challenge['challenge_id']}
+        mail_count = sender.call_count
+        expect_status(await client.post(setting_resend_url, json=resend_request), 401)
+        expect_status(await client.post(setting_resend_url, headers=other_signed_in, json=resend_request), 410)
+        expect_status(await client.post(login_resend_url, json=resend_request), 410)
+        cooldown = await client.post(setting_resend_url, headers=signed_in, json=resend_request)
+        expect_status(cooldown, 429)
+        assert int(cooldown.headers['retry-after']) > 0 and sender.call_count == mail_count
+        advance_challenge_clock('enrollment', remaining_seconds=300)
+        new_code = f"{(int(challenge['code']) + 1) % 1_000_000:06d}"
+        # A randomly generated replacement must be redrawn if it matches the previous code.
+        with patch('email_two_factor._generate_code', side_effect=[challenge['code'], new_code]):
+            response = await client.post(setting_resend_url, headers=signed_in, json=resend_request)
+        replacement = mailed_code(response, sender, max_expiry=300)
+        assert replacement == {**resend_request, 'code': new_code}
+        expect_status(await client.post(setting_verify_url, headers=signed_in, json=challenge), 401)
         assert (await client.get(setting_url, headers=signed_in)).json() == {'enabled': False}
-        enrolled = await client.post(setting_verify_url, headers=signed_in, json=challenge)
+        enrolled = await client.post(setting_verify_url, headers=signed_in, json=replacement)
         expect_status(enrolled, 200)
         assert enrolled.json() == {'enabled': True}
-        expect_status(await client.post(setting_verify_url, headers=signed_in, json=challenge), 410)
+        expect_status(await client.post(setting_verify_url, headers=signed_in, json=replacement), 410)
 
         before = login_state()
         mail_count = sender.call_count
@@ -112,24 +131,41 @@ async def check_two_factor(client, db, account_module, user_id, email, other_ema
         cooldown = await client.post(login_url, json=credentials)
         expect_status(cooldown, 429)
         assert int(cooldown.headers['retry-after']) > 0
+        resend_request = {'challenge_id': challenge['challenge_id']}
+        cooldown = await client.post(login_resend_url, json=resend_request)
+        expect_status(cooldown, 429)
+        assert int(cooldown.headers['retry-after']) > 0
         wrong_code = '111111' if challenge['code'] != '111111' else '222222'
         for _ in range(4):
             expect_status(await client.post(login_verify_url, json={**challenge, 'code': wrong_code}), 401)
 
         advance_challenge_clock()
-        replacement = mailed_code(await client.post(login_url, json=credentials), sender)
-        expect_status(await client.post(login_verify_url, json=challenge), 410)
-        wrong_code = '111111' if replacement['code'] != '111111' else '222222'
-        exhausted = await client.post(login_verify_url, json={**replacement, 'code': wrong_code})
+        replacement = mailed_code(await client.post(login_resend_url, json=resend_request), sender)
+        assert replacement['challenge_id'] == challenge['challenge_id'] and replacement['code'] != challenge['code']
+        exhausted = await client.post(login_verify_url, json=challenge)
         expect_status(exhausted, 429)
         assert int(exhausted.headers['retry-after']) > 0
         expect_status(await client.post(login_verify_url, json=replacement), 429)
+        expect_status(await client.post(login_resend_url, json=resend_request), 429)
         assert login_state() == before
 
         advance_challenge_clock(expire=True)
         expect_status(await client.post(login_verify_url, json=replacement), 410)
+        expect_status(await client.post(login_resend_url, json=resend_request), 410)
 
         challenge = mailed_code(await client.post(login_url, headers=other_signed_in, json=credentials), sender)
+        resend_request = {'challenge_id': challenge['challenge_id']}
+        advance_challenge_clock()
+        sender.side_effect = RuntimeError('provider details should not be returned')
+        failed = await client.post(login_resend_url, json=resend_request)
+        expect_status(failed, 503)
+        assert int(failed.headers['retry-after']) > 0 and 'provider details' not in failed.text
+        sender.side_effect = None
+        expect_status(await client.post(login_resend_url, json=resend_request), 429)
+        advance_challenge_clock()
+        challenge = mailed_code(await client.post(login_resend_url, json=resend_request), sender)
+        assert challenge['challenge_id'] == resend_request['challenge_id'] and login_state() == before
+        assert (await client.get(setting_url, headers=other_signed_in)).json() == {'enabled': False}
         results = await asyncio.gather(*(
             client.post(login_verify_url, headers=other_signed_in, json=challenge) for _ in range(2)
         ))
@@ -146,6 +182,7 @@ async def check_two_factor(client, db, account_module, user_id, email, other_ema
         reset = await client.post('/reset-password', headers=verified, json={'new_password': new_password})
         expect_status(reset, 200)
         expect_status(await client.post(login_verify_url, json=pending), 410)
+        expect_status(await client.post(login_resend_url, json={'challenge_id': pending['challenge_id']}), 410)
         expect_status(await client.get(setting_url, headers=verified), 401)
         expect_status(await client.post(login_url, json=credentials), 401)
 
@@ -201,7 +238,7 @@ async def main():
             transport = httpx.ASGITransport(app=app)
             async with httpx.AsyncClient(transport=transport, base_url='http://two-factor-check') as client:
                 await check_two_factor(client, db, account, user_id, *emails, password)
-            print('PASS: opt-in, delivery failure, account binding, expiry, throttling, concurrent replay, reset and opt-out')
+            print('PASS: opt-in, code resend, delivery failure, account binding, expiry, throttling, concurrent replay, reset and opt-out')
         finally:
             with db, db.cursor() as cursor:
                 cursor.execute('DELETE FROM Users WHERE Email = ANY(%s)', (emails,))

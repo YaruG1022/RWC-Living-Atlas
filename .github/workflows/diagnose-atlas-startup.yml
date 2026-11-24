@@ -1,0 +1,90 @@
+name: Diagnose Atlas App Service startup
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  startup:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_36AC34D2851E403899F0E71BBFC0068D }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_898B17970FF44FC29E21AE91B8283547 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_1CCD65A7993341F9AD6B27914994AE25 }}
+
+      - name: Inspect startup signals
+        shell: bash
+        run: |
+          umask 077
+          scratch="$(mktemp -d "$RUNNER_TEMP/atlas-startup.XXXXXX")"
+          trap 'rm -f "$scratch/startup.log" "$scratch/archive.zip"; rmdir "$scratch"' EXIT
+          group="$(timeout 25s az resource list --name rwc-atlas-api --resource-type Microsoft.Web/sites \
+            --query "[?name=='rwc-atlas-api'].resourceGroup | [0]" -o tsv --only-show-errors 2>/dev/null)"
+          [[ -n "$group" ]] || exit 1
+          state="$(timeout 25s az webapp show -n rwc-atlas-api -g "$group" --query state -o tsv --only-show-errors 2>/dev/null)"
+          case "$state" in
+            Running|Stopped|Starting) printf 'App Service state: %s\n' "$state" ;;
+            *) echo "App Service state unavailable" ;;
+          esac
+          timeout 35s az webapp log startup show -n rwc-atlas-api -g "$group" --only-show-errors \
+            > "$scratch/startup.log" 2>/dev/null || true
+          timeout 55s az webapp log download -n rwc-atlas-api -g "$group" --log-file "$scratch/archive.zip" \
+            --only-show-errors > /dev/null 2>&1 || true
+          python - "$scratch" <<'PY'
+          from pathlib import Path
+          import re
+          import sys
+          import zipfile
+
+          root = Path(sys.argv[1])
+          limit = 2 * 1024 * 1024
+          latest = (root / "startup.log").read_bytes()[-limit:]
+          archived = []
+          archive = root / "archive.zip"
+          if zipfile.is_zipfile(archive):
+              with zipfile.ZipFile(archive) as logs:
+                  entries = sorted(
+                      (entry for entry in logs.infolist()
+                       if entry.filename.lower().endswith((".log", ".txt")) and entry.file_size <= 64 * 1024 * 1024),
+                      key=lambda entry: entry.date_time, reverse=True,
+                  )[:8]
+                  for entry in entries:
+                      with logs.open(entry) as log:
+                          if entry.file_size > limit:
+                              log.seek(-limit, 2)
+                          archived.append(log.read(limit))
+          patterns = {
+              "Oryx startup": r"oryx",
+              "Worker invoked": r"uvicorn main:app|Started server process",
+              "Database connection opened": r"Database Connection Success",
+              "Database connection error": r"Unable to connect to the database|could not connect to server",
+              "Schema initialization completed": r"Schema is up.to.date",
+              "Schema initialization error": r"Error applying migrations",
+              "Database lock or deadlock": r"lock timeout|deadlock|waiting for .*lock",
+              "Missing module": r"ModuleNotFoundError|No module named",
+              "Module import failure": r"ImportError|Error loading ASGI app",
+              "Process startup completed": r"Application startup complete|Uvicorn running on",
+              "Container port probe failed": r"failed to respond to HTTP pings|startup time limit|start time limit",
+          }
+          roots = {"azure", "card_description_links", "database", "endpoint_files", "fastapi", "httpx",
+                   "main", "PIL", "psycopg2", "pypdf", "pyvips", "starlette", "urllib3", "uvicorn"}
+          for source, content in (("Latest startup log", latest), ("Historical log archive", b"\n".join(archived))):
+              text = content.decode("utf-8", errors="replace")
+              print(f"{source} available: {bool(text.strip())}")
+              for label, pattern in patterns.items():
+                  print(f"{label}: {len(re.findall(pattern, text, re.IGNORECASE))}")
+              missing = {name.split(".")[0] for name in re.findall(r"No module named ['\"]([\w.]+)['\"]", text)}
+              if missing & roots:
+                  print("Recognized missing modules:", ", ".join(sorted(missing & roots)))
+          PY

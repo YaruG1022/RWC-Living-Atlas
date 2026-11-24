@@ -142,6 +142,18 @@ const novemberGuiUpdates = [
 
 // Newest first. Earlier September releases remain in their existing sections.
 export const guiReleases = [
+    {
+        date: '11/24/2026',
+        groups: [
+            {
+                title: 'User Management Filters',
+                items: [
+                    'Filter Manage Users by role, last sign-in or date joined, and combine filters with a name or email search. On smaller screens, open Filters to see all three.',
+                    'The Last sign-in column shows the most recent recorded sign-in and can be sorted newest or oldest first.',
+                ],
+            },
+        ],
+    },
     { date: latestGuiUpdateDate, groups: latestGuiUpdates },
     { date: '11/6/2026', groups: novemberGuiUpdates },
     {

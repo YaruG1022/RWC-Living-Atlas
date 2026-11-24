@@ -232,7 +232,17 @@
         },
         {
           "type": "text",
-          "text": ", search by name or email, refresh the list, and use the Name or Date Joined column header to sort. Choose "
+          "text": ", combine a name or email search with Role and Last sign-in filters. Open More filters to narrow results by Date joined. On smaller screens, open Filters to see all three options and choose Apply filters. Remove a filter with its × button or choose Clear filters to reset the filters while keeping your search. Use Refresh users to reload the list. Choose the Name, Date joined, or Last sign-in column heading to sort. Last sign-in shows the most recent recorded sign-in."
+        }
+      ]
+    },
+    {
+      "id": "profile-admin-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "To update a user's access, choose "
         },
         {
           "type": "strong",

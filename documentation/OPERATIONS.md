@@ -43,6 +43,11 @@ text and its configured vision model for requests with images. The API sends
 extracted source text and resized images to the Helper, which passes them to the
 configured provider. Both settings belong on the server.
 
+The production deployment workflows can apply these settings from the shared
+`ATLAS_DESCRIPTION_TOKEN` GitHub Actions secret in both repositories. The Atlas
+API workflow uses the Azure Helper origin. Configure and deploy Helper before
+publishing the Atlas release.
+
 For local use, set the same values in the service environments and point
 `ATLAS_HELPER_URL` to the local Helper, for example `http://127.0.0.1:8001`.
 Use a local test account and synthetic links, images, and attachments. Check the

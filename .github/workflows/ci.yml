@@ -72,6 +72,8 @@ jobs:
           tests.test_card_link_sharing
           tests.test_user_management
           tests.test_gis_import
+      - name: Verify card description requests without calling model providers
+        run: python -m pytest -q tests/test_card_description.py tests/test_card_description_links.py
       - name: Check repository administration and publication helpers offline
         run: python -m unittest discover -s ../../scripts -p 'test_*.py'
 

@@ -198,7 +198,7 @@
         },
         {
           "type": "text",
-          "text": ". If you need another code, select Resend code when it becomes available. Once enabled, the app emails a new code each time you sign in. To disable it, select "
+          "text": ". If you need another code, select Resend code after the 60-second countdown ends. Once enabled, the app emails a new code each time you sign in. To disable it, select "
         },
         {
           "type": "strong",

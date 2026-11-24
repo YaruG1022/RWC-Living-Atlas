@@ -180,7 +180,7 @@
           "content": [
             {
               "type": "text",
-              "text": "After a successful login, the app returns to Home. Refreshing the page restores your signed-in account, including access to Administration for administrators. If your saved sign-in is unavailable, log in again. If login fails, check your credentials and whether your account request was approved."
+              "text": "The Home map opens as soon as sign-in is complete. Refreshing the page restores your signed-in account, including access to Administration for administrators. If your saved sign-in is unavailable, log in again. If login fails, check your credentials and whether your account request was approved."
             }
           ]
         }
@@ -198,7 +198,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Verification lasts 10 minutes. If the email is missing, check your spam or junk folder, then select Resend code when it becomes available. Use the most recently requested code. If verification expires, start signing in again. To update this setting, see "
+          "text": "Verification lasts 10 minutes. If the email is missing, check your spam or junk folder. Select Resend code after the 60-second countdown ends and use the code from the latest email. If verification expires, start signing in again. To update this setting, see "
         },
         {
           "type": "link",

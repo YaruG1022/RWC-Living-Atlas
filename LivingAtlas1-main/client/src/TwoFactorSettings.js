@@ -9,7 +9,7 @@ export default function TwoFactorSettings() {
     const [status, setStatus] = useState('loading');
     const [isEditing, setIsEditing] = useState(false);
     const [password, setPassword] = useState('');
-    const [challengeId, setChallengeId] = useState(null);
+    const [challenge, setChallenge] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
     const [feedback, setFeedback] = useState('');
     const saveRequest = useRef(null);
@@ -39,7 +39,7 @@ export default function TwoFactorSettings() {
 
     const closeForm = () => {
         setIsEditing(false);
-        setChallengeId(null);
+        setChallenge(null);
         setPassword('');
         setFeedback('');
     };
@@ -68,7 +68,7 @@ export default function TwoFactorSettings() {
                 finishSaving(data.enabled);
             } else if (!enabled && data.challenge_id) {
                 setPassword('');
-                setChallengeId(data.challenge_id);
+                setChallenge({ challengeId: data.challenge_id, resendAfter: data.resend_after });
             } else {
                 setFeedback('Could not update two-factor authentication. Please try again.');
             }
@@ -120,7 +120,7 @@ export default function TwoFactorSettings() {
                             {enabled ? 'Turn off' : 'Turn on'}
                         </button>
                     )}
-                    {isEditing && !challengeId && (
+                    {isEditing && !challenge && (
                         <form className="profile-two-factor-form" onSubmit={saveSetting}>
                             <div className="profile-form-field">
                                 <label htmlFor="two-factor-password">Current password</label>
@@ -146,10 +146,10 @@ export default function TwoFactorSettings() {
                             </div>
                         </form>
                     )}
-                    {challengeId && (
+                    {challenge && (
                         <EmailVerificationForm
-                            challengeId={challengeId}
-                            endpoint={`${settingsEndpoint}/verify`}
+                            {...challenge}
+                            challengeEndpoint={settingsEndpoint}
                             onVerified={confirmEnable}
                             onCancel={closeForm}
                             cancelLabel="Cancel"

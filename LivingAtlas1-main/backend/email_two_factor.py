@@ -40,6 +40,10 @@ def _code_digest(challenge_id, code):
     return hmac.new(challenge_id.encode("ascii"), code.encode("ascii"), "sha256").hexdigest()
 
 
+def _generate_code():
+    return f"{secrets.randbelow(1_000_000):06d}"
+
+
 def _retry_later(detail, seconds):
     return HTTPException(
         status_code=429, detail=detail,
@@ -49,13 +53,20 @@ def _retry_later(detail, seconds):
 
 def expired_challenge():
     return HTTPException(
-        status_code=410, detail="This verification code expired or was replaced. Request a new code.",
+        status_code=410, detail="This verification request expired or was replaced. Start again to request a new code.",
         headers={"Cache-Control": "no-store"},
     )
 
 
 def _attempt_limit(seconds):
     return _retry_later("Too many incorrect codes. Wait before requesting a new code.", seconds)
+
+
+def _enforce_send_limits(failed_attempts, window_seconds, send_seconds):
+    if failed_attempts >= MAX_CODE_ATTEMPTS and window_seconds > 0:
+        raise _attempt_limit(max(window_seconds, send_seconds))
+    if send_seconds > 0:
+        raise _retry_later("Please wait before requesting another verification code.", send_seconds)
 
 
 def create_challenge(cursor, user_id, purpose):
@@ -71,14 +82,10 @@ def create_challenge(cursor, user_id, purpose):
     )
     existing = cursor.fetchone()
     if existing:
-        failed_attempts, window_seconds, send_seconds = existing
-        if failed_attempts >= MAX_CODE_ATTEMPTS and window_seconds > 0:
-            raise _attempt_limit(max(window_seconds, send_seconds))
-        if send_seconds > 0:
-            raise _retry_later("Please wait before requesting another verification code.", send_seconds)
+        _enforce_send_limits(*existing)
 
     challenge_id = secrets.token_urlsafe(32)
-    code = f"{secrets.randbelow(1_000_000):06d}"
+    code = _generate_code()
     cursor.execute(
         """
         INSERT INTO EmailTwoFactorChallenges AS c
@@ -120,11 +127,7 @@ def clear_challenges(cursor, user_id):
     )
 
 
-def verify_challenge(cursor, user_id, purpose, challenge_id, code):
-    """Consume a valid challenge or record a failed attempt while the user is locked.
-
-    Return errors so the caller can commit the attempt before returning an error response.
-    """
+def _lock_active_challenge(cursor, user_id, purpose, challenge_id):
     cursor.execute(
         """
         SELECT CodeDigest, FailedAttempts,
@@ -137,7 +140,44 @@ def verify_challenge(cursor, user_id, purpose, challenge_id, code):
         """,
         (user_id, purpose, challenge_hash(challenge_id)),
     )
-    challenge = cursor.fetchone()
+    return cursor.fetchone()
+
+
+def resend_challenge(cursor, user_id, purpose, challenge_id):
+    """Replace the code without extending the password verification window or resetting attempts."""
+    challenge = _lock_active_challenge(cursor, user_id, purpose, challenge_id)
+    if challenge is None:
+        raise expired_challenge()
+    previous_digest, failed_attempts, window_seconds, send_seconds = challenge
+    _enforce_send_limits(failed_attempts, window_seconds, send_seconds)
+
+    code = _generate_code()
+    digest = _code_digest(challenge_id, code)
+    while hmac.compare_digest(previous_digest, digest):
+        code = _generate_code()
+        digest = _code_digest(challenge_id, code)
+
+    cursor.execute(
+        """
+        UPDATE EmailTwoFactorChallenges
+        SET CodeDigest = %s, NextSendAt = statement_timestamp() + %s * interval '1 second'
+        WHERE UserID = %s AND Purpose = %s AND ExpiresAt > statement_timestamp()
+        RETURNING CEIL(EXTRACT(EPOCH FROM ExpiresAt - statement_timestamp()))::INT
+        """,
+        (digest, SEND_COOLDOWN_SECONDS, user_id, purpose),
+    )
+    expiry = cursor.fetchone()
+    if expiry is None:
+        raise expired_challenge()
+    return code, expiry[0]
+
+
+def verify_challenge(cursor, user_id, purpose, challenge_id, code):
+    """Consume a valid challenge or record a failed attempt while the user is locked.
+
+    Return errors so the caller can commit the attempt before returning an error response.
+    """
+    challenge = _lock_active_challenge(cursor, user_id, purpose, challenge_id)
     if challenge is None:
         return expired_challenge()
 

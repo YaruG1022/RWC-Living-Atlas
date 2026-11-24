@@ -13,3 +13,9 @@
 从后端目录运行 `python -m scripts.check_email_two_factor` 和 `python -m scripts.check_account_recovery`。邮箱双因素认证脚本已加入 PostgreSQL 持续集成（continuous integration, CI）流程。后端离线回归 83 项全部通过，其中用户管理测试 17 项。前端 42 套测试的 274 项全部通过，其中邮箱验证码的覆盖见 `emailTwoFactor.test.js` 和 `api.session.test.js`。生产构建（production build）完成，仍报告原有静态检查警告。手册导出验证通过。
 
 浏览器测试初次执行遇到测试脚本语法错误。下一次登录接口返回 200，但测试对含有倒计时的提示要求整句匹配，超时后改为检查真实会话状态，整个流程复测通过。临时脚本与浏览器日志在 `backend/.local-postgres/`。后端离线回归在默认沙盒（sandbox）中首次无输出，停止后以本机执行权限重跑，6.344 秒全部通过。本轮验证功能和并发请求的一次性消费。生产邮件投递和负载性能待在发布环境校验。
+
+## 即时跳转和验证码重发
+
+2026-11-24，基于 `850004d`。在 `127.0.0.1:5433/livingatlas_test` 创建临时数据库模式（database schema），用模拟邮件复跑 `scripts.check_email_two_factor` 和 `scripts.check_account_recovery`。两项通过。验证了 60 秒发送间隔、前一个验证码失效、输错次数和原验证期限继续有效、邮件发送失败后可重试，以及验证码应用于对应账号和用途。测试后确认所有合成账号、会话和验证码已清理，并移除了临时模式。
+
+前端组件测试（component test）覆盖密码登录和邮箱验证码登录成功后立即进入首页、等待时按钮禁用、重发成功提示，以及登录、切换账号和个人资料三处的重发入口。旧后端未提供重发信息时，原验证页面仍可提交验证码。

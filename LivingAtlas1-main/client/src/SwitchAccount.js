@@ -78,7 +78,7 @@ function SwitchAccount({ email, setEmail, setPassword, setMessage, setIsLoggedIn
       });
       if (controller.signal.aborted) return;
       if (data.two_factor_required && data.challenge_id) {
-        setChallenge({ challengeId: data.challenge_id, headers });
+        setChallenge({ challengeId: data.challenge_id, resendAfter: data.resend_after, headers });
       } else if (!finishSwitch(data)) {
         removeSavedAccount(account.email);
         setError('Session expired. Please log in again.');
@@ -134,7 +134,7 @@ function SwitchAccount({ email, setEmail, setPassword, setMessage, setIsLoggedIn
         {challenge ? (
           <EmailVerificationForm
             {...challenge}
-            endpoint="/profileAccount/verify"
+            challengeEndpoint="/profileAccount"
             onVerified={verifySwitch}
             onCancel={() => setChallenge(null)}
             cancelLabel="Back to accounts"

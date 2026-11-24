@@ -24,8 +24,8 @@ import requests
 import os
 from hmac import compare_digest
 from email_two_factor import (
-    CODE_LIFETIME_SECONDS, challenge_hash, clear_challenges, create_challenge,
-    discard_challenge, expired_challenge, verify_challenge,
+    CODE_LIFETIME_SECONDS, SEND_COOLDOWN_SECONDS, challenge_hash, clear_challenges,
+    create_challenge, discard_challenge, expired_challenge, resend_challenge, verify_challenge,
 )
 from sessions import (
     PRESENCE_WINDOW_SECONDS, bearer_token, consume_reset_token, hash_password, invalid_session, issue_token,
@@ -100,12 +100,17 @@ def send_recovery_email(recipient_email, token):
         logger.warning("Password recovery email could not be delivered")
 
 
-def send_two_factor_email(recipient_email, code, purpose):
+def send_two_factor_email(recipient_email, code, purpose, *, is_resend):
     action = "sign in to Living Atlas" if purpose == "login" else "turn on two-factor authentication for Living Atlas"
+    lifetime_minutes = CODE_LIFETIME_SECONDS // 60
+    expiry_notice = (
+        f"Use this replacement code before your original {lifetime_minutes}-minute verification window ends."
+        if is_resend else f"This code expires in {lifetime_minutes} minutes."
+    )
     body = f"""
         <p>Enter this verification code to {action}:</p>
         <p><strong>{code}</strong></p>
-        <p>This code expires in {CODE_LIFETIME_SECONDS // 60} minutes.</p>
+        <p>{expiry_notice}</p>
         <p>If you did not request this code, you can ignore this email.</p>
     """
     send_via_resend(recipient_email, "Your Living Atlas verification code", body)
@@ -492,8 +497,11 @@ class TwoFactorSettingRequest(BaseModel):
     password: str = Field(min_length=1)
 
 
-class VerificationCodeRequest(BaseModel):
+class EmailChallengeRequest(BaseModel):
     challenge_id: str = Field(regex=r"\A[A-Za-z0-9_-]{43}\Z")
+
+
+class VerificationCodeRequest(EmailChallengeRequest):
     code: str = Field(regex=r"\A[0-9]{6}\Z")
 
 
@@ -524,20 +532,25 @@ def complete_sign_in(cursor, account, previous_token):
     return {"Account Information": [account[1:4]], "session_token": token}
 
 
-def send_challenge(response, email, purpose, challenge_id, code):
+def send_challenge(response, email, purpose, challenge_id, code, *, expires_in=CODE_LIFETIME_SECONDS, is_resend=False):
     # Release the database connection before contacting the email provider.
     try:
-        send_two_factor_email(email, code, purpose)
+        send_two_factor_email(email, code, purpose, is_resend=is_resend)
     except Exception:
         logger.warning("Two-factor verification email could not be delivered")
-        with account_management_cursor() as cursor:
-            discard_challenge(cursor, challenge_id)
+        headers = {"Cache-Control": "no-store"}
+        if is_resend:
+            headers["Retry-After"] = str(SEND_COOLDOWN_SECONDS)
+        else:
+            with account_management_cursor() as cursor:
+                discard_challenge(cursor, challenge_id)
         raise HTTPException(
             status_code=503, detail="Could not send a verification code. Please try again shortly.",
-            headers={"Cache-Control": "no-store"},
+            headers=headers,
         )
+    response.headers["Cache-Control"] = "no-store"
     response.status_code = 202
-    return {"challenge_id": challenge_id, "expires_in": CODE_LIFETIME_SECONDS}
+    return {"challenge_id": challenge_id, "expires_in": expires_in, "resend_after": SEND_COOLDOWN_SECONDS}
 
 
 @account_router.get("/profileAccount")
@@ -567,23 +580,38 @@ def sign_in(request: AccountLoginRequest, response: Response, previous_token=Dep
     return {"two_factor_required": True, **send_challenge(response, account[2], "login", challenge_id, code)}
 
 
+def lock_login_challenge_account(cursor, challenge_id):
+    cursor.execute("LOCK TABLE Users IN ROW EXCLUSIVE MODE")
+    cursor.execute(
+        """
+        SELECT u.UserID, u.Username, u.Email, COALESCE(u.Is_Admin, FALSE)
+        FROM EmailTwoFactorChallenges c JOIN Users u ON u.UserID = c.UserID
+        WHERE c.ChallengeHash = %s AND c.Purpose = 'login' AND u.EmailTwoFactorEnabled
+        FOR UPDATE OF u
+        """,
+        (challenge_hash(challenge_id),),
+    )
+    account = cursor.fetchone()
+    if account is None:
+        raise expired_challenge()
+    return account
+
+
+@account_router.post("/profileAccount/resend", status_code=202)
+def resend_sign_in(request: EmailChallengeRequest, response: Response):
+    with account_management_cursor() as cursor:
+        account = lock_login_challenge_account(cursor, request.challenge_id)
+        code, expires_in = resend_challenge(cursor, account[0], "login", request.challenge_id)
+    return send_challenge(
+        response, account[2], "login", request.challenge_id, code, expires_in=expires_in, is_resend=True,
+    )
+
+
 @account_router.post("/profileAccount/verify")
 def verify_sign_in(request: VerificationCodeRequest, response: Response, previous_token=Depends(optional_bearer_token)):
     response.headers["Cache-Control"] = "no-store"
     with account_management_cursor() as cursor:
-        cursor.execute("LOCK TABLE Users IN ROW EXCLUSIVE MODE")
-        cursor.execute(
-            """
-            SELECT u.UserID, u.Username, u.Email, COALESCE(u.Is_Admin, FALSE)
-            FROM EmailTwoFactorChallenges c JOIN Users u ON u.UserID = c.UserID
-            WHERE c.ChallengeHash = %s AND c.Purpose = 'login' AND u.EmailTwoFactorEnabled
-            FOR UPDATE OF u
-            """,
-            (challenge_hash(request.challenge_id),),
-        )
-        account = cursor.fetchone()
-        if account is None:
-            raise expired_challenge()
+        account = lock_login_challenge_account(cursor, request.challenge_id)
         error = verify_challenge(cursor, account[0], "login", request.challenge_id, request.code)
         if error is None:
             return complete_sign_in(cursor, account, previous_token)
@@ -631,6 +659,18 @@ def set_two_factor_setting(request: TwoFactorSettingRequest, response: Response,
             return {"enabled": True}
         challenge_id, code = create_challenge(cursor, user_id, "enrollment")
     return send_challenge(response, email, "enrollment", challenge_id, code)
+
+
+@account_router.post("/account/two-factor/resend", status_code=202)
+def resend_two_factor_setting(request: EmailChallengeRequest, response: Response, token: str = Depends(bearer_token)):
+    with account_management_cursor() as cursor:
+        user_id, email, enabled, _, _ = lock_two_factor_account(cursor, token)
+        if enabled:
+            raise expired_challenge()
+        code, expires_in = resend_challenge(cursor, user_id, "enrollment", request.challenge_id)
+    return send_challenge(
+        response, email, "enrollment", request.challenge_id, code, expires_in=expires_in, is_resend=True,
+    )
 
 
 @account_router.post("/account/two-factor/verify")

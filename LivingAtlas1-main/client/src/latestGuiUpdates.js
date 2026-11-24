@@ -149,6 +149,7 @@ export const guiReleases = [
                 title: 'Email Two-Factor Authentication',
                 items: [
                     'Turn on two-factor authentication in Profile to require a one-time email code when you sign in or switch to that account.',
+                    'After you finish signing in, the app opens the home map immediately.',
                 ],
             },
             {

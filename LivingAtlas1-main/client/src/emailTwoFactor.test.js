@@ -56,12 +56,12 @@ function submitCode(field, code = '012345') {
     fireEvent.click(screen.getByRole('button', { name: 'Verify code' }));
 }
 
-test('keeps password-only sign-in for accounts without two-factor authentication', async () => {
+test('opens the home page immediately after password-only sign-in', async () => {
     api.post.mockResolvedValueOnce({ data: loginResponse });
-    const { setIsLoggedIn } = renderAt('/login', Login);
+    const { history, setIsLoggedIn } = renderAt('/login', Login);
     startLogin();
 
-    await screen.findByRole('button', { name: 'Login' });
+    await waitFor(() => expect(history.location.pathname).toBe('/'));
     expect(screen.queryByLabelText('Verification code')).not.toBeInTheDocument();
     expect(setIsLoggedIn).toHaveBeenCalledWith(true);
     expect(getSessionToken()).toBe(loginResponse.session_token);
@@ -72,22 +72,24 @@ test('requires a successful email code before completing sign-in', async () => {
         .mockResolvedValueOnce({ data: { two_factor_required: true, challenge_id: challengeId } })
         .mockRejectedValueOnce({ response: { status: 401, data: { detail: 'Incorrect verification code.' } } })
         .mockResolvedValueOnce({ data: loginResponse });
-    const { setIsLoggedIn } = renderAt('/login', Login);
+    const { history, setIsLoggedIn } = renderAt('/login', Login);
     startLogin();
 
     const field = await screen.findByLabelText('Verification code');
     expect(field).toHaveAttribute('autocomplete', 'one-time-code');
     expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
+    expect(history.location.pathname).toBe('/login');
     expect(getSessionToken(false)).toBeNull();
     expect(localStorage.getItem('savedAccounts')).toBeNull();
 
     submitCode(field, '000000');
     expect(await screen.findByRole('alert')).toHaveTextContent('Incorrect verification code.');
+    expect(history.location.pathname).toBe('/login');
     expect(setIsLoggedIn).not.toHaveBeenCalled();
     expect(getSessionToken(false)).toBeNull();
 
     submitCode(field, '012 345');
-    await screen.findByRole('button', { name: 'Login' });
+    await waitFor(() => expect(history.location.pathname).toBe('/'));
     expect(api.post).toHaveBeenLastCalledWith('/profileAccount/verify', {
         challenge_id: challengeId,
         code: '012345',

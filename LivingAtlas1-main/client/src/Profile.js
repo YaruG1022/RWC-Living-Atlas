@@ -135,12 +135,10 @@ function Profile(props) {
         }
     };
 
-    // Password Reset & Change Password States
-    const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [showForgotPasswordForm, setShowForgotPasswordForm] = useState(false);
     const [showChangePasswordForm, setShowChangePasswordForm] = useState(false);
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [message, setMessage] = useState('');
 
     // Delete account modal states
@@ -188,32 +186,46 @@ function Profile(props) {
         setShowRegister(false);
     }
 
-    const handleForgotPasswordSubmit = (e) => {
+    const handleChangePasswordSubmit = async (e) => {
         e.preventDefault();
-        api.post('/forgot-password', { email: forgotPasswordEmail })
-            .then(response => setMessage('Password recovery email sent.'))
-            .catch(error => {
-                setMessage('Error sending password recovery email.');
-                console.error(error);
-            });
-    };
-
-    const handleChangePasswordSubmit = (e) => {
-        e.preventDefault();
+        if (isChangingPassword) return;
         if (newPassword !== confirmPassword) {
             setMessage('Passwords do not match.');
             return;
         }
-        api.post('/reset-password', { email: props.email, new_password: newPassword })
-            .then(response => {
-                setMessage('Password changed successfully.');
-                setNewPassword('');
-                setConfirmPassword('');
-            })
-            .catch(error => {
-                setMessage('Error changing password.');
-                console.error(error);
-            });
+
+        setIsChangingPassword(true);
+        setMessage('');
+        try {
+            const response = await api.post('/reset-password', { new_password: newPassword }, { skipRetry: true });
+            if (!response.data?.success) {
+                setMessage('Could not change your password. Please try again.');
+                return;
+            }
+            try {
+                const savedAccounts = JSON.parse(localStorage.getItem('savedAccounts') || '[]');
+                if (Array.isArray(savedAccounts)) {
+                    localStorage.setItem('savedAccounts', JSON.stringify(savedAccounts.filter(account => account.email !== props.email)));
+                }
+            } catch {
+                // Sign out even if old saved-account data cannot be read.
+            }
+            setNewPassword('');
+            setConfirmPassword('');
+            props.onLogout?.();
+            props.setMessage('Password changed. Sign in with your new password.');
+            history.replace('/login');
+        } catch (error) {
+            if (error.response?.status === 401) {
+                props.onLogout?.();
+                props.setMessage('Please sign in again to change your password.');
+                history.replace('/login');
+            } else {
+                setMessage('Could not change your password. Please try again.');
+            }
+        } finally {
+            setIsChangingPassword(false);
+        }
     };
 
     return (
@@ -338,23 +350,6 @@ function Profile(props) {
 
             {showRegister && <Register closeRegister={handleCloseRegister} />}
 
-            {showForgotPasswordForm && (
-              <form className="account-panel profile-form" onSubmit={handleForgotPasswordSubmit}>
-                <div className="profile-form-field">
-                  <label className="profile-form-label" htmlFor="profile-reset-email">Email for password reset</label>
-                  <input
-                    className="account-control"
-                    id="profile-reset-email"
-                    type="email"
-                    value={forgotPasswordEmail}
-                    onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <button className="account-button" type="submit">Submit</button>
-              </form>
-            )}
-
             {showChangePasswordForm && (
               <form className="account-panel profile-form" onSubmit={handleChangePasswordSubmit}>
                 <div className="profile-form-field">
@@ -363,6 +358,8 @@ function Profile(props) {
                     className="account-control"
                     id="profile-new-password"
                     type="password"
+                    autoComplete="new-password"
+                    minLength="6"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
@@ -374,12 +371,16 @@ function Profile(props) {
                     className="account-control"
                     id="profile-confirm-password"
                     type="password"
+                    autoComplete="new-password"
+                    minLength="6"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                   />
                 </div>
-                <button className="account-button" type="submit">Change Password</button>
+                <button className="account-button" type="submit" disabled={isChangingPassword}>
+                  {isChangingPassword ? 'Changing password...' : 'Change Password'}
+                </button>
               </form>
             )}
 

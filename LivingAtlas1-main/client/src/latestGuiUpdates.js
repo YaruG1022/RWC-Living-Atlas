@@ -146,6 +146,13 @@ export const guiReleases = [
         date: '11/24/2026',
         groups: [
             {
+                title: 'Project Deletion',
+                items: [
+                    'Fixed project deletion failures when a title change was still unsaved, and improved messages for unavailable projects and permission errors.',
+                    'Project deletion and editing now verify the signed-in account. Administrators can transfer ownership. Password reset links expire after 30 minutes and work once.',
+                ],
+            },
+            {
                 title: 'User Management Filters',
                 items: [
                     'Filter Manage Users by role, last sign-in or date joined, and combine filters with a name or email search. On smaller screens, open Filters to see all three.',

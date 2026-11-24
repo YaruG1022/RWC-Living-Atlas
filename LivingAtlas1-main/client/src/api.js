@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearSession, getSessionToken } from './authSession';
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'https://cereo-backend.onrender.com',
@@ -6,47 +7,35 @@ const api = axios.create({
   //https://verdant-smakager-ef450d.netlify.app    //Netlify Frontend Link
 });
 
-// Add request interceptor for debugging
-api.interceptors.request.use(
-  (config) => {
-    console.log('DEBUG: API Request:', {
-      method: config.method?.toUpperCase(),
-      url: config.baseURL + config.url,
-      data: config.data,
-      headers: config.headers
-    });
-    return config;
-  },
-  (error) => {
-    console.error('DEBUG: API Request Error:', error);
-    return Promise.reject(error);
+const sessionPaths = new Set([
+  '/reset-password',
+  '/deleteCard',
+  '/uploadForm',
+  '/list_database',
+  '/fetch_signup_requests',
+  '/edit_user_role',
+  '/uploadAccount',
+]);
+
+// Send credentials only to the configured Atlas backend and first-party routes.
+api.interceptors.request.use((config) => {
+  const path = (config.url || '').split('?')[0];
+  const isLogin = path === '/profileAccount' && config.method === 'post';
+  if (
+    config.baseURL === api.defaults.baseURL &&
+    (isLogin || sessionPaths.has(path) || path.startsWith('/deny_request/') || path.startsWith('/delete_user/')) &&
+    !config.headers.has('Authorization')
+  ) {
+    const token = getSessionToken(!isLogin);
+    if (token) config.headers.set('Authorization', `Bearer ${token}`);
   }
-);
+  return config;
+});
 
-// Add response interceptor for debugging + cold-start retry
+// Retry eligible requests once without logging credentials, bodies, or headers.
 api.interceptors.response.use(
-  (response) => {
-    console.log('DEBUG: API Response:', {
-      status: response.status,
-      statusText: response.statusText,
-      data: response.data,
-      headers: response.headers
-    });
-    return response;
-  },
+  (response) => response,
   (error) => {
-    console.error('DEBUG: API Response Error:', {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      config: {
-        method: error.config?.method,
-        url: error.config?.url,
-        baseURL: error.config?.baseURL
-      }
-    });
-
     const config = error.config;
     // Retry once on timeout or network error (handles Render cold start)
     if (
@@ -56,12 +45,19 @@ api.interceptors.response.use(
       (error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK' || !error.response)
     ) {
       config._retried = true;
-      console.warn('DEBUG: Retrying request after cold-start timeout...', config.url);
       return new Promise((resolve) => setTimeout(resolve, 2000)).then(() => api(config));
     }
 
     return Promise.reject(error);
   }
 );
+
+export function signOutSession() {
+  const token = getSessionToken(false);
+  clearSession();
+  return token ? api.delete('/session', {
+    headers: { Authorization: `Bearer ${token}` },
+  }).catch(() => {}) : Promise.resolve();
+}
 
 export default api; 

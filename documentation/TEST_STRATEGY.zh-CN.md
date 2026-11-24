@@ -81,6 +81,7 @@ flowchart TD
 | 功能：注册/认证/授权 | 高 | 输入边界、重复/大小写邮箱、权限提升、会话失效、未授权访问；核对状态码和数据库不变量 | 单元 + API 集成 + 少量 E2E |
 | 功能：卡片与地图 | 高 | 创建/编辑/删除卡片，筛选组合、排序/分页、空结果、地图点位与列表一致、并发更新 | API/DB 集成 + 浏览器 E2E |
 | 功能：文件与外部集成 | 高 | 上传大小/格式、删除回滚、Azure 故障、ArcGIS 响应异常、Mapbox 超时；无孤儿文件/记录 | 合约测试 + 集成测试 |
+| 功能：卡片删除 | 高 | 管理员与所有者、同名卡片、保存前改名、重复提交、附件与收藏清理 | `scripts/check_card_deletion.py` 和 `Card.gallery.test.js`；[本地证据](../LivingAtlas1-main/backend/load_tests/CARD_DELETION_REPORT.zh-CN.md) |
 | 功能：Custom Layers 保存 | 高 | 保存/读取并发、文件夹/排序/GeoJSON 保留、错误与重试、旧表迁移、测试数据清理 | `tests.test_custom_layers` + `scripts/check_custom_layer_workflow.py`；[本地证据](../LivingAtlas1-main/backend/load_tests/CUSTOM_LAYERS_REPORT.zh-CN.md) |
 | 功能：位置类型转换 | 高 | Point/Polygon/Image 双向转换、当前类型禁用、地图隐藏/弹窗关闭、保存/取消、几何与图片保留 | `Card.location.test.js`、`cardLocationEditing.test.js`、`scripts/check_location_conversion.py`；[本地证据](../LivingAtlas1-main/backend/load_tests/LOCATION_CONVERSION_REPORT.zh-CN.md) |
 | 功能：未保存草稿关闭保护 | 高 | Close/遮罩/Esc 统一确认、取消保留、确认丢弃、元数据/文件变化、无更改直接关闭、教程草稿 | 真实 ReactModal 的 `Card.close.test.js`；[本地证据](LEARN_MORE_CLOSE_REPORT.zh-CN.md) |

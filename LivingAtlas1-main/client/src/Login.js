@@ -3,7 +3,8 @@ import { Link, useHistory } from 'react-router-dom';
 import InfoPage from './InfoPage';
 import './AccountPage.css';
 import './Login.css';
-import api from './api.js';
+import api, { signOutSession } from './api.js';
+import { storeSession } from './authSession';
 
 function normalizeAdminFlag(value) {
     if (typeof value === 'boolean') return value;
@@ -43,27 +44,13 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
     const handleLogin = (e) => {
         e.preventDefault();
 
-        api.get('/profileAccount', {
-            params: {
-                email: submitemail,
-                password: password
-            }
-        })
-        .then(async (response) => {
+        api.post('/profileAccount', { email: submitemail, password }, { skipRetry: true })
+        .then((response) => {
             const accountData = response.data['Account Information'];
-            if (accountData && accountData.length > 0) {
+            const token = response.data.session_token;
+            if (accountData?.length && token) {
                 const [name, email, rawIsAdmin] = accountData[0];
-                let resolvedIsAdmin = normalizeAdminFlag(rawIsAdmin);
-
-                if (typeof rawIsAdmin === 'undefined' || rawIsAdmin === null) {
-                    try {
-                        const roleResponse = await api.get('/userRole', { params: { email } });
-                        resolvedIsAdmin = normalizeAdminFlag(roleResponse?.data?.is_admin);
-                        console.log('[Login][Admin Debug] Fallback /userRole result:', roleResponse?.data?.is_admin, '=>', resolvedIsAdmin);
-                    } catch (roleError) {
-                        console.warn('[Login][Admin Debug] /userRole fallback failed; using default parsed value:', roleError);
-                    }
-                }
+                const resolvedIsAdmin = normalizeAdminFlag(rawIsAdmin);
 
                 setIsLoggedIn(true);
                 setMessage('Successfully logged in!');
@@ -92,6 +79,7 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
                 localStorage.setItem('email', email);
                 localStorage.setItem('username', name);
                 localStorage.setItem('isAdmin', JSON.stringify(resolvedIsAdmin));
+                storeSession(email, token);
 
                 // Save account to savedAccounts for Switch Account feature
                 const savedAccounts = JSON.parse(localStorage.getItem('savedAccounts') || '[]');
@@ -108,12 +96,12 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
             }
         })
         .catch(error => {
-            console.error("Error during login:", error);
-            setMessage('Error during login. Please try again.');
+            setMessage(error.response?.status === 401 ? 'Invalid email or password.' : 'Error during login. Please try again.');
         });
     };
 
     const handleLogout = () => {
+        signOutSession();
         setIsLoggedIn(false);
         setEmail('');
         setsubmitEmail('');

@@ -2,6 +2,7 @@
 import importlib.util
 import io
 import json
+import os
 import sys
 import uuid
 from pathlib import Path
@@ -10,12 +11,14 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from load_tests.common import require_local_target, db_connect, timed_request
+from sessions import hash_password
 
 
 def main():
     require_local_target()
     name = 'location_conversion_' + uuid.uuid4().hex
     email = name + '@example.invalid'
+    password, salt = uuid.uuid4().hex, os.urandom(32)
     card_id = None
     assets = set()
     fields = dict(username=name, email=email, title=name, name='Location fixture',
@@ -41,17 +44,20 @@ def main():
             cursor.execute('SELECT COALESCE(MAX(UserID),0)+1 FROM Users')
             user_id = cursor.fetchone()[0]
             cursor.execute('INSERT INTO Users (UserID,Username,Email,HashedPassword,Salt) VALUES (%s,%s,%s,%s,%s)',
-                           (user_id,name,email,'fixture',b'fixture'))
+                           (user_id,name,email,hash_password(password,salt),salt))
+        login = timed_request('POST', '/profileAccount', json={'email': email, 'password': password})
+        assert login['status'] == 200, f"Sign-in HTTP {login['status']}"
+        auth = {'Authorization': 'Bearer ' + login['body']['session_token']}
         card_id = request('POST','/uploadForm',data=fields)['card_id']
         source = 'point'
         # Covers every directed pair of point/polygon/image, retaining one CardID.
         for target in ['polygon','image','point','image','polygon','point','multipoint']:
-            data = {**fields,'update':'true','original_username':name,'original_email':email,'original_title':name,'requester_email':email,'location_type':target}
+            data = {**fields,'update':'true','original_username':name,'original_email':email,'original_title':name,'location_type':target}
             if target == 'polygon': data['polygon_coordinates'] = json.dumps({'rings':[vertices],'ringStyles':[{'fillColor':'#123456','lineStyle':'dashed'}]})
             if target == 'image': data['polygon_coordinates'] = json.dumps({'vertices':vertices})
             if target == 'multipoint': data['multipoint_coordinates'] = json.dumps(vertices[:2])
             files = {'thumbnail':('overlay.png',raw.getvalue(),'image/png')} if target == 'image' else {}
-            response = request('POST','/uploadForm',data=data,files=files)
+            response = request('POST','/uploadForm',data=data,files=files,headers=auth)
             assert response['card_id'] == card_id
             for path in ['/allCards','/getMarkers']:
                 records = request('GET',path)

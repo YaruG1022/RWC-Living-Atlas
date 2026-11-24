@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserCircle, faCheckCircle, faPlus, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
-import api from './api';
+import api, { signOutSession } from './api';
+import { storeSession } from './authSession';
 import InfoPage from './InfoPage';
 import './AccountPage.css';
 import './SwitchAccount.css';
@@ -24,12 +25,11 @@ function SwitchAccount({ email, setEmail, setPassword, setMessage, setIsLoggedIn
     if (account.email === currentEmail || switching) return;
     setSwitching(true);
 
-    api.get('/profileAccount', {
-      params: { email: account.email, password: account.password }
-    })
-      .then(async (response) => {
+    api.post('/profileAccount', { email: account.email, password: account.password }, { skipRetry: true })
+      .then((response) => {
         const accountData = response.data['Account Information'];
-        if (accountData && accountData.length > 0) {
+        const token = response.data.session_token;
+        if (accountData?.length && token) {
           const [name, acctEmail, rawIsAdmin] = accountData[0];
           let resolvedIsAdmin = false;
           if (typeof rawIsAdmin === 'boolean') resolvedIsAdmin = rawIsAdmin;
@@ -45,6 +45,7 @@ function SwitchAccount({ email, setEmail, setPassword, setMessage, setIsLoggedIn
           localStorage.setItem('email', acctEmail);
           localStorage.setItem('username', name);
           localStorage.setItem('isAdmin', JSON.stringify(resolvedIsAdmin));
+          storeSession(acctEmail, token);
 
           history.push('/');
         } else {
@@ -55,11 +56,15 @@ function SwitchAccount({ email, setEmail, setPassword, setMessage, setIsLoggedIn
           setMessage('Session expired. Please log in again.');
         }
       })
-      .catch(() => {
-        const updated = savedAccounts.filter(a => a.email !== account.email);
-        localStorage.setItem('savedAccounts', JSON.stringify(updated));
-        setSavedAccounts(updated);
-        setMessage('Failed to switch account. Credentials may have changed.');
+      .catch(error => {
+        if (error.response?.status === 401) {
+          const updated = savedAccounts.filter(a => a.email !== account.email);
+          localStorage.setItem('savedAccounts', JSON.stringify(updated));
+          setSavedAccounts(updated);
+          setMessage('Credentials changed. Please log in again.');
+        } else {
+          setMessage('Failed to switch account. Please try again.');
+        }
       })
       .finally(() => setSwitching(false));
   };
@@ -69,6 +74,7 @@ function SwitchAccount({ email, setEmail, setPassword, setMessage, setIsLoggedIn
   };
 
   const handleSignOut = () => {
+    signOutSession();
     setIsLoggedIn(false);
     setEmail('');
     setPassword('');

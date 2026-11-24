@@ -9,6 +9,7 @@ import uuid
 import httpx
 from PIL import Image
 from local_config import load_local_config
+from sessions import hash_password
 
 
 async def main():
@@ -20,17 +21,22 @@ async def main():
     from endpoint_files import azure_storage
     name = 'image_workflow_' + uuid.uuid4().hex
     email = name + '@example.invalid'
+    password, salt = uuid.uuid4().hex, os.urandom(32)
     urls, card_id = [], None
     try:
         with conn, conn.cursor() as cursor:
             cursor.execute('LOCK TABLE Users IN SHARE ROW EXCLUSIVE MODE')
             cursor.execute('SELECT COALESCE(MAX(UserID), 0)+1 FROM Users')
             user_id = cursor.fetchone()[0]
-            cursor.execute('INSERT INTO Users (UserID, Username, Email, HashedPassword, Salt) VALUES (%s,%s,%s,%s,%s)', (user_id, name, email, 'fixture', b'fixture'))
+            cursor.execute('INSERT INTO Users (UserID, Username, Email, HashedPassword, Salt) VALUES (%s,%s,%s,%s,%s)',
+                           (user_id, name, email, hash_password(password, salt), salt))
         raw = io.BytesIO()
         Image.new('RGB', (50000, 100), 'green').save(raw, format='PNG')
         data = raw.getvalue()
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://local-test') as client:
+            login = await client.post('/profileAccount', json={'email': email, 'password': password})
+            assert login.status_code == 200, f'Sign-in HTTP {login.status_code}'
+            auth = {'Authorization': 'Bearer ' + login.json()['session_token']}
             response = await client.post('/imagePreview', files={'image': ('panorama.png', data, 'image/png')})
             assert response.status_code == 200, response.text
             assert Image.open(io.BytesIO(response.content)).size == (4096, 8)
@@ -61,9 +67,9 @@ async def main():
             images = response.json()['images']
             assert len(images) == 1 and images[0]['presentation']['x'] == 80
             print('PASS: wide-image preview, immutable original, bounded derivative, and idempotent retry')
-            edit = {**fields, 'update': 'true', 'original_username':name, 'original_email':email, 'original_title':name, 'requester_email':email,
+            edit = {**fields, 'update': 'true', 'original_username':name, 'original_email':email, 'original_title':name,
                     'image_presentations': json.dumps({str(image_id): {'fit':'contain', 'x':50, 'y':50, 'zoom':1}})}
-            response = await client.post('/uploadForm', data=edit)
+            response = await client.post('/uploadForm', data=edit, headers=auth)
             assert response.status_code == 200, response.text
             for endpoint, params in [('/allCards', {}), ('/searchBar', {'titleSearch':name}), ('/allCardsByTag', {'categoryString':'None'})]:
                 response = await client.get(endpoint, params=params)
@@ -71,7 +77,7 @@ async def main():
                 record = next(card for card in response.json()['data'] if card['cardID'] == card_id)
                 assert record['images'][0]['presentation']['fit'] == 'contain'
                 assert record['images'][0]['original_url'] == uploaded['original_url']
-            response = await client.post('/uploadForm', data={**edit, 'image_presentations':'{"2147483647":{"fit":"cover"}}'})
+            response = await client.post('/uploadForm', data={**edit, 'image_presentations':'{"2147483647":{"fit":"cover"}}'}, headers=auth)
             assert response.status_code == 422
             response = await client.get(f'/cardImages/{card_id}')
             assert response.json()['images'][0]['presentation']['fit'] == 'contain'

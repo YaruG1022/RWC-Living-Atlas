@@ -1,18 +1,21 @@
 """Verify card deletion against the isolated local backend and PostgreSQL.
 
 Run from backend: python -m scripts.check_card_deletion
-Use --baseline to exercise the original username/title request.
+Use --baseline to exercise the username/title request without a card ID.
 """
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
+from hashlib import sha256
 from pathlib import Path
+from secrets import token_urlsafe
 from urllib.parse import unquote
 from uuid import uuid4
 
 import requests
 
 from load_tests.common import API_BASE, db_connect, require_local_target
+from sessions import hash_password
 
 
 def main(baseline=False):
@@ -21,6 +24,9 @@ def main(baseline=False):
     owner, admin, unrelated = (f'{prefix}_{role}' for role in ('owner', 'admin', 'unrelated'))
     owner_email, admin_email, unrelated_email = (f'{user}@example.invalid' for user in (owner, admin, unrelated))
     title = prefix
+    password = token_urlsafe(20)
+    salt = uuid4().bytes
+    hashed_password = hash_password(password, salt)
     local_dir = Path(__file__).resolve().parents[1] / 'uploads' / 'local_test' / 'images'
     paths = [
         local_dir / f'{prefix}_{asset}'
@@ -28,9 +34,27 @@ def main(baseline=False):
     ]
     urls = [f'/uploads/local_test/images/{path.name}' for path in paths]
 
-    def delete(email, **selector):
+    def authorization(token):
+        return {'Authorization': f'Bearer {token}'} if token else {}
+
+    def login(email, selected_password=password, previous_token=None):
+        response = requests.post(
+            f'{API_BASE}/profileAccount', json={'email': email, 'password': selected_password},
+            headers=authorization(previous_token), timeout=10,
+        )
+        assert response.status_code == 200, f'Login returned HTTP {response.status_code}'
+        assert response.headers.get('Cache-Control') == 'no-store'
+        return response.json()['session_token']
+
+    def delete(token, **selector):
         return requests.delete(
-            f'{API_BASE}/deleteCard', params={**selector, 'requester_email': email}, timeout=10,
+            f'{API_BASE}/deleteCard', params=selector, headers=authorization(token), timeout=10,
+        )
+
+    def change_role(token, email, is_admin):
+        return requests.post(
+            f'{API_BASE}/edit_user_role', json={'email': email, 'is_admin': is_admin},
+            headers=authorization(token), timeout=10,
         )
 
     with closing(db_connect()) as db:
@@ -45,10 +69,10 @@ def main(baseline=False):
                 owner_id = cursor.fetchone()[0]
                 cursor.executemany(
                     'INSERT INTO Users (UserID, Username, Email, HashedPassword, Salt, Is_Admin) '
-                    "VALUES (%s, %s, %s, 'unused-test-hash', %s, %s)",
-                    [(owner_id, owner, owner_email, b'fixture', False),
-                     (owner_id + 1, admin, admin_email, b'fixture', True),
-                     (owner_id + 2, unrelated, unrelated_email, b'fixture', False)],
+                    "VALUES (%s, %s, %s, %s, %s, %s)",
+                    [(owner_id, owner, owner_email, hashed_password, salt, False),
+                     (owner_id + 1, admin, admin_email, hashed_password, salt, True),
+                     (owner_id + 2, unrelated, unrelated_email, hashed_password, salt, False)],
                 )
                 cursor.execute('SELECT COALESCE(MAX(CardID), 0) + 1 FROM Cards')
                 card_id = cursor.fetchone()[0]
@@ -70,8 +94,9 @@ def main(baseline=False):
                     cursor.executemany('INSERT INTO Files (FileID, CardID, File_Link) VALUES (%s, %s, %s)', files)
 
             lookup = dict(username=owner, title=title)
+            admin_token = login(admin_email)
             if baseline:
-                response = delete(admin_email, **lookup)
+                response = delete(admin_token, **lookup)
                 print(f'Admin delete returned {response.status_code}: {response.text}', flush=True)
                 response.raise_for_status()
                 return
@@ -79,13 +104,44 @@ def main(baseline=False):
             local_dir.mkdir(parents=True, exist_ok=True)
             for path in paths:
                 path.write_bytes(b'isolated card deletion fixture')
-            assert delete(admin_email, **lookup).status_code == 409
-            assert delete(unrelated_email, card_id=card_id, **lookup).status_code == 403
-            assert delete('', card_id=card_id, **lookup).status_code == 403
-            assert delete(admin_email, card_id=card_id, username=owner, title='Stale title').status_code == 404
+            owner_token = login(owner_email)
+            unrelated_token = login(unrelated_email)
+            target = dict(card_id=card_id, **lookup)
+            assert delete(admin_token, **lookup).status_code == 409
+            assert delete(unrelated_token, **target).status_code == 403
+            assert delete(None, **target).status_code == 401
+            assert delete(token_urlsafe(32), **target).status_code == 401
+            assert delete(admin_token, card_id=card_id, username=owner, title='Stale title').status_code == 404
+            assert requests.post(f'{API_BASE}/list_database', headers=authorization(unrelated_token),
+                                 timeout=10).status_code == 403
+
+            assert change_role(None, owner_email, False).status_code == 401
+            assert change_role(unrelated_token, owner_email, False).status_code == 403
+            assert change_role(admin_token, unrelated_email, True).status_code == 200
+            assert change_role(unrelated_token, admin_email, False).status_code == 200
+            assert delete(admin_token, **target).status_code == 403, 'A demoted account kept admin deletion permission'
+            assert change_role(unrelated_token, admin_email, True).status_code == 200
+            assert change_role(admin_token, unrelated_email, False).status_code == 200
+
+            expired_token = login(unrelated_email)
+            with db, db.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE AccountTokens SET ExpiresAt = statement_timestamp() - interval '1 second' WHERE TokenHash = %s",
+                    (sha256(expired_token.encode()).hexdigest(),),
+                )
+                assert cursor.rowcount == 1
+            assert delete(expired_token, **target).status_code == 401
+            other_admin_token = login(admin_email)
+            switched_token = login(unrelated_email, previous_token=other_admin_token)
+            assert delete(other_admin_token, **target).status_code == 401
+            assert delete(switched_token, **target).status_code == 403
+            assert requests.delete(f'{API_BASE}/session', headers=authorization(switched_token), timeout=10).status_code == 204
+            assert delete(switched_token, **target).status_code == 401
+            print('PASS: regular user 403; missing, invalid, expired, switched-out and signed-out sessions 401; '
+                  'only a current admin can change roles and demotion takes effect immediately')
             assert all(path.is_file() for path in paths)
             with ThreadPoolExecutor(max_workers=2) as pool:
-                responses = list(pool.map(lambda _: delete(admin_email, card_id=card_id, **lookup), range(2)))
+                responses = list(pool.map(lambda _: delete(admin_token, **target), range(2)))
             assert sorted(response.status_code for response in responses) == [200, 404], [
                 response.text for response in responses
             ]
@@ -97,7 +153,7 @@ def main(baseline=False):
                     assert cursor.fetchone()[0] == 0, table
             assert not any(path.exists() for path in paths[:-1])
             assert paths[-1].exists(), 'The other card still references the shared file'
-            assert delete(owner_email, **lookup).status_code == 200
+            assert delete(owner_token, **lookup).status_code == 200
             assert not paths[-1].exists()
             print('PASS: admin and owner deletion, duplicate titles, stale lookup, permission denial, '
                   'concurrent requests and shared asset preservation')
@@ -118,11 +174,23 @@ def main(baseline=False):
                                (attachment_ids,))
                 links = [row[0] for row in cursor.fetchall()]
             assert len(set(links)) == 2, 'New uploads with the same filename must have distinct storage keys'
-            assert delete(owner_email, card_id=attachment_ids[0], username=owner, title=f'{title}_0').status_code == 200
+            new_password = token_urlsafe(20)
+            changed_password = requests.post(
+                f'{API_BASE}/reset-password', json={'new_password': new_password},
+                headers=authorization(owner_token), timeout=10,
+            )
+            assert changed_password.status_code == 200 and changed_password.json()['success']
+            assert delete(owner_token, card_id=attachment_ids[0], username=owner, title=f'{title}_0').status_code == 401
+            old_login = requests.post(
+                f'{API_BASE}/profileAccount', json={'email': owner_email, 'password': password}, timeout=10,
+            )
+            assert old_login.status_code == 401
+            owner_token = login(owner_email, new_password)
+            assert delete(owner_token, card_id=attachment_ids[0], username=owner, title=f'{title}_0').status_code == 200
             assert requests.get(f'{API_BASE}{links[0]}', timeout=10).status_code == 404
             assert requests.get(f'{API_BASE}{links[1]}', timeout=10).status_code == 200
-            assert delete(owner_email, card_id=attachment_ids[1], username=owner, title=f'{title}_1').status_code == 200
-            print('PASS: deleting an uploaded file preserves the other upload with the same filename')
+            assert delete(owner_token, card_id=attachment_ids[1], username=owner, title=f'{title}_1').status_code == 200
+            print('PASS: changing a password revoked earlier sessions; deleting an upload preserves the other upload')
         finally:
             with db, db.cursor() as cursor:
                 cursor.execute(

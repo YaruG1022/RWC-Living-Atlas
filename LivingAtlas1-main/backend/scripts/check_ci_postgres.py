@@ -19,6 +19,7 @@ import psycopg2
 
 
 BACKEND = Path(__file__).resolve().parents[1]
+FIXTURE_PASSWORD = "synthetic-ci-user-password"
 sys.path.insert(0, str(BACKEND))
 
 
@@ -128,14 +129,35 @@ class PostgreSQLContracts(unittest.TestCase):
         finally:
             self.request("DELETE", "/arcgis/custom-layers", json={"user_email": "ci_owner@example.invalid", "service_key": "gis-roundtrip"})
 
-    def test_parallel_role_changes_keep_at_least_one_admin(self):
+    def seed_users(self, users):
+        from sessions import hash_password
+
+        salt = b"synthetic-ci-salt"
+        hashed = hash_password(FIXTURE_PASSWORD, salt)
         with self.database.conn, self.database.conn.cursor() as cursor:
-            cursor.execute("INSERT INTO users (userid, username, email, is_admin, hashedpassword, salt) VALUES (201, 'First admin', 'first-admin@example.invalid', TRUE, 'fixture', %s), (202, 'Second admin', 'second-admin@example.invalid', TRUE, 'fixture', %s)", (b"fixture", b"fixture"))
+            cursor.executemany(
+                "INSERT INTO users (userid, username, email, is_admin, hashedpassword, salt) VALUES (%s, %s, %s, %s, %s, %s)",
+                [(*user, hashed, salt) for user in users],
+            )
+
+    def sign_in(self, email, password=FIXTURE_PASSWORD):
+        response = self.request("POST", "/profileAccount", json={"email": email, "password": password})
+        self.assertEqual(response.status_code, 200)
+        return {"Authorization": f"Bearer {response.json()['session_token']}"}
+
+    def test_parallel_role_changes_keep_at_least_one_admin(self):
+        admins = ("first-admin@example.invalid", "second-admin@example.invalid")
+        self.seed_users([(201, "First admin", admins[0], True), (202, "Second admin", admins[1], True)])
         try:
+            credentials = {email: self.sign_in(email) for email in admins}
+
             def demote(email):
-                return self.request("POST", "/edit_user_role", json={"email": email, "is_admin": False}).status_code
+                return self.request(
+                    "POST", "/edit_user_role", json={"email": email, "is_admin": False}, headers=credentials[email],
+                ).status_code
+
             with ThreadPoolExecutor(max_workers=2) as executor:
-                statuses = list(executor.map(demote, ["first-admin@example.invalid", "second-admin@example.invalid"]))
+                statuses = list(executor.map(demote, admins))
             self.assertEqual(sorted(statuses), [200, 409])
             with self.database.conn, self.database.conn.cursor() as cursor:
                 cursor.execute("SELECT COUNT(*) FROM users WHERE is_admin = TRUE")
@@ -145,25 +167,62 @@ class PostgreSQLContracts(unittest.TestCase):
                 cursor.execute("DELETE FROM users WHERE userid IN (201, 202)")
 
     def test_user_management_persists_roles_and_recovers_after_delete_conflict(self):
-        with self.database.conn, self.database.conn.cursor() as cursor:
-            cursor.execute("INSERT INTO users (userid, username, email, is_admin, hashedpassword, salt) VALUES (101, 'Admin', 'admin@example.invalid', TRUE, 'fixture', %s), (102, 'Member', 'member+test#1@example.invalid', FALSE, 'fixture', %s)", (b"fixture", b"fixture"))
+        admin_email = "admin@example.invalid"
+        member_email = "member+test#1@example.invalid"
+        self.seed_users([(101, "Admin", admin_email, True), (102, "Member", member_email, False)])
         try:
-            response = self.request("POST", "/edit_user_role", json={"email": "member+test#1@example.invalid", "is_admin": True})
+            promote = {"email": member_email, "is_admin": True}
+            self.assertEqual(self.request("POST", "/edit_user_role", json=promote).status_code, 401)
+            admin_headers = self.sign_in(admin_email)
+            member_headers = self.sign_in(member_email)
+            self.assertEqual(self.request("POST", "/edit_user_role", json=promote, headers=member_headers).status_code, 403)
+
+            def admin_post(path, **kwargs):
+                return self.request("POST", path, headers=admin_headers, **kwargs)
+
+            response = admin_post("/edit_user_role", json=promote)
             self.assertEqual(response.status_code, 200, response.text)
-            rows = self.request("POST", "/list_database").json()["users"]
-            self.assertTrue(next(row for row in rows if row["email"] == "member+test#1@example.invalid")["is_admin"])
-            self.assertEqual(self.request("POST", "/delete_user/member%2Btest%231@example.invalid").status_code, 409)
-            response = self.request("POST", "/edit_user_role", json={"email": "member+test#1@example.invalid", "is_admin": False})
+            rows = admin_post("/list_database").json()["users"]
+            self.assertTrue(next(row for row in rows if row["email"] == member_email)["is_admin"])
+            self.assertEqual(admin_post("/delete_user/member%2Btest%231@example.invalid").status_code, 409)
+            response = admin_post("/edit_user_role", json={"email": member_email, "is_admin": False})
             self.assertEqual(response.status_code, 200, response.text)
-            self.assertEqual(self.request("POST", "/edit_user_role", json={"email": "admin@example.invalid", "is_admin": False}).status_code, 409)
+            self.assertEqual(admin_post("/edit_user_role", json={"email": admin_email, "is_admin": False}).status_code, 409)
             # Existing owner has Cards references. Keep that content and recover the transaction.
-            self.assertEqual(self.request("POST", "/delete_user/ci_owner@example.invalid").status_code, 409)
-            self.assertEqual(self.request("POST", "/delete_user/member%2Btest%231@example.invalid").status_code, 200)
-            self.assertEqual(self.request("POST", "/delete_user/member%2Btest%231@example.invalid").status_code, 404)
-            self.assertEqual(self.request("POST", "/list_database").status_code, 200)
+            self.assertEqual(admin_post("/delete_user/ci_owner@example.invalid").status_code, 409)
+            self.assertEqual(admin_post("/delete_user/member%2Btest%231@example.invalid").status_code, 200)
+            self.assertEqual(admin_post("/delete_user/member%2Btest%231@example.invalid").status_code, 404)
+            self.assertEqual(admin_post("/list_database").status_code, 200)
         finally:
             with self.database.conn, self.database.conn.cursor() as cursor:
                 cursor.execute("DELETE FROM users WHERE userid IN (101, 102)")
+
+    def test_password_recovery_token_is_single_use_and_revokes_existing_sessions(self):
+        email = "recovery@example.invalid"
+        self.seed_users([(301, "Recovery fixture", email, False)])
+        try:
+            old_session = self.sign_in(email)
+            with patch("account.send_recovery_email") as mail:
+                response = self.request("POST", "/forgot-password", json={"email": email})
+            self.assertEqual(response.status_code, 200)
+            mail.assert_called_once()
+            reset_token = mail.call_args.args[1]
+            self.assertEqual(self.request("POST", "/list_database", headers={
+                "Authorization": f"Bearer {reset_token}",
+            }).status_code, 401)
+
+            new_password = "synthetic-ci-recovery-password"
+            reset = {"new_password": new_password, "reset_token": reset_token}
+            self.assertEqual(self.request("POST", "/reset-password", json=reset).status_code, 200)
+            self.assertEqual(self.request("POST", "/reset-password", json=reset).status_code, 401)
+            self.assertEqual(self.request("POST", "/list_database", headers=old_session).status_code, 401)
+            self.assertEqual(self.request("POST", "/profileAccount", json={
+                "email": email, "password": FIXTURE_PASSWORD,
+            }).status_code, 401)
+            self.sign_in(email, new_password)
+        finally:
+            with self.database.conn, self.database.conn.cursor() as cursor:
+                cursor.execute("DELETE FROM users WHERE userid = 301")
 
     def signup(self, email):
         response = self.request("POST", "/uploadSignup", data={

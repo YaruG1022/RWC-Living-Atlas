@@ -12,6 +12,7 @@ import requests
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from local_config import load_local_config
+from sessions import hash_password
 
 
 def main():
@@ -21,11 +22,23 @@ def main():
     conn = psycopg2.connect(dbname=os.environ['DB_NAME'], user=os.environ['DB_USER'], password=os.environ['DB_PASSWORD'], host=os.environ['DB_HOST'], port=os.environ['DB_PORT'], sslmode='disable', application_name='codex_gallery_selection_check')
     base = 'http://127.0.0.1:8000'
     title = 'gallery_selection_check_' + uuid.uuid4().hex
+    email = title + '@example.invalid'
+    password = uuid.uuid4().hex
+    salt = os.urandom(32)
     files = []
     try:
         with conn, conn.cursor() as cur:
-            cur.execute('SELECT Username, Email FROM Users ORDER BY UserID LIMIT 1')
-            username, email = cur.fetchone()
+            cur.execute('LOCK TABLE Users IN SHARE ROW EXCLUSIVE MODE')
+            cur.execute('SELECT COALESCE(MAX(UserID), 0) + 1 FROM Users')
+            user_id = cur.fetchone()[0]
+            cur.execute(
+                'INSERT INTO Users (UserID, Username, Email, HashedPassword, Salt) VALUES (%s,%s,%s,%s,%s)',
+                (user_id, title, email, hash_password(password, salt), salt),
+            )
+        username = title
+        login = requests.post(base + '/profileAccount', json={'email': email, 'password': password}, timeout=15)
+        assert login.status_code == 200, f'Sign-in HTTP {login.status_code}'
+        auth = {'Authorization': 'Bearer ' + login.json()['session_token']}
         fields = {'title': title, 'username': username, 'email': email, 'name': 'Fixture', 'category': 'Other', 'latitude': '46', 'longitude': '-117'}
         created = requests.post(base + '/uploadForm', data=fields, timeout=15)
         assert created.status_code == 200, f'Create HTTP {created.status_code}'
@@ -51,9 +64,9 @@ def main():
         print('PASS: uploads beyond eight reach 30; single and batch uploads reject image 31')
         chosen = [ids[7], ids[2], ids[6], ids[3], ids[5], ids[4]]
         cover_url = next(image['url'] for image in gallery['images'] if image['imageID'] == chosen[0])
-        update_fields = {**fields, 'update': 'true', 'original_username': username, 'original_email': email, 'original_title': title, 'requester_email': email}
+        update_fields = {**fields, 'update': 'true', 'original_username': username, 'original_email': email, 'original_title': title}
         for layout in ('multi', 'slideshow'):
-            saved = requests.post(base + '/uploadForm', data={**update_fields, 'gallery_layout': layout, 'gallery_image_ids': json.dumps(chosen)}, timeout=15)
+            saved = requests.post(base + '/uploadForm', data={**update_fields, 'gallery_layout': layout, 'gallery_image_ids': json.dumps(chosen)}, headers=auth, timeout=15)
             assert saved.status_code == 200, f'Save HTTP {saved.status_code}'
             gallery = requests.get(f'{base}/cardImages/{card_id}', timeout=15).json()
             assert gallery['galleryLayout'] == layout and gallery['galleryImageIDs'] == chosen
@@ -68,22 +81,24 @@ def main():
             assert cur.fetchone() == (chosen, cover_url)
         listing = requests.get(base + '/allCards', timeout=15).json()['data']
         assert next(card for card in listing if card['cardID'] == card_id)['gallery_image_ids'] == chosen
-        assert requests.post(base + '/uploadForm', data=update_fields, timeout=15).status_code == 200
+        assert requests.post(base + '/uploadForm', data=update_fields, headers=auth, timeout=15).status_code == 200
         assert requests.get(f'{base}/cardImages/{card_id}', timeout=15).json()['galleryImageIDs'] == chosen
         for invalid in (ids[:7], [ids[0], ids[0]], [2147483647]):
-            rejected = requests.post(base + '/uploadForm', data={**update_fields, 'gallery_image_ids': json.dumps(invalid)}, timeout=15)
+            rejected = requests.post(base + '/uploadForm', data={**update_fields, 'gallery_image_ids': json.dumps(invalid)}, headers=auth, timeout=15)
             assert rejected.status_code == 422
             assert requests.get(f'{base}/cardImages/{card_id}', timeout=15).json()['galleryImageIDs'] == chosen
-        assert requests.post(base + '/uploadForm', data={**update_fields, 'gallery_image_ids': '[]'}, timeout=15).status_code == 200
+        assert requests.post(base + '/uploadForm', data={**update_fields, 'gallery_image_ids': '[]'}, headers=auth, timeout=15).status_code == 200
         gallery = requests.get(f'{base}/cardImages/{card_id}', timeout=15).json()
         assert gallery['galleryImageIDs'] == [] and len(gallery['images']) == 30
         print('PASS: six-image selection persists for both modes, survives metadata saves, rejects invalid IDs/counts, and supports empty selection without deleting images')
     finally:
         with conn, conn.cursor() as cur:
-            cur.execute('SELECT i.ImageURL FROM CardImages i JOIN Cards c ON c.CardID=i.CardID WHERE c.Title=%s', (title,))
-            files += [row[0] for row in cur.fetchall()]
+            cur.execute('SELECT i.ImageURL, i.OriginalURL FROM CardImages i JOIN Cards c ON c.CardID=i.CardID WHERE c.Title=%s', (title,))
+            for urls in cur.fetchall():
+                files.extend(url for url in urls if url)
             cur.execute('DELETE FROM CardImages WHERE CardID IN (SELECT CardID FROM Cards WHERE Title=%s)', (title,))
             cur.execute('DELETE FROM Cards WHERE Title=%s', (title,))
+            cur.execute('DELETE FROM Users WHERE Username=%s AND Email=%s', (title, email))
             cur.execute('SELECT COUNT(*) FROM Cards WHERE Title=%s', (title,))
             assert cur.fetchone()[0] == 0
         storage_root = (ROOT / 'uploads/local_test').resolve()

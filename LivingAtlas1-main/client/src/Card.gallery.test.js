@@ -4,6 +4,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import Card from './Card';
 import api from './api';
+import { storeSession } from './authSession';
 import { fetchAllArcgisServices } from './arcgisServicesDb';
 import { fetchUserPreferences } from './userPreferencesApi';
 import { toggleSharedCardLayer } from './sharedCardLayers';
@@ -27,6 +28,7 @@ let savedCard;
 beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
+    sessionStorage.clear();
     fetchAllArcgisServices.mockResolvedValue([]);
     fetchUserPreferences.mockResolvedValue({});
     toggleSharedCardLayer.mockResolvedValue();
@@ -34,6 +36,7 @@ beforeEach(() => {
     showAppAlert.mockReset().mockResolvedValue(true);
     showAppConfirm.mockReset().mockResolvedValue(true);
     localStorage.setItem('email', 'fixture@example.invalid');
+    storeSession('fixture@example.invalid', 'fixture-session');
     savedCard = { cardID: 101, title: 'Gallery fixture', username: 'fixture', email: 'fixture@example.invalid', name: 'Fixture', category: 'River', latitude: 46, longitude: -117, images: originalImages, gallery_layout: 'grid-3' };
     api.get.mockImplementation(url => Promise.resolve({ data: url.startsWith('/cardImages/')
         ? { images: savedCard.images, galleryLayout: savedCard.gallery_layout, galleryImageIDs: savedCard.gallery_image_ids }
@@ -55,6 +58,7 @@ async function editCard(onCardDelete) {
 test('an admin deletes the saved card after changing its title in the editor', async () => {
     localStorage.setItem('email', 'admin@example.invalid');
     localStorage.setItem('isAdmin', 'true');
+    storeSession('admin@example.invalid', 'admin-fixture-session');
     const onCardDelete = jest.fn();
     const { container } = render(<Card formData={savedCard} isLoggedIn onCardDelete={onCardDelete} />);
     fireEvent.click(container.querySelector('.card'));
@@ -65,7 +69,7 @@ test('an admin deletes the saved card after changing its title in the editor', a
 
     await waitFor(() => expect(onCardDelete).toHaveBeenCalledWith(true));
     expect(api.delete).toHaveBeenCalledWith('/deleteCard', {
-        params: { card_id: savedCard.cardID, username: savedCard.username, title: savedCard.title, requester_email: 'admin@example.invalid' },
+        params: { card_id: savedCard.cardID, username: savedCard.username, title: savedCard.title },
         skipRetry: true,
     });
 });
@@ -82,7 +86,7 @@ test('editing a contact email leaves the card owner identity intact', async () =
     expect(payload.get('contact_email')).toBe('another@example.invalid');
     expect(payload.get('email')).toBe('fixture@example.invalid');
     expect(payload.get('original_email')).toBe('fixture@example.invalid');
-    expect(payload.get('requester_email')).toBe('fixture@example.invalid');
+    expect(payload.has('requester_email')).toBe(false);
 });
 
 test.each(['other-user','guest'])('a public card restores independent linked layer choices for %s', async audience => {

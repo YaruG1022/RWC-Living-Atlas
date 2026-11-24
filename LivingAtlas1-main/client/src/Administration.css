@@ -82,32 +82,6 @@
     background: #edf1f5;
 }
 
-.admin-page .admin-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.admin-page .admin-status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    background: currentColor;
-}
-
-.admin-page .admin-status-online {
-    color: #247344;
-}
-
-.admin-page .admin-status-offline,
-.admin-page .admin-muted {
-    color: #6b7280;
-}
-
 .admin-page .admin-actions-inline {
     display: flex;
     flex-wrap: wrap;
@@ -261,26 +235,153 @@
 }
 
 .admin-page .admin-user-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    gap: 16px;
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) minmax(8rem, auto) minmax(11rem, auto) auto;
+    align-items: end;
+    gap: 12px;
 }
 
-.admin-page .admin-user-search {
-    flex: 1;
-    min-width: 200px;
-    max-width: 480px;
+.admin-page .admin-user-field {
+    min-width: 0;
 }
 
-.admin-page .admin-user-search label {
+.admin-page .admin-user-field label {
     display: block;
     margin-bottom: 6px;
 }
 
+.admin-page .admin-user-toolbar-actions,
+.admin-page .admin-user-results,
+.admin-page .admin-user-filter-tags {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.admin-page .admin-user-toolbar .account-control,
+.admin-page .admin-user-toolbar .account-button {
+    min-height: 44px;
+}
+
+.admin-page .admin-user-toolbar .account-button {
+    white-space: nowrap;
+}
+
+.admin-page .admin-user-results {
+    column-gap: 12px;
+    margin: 14px 0 10px;
+}
+
 .admin-page .admin-user-count {
-    margin: 16px 0 8px;
+    margin: 0;
     color: var(--account-text);
+}
+
+.admin-page .admin-user-filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    min-height: 32px;
+    padding: 4px 10px;
+    border: 1px solid var(--account-border);
+    border-radius: 16px;
+    color: var(--account-heading);
+    background: #eaf1fb;
+    font: inherit;
+    font-size: 0.875rem;
+    text-align: left;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+
+.admin-page .admin-user-filter-tag:hover {
+    background: #dce9fa;
+}
+
+.admin-page .admin-user-clear {
+    min-height: 32px;
+    padding: 0 4px;
+}
+
+.admin-page .admin-user-filter-tag:focus-visible,
+.admin-page .admin-table-wrap:focus-visible {
+    outline: 2px solid var(--account-accent);
+    outline-offset: 2px;
+}
+
+.admin-page .admin-users-table {
+    min-width: 840px;
+}
+
+.admin-page .admin-users-table .admin-table-header-sortable {
+    padding-block: 0;
+}
+
+.admin-page .admin-users-table .admin-sort-header-content {
+    min-height: 44px;
+    width: 100%;
+    text-align: left;
+}
+
+.admin-page .admin-users-table .admin-sort-header-content:focus-visible {
+    outline-offset: -2px;
+}
+
+.admin-page .admin-user-empty {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 10px;
+}
+
+.admin-page .admin-filter-fields {
+    display: grid;
+    gap: 14px;
+}
+
+.admin-page .admin-filter-date-range {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.admin-page .admin-filter-hint {
+    margin: 6px 0 0;
+    color: var(--account-text);
+    font-size: 0.875rem;
+}
+
+@media (max-width: 880px) {
+    .admin-page .admin-user-toolbar {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .admin-page .admin-user-results {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .admin-page .admin-user-filter-tag,
+    .admin-page .admin-user-clear {
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 640px) {
+    .admin-page.info-page {
+        margin-inline: 8px;
+        padding: 24px 12px 48px;
+    }
+}
+
+@media (max-width: 420px) {
+    .admin-page .admin-filter-date-range {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 .admin-page .admin-notice {

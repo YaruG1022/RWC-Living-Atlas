@@ -243,6 +243,7 @@ function UserManual() {
         <p><ManualText sectionId="profile-admin" blockId="profile-admin-006" onNavigate={navTo} /></p>
         <h3><ManualText sectionId="profile-admin" blockId="profile-admin-007" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="profile-admin" blockId="profile-admin-008" onNavigate={navTo} /></p>
+        <p><ManualText sectionId="profile-admin" blockId="profile-admin-010" onNavigate={navTo} /></p>
         <p><ManualText sectionId="profile-admin" blockId="profile-admin-009" onNavigate={navTo} /></p>
       </section>
       )}

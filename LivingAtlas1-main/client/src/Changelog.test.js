@@ -10,8 +10,8 @@ test('dialog and history display the same categorized release with earlier histo
     document.body.appendChild(appRoot);
     Modal.setAppElement(appRoot);
     const dialog = render(<ChangelogModal isOpen onClose={() => {}} />, { container: appRoot });
-    expect(guiReleases.slice(0, 5).map(release => release.date)).toEqual(['11/14/2026', '11/6/2026', '10/26/2026', '10/24/2026', '10/18/2026']);
-    expect(screen.getByText('Update Date: 11/14/2026').closest('details').open).toBe(true);
+    expect(guiReleases.slice(0, 6).map(release => release.date)).toEqual(['11/24/2026', '11/14/2026', '11/6/2026', '10/26/2026', '10/24/2026', '10/18/2026']);
+    expect(screen.getByText('Update Date: 11/24/2026').closest('details').open).toBe(true);
     expect(screen.queryByText('Update Date: 11/16/2026')).not.toBeInTheDocument();
     expect(screen.getByText('Update Date: 9/27/2026').closest('details').open).toBe(false);
     for (const [index, release] of guiReleases.entries()) {

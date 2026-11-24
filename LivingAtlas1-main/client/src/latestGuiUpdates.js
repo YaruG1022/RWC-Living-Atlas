@@ -142,6 +142,17 @@ const novemberGuiUpdates = [
 
 // Newest first. Earlier September releases remain in their existing sections.
 export const guiReleases = [
+    {
+        date: '11/24/2026',
+        groups: [
+            {
+                title: 'Project Deletion',
+                items: [
+                    'Fixed project deletion failures when a title change was still unsaved, and improved messages for unavailable projects and permission errors.',
+                ],
+            },
+        ],
+    },
     { date: latestGuiUpdateDate, groups: latestGuiUpdates },
     { date: '11/6/2026', groups: novemberGuiUpdates },
     {

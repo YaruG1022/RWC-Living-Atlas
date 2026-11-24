@@ -26,3 +26,22 @@ The browser checks use synthetic `example.invalid` users and intercept remote re
 ## Operations
 
 No migrations, new dependencies, or environment changes. Deploy frontend and backend together to receive the updated HTTP error contracts. User deletion preserves existing foreign-key constraints: linked content must be reassigned or removed first. Existing login and API authorization architecture is unchanged.
+
+## Filter and sort verification
+
+Tested November 24, 2026 on `codex/admin-user-filters` at `03aca3a`, based on `main` at `d2eb37e`. The custom joined-date range includes both selected calendar dates in the browser's time zone. Last sign-in presets use rolling 24-hour periods.
+
+- The Administration suite adds cases for combined search and filters, both endpoints of a custom joined-date range, applying and cancelling narrow-screen filter changes, and two-way sign-in sorting with missing or invalid timestamps at the bottom.
+- The browser check uses Chrome 157, Playwright 1.59, five synthetic accounts, and a fixed clock in `America/Los_Angeles`. The sandbox denied the initial loopback navigation. The rerun fulfils production bundle assets, roster and role-change requests through browser routes and blocks other requests. There are no test database records to clean up.
+- Browser widths of 1440, 881, 390, and 320 pixels cover the inline controls, the transition to the compact controls, and the narrow filter dialog. The workflow covers invalid dates, refresh with filters applied, Escape and focus restoration, and a role change that removes a user from the filtered results. The first run exposed the last flow losing focus. The page now returns focus to search when the row that opened the dialog disappears.
+- The local browser script and screenshots are under `LivingAtlas1-main/client/coverage/output/playwright/` in the feature worktree. The earlier screenshots above show the previous layout.
+
+From the client directory in the feature worktree, the Jest run used Node.js 24.22.3 and a loopback application programming interface (API) URL. The first run passed 37 suites. Two suites failed during import because the default transform exception covered Axios. Allowing Tiptap TypeScript and vendor CSS resolved the import failures. The rerun passed all 39 suites and 262 tests in 134.446 seconds, including 11 User Management tests.
+
+```powershell
+$env:CI = 'true'
+$env:REACT_APP_API_URL = 'http://localhost:8000'
+node ./node_modules/react-scripts/scripts/test.js --watchAll=false --runInBand --silent --testMatch '**/.worktrees/**/src/**/*.test.js' --transformIgnorePatterns 'node_modules[\\/](?!(axios|@tiptap)[\\/]|.+\.css$)'
+```
+
+Manual export passed with 21 chapters and 348 blocks. The production bundle compiled with the existing lint and card CSS warnings. The user management source passed ESLint.

@@ -152,6 +152,13 @@ export const guiReleases = [
                     'Project deletion and editing now verify the signed-in account. Administrators can transfer ownership. Password reset links expire after 30 minutes and work once.',
                 ],
             },
+            {
+                title: 'User Management Filters',
+                items: [
+                    'Filter Manage Users by role, last sign-in or date joined, and combine filters with a name or email search. On smaller screens, open Filters to see all three.',
+                    'The Last sign-in column shows the most recent recorded sign-in and can be sorted newest or oldest first.',
+                ],
+            },
         ],
     },
     { date: latestGuiUpdateDate, groups: latestGuiUpdates },

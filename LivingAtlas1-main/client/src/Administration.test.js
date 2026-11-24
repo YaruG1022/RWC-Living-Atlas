@@ -76,6 +76,45 @@ test('combines email search with role and sign-in filters and clears only the fi
     expect(screen.queryByText(externalAdmin.email)).not.toBeInTheDocument();
 });
 
+test('shows recorded presence independently of sign-in time and combines it with other filters', async () => {
+    const offlineAdmin = { ...admin, email: 'offline@example.invalid', presence_status: 'offline', last_online_at: new Date().toISOString() };
+    const onlineUser = { ...member, presence_status: 'online', last_online_at: null };
+    api.post.mockResolvedValueOnce({ data: { users: [offlineAdmin, onlineUser, admin] } });
+    render(<Administration />);
+    await screen.findByText(onlineUser.email);
+
+    const onlineRow = within(screen.getByRole('row', { name: name => name.includes(onlineUser.email) }));
+    expect(onlineRow.getByRole('cell', { name: 'Online' })).toBeInTheDocument();
+    expect(onlineRow.getByRole('cell', { name: 'No sign-in recorded' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Offline' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Unknown' })).toBeInTheDocument();
+
+    const setOnlineFilter = value => {
+        userEvent.click(screen.getByRole('button', { name: /More filters/i }));
+        const dialog = within(screen.getByRole('dialog', { name: 'Filter users' }));
+        userEvent.selectOptions(dialog.getByRole('combobox', { name: 'Online status' }), value);
+        userEvent.click(dialog.getByRole('button', { name: 'Apply filters' }));
+    };
+    setOnlineFilter('online');
+    expect(screen.getByText('Showing 1 of 3 users')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'More filters (1)' })).toBeInTheDocument();
+    expect(screen.getByText(onlineUser.email)).toBeInTheDocument();
+    userEvent.selectOptions(screen.getByRole('combobox', { name: 'Role' }), 'admin');
+    expect(screen.getByText('Showing 0 of 3 users')).toBeInTheDocument();
+
+    setOnlineFilter('offline');
+    userEvent.selectOptions(screen.getByRole('combobox', { name: 'Last sign-in' }), '7');
+    expect(screen.getByText(offlineAdmin.email)).toBeInTheDocument();
+    expect(screen.queryByText(admin.email)).not.toBeInTheDocument();
+
+    userEvent.selectOptions(screen.getByRole('combobox', { name: 'Last sign-in' }), 'any');
+    setOnlineFilter('unknown');
+    expect(screen.getByText(admin.email)).toBeInTheDocument();
+    expect(screen.queryByText(offlineAdmin.email)).not.toBeInTheDocument();
+    userEvent.click(screen.getByRole('button', { name: 'Remove Online status filter: Unknown' }));
+    expect(screen.getByText('Showing 2 of 3 users')).toBeInTheDocument();
+});
+
 test('applies a custom date joined range through the end of the selected local day', async () => {
     const users = [
         { ...admin, created_at: new Date(2025, 10, 1, 0, 0).toISOString() },
@@ -105,6 +144,7 @@ test('applies a custom date joined range through the end of the selected local d
 test('applies mobile filter changes only when confirmed', async () => {
     const originalMatchMedia = window.matchMedia;
     window.matchMedia = () => ({ matches: true });
+    api.post.mockResolvedValueOnce({ data: { users: [admin, { ...member, presence_status: 'online' }] } });
     try {
         render(<Administration />);
         await screen.findByText(member.email);
@@ -113,19 +153,141 @@ test('applies mobile filter changes only when confirmed', async () => {
         userEvent.click(filterButton);
         let dialog = within(screen.getByRole('dialog', { name: 'Filter users' }));
         userEvent.selectOptions(dialog.getByRole('combobox', { name: 'Role' }), 'admin');
+        userEvent.selectOptions(dialog.getByRole('combobox', { name: 'Online status' }), 'unknown');
         userEvent.click(dialog.getByRole('button', { name: 'Cancel' }));
         expect(screen.getByText(member.email)).toBeInTheDocument();
 
         userEvent.click(filterButton);
         dialog = within(screen.getByRole('dialog', { name: 'Filter users' }));
         const role = dialog.getByRole('combobox', { name: 'Role' });
+        const presence = dialog.getByRole('combobox', { name: 'Online status' });
         expect(role).toHaveValue('all');
+        expect(presence).toHaveValue('any');
         userEvent.selectOptions(role, 'admin');
+        userEvent.selectOptions(presence, 'unknown');
         userEvent.click(dialog.getByRole('button', { name: 'Apply filters' }));
-        expect(screen.getByRole('button', { name: 'Filters (1)' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Filters (2)' })).toBeInTheDocument();
         expect(screen.queryByText(member.email)).not.toBeInTheDocument();
     } finally {
         window.matchMedia = originalMatchMedia;
+    }
+});
+
+test('refreshes presence only in the visible users view and marks a failed update unavailable', async () => {
+    jest.useFakeTimers();
+    const visibility = jest.spyOn(document, 'hidden', 'get').mockReturnValue(false);
+    try {
+        const onlineMember = { ...member, presence_status: 'online' };
+        api.post.mockResolvedValueOnce({ data: { users: [admin, onlineMember] } });
+        render(<Administration />);
+        await screen.findByText(member.email);
+
+        visibility.mockReturnValue(true);
+        fireEvent(document, new Event('visibilitychange'));
+        await act(async () => jest.advanceTimersByTime(30_000));
+        expect(api.post).toHaveBeenCalledTimes(1);
+
+        api.post.mockRejectedValueOnce(new Error('network unavailable'));
+        visibility.mockReturnValue(false);
+        fireEvent(document, new Event('visibilitychange'));
+        expect(await screen.findByText(/online status is temporarily unavailable/i)).toBeInTheDocument();
+        expect(screen.getAllByRole('cell', { name: 'Unavailable' })).toHaveLength(2);
+        expect(screen.queryByText('Loading users...')).not.toBeInTheDocument();
+
+        userEvent.click(screen.getByRole('button', { name: /More filters/i }));
+        const dialog = within(screen.getByRole('dialog', { name: 'Filter users' }));
+        userEvent.selectOptions(dialog.getByRole('combobox', { name: 'Online status' }), 'offline');
+        userEvent.click(dialog.getByRole('button', { name: 'Apply filters' }));
+        expect(screen.queryByText('Showing 0 of 2 users')).not.toBeInTheDocument();
+        expect(screen.queryByText(/no users match/i)).not.toBeInTheDocument();
+
+        const offlineMember = { ...member, presence_status: 'offline' };
+        api.post.mockResolvedValueOnce({ data: { users: [admin, offlineMember] } });
+        await act(async () => jest.advanceTimersByTime(30_000));
+        expect(screen.queryByText(/online status is temporarily unavailable/i)).not.toBeInTheDocument();
+        expect(screen.getByRole('cell', { name: 'Offline' })).toBeInTheDocument();
+
+        userEvent.click(screen.getByRole('button', { name: 'Statistics' }));
+        await act(async () => jest.advanceTimersByTime(30_000));
+        expect(api.post).toHaveBeenCalledTimes(3);
+    } finally {
+        visibility.mockRestore();
+        jest.useRealTimers();
+    }
+});
+
+test('preserves concurrent user edits and restores focus when a live filter removes a row', async () => {
+    jest.useFakeTimers();
+    const visibility = jest.spyOn(document, 'hidden', 'get').mockReturnValue(false);
+    try {
+        const onlineMember = { ...member, presence_status: 'online' };
+        const retired = { name: 'Retired', email: 'retired@example.invalid', is_admin: false, presence_status: 'online' };
+        api.post.mockResolvedValueOnce({ data: { users: [onlineMember, retired] } });
+        render(<Administration />);
+        await screen.findByText(member.email);
+
+        userEvent.click(screen.getByRole('button', { name: /More filters/i }));
+        const filters = within(screen.getByRole('dialog', { name: 'Filter users' }));
+        userEvent.selectOptions(filters.getByRole('combobox', { name: 'Online status' }), 'online');
+        userEvent.click(filters.getByRole('button', { name: 'Apply filters' }));
+
+        let finishPoll;
+        api.post.mockImplementationOnce(() => new Promise(resolve => { finishPoll = resolve; }));
+        await act(async () => jest.advanceTimersByTime(30_000));
+
+        const roleDialog = await openAction('Change Role');
+        userEvent.click(within(roleDialog).getByRole('radio', { name: 'Admin' }));
+        api.post.mockResolvedValueOnce({ data: { success: true } });
+        confirm(roleDialog, 'Confirm Change');
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+        const deletion = await openAction('Delete', retired);
+        api.post.mockResolvedValueOnce({ data: { success: true } });
+        confirm(deletion, 'Confirm Delete');
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+        screen.getByRole('button', { name: 'Change Role' }).focus();
+
+        await act(async () => finishPoll({ data: { users: [{ ...onlineMember, presence_status: 'offline' }, retired] } }));
+        expect(screen.queryByText(member.email)).not.toBeInTheDocument();
+        expect(screen.queryByText(retired.email)).not.toBeInTheDocument();
+        await waitFor(() => expect(screen.getByRole('searchbox')).toHaveFocus());
+
+        userEvent.click(screen.getByRole('button', { name: 'Remove Online status filter: Online' }));
+        expect(screen.getByText(member.email)).toBeInTheDocument();
+        expect(screen.getByRole('cell', { name: 'Admin' })).toBeInTheDocument();
+        expect(screen.getByRole('cell', { name: 'Offline' })).toBeInTheDocument();
+        expect(screen.queryByText(retired.email)).not.toBeInTheDocument();
+    } finally {
+        visibility.mockRestore();
+        jest.useRealTimers();
+    }
+});
+
+test('keeps newer manual roster data when an earlier presence poll arrives late', async () => {
+    jest.useFakeTimers();
+    const visibility = jest.spyOn(document, 'hidden', 'get').mockReturnValue(false);
+    try {
+        const onlineMember = { ...member, presence_status: 'online' };
+        api.post.mockResolvedValueOnce({ data: { users: [onlineMember] } });
+        render(<Administration />);
+        await screen.findByText(member.email);
+
+        let finishPoll;
+        api.post.mockImplementationOnce(() => new Promise(resolve => { finishPoll = resolve; }));
+        await act(async () => jest.advanceTimersByTime(30_000));
+        expect(api.post).toHaveBeenCalledTimes(2);
+
+        const offlineAdmin = { ...member, is_admin: true, presence_status: 'offline' };
+        api.post.mockResolvedValueOnce({ data: { users: [offlineAdmin] } });
+        userEvent.click(screen.getByRole('button', { name: 'Refresh users' }));
+        await screen.findByRole('cell', { name: 'Offline' });
+
+        await act(async () => finishPoll({ data: { users: [onlineMember] } }));
+        expect(screen.getByRole('cell', { name: 'Offline' })).toBeInTheDocument();
+        expect(screen.getByRole('cell', { name: 'Admin' })).toBeInTheDocument();
+    } finally {
+        visibility.mockRestore();
+        jest.useRealTimers();
     }
 });
 
@@ -213,12 +375,22 @@ test('keeps legacy HTTP 200 delete errors visible and allows retry', async () =>
 });
 
 test('list failures are recoverable', async () => {
-    api.post.mockResolvedValueOnce({ data: { error: 'Database unavailable' } });
-    render(<Administration />);
-    expect(await screen.findByRole('alert')).toHaveTextContent('Database unavailable');
-    userEvent.click(screen.getByRole('button', { name: 'Refresh users' }));
-    await screen.findByText(member.email);
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    jest.useFakeTimers();
+    const visibility = jest.spyOn(document, 'hidden', 'get').mockReturnValue(false);
+    try {
+        api.post.mockResolvedValueOnce({ data: { error: 'Database unavailable' } });
+        render(<Administration />);
+        expect(await screen.findByRole('alert')).toHaveTextContent('Database unavailable');
+        await act(async () => jest.advanceTimersByTime(30_000));
+        expect(api.post).toHaveBeenCalledTimes(1);
+
+        userEvent.click(screen.getByRole('button', { name: 'Refresh users' }));
+        await screen.findByText(member.email);
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    } finally {
+        visibility.mockRestore();
+        jest.useRealTimers();
+    }
 });
 
 test('syncs the current account role after self-demotion', async () => {

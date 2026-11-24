@@ -14,6 +14,7 @@ import SwitchAccount from './SwitchAccount';
 import ChangelogHistory from './ChangelogHistory';
 import UserManual from './UserManual';
 import { signOutSession } from './api';
+import useSessionHeartbeat from './useSessionHeartbeat';
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
@@ -77,6 +78,8 @@ function App() {
     localStorage.setItem('username', username || '');
     localStorage.setItem('isAdmin', JSON.stringify(isAdmin));
   }, [isLoggedIn, email, username, isAdmin]);
+
+  useSessionHeartbeat(isLoggedIn ? email : '');
 
   const handleLogout = () => {
     signOutSession();

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import Modal from 'react-modal';
 import ChangelogModal from './ChangelogModal';
 import ChangelogHistory from './ChangelogHistory';
@@ -10,8 +10,10 @@ test('dialog and history display the same categorized release with earlier histo
     document.body.appendChild(appRoot);
     Modal.setAppElement(appRoot);
     const dialog = render(<ChangelogModal isOpen onClose={() => {}} />, { container: appRoot });
-    expect(guiReleases.slice(0, 6).map(release => release.date)).toEqual(['11/24/2026', '11/14/2026', '11/6/2026', '10/26/2026', '10/24/2026', '10/18/2026']);
+    expect(guiReleases.slice(0, 7).map(release => release.date)).toEqual(['11/24/2026', '11/21/2026', '11/14/2026', '11/6/2026', '10/26/2026', '10/24/2026', '10/18/2026']);
     expect(screen.getByText('Update Date: 11/24/2026').closest('details').open).toBe(true);
+    const november21 = screen.getByText('Update Date: 11/21/2026').closest('details');
+    expect(within(november21).getByRole('heading', { name: 'Project Deletion' })).toBeInTheDocument();
     expect(screen.queryByText('Update Date: 11/16/2026')).not.toBeInTheDocument();
     expect(screen.getByText('Update Date: 9/27/2026').closest('details').open).toBe(false);
     for (const [index, release] of guiReleases.entries()) {
@@ -28,6 +30,8 @@ test('dialog and history display the same categorized release with earlier histo
     dialog.unmount();
     appRoot.remove();
     render(<ChangelogHistory />);
+    expect(screen.getByRole('heading', { name: 'Update Date: 11/21/2026' }).nextElementSibling)
+        .toHaveTextContent('Project Deletion');
     expect(screen.queryByText('Update Date: 11/16/2026')).not.toBeInTheDocument();
     expect(screen.getAllByRole('heading', { name: /^Update Date:/ }).slice(0, guiReleases.length).map(heading => heading.textContent)).toEqual(modalDates);
     expect(screen.getByText('Update Date: 9/27/2026')).toBeTruthy();

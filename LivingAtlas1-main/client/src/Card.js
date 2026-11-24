@@ -98,6 +98,7 @@ function Card(props) {
         is_public: props.formData?.is_public !== false  // default true
     });
     const [loading, setLoading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [isFavorited, setIsFavorited] = useState(false);
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [linkedArcgisItems, setLinkedArcgisItems] = useState([]);
@@ -408,45 +409,58 @@ function Card(props) {
     const handleDelete = async (e) => {
         e.stopPropagation();
 
-        if (!props.isLoggedIn && !isLearnMoreOnboardingOpen) {
+        if (isDeleting || loading || isImageMutationLoading) return;
+        const viewerEmail = localStorage.getItem('email') || '';
+        if (!props.isLoggedIn || !viewerEmail) {
             setShowLoginPrompt(true);
             return;
         }
 
-        if (!formData.username || !formData.title) {
-            showAppAlert("Missing username or title — cannot delete project.");
+        const savedCard = isLearnMoreEditMode && learnMoreBackup ? learnMoreBackup : formData;
+        if (!savedCard.username || !savedCard.title) {
+            showAppAlert("Refresh the project list before deleting this project.");
             return;
         }
 
-        const viewerEmail = localStorage.getItem('email') || '';
-        const cardOwnerEmail = formData.email || '';
+        const cardOwnerEmail = savedCard.email || '';
         const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('isAdmin')); } catch { return false; } })();
-        if (!isAdmin && viewerEmail && cardOwnerEmail && viewerEmail !== cardOwnerEmail) {
-            showAppAlert("You don't have permission to delete this project. Only the project's creator or an admin can delete it.");
+        const permissionMessage = "You don't have permission to delete this project. Only the project's creator or an admin can delete it.";
+        if (!isAdmin && cardOwnerEmail && viewerEmail.toLowerCase() !== cardOwnerEmail.toLowerCase()) {
+            showAppAlert(permissionMessage);
             return;
         }
 
-        if (!await showAppConfirm("Are you sure you want to delete this project?")) return;
-
-        api.delete(`/deleteCard`, {
-            params: {
-                username: formData.username,
-                title: formData.title,
-                requester_email: viewerEmail,
-            }
-        })
-        .then(async () => {
+        setIsDeleting(true);
+        try {
+            if (!await showAppConfirm("Are you sure you want to delete this project?")) return;
+            await api.delete('/deleteCard', {
+                params: {
+                    card_id: savedCard.cardID,
+                    username: savedCard.username,
+                    title: savedCard.title,
+                    requester_email: viewerEmail,
+                },
+                skipRetry: true,
+            });
             await showAppAlert("Project deleted successfully.");
             if (typeof props.onCardDelete === "function") {
                 props.onCardDelete(true);
             } else {
                 window.location.reload();
             }
-        })
-        .catch((error) => {
+        } catch (error) {
             console.error("Delete failed:", error);
-            showAppAlert("Failed to delete the project.");
-        });
+            const status = error.response?.status;
+            if (status === 403) {
+                showAppAlert(permissionMessage);
+            } else if (status === 404 || status === 409 || !error.response) {
+                showAppAlert("Could not confirm deletion. Refresh the project list before trying again.");
+            } else {
+                showAppAlert("Failed to delete the project. Please try again.");
+            }
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     const handleDownloadPdf = async () => {
@@ -1289,6 +1303,11 @@ function Card(props) {
                 linkOverride: { link: serializedLink, link_text: '' },
             });
             if (success) {
+                // Metadata is already committed even if a gallery update fails below.
+                const { username, email, title } = formData;
+                const savedIdentity = { original_username: username, original_email: email, original_title: title };
+                setFormData(prev => ({ ...prev, ...savedIdentity }));
+                setLearnMoreBackup(prev => prev && { ...prev, username, email, title, ...savedIdentity });
                 try {
                     await applyPendingImageDeletes();
                 } catch (error) {
@@ -1981,6 +2000,7 @@ function Card(props) {
                         <button
                             className="learn-more-modal-delete-btn learn-more-modal-icon-btn"
                             onClick={handleDelete}
+                            disabled={isDeleting || loading || isImageMutationLoading}
                             aria-label="Delete project"
                             title="Delete project"
                         >

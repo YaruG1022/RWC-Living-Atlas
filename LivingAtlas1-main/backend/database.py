@@ -133,6 +133,15 @@ def _ensure_schema():
     try:
         ensure_custom_layer_schema(cur)
         ensure_card_link_schema(cur)
+        # Fresh databases need the same bookmark relation as existing deployments.
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS Favorites (
+                FavoriteID SERIAL PRIMARY KEY,
+                UserID INT NOT NULL REFERENCES Users(UserID) ON DELETE CASCADE,
+                CardID INT NOT NULL REFERENCES Cards(CardID) ON DELETE CASCADE,
+                UNIQUE (UserID, CardID)
+            );
+        """)
         # Migration 003 — LocationType column + CardPolygonVertices table
         cur.execute("""
             ALTER TABLE Cards ADD COLUMN IF NOT EXISTS LocationType VARCHAR(10) DEFAULT 'point';

@@ -9,6 +9,7 @@ card
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException, Query
 from database import conn, cur
 from typing import Optional
+import logging
 import psycopg2
 import os
 import uuid
@@ -21,6 +22,7 @@ from .file_utils import compress_file #importing my function that handles compre
 
 
 card_router = APIRouter()
+logger = logging.getLogger(__name__)
 
 from . import azure_storage
 DEFAULT_THUMBNAIL_URL = azure_storage.build_url("thumbnails/default_cereo_thumbnail.png")
@@ -77,76 +79,86 @@ async def create_card(
     return {"message": "Card created successfully", "thumbnail_link": thumbnail_link}
 
 @card_router.delete("/deleteCard")
-async def deleteCard(username: str, title: str, requester_email: str = None):
-    if username is None or title is None:
-        raise HTTPException(status_code=422, detail="Username and title must not be None")
-    if not isinstance(username, str) or not isinstance(title, str):
-        raise HTTPException(status_code=422, detail="Username and title must be strings")
+async def deleteCard(username: str, title: str, requester_email: str = "",
+                     card_id: Optional[int] = Query(None, gt=0)):
+    if not requester_email.strip():
+        raise HTTPException(status_code=403, detail="Sign in again before deleting a card")
 
+    connection = get_request_connection()
+    if connection is None:
+        raise HTTPException(status_code=503, detail="Database connection unavailable")
     try:
-        cur.execute("""
-            SELECT Cards.CardID, Cards.thumbnail_link, Users.Email
-            FROM Users
-            JOIN Cards ON Users.UserID = Cards.UserID
-            WHERE Users.Username = %s AND Cards.Title = %s
-        """, (username, title))
-        result = cur.fetchone()
-        print(f"Card fetch result: {result}")
-        if result is None:
-            raise HTTPException(status_code=404, detail="Card not found")
-        cardID, thumbnail_link, card_owner_email = result
-
-        if requester_email:
-            cur.execute("SELECT Is_Admin FROM Users WHERE Email = %s", (requester_email,))
-            requester_row = cur.fetchone()
-            if requester_row is None:
+        with connection, connection.cursor() as cursor:
+            cursor.execute("SELECT UserID, Is_Admin FROM Users WHERE Email = %s", (requester_email,))
+            requester = cursor.fetchone()
+            if requester is None:
                 raise HTTPException(status_code=403, detail="Requester account not found")
-            requester_is_admin = bool(requester_row[0])
-            if not requester_is_admin and requester_email.lower() != card_owner_email.lower():
+            requester_id, requester_is_admin = requester
+
+            # Keep the saved owner and title as a guard against stale views.
+            # The legacy card allocator can reuse the highest deleted ID.
+            lookup = """
+                SELECT c.CardID, c.Thumbnail_Link, c.UserID
+                FROM Cards c
+                JOIN Users u ON c.UserID = u.UserID
+                WHERE u.Username = %s AND c.Title = %s
+            """
+            params = (username, title)
+            if card_id is not None:
+                lookup += " AND c.CardID = %s"
+                params += (card_id,)
+            cursor.execute(lookup + " LIMIT 2 FOR UPDATE OF c", params)
+            matches = cursor.fetchall()
+            if not matches:
+                raise HTTPException(status_code=404, detail="Card not found")
+            target_id, thumbnail_url, owner_id = matches[0]
+            if not requester_is_admin and requester_id != owner_id:
                 raise HTTPException(status_code=403, detail="You do not have permission to delete this card")
+            if len(matches) > 1:
+                raise HTTPException(status_code=409, detail="More than one card matches. Refresh the card list and try again.")
 
-        cur.execute("SELECT ImageURL, OriginalURL FROM CardImages WHERE CardID=%s", (cardID,))
-        image_assets = cur.fetchall()
-        if thumbnail_link and thumbnail_link != DEFAULT_THUMBNAIL_URL:
-            # Delete the thumbnail blob from Azure
-            try:
-                azure_storage.delete_from_url(thumbnail_link)
-            except Exception as e:
-                print(f"[WARN] Failed to delete thumbnail from Azure: {e}")
-        
-        # Delete file in cloud service
-        cur.execute("""
-            SELECT file_link 
-            FROM Files
-            WHERE CardID = %s
-        """, (cardID,))
-        file_link = cur.fetchone()
-        if file_link:
-            try:
-                azure_storage.delete_from_url(file_link[0])
-            except Exception as e:
-                print(f"[WARN] Failed to delete file from Azure: {e}")
+            cursor.execute("DELETE FROM Favorites WHERE CardID = %s", (target_id,))
+            cursor.execute("DELETE FROM CardTags WHERE CardID = %s", (target_id,))
+            cursor.execute("DELETE FROM Files WHERE CardID = %s RETURNING File_Link", (target_id,))
+            assets = {url for (url,) in cursor.fetchall()}
+            cursor.execute("DELETE FROM CardImages WHERE CardID = %s RETURNING ImageURL, OriginalURL", (target_id,))
+            assets.update(url for image in cursor.fetchall() for url in image)
+            assets.add(thumbnail_url)
+            cursor.execute("DELETE FROM Cards WHERE CardID = %s", (target_id,))
 
-        cur.execute("DELETE FROM Favorites WHERE CardID = %s", (cardID,))
-        cur.execute("DELETE FROM Files WHERE CardID = %s", (cardID,))
-        cur.execute("DELETE FROM CardTags WHERE CardID = %s", (cardID,))
-        cur.execute("DELETE FROM Cards WHERE CardID = %s", (cardID,))
-        conn.commit()
-        for display_url, original_url in image_assets:
-            for url in {display_url, original_url}:
-                if url and url != DEFAULT_THUMBNAIL_URL and url not in {'/CEREO-logo.png', 'CEREO-logo.png'}:
-                    try:
-                        azure_storage.delete_from_url(url)
-                    except Exception:
-                        pass
-        return {"Success": "The card is deleted"}
+            # Older uploads can reference the same backing file from several cards.
+            assets = {
+                url for url in assets
+                if url and url not in {'/CEREO-logo.png', 'CEREO-logo.png'}
+                and not url.endswith('/thumbnails/default_cereo_thumbnail.png')
+            }
+            if assets:
+                urls = list(assets)
+                cursor.execute("""
+                    SELECT Thumbnail_Link FROM Cards WHERE Thumbnail_Link = ANY(%s)
+                    UNION
+                    SELECT File_Link FROM Files WHERE File_Link = ANY(%s)
+                    UNION
+                    SELECT ImageURL FROM CardImages WHERE ImageURL = ANY(%s)
+                    UNION
+                    SELECT OriginalURL FROM CardImages WHERE OriginalURL = ANY(%s)
+                """, (urls, urls, urls, urls))
+                assets.difference_update(url for (url,) in cursor.fetchall())
     except HTTPException:
-        conn.rollback()
         raise
-    except Exception as e:
-        conn.rollback()
-        print(f"Failed to delete card: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to delete card: {e}")
+    except Exception:
+        logger.exception("Failed to delete card")
+        raise HTTPException(status_code=500, detail="Failed to delete card. Please try again.")
+    finally:
+        release_request_connection(connection)
+
+    # Only remove assets after their card transaction has committed.
+    for url in assets:
+        try:
+            azure_storage.delete_from_url(url)
+        except Exception:
+            logger.warning("Could not remove an asset for deleted card %s", target_id)
+    return {"Success": "The card is deleted"}
 
 @card_router.delete("/deleteFile")
 async def delete_file(fileID: int):
@@ -870,7 +882,7 @@ async def upload_form(
                     nextfileid = (maxFileid[0] or 0) + 1
 
                     safe_filename = os.path.splitext(os.path.basename(file.filename))[0]
-                    destination_path = f"files/{username}/{safe_filename}.zip"
+                    destination_path = f"files/{username}/{uuid.uuid4().hex}/{safe_filename}.zip"
 
                     print(f"[UPLOAD] Uploading compressed file {zip_filename} → {destination_path}")
                     public_url = upload_to_bucket(destination_path, zip_path, "application/zip", azure_storage.AZURE_CONTAINER)

@@ -3,7 +3,7 @@
   "id": "accounts",
   "title": "Login, Registration & Passwords",
   "navigationLabel": "Login, Registration & Passwords",
-  "summary": "Request access, log in, reset a forgotten password, and sign out.",
+  "summary": "Request access, log in with a password and optional email code, reset a forgotten password, and sign out.",
   "manualPath": "/user-manual?section=accounts",
   "blocks": [
     {
@@ -158,6 +158,28 @@
           "content": [
             {
               "type": "text",
+              "text": "If you turned on two-factor authentication, look for a six-digit code sent to your account email. Enter it on the login screen and choose "
+            },
+            {
+              "type": "strong",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Verify code"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ]
+        },
+        {
+          "type": "li",
+          "content": [
+            {
+              "type": "text",
               "text": "After a successful login, the app returns to Home. Refreshing the page restores your signed-in account, including access to Administration for administrators. If your saved sign-in is unavailable, log in again. If login fails, check your credentials and whether your account request was approved."
             }
           ]
@@ -166,7 +188,32 @@
       "ordered": true,
       "stepIds": [
         "accounts-005-step-1",
+        "accounts-005-step-3",
         "accounts-005-step-2"
+      ]
+    },
+    {
+      "id": "accounts-010",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Each code can be used once and expires after 10 minutes. If the email is missing, check your spam or junk folder. If the code expires, start signing in again to get a new one. To update this setting, see "
+        },
+        {
+          "type": "link",
+          "href": "/user-manual?section=profile-admin",
+          "content": [
+            {
+              "type": "text",
+              "text": "Profile & Administration"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        }
       ]
     },
     {

@@ -146,6 +146,12 @@ export const guiReleases = [
         date: '11/24/2026',
         groups: [
             {
+                title: 'Email Two-Factor Authentication',
+                items: [
+                    'Turn on two-factor authentication in Profile to require a one-time email code when you sign in or switch to that account.',
+                ],
+            },
+            {
                 title: 'Project Deletion',
                 items: [
                     'Fixed project deletion failures when a title change was still unsaved, and improved messages for unavailable projects and permission errors.',

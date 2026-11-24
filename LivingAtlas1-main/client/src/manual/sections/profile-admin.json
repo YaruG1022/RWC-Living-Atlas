@@ -3,7 +3,7 @@
   "id": "profile-admin",
   "title": "Profile & Administration",
   "navigationLabel": "Profile & Administration",
-  "summary": "Edit your profile, switch accounts, and manage users as an administrator.",
+  "summary": "Edit your profile, manage two-factor authentication, switch accounts, and manage users as an administrator.",
   "manualPath": "/user-manual?section=profile-admin",
   "blocks": [
     {
@@ -156,6 +156,66 @@
       ]
     },
     {
+      "id": "profile-admin-011",
+      "type": "heading",
+      "level": 3,
+      "content": [
+        {
+          "type": "text",
+          "text": "Two-factor authentication"
+        }
+      ]
+    },
+    {
+      "id": "profile-admin-012",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Two-factor authentication is off by default. In Profile, select "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Turn on"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " and confirm your current password. Enter the six-digit code sent to your account email and select "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Verify code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ". Once enabled, the app emails a new code each time you sign in. To disable it, select "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Turn off"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " and confirm your current password."
+        }
+      ]
+    },
+    {
       "id": "profile-admin-005",
       "type": "heading",
       "level": 3,
@@ -185,7 +245,7 @@
         },
         {
           "type": "text",
-          "text": " in the avatar menu to see accounts previously used in this browser. Select an account to sign in as that user. If switching fails or credentials have changed, log in again. Use the page's add-account option to open Login for another account."
+          "text": " in the avatar menu to see accounts previously used in this browser. Select an account to sign in as that user. If the selected account uses two-factor authentication, enter the code sent to its email to finish switching. If switching fails or credentials have changed, log in again. Use the page's add-account option to open Login for another account."
         }
       ]
     },

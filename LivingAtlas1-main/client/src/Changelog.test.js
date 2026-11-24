@@ -19,6 +19,8 @@ test('dialog and history display the same categorized release with earlier histo
     const november21 = screen.getByText('Update Date: 11/21/2026').closest('details');
     expect(within(november21).getByRole('heading', { name: 'Email Two-Factor Authentication' })).toBeInTheDocument();
     expect(within(november21).getByRole('heading', { name: 'Project Deletion' })).toBeInTheDocument();
+    expect(within(november21).getByRole('heading', { name: 'AI Description Drafts' })).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { name: 'AI Description Drafts', exact: true })).toHaveLength(1);
     expect(screen.queryByText('Update Date: 11/16/2026')).not.toBeInTheDocument();
     expect(screen.getByText('Update Date: 9/27/2026').closest('details').open).toBe(false);
     for (const [index, release] of guiReleases.entries()) {
@@ -36,7 +38,7 @@ test('dialog and history display the same categorized release with earlier histo
     appRoot.remove();
     render(<ChangelogHistory />);
     const historyHeadings = screen.getAllByRole('heading');
-    for (const title of ['Email Two-Factor Authentication', 'User Management Online Status', 'Project Deletion']) {
+    for (const title of ['Email Two-Factor Authentication', 'User Management Online Status', 'Project Deletion', 'AI Description Drafts']) {
         const heading = screen.getByRole('heading', { name: title, exact: true });
         const releaseHeading = historyHeadings.slice(0, historyHeadings.indexOf(heading))
             .findLast(item => item.textContent.startsWith('Update Date:'));

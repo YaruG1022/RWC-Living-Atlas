@@ -152,12 +152,6 @@ export const guiReleases = [
                     'The Last sign-in column shows the most recent recorded sign-in and can be sorted newest or oldest first.',
                 ],
             },
-            {
-                title: 'AI Description Drafts',
-                items: [
-                    'Choose Generate with AI beside Description when creating or editing a project to draft text from links, images, and attachments. Review and edit the draft before submitting or saving.',
-                ],
-            },
         ],
     },
     {
@@ -182,6 +176,12 @@ export const guiReleases = [
                 items: [
                     'Fixed project deletion failures when a title change was still unsaved, and improved messages for unavailable projects and permission errors.',
                     'Project deletion and editing now verify the signed-in account. Administrators can transfer ownership. Password reset links expire after 30 minutes and work once.',
+                ],
+            },
+            {
+                title: 'AI Description Drafts',
+                items: [
+                    'Choose Generate with AI beside Description when creating or editing a project to draft text from links, images, and attachments. Review and edit the draft before submitting or saving.',
                 ],
             },
         ],

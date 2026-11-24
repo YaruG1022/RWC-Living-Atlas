@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import InfoPage from './InfoPage';
+import EmailVerificationForm from './EmailVerificationForm';
 import './AccountPage.css';
 import './Login.css';
-import api, { signOutSession } from './api.js';
-import { storeSession } from './authSession';
+import api from './api.js';
+import { getSessionToken, storeSession } from './authSession';
 
 function normalizeAdminFlag(value) {
     if (typeof value === 'boolean') return value;
@@ -21,7 +22,10 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
     const [showForgotPasswordForm, setShowForgotPasswordForm] = useState(false);
     const [redirectCountdown, setRedirectCountdown] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [challenge, setChallenge] = useState(null);
     const countdownRef = useRef(null);
+    const loginRequest = useRef(null);
     const history = useHistory();
 
     // Cancel redirect if user navigates away manually
@@ -35,85 +39,103 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
         });
         return () => {
             unlisten();
+            loginRequest.current?.abort();
             if (countdownRef.current) {
                 clearInterval(countdownRef.current);
             }
         };
     }, [history]);
 
-    const handleLogin = (e) => {
-        e.preventDefault();
+    const finishLogin = (data) => {
+        const accountData = data['Account Information'];
+        if (!accountData?.length || !data.session_token) {
+            setMessage('Could not sign in. Please try again.');
+            return;
+        }
 
-        api.post('/profileAccount', { email: submitemail, password }, { skipRetry: true })
-        .then((response) => {
-            const accountData = response.data['Account Information'];
-            const token = response.data.session_token;
-            if (accountData?.length && token) {
-                const [name, email, rawIsAdmin] = accountData[0];
-                const resolvedIsAdmin = normalizeAdminFlag(rawIsAdmin);
+        const [name, accountEmail, rawIsAdmin] = accountData[0];
+        const resolvedIsAdmin = normalizeAdminFlag(rawIsAdmin);
+        storeSession(accountEmail, data.session_token);
+        localStorage.setItem('isLoggedIn', JSON.stringify(true));
+        localStorage.setItem('email', accountEmail);
+        localStorage.setItem('username', name);
+        localStorage.setItem('isAdmin', JSON.stringify(resolvedIsAdmin));
 
-                setIsLoggedIn(true);
-                setMessage('Successfully logged in!');
+        // Save account for Switch Account only after sign-in succeeds.
+        const savedAccounts = JSON.parse(localStorage.getItem('savedAccounts') || '[]');
+        const existingIdx = savedAccounts.findIndex(account => account.email === accountEmail);
+        const accountEntry = { email: accountEmail, username: name, password };
+        if (existingIdx >= 0) {
+            savedAccounts[existingIdx] = accountEntry;
+        } else {
+            savedAccounts.push(accountEntry);
+        }
+        localStorage.setItem('savedAccounts', JSON.stringify(savedAccounts));
 
-                // Countdown redirect (3 → 2 → 1)
-                setRedirectCountdown(3);
-                let count = 3;
-                countdownRef.current = setInterval(() => {
-                    count -= 1;
-                    if (count <= 0) {
-                        clearInterval(countdownRef.current);
-                        countdownRef.current = null;
-                        setRedirectCountdown(null);
-                        history.push('/');
-                    } else {
-                        setRedirectCountdown(count);
-                    }
-                }, 1000);
+        setChallenge(null);
+        setPassword('');
+        setIsLoggedIn(true);
+        setUsername(name);
+        setEmail(accountEmail);
+        setIsAdmin(resolvedIsAdmin);
+        setMessage('Successfully logged in!');
 
-                setUsername(name);
-                setEmail(email);
-                setIsAdmin(resolvedIsAdmin);
-
-                // Persist login data in localStorage for immediate consistency.
-                localStorage.setItem('isLoggedIn', JSON.stringify(true));
-                localStorage.setItem('email', email);
-                localStorage.setItem('username', name);
-                localStorage.setItem('isAdmin', JSON.stringify(resolvedIsAdmin));
-                storeSession(email, token);
-
-                // Save account to savedAccounts for Switch Account feature
-                const savedAccounts = JSON.parse(localStorage.getItem('savedAccounts') || '[]');
-                const existingIdx = savedAccounts.findIndex(a => a.email === email);
-                const accountEntry = { email, username: name, password };
-                if (existingIdx >= 0) {
-                  savedAccounts[existingIdx] = accountEntry;
-                } else {
-                  savedAccounts.push(accountEntry);
-                }
-                localStorage.setItem('savedAccounts', JSON.stringify(savedAccounts));
+        setRedirectCountdown(3);
+        let count = 3;
+        countdownRef.current = setInterval(() => {
+            count -= 1;
+            if (count <= 0) {
+                clearInterval(countdownRef.current);
+                countdownRef.current = null;
+                setRedirectCountdown(null);
+                history.push('/');
             } else {
-                setMessage('Invalid email or password.');
+                setRedirectCountdown(count);
             }
-        })
-        .catch(error => {
-            setMessage(error.response?.status === 401 ? 'Invalid email or password.' : 'Error during login. Please try again.');
-        });
+        }, 1000);
     };
 
-    const handleLogout = () => {
-        signOutSession();
-        setIsLoggedIn(false);
-        setEmail('');
-        setsubmitEmail('');
+    const cancelVerification = () => {
+        setChallenge(null);
         setPassword('');
-        setMessage('Successfully logged out.');
-        setUsername("You're logged out.");
+        setMessage('');
+    };
 
-        // Clear auth data from localStorage
-        localStorage.setItem('isLoggedIn', JSON.stringify(false));
-        localStorage.setItem('email', '');
-        localStorage.setItem('username', '');
-        localStorage.setItem('isAdmin', JSON.stringify(false));
+    const handleLogin = async (event) => {
+        event.preventDefault();
+        if (loginRequest.current || countdownRef.current) return;
+
+        const controller = new AbortController();
+        const previousToken = getSessionToken(false);
+        const headers = previousToken ? { Authorization: `Bearer ${previousToken}` } : undefined;
+        loginRequest.current = controller;
+        setIsSubmitting(true);
+        setMessage('');
+        try {
+            const { data } = await api.post('/profileAccount', { email: submitemail, password }, {
+                headers,
+                skipRetry: true,
+                signal: controller.signal,
+            });
+            if (controller.signal.aborted) return;
+            if (data.two_factor_required && data.challenge_id) {
+                setChallenge({ challengeId: data.challenge_id, headers });
+                setShowForgotPasswordForm(false);
+            } else {
+                finishLogin(data);
+            }
+        } catch (error) {
+            if (controller.signal.aborted) return;
+            const { status, data } = error.response || {};
+            if (status === 401) {
+                setMessage('Invalid email or password.');
+            } else {
+                setMessage(typeof data?.detail === 'string' ? data.detail : 'Error during login. Please try again.');
+            }
+        } finally {
+            loginRequest.current = null;
+            if (!controller.signal.aborted) setIsSubmitting(false);
+        }
     };
 
     const handleForgotPasswordSubmit = (e) => {
@@ -144,72 +166,92 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
             <div className="login-card account-panel">
                 <p className="login-welcome">Welcome {username} {email}</p>
 
-                <form className="login-form" onSubmit={handleLogin}>
-                    <div className="login-field">
-                        <label htmlFor="login-email">Email</label>
-                        <input
-                            className="account-control"
-                            id="login-email"
-                            type="email"
-                            value={submitemail}
-                            onChange={(e) => setsubmitEmail(e.target.value)}
-                            required
-                        />
-                    </div>
+                {challenge ? (
+                    <EmailVerificationForm
+                        {...challenge}
+                        endpoint="/profileAccount/verify"
+                        onVerified={finishLogin}
+                        onCancel={cancelVerification}
+                        cancelLabel="Back to login"
+                    />
+                ) : (
+                    <>
+                        <form className="login-form" onSubmit={handleLogin}>
+                            <div className="login-field">
+                                <label htmlFor="login-email">Email</label>
+                                <input
+                                    className="account-control"
+                                    id="login-email"
+                                    type="email"
+                                    autoComplete="username"
+                                    value={submitemail}
+                                    onChange={(e) => setsubmitEmail(e.target.value)}
+                                    disabled={isSubmitting || redirectCountdown !== null}
+                                    required
+                                />
+                            </div>
 
-                    <div className="login-field">
-                        <label htmlFor="login-password">Password</label>
-                        <input
-                            className="account-control"
-                            id="login-password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
+                            <div className="login-field">
+                                <label htmlFor="login-password">Password</label>
+                                <input
+                                    className="account-control"
+                                    id="login-password"
+                                    type="password"
+                                    autoComplete="current-password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    disabled={isSubmitting || redirectCountdown !== null}
+                                    required
+                                />
+                            </div>
 
-                    <button className="login-primary-btn account-button" type="submit">Login</button>
-                </form>
+                            <button className="login-primary-btn account-button" type="submit" disabled={isSubmitting || redirectCountdown !== null}>
+                                {isSubmitting ? 'Signing in…' : 'Login'}
+                            </button>
+                        </form>
 
-                <div className="login-inline-action">
-                    <button className="login-link-btn account-link" onClick={() => setShowForgotPasswordForm(!showForgotPasswordForm)}>
-                        {isLoggedIn ? 'Change Password?' : 'Forgot Password?'}
-                    </button>
-                </div>
-
-                {showForgotPasswordForm && (
-                    <form className="login-forgot-form" onSubmit={handleForgotPasswordSubmit}>
-                        <div className="login-field">
-                            <label htmlFor="login-recovery-email">Enter your email to reset password</label>
-                            <input
-                                className="account-control"
-                                id="login-recovery-email"
-                                type="email"
-                                value={forgotPasswordEmail}
-                                onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                                required
-                            />
+                        <div className="login-inline-action">
+                            <button className="login-link-btn account-link" onClick={() => setShowForgotPasswordForm(!showForgotPasswordForm)}>
+                                {isLoggedIn ? 'Change Password?' : 'Forgot Password?'}
+                            </button>
                         </div>
-                        <button className="login-primary-btn account-button" type="submit">Submit</button>
-                    </form>
-                )}
 
-                <p className="login-register-row">
-                    Don't have an account?{' '}
-                    <Link className="login-register-link account-link" to="/signup">
-                        Register
-                    </Link>
-                </p>
-
-                {message && (
-                    <p className="login-message">
-                        {message}
-                        {redirectCountdown !== null && (
-                            <span> Redirecting in {redirectCountdown}...</span>
+                        {showForgotPasswordForm && (
+                            <form className="login-forgot-form" onSubmit={handleForgotPasswordSubmit}>
+                                <div className="login-field">
+                                    <label htmlFor="login-recovery-email">Enter your email to reset password</label>
+                                    <input
+                                        className="account-control"
+                                        id="login-recovery-email"
+                                        type="email"
+                                        value={forgotPasswordEmail}
+                                        onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <button className="login-primary-btn account-button" type="submit">Submit</button>
+                            </form>
                         )}
-                    </p>
+
+                        <p className="login-register-row">
+                            Don't have an account?{' '}
+                            <Link className="login-register-link account-link" to="/signup">
+                                Register
+                            </Link>
+                        </p>
+                    </>
                 )}
+
+                <div role="status">
+                    {message && (
+                        <p className="login-message">
+                            {message}
+                            {redirectCountdown !== null && (
+                                <span> Redirecting in {redirectCountdown}...</span>
+                            )}
+                        </p>
+                    )}
+                </div>
             </div>
         </InfoPage>
     );

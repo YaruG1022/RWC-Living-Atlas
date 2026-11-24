@@ -20,6 +20,10 @@ test('sends the active session only to protected first-party routes', async () =
     expect(publicRequest.config.headers.get('Authorization')).toBeUndefined();
     const otherOrigin = await api.delete('/deleteCard', { baseURL: 'https://fixture.example.invalid' });
     expect(otherOrigin.config.headers.get('Authorization')).toBeUndefined();
+    const twoFactor = await api.get('/account/two-factor');
+    expect(twoFactor.config.headers.get('Authorization')).toBe(`Bearer ${token}`);
+    const enrollment = await api.post('/account/two-factor/verify', {});
+    expect(enrollment.config.headers.get('Authorization')).toBe(`Bearer ${token}`);
 });
 
 test('a mismatched tab account never sends a stale session for deletion', async () => {

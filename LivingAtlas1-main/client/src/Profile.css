@@ -171,6 +171,24 @@
     font-size: 0.95rem;
 }
 
+.profile-page .profile-two-factor {
+    margin-top: 24px;
+}
+
+.profile-page .profile-two-factor > p {
+    margin: 0 0 12px;
+    color: var(--account-text);
+}
+
+.profile-page .profile-two-factor-form {
+    display: grid;
+    gap: 16px;
+}
+
+.profile-page .profile-two-factor-feedback {
+    margin: 12px 0 0;
+}
+
 .profile-page .profile-danger-zone {
     margin-top: 36px;
     border-color: #fecaca;

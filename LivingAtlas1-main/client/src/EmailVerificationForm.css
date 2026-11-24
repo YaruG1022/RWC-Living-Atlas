@@ -1,0 +1,24 @@
+.email-verification-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.email-verification-form label {
+    display: block;
+}
+
+.email-verification-form p {
+    margin: 6px 0;
+}
+
+.email-verification-form .email-verification-error {
+    margin: 0;
+    color: var(--account-danger);
+}
+
+.email-verification-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}

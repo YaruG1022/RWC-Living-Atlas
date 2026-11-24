@@ -84,7 +84,7 @@ class User(BaseModel):
 def send_recovery_email(recipient_email, token):
     # Carry the credential in a fragment so the frontend server never receives it.
     fragment = urllib.parse.urlencode({"token": token})
-    reset_url = f"https://willowy-twilight-157839.netlify.app/reset-password#{fragment}"
+    reset_url = f"https://rwc-living-atlas.netlify.app/reset-password#{fragment}"
     body = f"""
         <p>Use this link to reset your Living Atlas password.</p>
         <p><a href="{reset_url}">Reset password</a></p>

@@ -150,7 +150,7 @@ class UserManagementTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(known.json(), unknown.json())
         send.assert_called_once()
         self.assertEqual(send.call_args.args[0], email)
-        self.assertIn('/reset-password#token=', send.call_args.args[2])
+        self.assertIn('https://rwc-living-atlas.netlify.app/reset-password#token=', send.call_args.args[2])
         self.assertNotIn(email, send.call_args.args[2])
         self.assertTrue(any(
             'INSERT INTO AccountTokens' in call.args[0] and call.args[1][2] == 'password_reset'

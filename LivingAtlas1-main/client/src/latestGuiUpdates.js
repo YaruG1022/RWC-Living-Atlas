@@ -150,6 +150,7 @@ export const guiReleases = [
                 items: [
                     'Turn on two-factor authentication in Profile to require a one-time email code when you sign in or switch to that account.',
                     'After you finish signing in, the app opens the home map immediately.',
+                    'If your verification email is missing, you can request a new code from the same screen after a short wait.',
                 ],
             },
             {

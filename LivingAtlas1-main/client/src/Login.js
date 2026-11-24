@@ -87,7 +87,7 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
             });
             if (controller.signal.aborted) return;
             if (data.two_factor_required && data.challenge_id) {
-                setChallenge({ challengeId: data.challenge_id, headers });
+                setChallenge({ challengeId: data.challenge_id, resendAfter: data.resend_after, headers });
                 setShowForgotPasswordForm(false);
             } else {
                 finishLogin(data);
@@ -137,7 +137,7 @@ function Login({ email, setEmail, password, setPassword, message, setMessage, is
                 {challenge ? (
                     <EmailVerificationForm
                         {...challenge}
-                        endpoint="/profileAccount/verify"
+                        challengeEndpoint="/profileAccount"
                         onVerified={finishLogin}
                         onCancel={cancelVerification}
                         cancelLabel="Back to login"

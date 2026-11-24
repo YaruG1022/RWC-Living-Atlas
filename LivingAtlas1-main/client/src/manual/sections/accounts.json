@@ -198,7 +198,7 @@
       "content": [
         {
           "type": "text",
-          "text": "Each code can be used once and expires after 10 minutes. If the email is missing, check your spam or junk folder. If the code expires, start signing in again to get a new one. To update this setting, see "
+          "text": "Verification lasts 10 minutes. If the email is missing, check your spam or junk folder, then select Resend code when it becomes available. Use the most recently requested code. If verification expires, start signing in again. To update this setting, see "
         },
         {
           "type": "link",

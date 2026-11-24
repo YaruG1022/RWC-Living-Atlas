@@ -24,6 +24,8 @@ test('sends the active session only to protected first-party routes', async () =
     expect(twoFactor.config.headers.get('Authorization')).toBe(`Bearer ${token}`);
     const enrollment = await api.post('/account/two-factor/verify', {});
     expect(enrollment.config.headers.get('Authorization')).toBe(`Bearer ${token}`);
+    const resend = await api.post('/account/two-factor/resend', {});
+    expect(resend.config.headers.get('Authorization')).toBe(`Bearer ${token}`);
 });
 
 test('a mismatched tab account never sends a stale session for deletion', async () => {

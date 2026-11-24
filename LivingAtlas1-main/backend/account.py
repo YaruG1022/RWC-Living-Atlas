@@ -23,6 +23,10 @@ import requests
 
 import os
 from hmac import compare_digest
+from email_two_factor import (
+    CODE_LIFETIME_SECONDS, challenge_hash, clear_challenges, create_challenge,
+    discard_challenge, expired_challenge, verify_challenge,
+)
 from sessions import (
     PRESENCE_WINDOW_SECONDS, bearer_token, consume_reset_token, hash_password, invalid_session, issue_token,
     optional_bearer_token, record_session_presence, require_account, require_admin, revoke_session, revoke_user_sessions,
@@ -94,6 +98,17 @@ def send_recovery_email(recipient_email, token):
         send_via_resend(recipient_email, "Password Reset Request", body)
     except Exception:
         logger.warning("Password recovery email could not be delivered")
+
+
+def send_two_factor_email(recipient_email, code, purpose):
+    action = "sign in to Living Atlas" if purpose == "login" else "turn on two-factor authentication for Living Atlas"
+    body = f"""
+        <p>Enter this verification code to {action}:</p>
+        <p><strong>{code}</strong></p>
+        <p>This code expires in {CODE_LIFETIME_SECONDS // 60} minutes.</p>
+        <p>If you did not request this code, you can ignore this email.</p>
+    """
+    send_via_resend(recipient_email, "Your Living Atlas verification code", body)
 
 
 def send_via_sendgrid(recipient_email, subject, body):
@@ -462,6 +477,7 @@ def reset_password(request: ResetPasswordRequest, token: str | None = Depends(op
             "UPDATE Users SET HashedPassword = %s, Salt = %s WHERE UserID = %s",
             (hash_password(request.new_password, salt), salt, user_id),
         )
+        clear_challenges(cursor, user_id)
         revoke_user_sessions(cursor, user_id)
     return {"success": True, "message": "Password has been reset successfully."}
 
@@ -471,12 +487,22 @@ class AccountLoginRequest(BaseModel):
     password: str
 
 
+class TwoFactorSettingRequest(BaseModel):
+    enabled: StrictBool
+    password: str = Field(min_length=1)
+
+
+class VerificationCodeRequest(BaseModel):
+    challenge_id: str = Field(regex=r"\A[A-Za-z0-9_-]{43}\Z")
+    code: str = Field(regex=r"\A[0-9]{6}\Z")
+
+
 def verify_login(cursor, email, password):
     # Match the table-before-row order used by role changes.
     cursor.execute("LOCK TABLE Users IN ROW EXCLUSIVE MODE")
     cursor.execute(
         """
-        SELECT UserID, Username, Email, COALESCE(Is_Admin, FALSE), Salt, HashedPassword
+        SELECT UserID, Username, Email, COALESCE(Is_Admin, FALSE), Salt, HashedPassword, EmailTwoFactorEnabled
         FROM Users WHERE Email = %s FOR UPDATE
         """,
         (email,),
@@ -484,8 +510,34 @@ def verify_login(cursor, email, password):
     account = cursor.fetchone()
     if account is None or not compare_digest(hash_password(password, account[4]), account[5]):
         return None
-    cursor.execute("UPDATE Users SET Last_Online_At = statement_timestamp() WHERE UserID = %s", (account[0],))
-    return account[:4]
+    return (*account[:4], account[6])
+
+
+def record_login(cursor, user_id):
+    cursor.execute("UPDATE Users SET Last_Online_At = statement_timestamp() WHERE UserID = %s", (user_id,))
+
+
+def complete_sign_in(cursor, account, previous_token):
+    record_login(cursor, account[0])
+    revoke_session(cursor, previous_token)
+    token = issue_token(cursor, account[0])
+    return {"Account Information": [account[1:4]], "session_token": token}
+
+
+def send_challenge(response, email, purpose, challenge_id, code):
+    # Release the database connection before contacting the email provider.
+    try:
+        send_two_factor_email(email, code, purpose)
+    except Exception:
+        logger.warning("Two-factor verification email could not be delivered")
+        with account_management_cursor() as cursor:
+            discard_challenge(cursor, challenge_id)
+        raise HTTPException(
+            status_code=503, detail="Could not send a verification code. Please try again shortly.",
+            headers={"Cache-Control": "no-store"},
+        )
+    response.status_code = 202
+    return {"challenge_id": challenge_id, "expires_in": CODE_LIFETIME_SECONDS}
 
 
 @account_router.get("/profileAccount")
@@ -494,7 +546,10 @@ def profileAccount(email: str, password: str, response: Response):
     response.headers["Cache-Control"] = "no-store"
     with account_management_cursor() as cursor:
         account = verify_login(cursor, email, password)
-        return {"Account Information": [account[1:]] if account else []}
+        if account is None or account[4]:
+            return {"Account Information": []}
+        record_login(cursor, account[0])
+        return {"Account Information": [account[1:4]]}
 
 
 @account_router.post("/profileAccount")
@@ -503,10 +558,93 @@ def sign_in(request: AccountLoginRequest, response: Response, previous_token=Dep
     with account_management_cursor() as cursor:
         account = verify_login(cursor, request.email, request.password)
         if account is None:
-            raise HTTPException(status_code=401, detail="Invalid email or password.")
-        revoke_session(cursor, previous_token)
-        token = issue_token(cursor, account[0])
-        return {"Account Information": [account[1:]], "session_token": token}
+            raise HTTPException(
+                status_code=401, detail="Invalid email or password.", headers={"Cache-Control": "no-store"},
+            )
+        if not account[4]:
+            return complete_sign_in(cursor, account, previous_token)
+        challenge_id, code = create_challenge(cursor, account[0], "login")
+    return {"two_factor_required": True, **send_challenge(response, account[2], "login", challenge_id, code)}
+
+
+@account_router.post("/profileAccount/verify")
+def verify_sign_in(request: VerificationCodeRequest, response: Response, previous_token=Depends(optional_bearer_token)):
+    response.headers["Cache-Control"] = "no-store"
+    with account_management_cursor() as cursor:
+        cursor.execute("LOCK TABLE Users IN ROW EXCLUSIVE MODE")
+        cursor.execute(
+            """
+            SELECT u.UserID, u.Username, u.Email, COALESCE(u.Is_Admin, FALSE)
+            FROM EmailTwoFactorChallenges c JOIN Users u ON u.UserID = c.UserID
+            WHERE c.ChallengeHash = %s AND c.Purpose = 'login' AND u.EmailTwoFactorEnabled
+            FOR UPDATE OF u
+            """,
+            (challenge_hash(request.challenge_id),),
+        )
+        account = cursor.fetchone()
+        if account is None:
+            raise expired_challenge()
+        error = verify_challenge(cursor, account[0], "login", request.challenge_id, request.code)
+        if error is None:
+            return complete_sign_in(cursor, account, previous_token)
+    raise error
+
+
+@account_router.get("/account/two-factor")
+def get_two_factor_setting(response: Response, token: str = Depends(bearer_token)):
+    response.headers["Cache-Control"] = "no-store"
+    with account_management_cursor() as cursor:
+        user_id, _, _ = require_account(cursor, token)
+        cursor.execute("SELECT EmailTwoFactorEnabled FROM Users WHERE UserID = %s", (user_id,))
+        row = cursor.fetchone()
+        if row is None:
+            raise invalid_session()
+        return {"enabled": row[0]}
+
+
+def lock_two_factor_account(cursor, token):
+    cursor.execute("LOCK TABLE Users IN ROW EXCLUSIVE MODE")
+    user_id, email, _ = require_account(cursor, token)
+    cursor.execute("SELECT EmailTwoFactorEnabled, Salt, HashedPassword FROM Users WHERE UserID = %s FOR UPDATE", (user_id,))
+    account = cursor.fetchone()
+    if account is None:
+        raise invalid_session()
+    # Password reset and account deletion can revoke the session while we wait for the lock.
+    require_account(cursor, token)
+    return user_id, email, *account
+
+
+@account_router.put("/account/two-factor")
+def set_two_factor_setting(request: TwoFactorSettingRequest, response: Response, token: str = Depends(bearer_token)):
+    response.headers["Cache-Control"] = "no-store"
+    with account_management_cursor() as cursor:
+        user_id, email, enabled, salt, password_hash = lock_two_factor_account(cursor, token)
+        if not compare_digest(hash_password(request.password, salt), password_hash):
+            raise HTTPException(
+                status_code=401, detail="Incorrect current password.", headers={"Cache-Control": "no-store"},
+            )
+        if not request.enabled:
+            cursor.execute("UPDATE Users SET EmailTwoFactorEnabled = FALSE WHERE UserID = %s", (user_id,))
+            clear_challenges(cursor, user_id)
+            return {"enabled": False}
+        if enabled:
+            return {"enabled": True}
+        challenge_id, code = create_challenge(cursor, user_id, "enrollment")
+    return send_challenge(response, email, "enrollment", challenge_id, code)
+
+
+@account_router.post("/account/two-factor/verify")
+def verify_two_factor_setting(request: VerificationCodeRequest, response: Response, token: str = Depends(bearer_token)):
+    response.headers["Cache-Control"] = "no-store"
+    with account_management_cursor() as cursor:
+        user_id, _, enabled, _, _ = lock_two_factor_account(cursor, token)
+        if enabled:
+            raise expired_challenge()
+        error = verify_challenge(cursor, user_id, "enrollment", request.challenge_id, request.code)
+        if error is None:
+            cursor.execute("UPDATE Users SET EmailTwoFactorEnabled = TRUE WHERE UserID = %s", (user_id,))
+            return {"enabled": True}
+    raise error
 
 
 @account_router.delete("/session", status_code=204)

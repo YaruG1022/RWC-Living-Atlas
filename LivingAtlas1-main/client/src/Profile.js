@@ -5,6 +5,7 @@ import './AccountPage.css';
 import './Profile.css';
 import api from './api.js';
 import Register from './Register';
+import TwoFactorSettings from './TwoFactorSettings';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleUser, faUserFriends, faKey, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { faEdit } from '@fortawesome/free-regular-svg-icons';
@@ -385,6 +386,8 @@ function Profile(props) {
             )}
 
             {message && <p className="profile-message" role="status">{message}</p>}
+
+            <TwoFactorSettings key={props.email} />
 
             {/* Delete account section */}
             <div className="account-panel profile-danger-zone">

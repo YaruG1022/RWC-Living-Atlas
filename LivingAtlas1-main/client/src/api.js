@@ -9,6 +9,8 @@ const api = axios.create({
 
 const sessionPaths = new Set([
   '/reset-password',
+  '/account/two-factor',
+  '/account/two-factor/verify',
   '/deleteCard',
   '/uploadForm',
   '/list_database',

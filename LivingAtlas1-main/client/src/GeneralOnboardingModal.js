@@ -87,7 +87,7 @@ function GeneralOnboardingModal({ isOpen, onClose, onPlay }) {
                         <li><strong>Contact</strong>: find project contact information.</li>
                         <li><strong>Updates</strong>: browse the full update history.</li>
                         <li><strong>User Manual</strong>: read detailed instructions for the app's tools.</li>
-                        <li><strong>Register / Login</strong>: request account access or sign in. Refreshing the page restores your signed-in account. Open your avatar menu for Profile, Switch Account, and Logout; administrators also see Administration.</li>
+                        <li>Use <strong>Register</strong> to request access or <strong>Login</strong> to sign in. Refreshing the page restores your signed-in account. Open your avatar menu for Profile, Switch Account, and Logout. You can turn on email two-factor authentication in Profile. Administrators also see Administration.</li>
                     </ul>
                 </GuideSection>
 

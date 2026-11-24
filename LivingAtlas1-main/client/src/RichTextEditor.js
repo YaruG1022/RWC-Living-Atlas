@@ -37,7 +37,7 @@ const HEADING_OPTIONS = [
 // A small Word-like rich text editor (TipTap) used for card descriptions.
 // Controlled component: `value` is an HTML string, `onChange` fires with the
 // new HTML whenever the user edits.
-function RichTextEditor({ value, onChange, placeholder, id, className, minHeight, attachments = [], onInsertFiles }) {
+function RichTextEditor({ value, onChange, placeholder, id, className, minHeight, labelledBy, attachments = [], onInsertFiles }) {
     const lastEmittedRef = useRef(value);
     const editor = useEditor({
         extensions: [
@@ -62,6 +62,7 @@ function RichTextEditor({ value, onChange, placeholder, id, className, minHeight
         editorProps: {
             attributes: {
                 class: 'rich-text-editor-content',
+                ...(labelledBy ? { role: 'textbox', 'aria-labelledby': labelledBy, 'aria-multiline': 'true' } : {}),
                 ...(minHeight ? { style: `min-height:${minHeight}px;` } : {}),
             },
             // Pasted plain text with line breaks becomes soft line breaks (<br>)
@@ -88,7 +89,7 @@ function RichTextEditor({ value, onChange, placeholder, id, className, minHeight
     // re-parsing mid-edit, which can reset the selection/restructure the DOM.
     useEffect(() => {
         if (editor && value !== lastEmittedRef.current) {
-            editor.commands.setContent(value || '', false);
+            editor.commands.setContent(value || '', { emitUpdate: false });
             lastEmittedRef.current = value || '';
         }
     }, [value, editor]);

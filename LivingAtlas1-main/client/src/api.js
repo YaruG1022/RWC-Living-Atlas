@@ -13,6 +13,7 @@ const sessionPaths = new Set([
   '/account/two-factor/verify',
   '/deleteCard',
   '/uploadForm',
+  '/cards/generate-description',
   '/list_database',
   '/fetch_signup_requests',
   '/edit_user_role',

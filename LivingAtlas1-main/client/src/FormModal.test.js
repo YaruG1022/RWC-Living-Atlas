@@ -110,6 +110,24 @@ test('a private upload sends the boolean value understood by the backend', async
     expect(api.post.mock.calls[0][1].get('is_public')).toBe('false');
 });
 
+test('project creation generates from unsaved links and files without submitting the project', async () => {
+    api.post.mockResolvedValue({ data: { description: 'Draft from the survey.' } });
+    render(view(account));
+    fireEvent.change(field('title'), { target: { value: 'River survey' } });
+    fireEvent.change(screen.getByPlaceholderText('URL'), { target: { value: 'https://example.invalid/survey' } });
+    const file = new File(['survey results'], 'survey.txt', { type: 'text/plain' });
+    const fileInput = screen.getByRole('dialog').querySelector('input[type="file"]:not([accept])');
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Generate with AI' }));
+    await screen.findByText('Draft added to Description.');
+    expect(api.post).toHaveBeenCalledTimes(1);
+    const [url, body] = api.post.mock.calls[0];
+    expect(url).toBe('/cards/generate-description');
+    expect(body.get('title')).toBe('River survey');
+    expect(JSON.parse(body.get('links'))).toEqual([{ url: 'https://example.invalid/survey', text: '' }]);
+    expect(body.get('files').name).toBe('survey.txt');
+});
+
 test('large images get bounded previews; partial uploads retry only failures without creating another project', async () => {
     URL.createObjectURL = jest.fn(() => 'blob:display');
     URL.revokeObjectURL = jest.fn();

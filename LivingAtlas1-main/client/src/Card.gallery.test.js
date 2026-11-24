@@ -43,14 +43,32 @@ beforeEach(() => {
     api.delete.mockResolvedValue({ data: {} });
 });
 
-async function editCard() {
-    const { container } = render(<Card formData={savedCard} isLoggedIn onCardUpdate={() => {}} />);
+async function editCard(onCardDelete) {
+    const { container } = render(<Card formData={savedCard} isLoggedIn onCardUpdate={() => {}} onCardDelete={onCardDelete} />);
     fireEvent.click(container.querySelector('.card'));
     await waitFor(() => expect(screen.getByRole('region', { name: 'Project image gallery' })).toBeTruthy());
     fireEvent.click(screen.getByRole('button', { name: /Edit/i }));
     await waitFor(() => expect(screen.getByLabelText('Image layout').value).toBe('multi'));
     return screen.getByRole('region', { name: 'Project image gallery' });
 }
+
+test('an admin deletes the saved card after changing its title in the editor', async () => {
+    localStorage.setItem('email', 'admin@example.invalid');
+    localStorage.setItem('isAdmin', 'true');
+    const onCardDelete = jest.fn();
+    const { container } = render(<Card formData={savedCard} isLoggedIn onCardDelete={onCardDelete} />);
+    fireEvent.click(container.querySelector('.card'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit project in Learn More modal' }));
+    const title = screen.getByRole('dialog').querySelector('input[name="title"]');
+    fireEvent.change(title, { target: { value: 'Unsaved title' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Delete project' }));
+
+    await waitFor(() => expect(onCardDelete).toHaveBeenCalledWith(true));
+    expect(api.delete).toHaveBeenCalledWith('/deleteCard', {
+        params: { card_id: savedCard.cardID, username: savedCard.username, title: savedCard.title, requester_email: 'admin@example.invalid' },
+        skipRetry: true,
+    });
+});
 
 test('editing a contact email leaves the card owner identity intact', async () => {
     savedCard.contact_email = 'colleague@example.invalid';
@@ -433,8 +451,10 @@ test('upload preserves draft layout and order; cancel removes only the new uploa
     expect(api.delete).toHaveBeenCalledTimes(1);
 });
 
-test('failed order save keeps the draft open and allows retry', async () => {
-    const gallery = await editCard();
+test('a failed image order save keeps the editor open and preserves the committed title for deletion', async () => {
+    const onCardDelete = jest.fn();
+    const gallery = await editCard(onCardDelete);
+    fireEvent.change(screen.getByRole('dialog').querySelector('input[name="title"]'), { target: { value: 'Committed title' } });
     fireEvent.change(screen.getByLabelText('Image layout'), { target: { value: 'multi' } });
     fireEvent.click(within(gallery).getByRole('button', { name: 'Move image 2 earlier' }));
     api.put.mockRejectedValueOnce(new Error('Fixture failure'));
@@ -443,6 +463,11 @@ test('failed order save keeps the draft open and allows retry', async () => {
     await waitFor(() => expect(showAppAlert).toHaveBeenCalledWith('Image order could not be saved. Please try saving again.'));
     expect(screen.getByLabelText('Image layout').value).toBe('multi');
     await waitFor(() => expect(screen.getByRole('button', { name: 'Save' }).disabled).toBe(false));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete project' }));
+    await waitFor(() => expect(onCardDelete).toHaveBeenCalledWith(true));
+    expect(api.delete).toHaveBeenCalledWith('/deleteCard', expect.objectContaining({
+        params: expect.objectContaining({ card_id: savedCard.cardID, title: 'Committed title' }),
+    }));
     errors.mockRestore();
 });
 

@@ -41,10 +41,43 @@ class UserManagementTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_list_has_a_stable_shape_and_timestamps(self):
         self.cursor.fetchone.return_value = self.admin
-        self.cursor.fetchall.return_value = [('Member', 'member@example.invalid', False, None, None)]
+        self.cursor.fetchall.return_value = [('Member', 'member@example.invalid', False, None, None, 'unknown')]
         response = await self.client.post('/list_database', headers=self.headers)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['users'][0], dict(name='Member', email='member@example.invalid', is_admin=False, created_at=None, last_online_at=None))
+        self.assertEqual(response.json()['users'][0], dict(
+            name='Member', email='member@example.invalid', is_admin=False,
+            created_at=None, last_online_at=None, presence_status='unknown',
+        ))
+        self.db.release_request_connection.assert_called_once_with(self.connection)
+
+    async def test_heartbeat_requires_a_valid_session(self):
+        response = await self.client.post('/session/heartbeat')
+        self.assertEqual(response.status_code, 401)
+        self.db.get_request_connection.assert_not_called()
+
+        self.cursor.fetchone.return_value = None
+        response = await self.client.post('/session/heartbeat', headers=self.headers)
+        self.assertEqual(response.status_code, 401)
+        self.cursor.execute.assert_called_once()
+
+    async def test_heartbeat_updates_presence_for_the_verified_regular_user(self):
+        self.cursor.fetchone.side_effect = [(2, 'member@example.invalid', False), (2,)]
+        response = await self.client.post('/session/heartbeat', headers=self.headers)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.content, b'')
+        _, user_update, token_update = self.cursor.execute.call_args_list
+        self.assertIn('UPDATE Users SET PresenceObserved = TRUE', user_update.args[0])
+        self.assertEqual(user_update.args[1], (2,))
+        self.assertIn('SET LastSeenAt', token_update.args[0])
+        self.assertIn("Purpose = 'session'", token_update.args[0])
+        self.assertIn('ExpiresAt > statement_timestamp()', token_update.args[0])
+        self.connection.__exit__.assert_called_once_with(None, None, None)
+
+    async def test_heartbeat_rolls_back_if_session_is_revoked_during_update(self):
+        self.cursor.fetchone.side_effect = [self.admin, None]
+        response = await self.client.post('/session/heartbeat', headers=self.headers)
+        self.assertEqual(response.status_code, 401)
+        self.assertIsNotNone(self.connection.__exit__.call_args.args[0])
         self.db.release_request_connection.assert_called_once_with(self.connection)
 
     async def test_role_change_is_parameterized_and_commits(self):

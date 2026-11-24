@@ -240,12 +240,13 @@ function UserManual() {
         <h3><ManualText sectionId="profile-admin" blockId="profile-admin-002" onNavigate={navTo} /></h3>
         <ol><ManualText sectionId="profile-admin" blockId="profile-admin-003" onNavigate={navTo} /></ol>
         <p><ManualText sectionId="profile-admin" blockId="profile-admin-004" onNavigate={navTo} /></p>
-        <h3><ManualText sectionId="profile-admin" blockId="profile-admin-011" onNavigate={navTo} /></h3>
+        <h3><ManualText sectionId="profile-admin" blockId="profile-admin-013" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="profile-admin" blockId="profile-admin-012" onNavigate={navTo} /></p>
         <h3><ManualText sectionId="profile-admin" blockId="profile-admin-005" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="profile-admin" blockId="profile-admin-006" onNavigate={navTo} /></p>
         <h3><ManualText sectionId="profile-admin" blockId="profile-admin-007" onNavigate={navTo} /></h3>
         <p><ManualText sectionId="profile-admin" blockId="profile-admin-008" onNavigate={navTo} /></p>
+        <p><ManualText sectionId="profile-admin" blockId="profile-admin-011" onNavigate={navTo} /></p>
         <p><ManualText sectionId="profile-admin" blockId="profile-admin-010" onNavigate={navTo} /></p>
         <p><ManualText sectionId="profile-admin" blockId="profile-admin-009" onNavigate={navTo} /></p>
       </section>

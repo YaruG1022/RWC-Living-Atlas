@@ -161,8 +161,9 @@ export const guiReleases = [
             {
                 title: 'User Management Filters',
                 items: [
-                    'Filter Manage Users by role, last sign-in or date joined, and combine filters with a name or email search. On smaller screens, open Filters to see all three.',
+                    'Filter Manage Users by role, last sign-in or date joined, and combine filters with a name or email search. On smaller screens, open Filters to see all available options.',
                     'The Last sign-in column shows the most recent recorded sign-in and can be sorted newest or oldest first.',
+                    'Use Online status in More filters to find Online, Offline or Unknown accounts. Online status updates while Manage Users is open and uses heartbeats from signed-in browser sessions.',
                 ],
             },
         ],

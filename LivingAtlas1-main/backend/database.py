@@ -152,6 +152,10 @@ def _ensure_schema():
             );
             CREATE INDEX IF NOT EXISTS accounttokens_user_idx ON AccountTokens (UserID);
         """)
+        cur.execute("""
+            ALTER TABLE Users ADD COLUMN IF NOT EXISTS PresenceObserved BOOLEAN NOT NULL DEFAULT FALSE;
+            ALTER TABLE AccountTokens ADD COLUMN IF NOT EXISTS LastSeenAt TIMESTAMPTZ;
+        """)
         ensure_email_two_factor_schema(cur)
         # Migration 003 — LocationType column + CardPolygonVertices table
         cur.execute("""

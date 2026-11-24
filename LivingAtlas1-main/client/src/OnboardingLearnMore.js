@@ -23,7 +23,7 @@ const LEARN_MORE_STEPS = [
     {
         selector: '[data-onboarding-target="learn-more-toolbar"]',
         title: 'Top Toolbar',
-        description: 'Use Edit, Download as PDF and Delete on the left; Help, play and Close are on the right. In edit mode, Save and Cancel replace Edit, and the unsaved changes notice appears after Delete.',
+        description: 'Use Edit, Download as PDF and Delete on the left. Help, play and Close are on the right. Sign in as the project owner or an administrator to edit or delete. In edit mode, Save and Cancel replace Edit, and the unsaved changes notice appears after Delete.',
         placement: 'bottom',
         scrollTo: '[data-onboarding-target="learn-more-toolbar"]',
     },

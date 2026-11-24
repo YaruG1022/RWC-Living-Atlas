@@ -77,7 +77,7 @@
         },
         {
           "type": "text",
-          "text": " (pencil icon) — enter edit mode to modify project content"
+          "text": " (pencil icon) — sign in as the project owner or an administrator to modify project content"
         },
         {
           "type": "break"
@@ -117,7 +117,7 @@
         },
         {
           "type": "text",
-          "text": " (trash icon) — permanently delete the project"
+          "text": " (trash icon) — sign in as the project owner or an administrator to permanently delete the project"
         },
         {
           "type": "break"

@@ -45,3 +45,18 @@ node ./node_modules/react-scripts/scripts/test.js --watchAll=false --runInBand -
 ```
 
 Manual export passed with 21 chapters and 348 blocks. The production bundle compiled with the existing lint and card CSS warnings. The user management source passed ESLint.
+
+## Online status verification
+
+The second version starts from `main` at `d4043f6` and was verified at feature commit `8125396`. Visible signed-in tabs send a heartbeat every 45 seconds. PostgreSQL uses server time to check whether any valid session for the user has a heartbeat within 120 seconds. The roster keeps a durable record of whether an account has ever sent a heartbeat. This lets it report Offline after expiry or logout and Unknown before the first heartbeat. Heartbeats leave the Last sign-in timestamp to the existing sign-in flow.
+
+- The heartbeat accepts a verified session for the current account. The roster still requires server-verified administrator privileges. Password reset tokens cannot send a heartbeat. Logout revokes its token through the existing session endpoint. Other valid sessions can keep the account online.
+- The visible Manage Users tab polls every 30 seconds. A poll updates presence on the current roster without replaying local edits or bringing deleted rows back. Tests cover authorization, unavailable status and recovery, and keyboard focus when a filtered row disappears.
+- The database schema adds two columns. Existing accounts and tokens start without recorded presence. The previous frontend can consume the new roster response, and rolling back the feature does not require dropping columns.
+
+Local verification on November 24, 2026
+
+- The frontend run passed 42 suites and 277 tests in 120.574 seconds with the Jest options above and Node.js 24.22.3. The Administration suite has 15 tests, and the heartbeat hook has four. The manual exported 21 chapters and 349 blocks. The production bundle compiled with the existing warnings.
+- Chrome 157 and Playwright 1.59 exercised the built app at 1440, 390, and 320 pixels with four synthetic accounts and mocked requests. The first browser attempt checked for an authorization header on every API request, including public routes. Restricting that assertion to the roster and heartbeat routes let the rerun verify both requests, automatic status updates, polling failure and recovery, mobile Apply and Cancel, and Last sign-in filtering and sorting. Browser logs and screenshots are under `LivingAtlas1-main/client/coverage/output/playwright/` in the feature worktree.
+- The offline backend suite passed 86 tests in 6.116 seconds on Python 3.12.12, including 19 user-management tests. The first sandboxed run stalled while Python opened a local socket pair. The same offline suite passed outside the sandbox.
+- The two presence and password recovery cases in `scripts/check_ci_postgres.py` passed through the FastAPI routes against PostgreSQL 17.6 at `127.0.0.1:5433/livingatlas_test`. The local port was already in use by the test service, so the probe used two connection-local temporary tables and applied the new migration twice. The first probe exposed a mock that lost its mail patch when the account module was reimported. Keeping the imported module in the probe let both cases pass. The probe confirmed zero fixture rows before rollback and that the temporary tables were gone afterward.

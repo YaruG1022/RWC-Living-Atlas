@@ -30,8 +30,9 @@ test('dialog and history display the same categorized release with earlier histo
     dialog.unmount();
     appRoot.remove();
     render(<ChangelogHistory />);
-    expect(screen.getByRole('heading', { name: 'Update Date: 11/21/2026' }).nextElementSibling)
-        .toHaveTextContent('Project Deletion');
+    const historyHeadings = screen.getAllByRole('heading', { name: /^(Update Date:|Project Deletion$)/ });
+    const deletionHeading = screen.getByRole('heading', { name: 'Project Deletion' });
+    expect(historyHeadings[historyHeadings.indexOf(deletionHeading) - 1]).toHaveTextContent('Update Date: 11/21/2026');
     expect(screen.queryByText('Update Date: 11/16/2026')).not.toBeInTheDocument();
     expect(screen.getAllByRole('heading', { name: /^Update Date:/ }).slice(0, guiReleases.length).map(heading => heading.textContent)).toEqual(modalDates);
     expect(screen.getByText('Update Date: 9/27/2026')).toBeTruthy();

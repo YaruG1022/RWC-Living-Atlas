@@ -232,7 +232,17 @@
         },
         {
           "type": "text",
-          "text": ", combine a name or email search with Role and Last sign-in filters. Open More filters to narrow results by Date joined. On smaller screens, open Filters to see all three options and choose Apply filters. Remove a filter with its × button or choose Clear filters to reset the filters while keeping your search. Use Refresh users to reload the list. Choose the Name, Date joined, or Last sign-in column heading to sort. Last sign-in shows the most recent recorded sign-in."
+          "text": ", combine a name or email search with Role and Last sign-in filters. Open More filters to narrow results by Date joined or Online status. On smaller screens, open Filters to see all options and choose Apply filters. Remove a filter with its × button or choose Clear filters to reset the filters while keeping your search. Use Refresh users to reload the list. Choose the Name, Date joined, or Last sign-in column heading to sort. Last sign-in shows the most recent recorded sign-in."
+        }
+      ]
+    },
+    {
+      "id": "profile-admin-011",
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Online means at least one valid session from a signed-in tab sent a heartbeat in the last two minutes. Offline means an account has sent a heartbeat before and currently has no valid session with a recent heartbeat. Unknown means no heartbeat has been recorded. When a tab is closed or put in the background, its heartbeat can age out while another visible signed-in tab can keep the account Online."
         }
       ]
     },

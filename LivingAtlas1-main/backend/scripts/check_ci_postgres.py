@@ -8,6 +8,7 @@ disposable database is removed; do not run against a developer's populated DB.
 
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+import hashlib
 import os
 from pathlib import Path
 import sys
@@ -197,6 +198,55 @@ class PostgreSQLContracts(unittest.TestCase):
             with self.database.conn, self.database.conn.cursor() as cursor:
                 cursor.execute("DELETE FROM users WHERE userid IN (101, 102)")
 
+    def test_presence_tracks_heartbeats_expiry_and_logout_per_session(self):
+        admin_email = "presence-admin@example.invalid"
+        member_email = "presence-member@example.invalid"
+        self.seed_users([(401, "Presence admin", admin_email, True), (402, "Presence member", member_email, False)])
+        try:
+            admin = self.sign_in(admin_email)
+            first_device = self.sign_in(member_email)
+            second_device = self.sign_in(member_email)
+
+            def member():
+                response = self.request("POST", "/list_database", headers=admin)
+                self.assertEqual(response.status_code, 200)
+                return next(row for row in response.json()["users"] if row["email"] == member_email)
+
+            def heartbeat(headers):
+                return self.request("POST", "/session/heartbeat", headers=headers)
+
+            initial = member()
+            self.assertEqual(initial["presence_status"], "unknown")
+            self.assertIsNotNone(initial["last_online_at"])
+            self.assertEqual(heartbeat(first_device).status_code, 204)
+            self.assertEqual(member()["presence_status"], "online")
+
+            with self.database.conn, self.database.conn.cursor() as cursor:
+                cursor.execute("""
+                    UPDATE AccountTokens SET LastSeenAt = statement_timestamp() - INTERVAL '121 seconds'
+                    WHERE UserID = 402 AND LastSeenAt IS NOT NULL
+                """)
+            self.assertEqual(member()["presence_status"], "offline")
+            self.assertEqual(heartbeat(first_device).status_code, 204)
+            self.assertEqual(heartbeat(second_device).status_code, 204)
+            self.assertEqual(member()["last_online_at"], initial["last_online_at"])
+
+            # A recently observed token must stop contributing once it expires.
+            first_token = first_device["Authorization"].removeprefix("Bearer ")
+            with self.database.conn, self.database.conn.cursor() as cursor:
+                cursor.execute("""
+                    UPDATE AccountTokens SET ExpiresAt = statement_timestamp() - INTERVAL '1 second'
+                    WHERE TokenHash = %s
+                """, (hashlib.sha256(first_token.encode()).hexdigest(),))
+            self.assertEqual(heartbeat(first_device).status_code, 401)
+            self.assertEqual(member()["presence_status"], "online")
+            self.assertEqual(self.request("DELETE", "/session", headers=second_device).status_code, 204)
+            self.assertEqual(heartbeat(second_device).status_code, 401)
+            self.assertEqual(member()["presence_status"], "offline")
+        finally:
+            with self.database.conn, self.database.conn.cursor() as cursor:
+                cursor.execute("DELETE FROM Users WHERE UserID IN (401, 402)")
+
     def test_password_recovery_token_is_single_use_and_revokes_existing_sessions(self):
         email = "recovery@example.invalid"
         self.seed_users([(301, "Recovery fixture", email, False)])
@@ -207,9 +257,11 @@ class PostgreSQLContracts(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             mail.assert_called_once()
             reset_token = mail.call_args.args[1]
-            self.assertEqual(self.request("POST", "/list_database", headers={
+            reset_headers = {
                 "Authorization": f"Bearer {reset_token}",
-            }).status_code, 401)
+            }
+            self.assertEqual(self.request("POST", "/list_database", headers=reset_headers).status_code, 401)
+            self.assertEqual(self.request("POST", "/session/heartbeat", headers=reset_headers).status_code, 401)
 
             new_password = "synthetic-ci-recovery-password"
             reset = {"new_password": new_password, "reset_token": reset_token}

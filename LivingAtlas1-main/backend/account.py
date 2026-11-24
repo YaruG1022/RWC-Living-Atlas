@@ -24,8 +24,8 @@ import requests
 import os
 from hmac import compare_digest
 from sessions import (
-    bearer_token, consume_reset_token, hash_password, invalid_session, issue_token,
-    optional_bearer_token, require_account, require_admin, revoke_session, revoke_user_sessions,
+    PRESENCE_WINDOW_SECONDS, bearer_token, consume_reset_token, hash_password, invalid_session, issue_token,
+    optional_bearer_token, record_session_presence, require_account, require_admin, revoke_session, revoke_user_sessions,
 )
 
 # Email provider credentials must be configured in the environment.
@@ -329,10 +329,33 @@ def account_management_cursor():
 def list_database(token: str = Depends(bearer_token)):
     with account_management_cursor() as cursor:
         require_admin(cursor, token)
-        cursor.execute("SELECT username, email, COALESCE(is_admin, false), created_at, last_online_at FROM users")
+        cursor.execute(
+            """
+            SELECT u.Username, u.Email, COALESCE(u.Is_Admin, FALSE), u.Created_At, u.Last_Online_At,
+                   CASE
+                       WHEN EXISTS (
+                           SELECT 1 FROM AccountTokens t
+                           WHERE t.UserID = u.UserID AND t.Purpose = 'session'
+                             AND t.ExpiresAt > statement_timestamp()
+                             AND t.LastSeenAt > statement_timestamp() - (%s * INTERVAL '1 second')
+                       ) THEN 'online'
+                       WHEN u.PresenceObserved THEN 'offline'
+                       ELSE 'unknown'
+                   END
+            FROM Users u
+            """,
+            (PRESENCE_WINDOW_SECONDS,),
+        )
         rows = cursor.fetchall()
         return {"users": [
-            {"name": row[0], "email": row[1], "is_admin": row[2], "created_at": row[3], "last_online_at": row[4]}
+            {
+                "name": row[0],
+                "email": row[1],
+                "is_admin": row[2],
+                "created_at": row[3],
+                "last_online_at": row[4],
+                "presence_status": row[5],
+            }
             for row in rows
         ]}
 
@@ -492,6 +515,12 @@ def sign_out(token=Depends(bearer_token)):
         revoke_session(cursor, token)
 
 
+
+
+@account_router.post("/session/heartbeat", status_code=204)
+def session_heartbeat(token=Depends(bearer_token)):
+    with account_management_cursor() as cursor:
+        record_session_presence(cursor, token)
 
 
 @account_router.post("/uploadAccount")

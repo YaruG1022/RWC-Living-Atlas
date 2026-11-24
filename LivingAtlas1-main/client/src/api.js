@@ -14,6 +14,7 @@ const sessionPaths = new Set([
   '/account/two-factor/resend',
   '/deleteCard',
   '/uploadForm',
+  '/cards/generate-description',
   '/list_database',
   '/fetch_signup_requests',
   '/edit_user_role',

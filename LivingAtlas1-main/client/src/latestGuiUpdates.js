@@ -178,6 +178,12 @@ export const guiReleases = [
                     'Project deletion and editing now verify the signed-in account. Administrators can transfer ownership. Password reset links expire after 30 minutes and work once.',
                 ],
             },
+            {
+                title: 'AI Description Drafts',
+                items: [
+                    'Choose Generate with AI beside Description when creating or editing a project to draft text from links, images, and attachments. Review and edit the draft before submitting or saving.',
+                ],
+            },
         ],
     },
     { date: latestGuiUpdateDate, groups: latestGuiUpdates },

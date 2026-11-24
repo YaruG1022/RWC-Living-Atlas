@@ -7,7 +7,7 @@ import './FormModal.css';
 import api from './api.js';
 import ImageFramingModal from './ImageFramingModal';
 import { IMAGE_ACCEPT, defaultPresentation, galleryFrameAspect, framingStyle, imageUploadError, prepareImagePreview, uploadPercent, uploadToken, validateImage } from './imageUploads';
-import RichTextEditor from './RichTextEditor';
+import CardDescriptionEditor from './CardDescriptionEditor';
 import { htmlToPlainText } from './richTextUtils';
 import PolygonDrawingModal from './PolygonDrawingModal';
 import CoordinatesPanel from './CoordinatesPanel';
@@ -691,8 +691,21 @@ const FormModal = (props) => {
                         <option value="Other">Other</option>
                     </select>
 
-                    <label>Description (optional):</label>
-                    <RichTextEditor
+                    <CardDescriptionEditor
+                        key={props.email}
+                        onboardingTarget="create-card-description"
+                        optional
+                        disabled={isSubmitting || Boolean(createdCardID)}
+                        title={formData.title}
+                        links={links}
+                        images={[
+                            ...imageJobs.map(job => ({ file: job.file, previewUrl: job.url })),
+                            ...(locationType === 'image' ? [
+                                ...overlayImageSlots.map(slot => ({ file: slot.file, previewUrl: slot.url })),
+                                { file: overlayImageFile, previewUrl: overlayImagePreview },
+                            ] : []),
+                        ]}
+                        files={selectedFiles}
                         onInsertFiles={files => setSelectedFiles(prev => [...prev, ...files])}
                         value={formData.description || ''}
                         onChange={(html) => setFormData(prev => ({ ...prev, description: html }))}

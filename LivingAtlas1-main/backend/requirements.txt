@@ -56,6 +56,7 @@ uvicorn==0.21.1
 wsproto==1.0.0
 
 Pillow>=11.3.0,<13
+pypdf==7.1.1
 pyvips[binary]>=3.0,<4
 
 # Binary wheels bundle GDAL/PROJ, including read-only File Geodatabase support.

@@ -32,6 +32,37 @@ and optionally `AZURE_CONTAINER`/`AZURE_ACCOUNT`. Account email integration uses
 Resend/SendGrid configuration in [`backend/account.py`](../LivingAtlas1-main/backend/account.py).
 Check the deployed configuration before changing providers or rotating credentials.
 
+## Card description generation
+
+Deploy the Atlas API and [Atlas Helper](https://github.com/YaruG1022/RWC-Living-Atlas-Chatbot)
+versions that expose the card description endpoints. In the Atlas API app settings,
+set `ATLAS_HELPER_URL` to the Helper's HTTPS origin and `ATLAS_DESCRIPTION_TOKEN`
+to a randomly generated secret of at least 32 characters. Set the same token in
+the Helper's app settings. The Helper uses its existing DeepSeek configuration for
+text and its configured vision model for requests with images. The API sends
+extracted source text and resized images to the Helper, which passes them to the
+configured provider. Both settings belong on the server.
+
+The production deployment workflows can apply these settings from the shared
+`ATLAS_DESCRIPTION_TOKEN` GitHub Actions secret in both repositories. The Atlas
+API workflow uses the Azure Helper origin. Configure and deploy Helper before
+publishing the Atlas release.
+
+For local use, set the same values in the service environments and point
+`ATLAS_HELPER_URL` to the local Helper, for example `http://127.0.0.1:8001`.
+Use a local test account and synthetic links, images, and attachments. Check the
+generated draft in both forms and confirm that generating or closing the form
+leaves the saved card untouched.
+
+Generation can use public pages and PDFs, JPEG, PNG, WebP, GIF and BMP images,
+and text-based PDF, Word (.docx), plain text, Markdown, CSV, TSV, JSON, GeoJSON
+and XML attachments. Stored ZIP wrappers and ZIP attachments can contribute up to
+four supported entries. Scanned PDFs without a text layer and unsupported binary
+formats are skipped. Each pending source can be up to 8 MiB, combined pending
+uploads can be up to 32 MiB, and the draft uses up to eight images. Unreadable
+sources are listed with the generated draft. The API checks card ownership or
+administrator permission before reading saved materials.
+
 ## Release preparation
 
 1. Select the release commit and tag. Record frontend, API, and chatbot SHAs

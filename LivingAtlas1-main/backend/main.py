@@ -24,6 +24,7 @@ from database import conn, cur
 from account import account_router
 from endpoint_files.card import card_router
 from endpoint_files.card_arcgis_links import card_arcgis_links_router
+from endpoint_files.card_description import router as card_description_router
 from endpoint_files import filterbar_router
 from endpoint_files import map_router
 from endpoint_files import arcgis_router
@@ -89,6 +90,7 @@ def test_cate():
 app.include_router(account_router)
 app.include_router(card_router)
 app.include_router(card_arcgis_links_router)
+app.include_router(card_description_router)
 app.include_router(filterbar_router)
 app.include_router(map_router)
 app.include_router(arcgis_router)

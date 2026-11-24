@@ -17,6 +17,7 @@ import { faHeart as solidHeart, faMagnifyingGlass, faPenToSquare, faPen, faTrash
 import { jsPDF } from 'jspdf';
 import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
 import RichTextEditor from './RichTextEditor';
+import CardDescriptionEditor from './CardDescriptionEditor';
 import RepresentationPreview from './RepresentationPreview';
 import { descriptionToHtml, htmlToPlainText } from './richTextUtils';
 import PolygonDrawingModal from './PolygonDrawingModal';
@@ -1714,6 +1715,10 @@ function Card(props) {
         return Number.isInteger(imageID) && imageID > 0 ? imageID : null;
     };
 
+    const descriptionImageIds = isLearnMoreEditMode ? allImagesList.map(resolveImageServerID)
+        .filter(id => id && !pendingDeletedImageIDs.includes(id)) : [];
+    const descriptionCardId = formData.cardID || props.cardID;
+
     const toggleAllImageSelection = (e, image) => {
         e.stopPropagation();
         const imageID = resolveImageServerID(image);
@@ -2251,8 +2256,22 @@ function Card(props) {
                                 + Add More Links
                             </button>
 
-                            <p><strong>Description:</strong></p>
-                            <RichTextEditor
+                            <CardDescriptionEditor
+                                key={descriptionCardId}
+                                onboardingTarget="learn-more-description"
+                                disabled={loading || isImageMutationLoading || !props.isLoggedIn}
+                                cardId={descriptionCardId}
+                                title={formData.title}
+                                links={learnMoreLinks}
+                                images={[
+                                    { file: thumbnail, previewUrl: preview },
+                                    ...imageUploadJobs.filter(job => !job.imageID && job.status === 'failed'),
+                                ]}
+                                files={formData.filesToUpload || []}
+                                imageIds={descriptionImageIds}
+                                fileIds={(formData.files || []).map(file => Number(file.fileid)).filter(id => Number.isInteger(id) && id > 0)}
+                                includeThumbnail={Boolean(!thumbnail && formData.thumbnail_link && !isLegacyOrganizationImage(formData.thumbnail_link)
+                                    && (isImageCard || (!descriptionImageIds.length && !pendingDeletedImageIDs.length)))}
                                 attachments={formData.files || []}
                                 onInsertFiles={files => setFormData(prev => ({ ...prev, filesToUpload: [...(prev.filesToUpload || []), ...files] }))}
                                 value={formData.description || ''}

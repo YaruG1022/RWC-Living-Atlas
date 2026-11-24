@@ -96,6 +96,32 @@ test('restoring a field to its saved value removes the close warning',async()=>{
     expect(showAppConfirm).not.toHaveBeenCalled();
 });
 
+test('Learn More uses edited links and saved and new attachments without saving', async () => {
+    card.link = 'https://example.invalid/saved';
+    card.files = [{ fileid: 15, filename: 'saved.txt' }];
+    card.description = '<p>Existing description</p>';
+    api.post.mockResolvedValue({ data: { description: 'Generated draft' } });
+    await open();
+    fireEvent.change(screen.getByDisplayValue(card.link), {
+        target: { value: 'https://example.invalid/edited' },
+    });
+    fireEvent.change(screen.getByLabelText('Add files'), {
+        target: { files: [new File(['new survey'], 'new.txt')] },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Generate with AI' }));
+    await screen.findByText('Generated draft');
+    expect(api.post).toHaveBeenCalledTimes(1);
+    const [url, body] = api.post.mock.calls[0];
+    expect(url).toBe('/cards/generate-description');
+    expect(body.get('card_id')).toBe('101');
+    expect(JSON.parse(body.get('links'))).toEqual([{ url: 'https://example.invalid/edited', text: '' }]);
+    expect(JSON.parse(body.get('file_ids'))).toEqual([15]);
+    expect(body.get('files').name).toBe('new.txt');
+    fireEvent.click(screen.getByRole('button', { name: 'Discard draft' }));
+    expect(screen.queryByText('Generated draft')).toBeNull();
+    expect(api.post).toHaveBeenCalledTimes(1);
+});
+
 test('closing still protects a draft after a tutorial returns to view mode',async()=>{
     await open(false);
     fireEvent.click(screen.getByRole('button',{name:'Start detail view onboarding'}));

@@ -34,6 +34,12 @@ const ONBOARDING_STEPS = [
         placement: 'left',
     },
     {
+        selector: '[data-onboarding-target="create-card-description"]',
+        title: 'Draft a Description',
+        description: 'Add a link, image, or file, then choose Generate with AI. If Description already has text, preview the suggestion and choose Use draft to replace it. Review the draft before submitting.',
+        placement: 'left',
+    },
+    {
         selector: '[data-onboarding-target="create-card-submit-actions"]',
         title: 'Submit and Cancel',
         description: 'Submit creates the project, then uploads gallery images one at a time with progress. If an image fails, Retry remaining images keeps the created project and completed uploads. Review the error before retrying.',

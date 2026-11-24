@@ -1,0 +1,74 @@
+.card-description-heading,
+.card-description-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.card-description-heading {
+    justify-content: space-between;
+    margin-bottom: 6px;
+    color: #374957;
+    font-size: 0.9rem;
+}
+
+.card-description .card-description-button {
+    min-height: 44px;
+    margin: 0;
+    padding: 6px 12px;
+    border: 1px solid #9ab3c5;
+    border-radius: 6px;
+    background: #f6fafd;
+    color: #174c6b;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.card-description .card-description-button:not(:disabled):hover {
+    background: #e3eff7;
+}
+
+.card-description .card-description-button:focus-visible {
+    outline: 2px solid #176396;
+    outline-offset: 2px;
+}
+
+.card-description .card-description-button:disabled {
+    opacity: 0.65;
+    cursor: default;
+}
+
+.card-description-feedback,
+.card-description-warnings {
+    margin: 0 0 8px;
+    color: #425a6b;
+    font-size: 0.88rem;
+    overflow-wrap: anywhere;
+}
+
+.card-description-error {
+    color: #a12620;
+}
+
+.card-description-warnings {
+    padding-inline-start: 20px;
+}
+
+.card-description-preview {
+    margin-bottom: 8px;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #f8fafc;
+    color: #334155;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.card-description-actions {
+    margin-top: 10px;
+}

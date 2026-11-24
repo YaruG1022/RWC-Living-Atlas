@@ -55,6 +55,31 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_898B17970FF44FC29E21AE91B8283547 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_1CCD65A7993341F9AD6B27914994AE25 }}
 
+      - name: Configure project description generation
+        shell: bash
+        env:
+          ATLAS_DESCRIPTION_TOKEN: ${{ secrets.ATLAS_DESCRIPTION_TOKEN }}
+          ATLAS_HELPER_URL: https://rwc-atlas-chatbot-frh2gbaahydfc8cf.westus3-01.azurewebsites.net
+        run: |
+          if [[ -z "$ATLAS_DESCRIPTION_TOKEN" ]]; then
+            exit 0
+          fi
+          group="$(az resource list --name rwc-atlas-api --resource-type Microsoft.Web/sites \
+            --query "[?name=='rwc-atlas-api'].resourceGroup | [0]" --output tsv --only-show-errors)"
+          if [[ -z "$group" ]]; then
+            echo "Azure resource group for rwc-atlas-api not found."
+            exit 1
+          fi
+          current_token="$(az webapp config appsettings list --name rwc-atlas-api --resource-group "$group" \
+            --query "[?name=='ATLAS_DESCRIPTION_TOKEN'].value | [0]" --output tsv --only-show-errors)"
+          current_helper="$(az webapp config appsettings list --name rwc-atlas-api --resource-group "$group" \
+            --query "[?name=='ATLAS_HELPER_URL'].value | [0]" --output tsv --only-show-errors)"
+          if [[ "$current_token" != "$ATLAS_DESCRIPTION_TOKEN" || "$current_helper" != "$ATLAS_HELPER_URL" ]]; then
+            az webapp config appsettings set --name rwc-atlas-api --resource-group "$group" \
+              --settings "ATLAS_DESCRIPTION_TOKEN=$ATLAS_DESCRIPTION_TOKEN" "ATLAS_HELPER_URL=$ATLAS_HELPER_URL" \
+              --output none --only-show-errors
+          fi
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:

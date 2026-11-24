@@ -277,6 +277,36 @@
         {
           "type": "text",
           "text": " (comma-separated) make projects discoverable in search and filter. None of these are required."
+        },
+        {
+          "type": "text",
+          "text": " To draft a description, enter a link or attach an image or file, then click "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Generate with AI"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " beside Description. The draft fills an empty field. If you already have a description, preview the draft and choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Use draft"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to replace it. A notice identifies sources the app could not read. Review or edit the draft before submitting the project."
         }
       ]
     },

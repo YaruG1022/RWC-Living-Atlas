@@ -48,7 +48,7 @@ export function previewDimensions(buffer) {
     return null;
 }
 
-export async function prepareImagePreview(file) {
+export async function prepareImagePreview(file, signal) {
     validateImage(file);
     // Common, modest photos get local previews without a second upload. Never
     // create an original-sized canvas; preflight dimensions before any decode.
@@ -77,7 +77,7 @@ export async function prepareImagePreview(file) {
     const body = new FormData();
     body.append('image', file);
     try {
-        const response = await api.post('/imagePreview', body, { responseType: 'blob', timeout: 180000, skipRetry: true });
+        const response = await api.post('/imagePreview', body, { responseType: 'blob', timeout: 180000, skipRetry: true, signal });
         return URL.createObjectURL(response.data);
     } catch (error) {
         if (error.response?.data instanceof Blob) {

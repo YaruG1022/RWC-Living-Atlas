@@ -158,6 +158,12 @@ export const guiReleases = [
                     'The Last sign-in column shows the most recent recorded sign-in and can be sorted newest or oldest first.',
                 ],
             },
+            {
+                title: 'AI Description Drafts',
+                items: [
+                    'Choose Generate with AI beside Description when creating or editing a project to draft text from links, images, and attachments. Review and edit the draft before submitting or saving.',
+                ],
+            },
         ],
     },
     {

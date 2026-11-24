@@ -56,6 +56,13 @@ const LEARN_MORE_STEPS = [
         scrollTo: '[data-onboarding-target="learn-more-text-area"]',
     },
     {
+        selector: '[data-onboarding-target="learn-more-description"]',
+        title: 'Edit Mode - Draft a Description',
+        description: 'Choose Generate with AI to draft a description from project links, images, and files. If you have a description, preview the suggestion and choose Use draft to replace it. Review your edits before saving.',
+        placement: 'left',
+        scrollTo: '[data-onboarding-target="learn-more-description"]',
+    },
+    {
         selector: '[data-onboarding-target="learn-more-coordinates-polygon"]',
         title: 'Edit Mode - Map Location',
         description: 'Map location previews markers, polygons and image overlays. Change location type is available for all three; the current type is disabled. Choose another type to place a new location. The old location hides while you edit. Cancel restores it; the main Save commits your changes.',

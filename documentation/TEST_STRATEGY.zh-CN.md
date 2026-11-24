@@ -81,6 +81,7 @@ flowchart TD
 | 功能：注册/认证/授权 | 高 | 输入边界、重复/大小写邮箱、权限提升、会话失效、未授权访问；核对状态码和数据库不变量 | 单元 + API 集成 + 少量 E2E |
 | 功能：邮箱双因素认证（email two-factor authentication, 2FA） | 高 | 默认关闭、开启确认、切换账号、验证码有效期与并发重复提交、密码重置和关闭 | `scripts/check_email_two_factor.py`、`emailTwoFactor.test.js` 和浏览器验证；[本地证据](../LivingAtlas1-main/backend/load_tests/EMAIL_TWO_FACTOR_REPORT.zh-CN.md) |
 | 功能：卡片与地图 | 高 | 创建/编辑/删除卡片，筛选组合、排序/分页、空结果、地图点位与列表一致、并发更新 | API/DB 集成 + 浏览器 E2E |
+| 功能：卡片描述草稿（card description draft） | 中 | 按当前链接与附件生成，检查编辑权限、跳过提示、草稿预览和原有文字保护 | `CardDescriptionEditor.test.js`、`test_card_description.py` 和浏览器检查，[本地证据](reviews/ai-card-description/README.md) |
 | 功能：文件与外部集成 | 高 | 上传大小/格式、删除回滚、Azure 故障、ArcGIS 响应异常、Mapbox 超时；无孤儿文件/记录 | 合约测试 + 集成测试 |
 | 功能：卡片删除 | 高 | 管理员与所有者、同名卡片、保存前改名、重复提交、附件与收藏清理 | `scripts/check_card_deletion.py` 和 `Card.gallery.test.js`；[本地证据](../LivingAtlas1-main/backend/load_tests/CARD_DELETION_REPORT.zh-CN.md) |
 | 功能：Custom Layers 保存 | 高 | 保存/读取并发、文件夹/排序/GeoJSON 保留、错误与重试、旧表迁移、测试数据清理 | `tests.test_custom_layers` + `scripts/check_custom_layer_workflow.py`；[本地证据](../LivingAtlas1-main/backend/load_tests/CUSTOM_LAYERS_REPORT.zh-CN.md) |

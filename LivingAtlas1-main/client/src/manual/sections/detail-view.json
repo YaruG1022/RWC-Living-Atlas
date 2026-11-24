@@ -709,7 +709,7 @@
       "content": [
         {
           "type": "text",
-          "text": "In edit mode the Description field is a Word-style rich text editor with a toolbar for bold, italic, underline, strikethrough, bulleted and numbered lists, undo/redo, and a heading dropdown (Paragraph, Heading 1–6)."
+          "text": "In edit mode the Description field is a Word-style rich text editor with a toolbar for bold, italic, underline, strikethrough, bulleted and numbered lists, undo/redo, and a heading dropdown (Paragraph, Heading 1–6). "
         },
         {
           "type": "strong",
@@ -736,6 +736,36 @@
         {
           "type": "text",
           "text": " inserts an existing attachment or lets you choose multiple new files (5 MB each). New attachments upload with Save; their inline links then download the file. Descriptions are stored as formatted HTML, displayed with their formatting in the Detail View, and converted to plain text for PDF export."
+        },
+        {
+          "type": "text",
+          "text": " Choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Generate with AI"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " beside Description to draft text from the project's links, images, and files, including attachments you just added. The draft fills an empty field. If the field has text, preview the draft and choose "
+        },
+        {
+          "type": "strong",
+          "content": [
+            {
+              "type": "text",
+              "text": "Use draft"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " to replace it. A notice identifies sources the app could not read. Review or edit the description, then click Save."
         }
       ]
     },

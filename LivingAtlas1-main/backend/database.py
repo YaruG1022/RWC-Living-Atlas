@@ -2,6 +2,7 @@ import os
 import psycopg2
 from custom_layer_schema import ensure_custom_layer_schema
 from card_link_schema import ensure_card_link_schema
+from email_two_factor import ensure_email_two_factor_schema
 from psycopg2 import OperationalError, errorcodes, errors
 from psycopg2.pool import ThreadedConnectionPool
 from threading import BoundedSemaphore, Lock
@@ -151,6 +152,7 @@ def _ensure_schema():
             );
             CREATE INDEX IF NOT EXISTS accounttokens_user_idx ON AccountTokens (UserID);
         """)
+        ensure_email_two_factor_schema(cur)
         # Migration 003 — LocationType column + CardPolygonVertices table
         cur.execute("""
             ALTER TABLE Cards ADD COLUMN IF NOT EXISTS LocationType VARCHAR(10) DEFAULT 'point';

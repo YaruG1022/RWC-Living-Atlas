@@ -182,10 +182,12 @@ class UserManagementTests(unittest.IsolatedAsyncioTestCase):
         })
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()['success'])
-        update, revoke = self.cursor.execute.call_args_list[-2:]
+        update, invalidate_challenges, revoke = self.cursor.execute.call_args_list[-3:]
         self.assertIn('UPDATE Users', update.args[0])
         self.assertEqual(update.args[1][2], 2)
         self.assertEqual(update.args[1][0], self.routes.hash_password('test-password', update.args[1][1]))
+        self.assertIn('UPDATE EmailTwoFactorChallenges', invalidate_challenges.args[0])
+        self.assertEqual(invalidate_challenges.args[1], (2,))
         self.assertIn('DELETE FROM AccountTokens WHERE UserID', revoke.args[0])
         self.assertEqual(revoke.args[1], (2,))
 

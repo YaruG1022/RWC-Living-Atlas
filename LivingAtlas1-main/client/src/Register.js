@@ -1,4 +1,3 @@
-import { showAppAlert } from './appDialogs';
 import React, { useState } from 'react';
 import './AccountPage.css';
 import './Register.css';
@@ -44,9 +43,7 @@ function Register({ closeRegister }) {
 
             }
         } catch (error) {
-            setMessage('An error occurred. Please try again later.');
-            console.error('There was an error!', error);
-            showAppAlert(error);
+            setMessage(error.response?.status === 401 ? 'Please sign in again to invite a user.' : 'An error occurred. Please try again later.');
         }
     };
     const handleNameChange = (e) => {

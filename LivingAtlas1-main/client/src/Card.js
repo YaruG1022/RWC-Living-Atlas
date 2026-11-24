@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import ReactDOM from 'react-dom';
 import Modal from 'react-modal';
 import api from './api.js';
+import { clearSession, getSessionToken } from './authSession';
 import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
 import { SHOW_LEGACY_ORGANIZATION_LOGO, isLegacyOrganizationImage, visibleGalleryImages, visibleGallerySelection } from './branding';
@@ -410,8 +411,7 @@ function Card(props) {
         e.stopPropagation();
 
         if (isDeleting || loading || isImageMutationLoading) return;
-        const viewerEmail = localStorage.getItem('email') || '';
-        if (!props.isLoggedIn || !viewerEmail) {
+        if (!props.isLoggedIn || !getSessionToken()) {
             setShowLoginPrompt(true);
             return;
         }
@@ -422,13 +422,7 @@ function Card(props) {
             return;
         }
 
-        const cardOwnerEmail = savedCard.email || '';
-        const isAdmin = (() => { try { return JSON.parse(localStorage.getItem('isAdmin')); } catch { return false; } })();
         const permissionMessage = "You don't have permission to delete this project. Only the project's creator or an admin can delete it.";
-        if (!isAdmin && cardOwnerEmail && viewerEmail.toLowerCase() !== cardOwnerEmail.toLowerCase()) {
-            showAppAlert(permissionMessage);
-            return;
-        }
 
         setIsDeleting(true);
         try {
@@ -438,7 +432,6 @@ function Card(props) {
                     card_id: savedCard.cardID,
                     username: savedCard.username,
                     title: savedCard.title,
-                    requester_email: viewerEmail,
                 },
                 skipRetry: true,
             });
@@ -449,9 +442,11 @@ function Card(props) {
                 window.location.reload();
             }
         } catch (error) {
-            console.error("Delete failed:", error);
             const status = error.response?.status;
-            if (status === 403) {
+            if (status === 401) {
+                clearSession();
+                setShowLoginPrompt(true);
+            } else if (status === 403) {
                 showAppAlert(permissionMessage);
             } else if (status === 404 || status === 409 || !error.response) {
                 showAppAlert("Could not confirm deletion. Refresh the project list before trying again.");
@@ -761,18 +756,6 @@ function Card(props) {
         return;
     }
 
-    // Validate username exists if it was changed
-    if (formData.original_username && formData.username !== formData.original_username) {
-        try {
-            await api.get(`/profileAccount?username=${encodeURIComponent(formData.username)}`);
-        } catch (error) {
-            if (error.response?.status === 404) {
-                showAppAlert(`Project Creator "${formData.username}" does not exist. Please use a valid username.`);
-                return;
-            }
-        }
-    }
-
     let effectiveThumbnailLink = formData.thumbnail_link || '';
     if (!isImageCard && !thumbnail && Array.isArray(formData.images) && formData.images.length > 0) {
         const firstImage = formData.images[0];
@@ -918,11 +901,6 @@ function Card(props) {
         });
     }
 
-    const requesterEmail = localStorage.getItem('email') || '';
-    if (requesterEmail) {
-        formDataToSend.append('requester_email', requesterEmail);
-    }
-
     setLoading(true);
     try {
         await api.post("/uploadForm", formDataToSend);
@@ -939,8 +917,12 @@ function Card(props) {
         }
         return true;
     } catch (error) {
-        console.error("Failed to save the card:", error);
-        
+        if (error.response?.status === 401) {
+            clearSession();
+            setShowLoginPrompt(true);
+            return false;
+        }
+
         // Extract detailed error message from backend response
         let errorMessage = "Failed to save the project. Please try again.";
         const detail = error.response?.data?.detail;

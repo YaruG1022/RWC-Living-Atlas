@@ -6,12 +6,13 @@ account
 
 """
 
-from fastapi import APIRouter, Form, HTTPException, UploadFile, File
+from fastapi import APIRouter, BackgroundTasks, Depends, Form, HTTPException, Response, UploadFile, File
 from database import conn, cur, get_request_connection, release_request_connection
-from pydantic import BaseModel, StrictBool
+from pydantic import BaseModel, Field, StrictBool
 from typing import Dict, Any
 from contextlib import contextmanager
 import json
+import logging
 import psycopg2
 
 import urllib.parse
@@ -21,21 +22,28 @@ import requests
 # from email.mime.text import MIMEText
 
 import os
-import hashlib
+from hmac import compare_digest
+from sessions import (
+    bearer_token, consume_reset_token, hash_password, invalid_session, issue_token,
+    optional_bearer_token, require_account, require_admin, revoke_session, revoke_user_sessions,
+)
 
 # Email provider credentials must be configured in the environment.
-import os
 SENDGRID_API_KEY = os.environ.get("CEREO_API_KEY", "")
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "")
 RESEND_API_KEY = (os.environ.get("RESEND_API_KEY") or os.environ.get("CEREO_API_KEY") or "").strip()
 RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "noreply@cereo-livingatlas.com")
 
 account_router = APIRouter()
+logger = logging.getLogger(__name__)
 
 # Model for password reset
 class ResetPasswordRequest(BaseModel):
-    email: str
-    new_password: str
+    new_password: str = Field(min_length=6)
+    reset_token: str | None = Field(default=None, min_length=1)
+
+    class Config:
+        extra = "forbid"
 
 # Model for forgot password request
 class ForgotPasswordRequest(BaseModel):
@@ -73,66 +81,20 @@ class User(BaseModel):
     name: str
     email: str
 
-# Function to get short URL using Bitly
-def get_short_url(long_url):
+def send_recovery_email(recipient_email, token):
+    # Carry the credential in a fragment so the frontend server never receives it.
+    fragment = urllib.parse.urlencode({"token": token})
+    reset_url = f"https://willowy-twilight-157839.netlify.app/reset-password#{fragment}"
+    body = f"""
+        <p>Use this link to reset your Living Atlas password.</p>
+        <p><a href="{reset_url}">Reset password</a></p>
+        <p>If you did not request a reset, you can ignore this email.</p>
+    """
     try:
-        # Using Bitly's API with timeout
-        BITLY_API_URL = "https://api-ssl.bitly.com/v4/shorten"
-        bitly_api_token = os.environ.get("BITLY_API_TOKEN", "").strip()
-        if not bitly_api_token:
-            return long_url
-        headers = {"Authorization": f"Bearer {bitly_api_token}", "Content-Type": "application/json"}
-        data = {"long_url": long_url}
-        response = requests.post(BITLY_API_URL, json=data, headers=headers, timeout=10)
-        if response.status_code == 200 or response.status_code == 201:
-            return response.json()["link"]
-        else:
-            print("Error shortening URL:", response.text)
-            return long_url  # Fallback to long URL
-    except requests.Timeout:
-        print("Bitly API timeout - using long URL")
-        return long_url
-    except Exception as e:
-        print(f"Bitly API error: {e} - using long URL")
-        return long_url
+        send_via_resend(recipient_email, "Password Reset Request", body)
+    except Exception:
+        logger.warning("Password recovery email could not be delivered")
 
-# Helper function to send the recovery email using SendGrid
-def send_recovery_email(recipient_email):
-    try:
-        print(f"DEBUG: Preparing to send email to {recipient_email}...")
-
-        # Construct the long URL with the recipient's email
-        encoded_email = urllib.parse.quote(recipient_email)
-        long_url = f"https://willowy-twilight-157839.netlify.app/reset-password?email={encoded_email}"
-        
-        print(f"DEBUG: Getting short URL for {long_url}")
-        # Get a short URL from the dynamic URL shortener (e.g., Bitly)
-        short_reset_url = get_short_url(long_url)
-        print(f"DEBUG: Short URL obtained: {short_reset_url}")
-
-        # Email content
-        subject = "Password Reset Request"
-        body = f"""
-        <html>
-            <body>
-                <p>Hi,<br><br>
-                You requested a password reset. Click the link below to reset your password:<br><br>
-                <a href="{short_reset_url}">Reset Password</a><br><br>
-                If you did not request this, please ignore this email.
-                </p>
-            </body>
-        </html>
-        """
-
-        # Send via Resend
-        print(f"DEBUG: Attempting to send via Resend...")
-        send_via_resend(recipient_email, subject, body)
-        # send_via_gmail_smtp(recipient_email, subject, body)
-        print(f"DEBUG: Resend email sent successfully to {recipient_email}!")
-
-    except Exception as e:
-        print(f"DEBUG: Failed to send email: {e}")
-        raise Exception(f"Email sending failed: {e}")
 
 def send_via_sendgrid(recipient_email, subject, body):
     """Send email using SendGrid API"""
@@ -339,11 +301,6 @@ async def upsert_user_preferences(payload: UserPreferencesUpsertRequest):
         return {"success": False, "error": str(e)}
 
 
-# Helper function to hash the password (same as current setup)
-def hash_password(password: str, salt: bytes) -> str:
-    pepper = bytes("xe5Dx93xefx16x9ax12wy", 'utf-8')
-    return hashlib.sha256(bytes(password, 'utf-8') + salt + pepper).hexdigest()
-
 class UserRoleUpdateRequest(BaseModel):
     email: str
     is_admin: StrictBool
@@ -369,8 +326,9 @@ def account_management_cursor():
 
 
 @account_router.post("/list_database")
-def list_database():
+def list_database(token: str = Depends(bearer_token)):
     with account_management_cursor() as cursor:
+        require_admin(cursor, token)
         cursor.execute("SELECT username, email, COALESCE(is_admin, false), created_at, last_online_at FROM users")
         rows = cursor.fetchall()
         return {"users": [
@@ -380,12 +338,11 @@ def list_database():
 
 
 @account_router.post("/fetch_signup_requests")
-async def fetch_signup_requests():
-    try:
-        cur.execute("SELECT username, email, pass, sponsormessage, desiresadmin FROM signupdata")
-        rows = cur.fetchall()
-
-        sign_up_requests = [
+def fetch_signup_requests(token: str = Depends(bearer_token)):
+    with account_management_cursor() as cursor:
+        require_admin(cursor, token)
+        cursor.execute("SELECT username, email, pass, sponsormessage, desiresadmin FROM signupdata")
+        return {"signUpRequests": [
             {
                 "name": row[0],
                 "email": row[1],
@@ -393,38 +350,25 @@ async def fetch_signup_requests():
                 "sponsor_message": row[3],
                 "desired_access_level": row[4],
             }
-            for row in rows
-        ]
-
-        return {"signUpRequests": sign_up_requests}
-    except Exception as e:
-        return {"error": str(e)}
+            for row in cursor.fetchall()
+        ]}
 
 
-
-# Define a dependency to get the current user's role
 @account_router.get("/userRole")
 def get_user_role(email: str):
-    try:
-        # Query the database to retrieve the is_admin status of the user with the given email
-        cur.execute(f"SELECT is_admin FROM users WHERE email = '{email}'")
-        row = cur.fetchone()  # Assuming only one row per user
-    
-        if row:
-            is_admin = row[0]
-            return {"is_admin": is_admin}
-        else:
-            return {"error": "User not found"}
-    except Exception as e:
-        return {"error": str(e)}
-
+    with account_management_cursor() as cursor:
+        cursor.execute("SELECT is_admin FROM users WHERE email = %s", (email,))
+        row = cursor.fetchone()
+        return {"is_admin": row[0]} if row else {"error": "User not found"}
 
 
 @account_router.post("/edit_user_role")
-def edit_user_role(user_info: UserRoleUpdateRequest):
+def edit_user_role(user_info: UserRoleUpdateRequest, token: str = Depends(bearer_token)):
     with account_management_cursor() as cursor:
+        require_admin(cursor, token)
         # Serialize role changes so concurrent requests cannot demote every admin.
         cursor.execute("LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE")
+        require_admin(cursor, token)
         cursor.execute("SELECT COALESCE(is_admin, false) FROM users WHERE email = %s", (user_info.email,))
         row = cursor.fetchone()
         if row is None:
@@ -438,9 +382,11 @@ def edit_user_role(user_info: UserRoleUpdateRequest):
 
 
 @account_router.post("/delete_user/{email}")
-def delete_user(email: str):
+def delete_user(email: str, token: str = Depends(bearer_token)):
     with account_management_cursor() as cursor:
+        require_admin(cursor, token)
         cursor.execute("LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE")
+        require_admin(cursor, token)
         cursor.execute("SELECT COALESCE(is_admin, false) FROM users WHERE email = %s FOR UPDATE", (email,))
         row = cursor.fetchone()
         if row is None:
@@ -452,147 +398,131 @@ def delete_user(email: str):
 
 
 @account_router.post("/deny_request/{email}")
-async def deny_request(email: str):
-    try:
-        cur.execute("DELETE FROM signupdata WHERE email = %s", (email,))
-        conn.commit()
-        return {"success": True, "message": f"Request with email '{email}' has been denied and deleted successfully."}
-    except Exception as e:
-        return {"success": False, "message": str(e)}
+def deny_request(email: str, token: str = Depends(bearer_token)):
+    with account_management_cursor() as cursor:
+        require_admin(cursor, token)
+        cursor.execute("DELETE FROM signupdata WHERE email = %s", (email,))
+    return {"success": True, "message": f"Request with email '{email}' has been denied and deleted successfully."}
 
-# Forgot password endpoint
+
 @account_router.post("/forgot-password")
-async def forgot_password(request: ForgotPasswordRequest):
-    try:
-        print(f"DEBUG: Processing forgot password request for {request.email}")
-        
-        # Check if the email exists in the database
-        cur.execute("SELECT userid FROM users WHERE email = %s", (request.email,))
-        user = cur.fetchone()
+def forgot_password(request: ForgotPasswordRequest, background_tasks: BackgroundTasks):
+    with account_management_cursor() as cursor:
+        cursor.execute("SELECT UserID, Email FROM Users WHERE Email = %s FOR UPDATE", (request.email,))
+        account = cursor.fetchone()
+        if account:
+            token = issue_token(cursor, account[0], purpose="password_reset")
+    if account:
+        background_tasks.add_task(send_recovery_email, account[1], token)
+    return {"success": True, "message": "If an account matches that address, a password reset email will be sent."}
 
-        if not user:
-            print(f"DEBUG: Email not found: {request.email}")
-            raise HTTPException(status_code=400, detail="Email not found")
 
-        print(f"DEBUG: Email found, sending recovery email to {request.email}")
-        
-        # Send the recovery email
-        send_recovery_email(request.email)
-
-        print(f"DEBUG: Recovery email process completed for {request.email}")
-        return {"success": True, "message": "Password recovery email sent."}
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"DEBUG: Exception in forgot_password: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to send recovery email: {str(e)}")
-
-# Reset password endpoint
 @account_router.post("/reset-password")
-async def reset_password(request: ResetPasswordRequest):
-    try:
-        print(f"DEBUG: Processing reset password request")
-        
-        # Extract email and new_password from the request
-        email = request.email
-        new_password = request.new_password
-        
-        print(f"DEBUG: Email: {email}")
-        print(f"DEBUG: New password length: {len(new_password) if new_password else 0}")
+def reset_password(request: ResetPasswordRequest, token: str | None = Depends(optional_bearer_token)):
+    if request.reset_token is None and not token:
+        raise invalid_session()
 
-        if not email or not new_password:
-            print(f"DEBUG: Missing email or password")
-            raise HTTPException(status_code=400, detail="Email and password are required")
+    with account_management_cursor() as cursor:
+        cursor.execute("LOCK TABLE Users IN ROW EXCLUSIVE MODE")
+        if request.reset_token is not None:
+            user_id = consume_reset_token(cursor, request.reset_token)
+        else:
+            user_id, _, _ = require_account(cursor, token)
+            cursor.execute("SELECT UserID FROM Users WHERE UserID = %s FOR UPDATE", (user_id,))
+            if cursor.fetchone() is None:
+                raise invalid_session()
+            # A concurrent reset may revoke this session before we acquire the user lock.
+            require_account(cursor, token)
 
-        # Check if the email exists in the database
-        print(f"DEBUG: Checking if email exists in database...")
-        cur.execute("SELECT userid FROM users WHERE email = %s", (email,))
-        user = cur.fetchone()
-        print(f"DEBUG: User found: {user is not None}")
-
-        if not user:
-            print(f"DEBUG: Email not found in database: {email}")
-            raise HTTPException(status_code=400, detail="Invalid email")
-
-        # Generate a new salt for the new password
-        print(f"DEBUG: Generating new salt and hashing password...")
-        new_salt = os.urandom(32)
-
-        # Hash the new password with the new salt
-        hashed_password = hash_password(new_password, new_salt)
-        print(f"DEBUG: Password hashed successfully")
-
-        # Update the password and salt in the database
-        print(f"DEBUG: Updating password in database...")
-        cur.execute(
-            "UPDATE users SET hashedpassword = %s, salt = %s WHERE email = %s",
-            (hashed_password, new_salt, email)
+        salt = os.urandom(32)
+        cursor.execute(
+            "UPDATE Users SET HashedPassword = %s, Salt = %s WHERE UserID = %s",
+            (hash_password(request.new_password, salt), salt, user_id),
         )
-        conn.commit()
-        print(f"DEBUG: Password updated successfully for {email}")
+        revoke_user_sessions(cursor, user_id)
+    return {"success": True, "message": "Password has been reset successfully."}
 
-        return {"success": True, "message": "Password has been reset successfully"}
 
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"DEBUG: Exception in reset_password: {str(e)}")
-        import traceback
-        print(f"DEBUG: Full traceback: {traceback.format_exc()}")
-        return {"success": False, "message": str(e)}
+class AccountLoginRequest(BaseModel):
+    email: str
+    password: str
 
-#This takes the users email and password and then returns the account information to show for the profile page
+
+def verify_login(cursor, email, password):
+    # Match the table-before-row order used by role changes.
+    cursor.execute("LOCK TABLE Users IN ROW EXCLUSIVE MODE")
+    cursor.execute(
+        """
+        SELECT UserID, Username, Email, COALESCE(Is_Admin, FALSE), Salt, HashedPassword
+        FROM Users WHERE Email = %s FOR UPDATE
+        """,
+        (email,),
+    )
+    account = cursor.fetchone()
+    if account is None or not compare_digest(hash_password(password, account[4]), account[5]):
+        return None
+    cursor.execute("UPDATE Users SET Last_Online_At = statement_timestamp() WHERE UserID = %s", (account[0],))
+    return account[:4]
+
+
 @account_router.get("/profileAccount")
-def profileAccount(email: str, password: str):
-    #Get the salt from the db
-    cur.execute(f"SELECT salt FROM users WHERE email = '{email}'")
-    rows = cur.fetchall()
-    if rows != []:
-        #Convert the given password and the pepper (which is hardcoded) into bytes, concatenate the password, salt, and pepper together
-        #Hash all of that so that it matches the password stored in the db
-        password = hashlib.sha256(bytes(password, 'utf-8') + rows[0][0] + bytes("xe5Dx93xefx16x9ax12wy", 'utf-8')).hexdigest()
-        #Retrieve the information after the user has been authenticated
-        cur.execute(f"SELECT username, email, COALESCE(is_admin, false) FROM users WHERE email = '{email}' AND hashedpassword = '{password}'")
-        rows = cur.fetchall()
-        if rows:
-            try:
-                cur.execute("UPDATE users SET last_online_at = NOW() WHERE email = %s", (email,))
-                conn.commit()
-            except Exception:
-                conn.rollback()
-        return {"Account Information": rows}
+def profileAccount(email: str, password: str, response: Response):
+    # Legacy clients can read the profile shape, while login uses the POST body.
+    response.headers["Cache-Control"] = "no-store"
+    with account_management_cursor() as cursor:
+        account = verify_login(cursor, email, password)
+        return {"Account Information": [account[1:]] if account else []}
+
+
+@account_router.post("/profileAccount")
+def sign_in(request: AccountLoginRequest, response: Response, previous_token=Depends(optional_bearer_token)):
+    response.headers["Cache-Control"] = "no-store"
+    with account_management_cursor() as cursor:
+        account = verify_login(cursor, request.email, request.password)
+        if account is None:
+            raise HTTPException(status_code=401, detail="Invalid email or password.")
+        revoke_session(cursor, previous_token)
+        token = issue_token(cursor, account[0])
+        return {"Account Information": [account[1:]], "session_token": token}
+
+
+@account_router.delete("/session", status_code=204)
+def sign_out(token=Depends(bearer_token)):
+    with account_management_cursor() as cursor:
+        revoke_session(cursor, token)
 
 
 
 
 @account_router.post("/uploadAccount")
-async def make_account(
+def make_account(
     name: str = Form(None),
     email: str = Form(None),
-    password: str = Form(None)
+    password: str = Form(None),
+    token: str = Depends(bearer_token),
 ):
-    try:
-        if name and email and password:
-            # Check if email already exists
-            cur.execute(f"SELECT userid FROM users WHERE email = '{email}'")
-            if cur.fetchone():
-                return {"success": False, "message": "Email must be unique"}
-            
-            # Get the maximum existing user ID and increment it
-            cur.execute("SELECT MAX(userid) FROM users")
-            max_userid = cur.fetchone()[0] or 0
-            userid = max_userid + 1
-            
-            salt = os.urandom(32)
-            hashpass = hashlib.sha256(bytes(password, 'utf-8') + salt + bytes("xe5Dx93xefx16x9ax12wy", 'utf-8')).hexdigest()
-            cur.execute("INSERT INTO users (userid, username, hashedpassword, email, salt) VALUES (%s, %s, %s, %s, %s)", (userid, name, hashpass, email, salt))
-            conn.commit()
-            return {"success": True, "message": "New account added successfully"}
-        else:
+    with account_management_cursor() as cursor:
+        require_account(cursor, token)
+        if not (name and email and password):
             return {"success": False, "message": "All fields must be filled in"}
-    except Exception as e:
-        return {"success": False, "message": str(e)}
+
+        cursor.execute("LOCK TABLE Users IN SHARE ROW EXCLUSIVE MODE")
+        cursor.execute("SELECT 1 FROM Users WHERE Email = %s", (email,))
+        if cursor.fetchone():
+            return {"success": False, "message": "Email must be unique"}
+
+        cursor.execute("SELECT 1 FROM Users WHERE Username = %s", (name,))
+        if cursor.fetchone():
+            return {"success": False, "message": "Username must be unique"}
+
+        cursor.execute("SELECT COALESCE(MAX(UserID), 0) + 1 FROM Users")
+        user_id = cursor.fetchone()[0]
+        salt = os.urandom(32)
+        cursor.execute(
+            "INSERT INTO Users (UserID, Username, HashedPassword, Email, Salt) VALUES (%s, %s, %s, %s, %s)",
+            (user_id, name, hash_password(password, salt), email, salt),
+        )
+    return {"success": True, "message": "New account added successfully"}
 
 
 @account_router.post("/uploadSignup")

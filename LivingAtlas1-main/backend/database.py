@@ -142,6 +142,15 @@ def _ensure_schema():
                 UNIQUE (UserID, CardID)
             );
         """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS AccountTokens (
+                TokenHash CHAR(64) PRIMARY KEY,
+                UserID INT NOT NULL REFERENCES Users(UserID) ON DELETE CASCADE,
+                Purpose TEXT NOT NULL CHECK (Purpose IN ('session', 'password_reset')),
+                ExpiresAt TIMESTAMPTZ NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS accounttokens_user_idx ON AccountTokens (UserID);
+        """)
         # Migration 003 — LocationType column + CardPolygonVertices table
         cur.execute("""
             ALTER TABLE Cards ADD COLUMN IF NOT EXISTS LocationType VARCHAR(10) DEFAULT 'point';

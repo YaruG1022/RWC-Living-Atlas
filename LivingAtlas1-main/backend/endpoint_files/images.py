@@ -28,13 +28,14 @@ IMAGE_FOLDER = "card_images"
 MAX_CARD_IMAGES = 30
 
 
-def reserve_image_slots(card_id: int, incoming_count: int):
+def reserve_image_slots(card_id: int, incoming_count: int, *, cursor=None):
     """Lock the card until commit so concurrent uploads cannot exceed its limit."""
-    cur.execute("SELECT CardID FROM Cards WHERE CardID = %s FOR UPDATE", (card_id,))
-    if not cur.fetchone():
+    cursor = cur if cursor is None else cursor
+    cursor.execute("SELECT CardID FROM Cards WHERE CardID = %s FOR UPDATE", (card_id,))
+    if not cursor.fetchone():
         raise HTTPException(status_code=404, detail="Card not found")
-    cur.execute("SELECT COUNT(*) FROM CardImages WHERE CardID = %s", (card_id,))
-    if cur.fetchone()[0] + incoming_count > MAX_CARD_IMAGES:
+    cursor.execute("SELECT COUNT(*) FROM CardImages WHERE CardID = %s", (card_id,))
+    if cursor.fetchone()[0] + incoming_count > MAX_CARD_IMAGES:
         raise HTTPException(status_code=422, detail=f"A card can have at most {MAX_CARD_IMAGES} images. Save pending deletions before adding more.")
 
 
@@ -83,15 +84,16 @@ def image_preview(image: UploadFile = File(...)):
     return Response(display, media_type='image/webp')
 
 
-def _should_sync_thumbnail_with_gallery(card_id: int) -> bool:
-    cur.execute("SELECT COALESCE(LocationType, 'point') FROM Cards WHERE CardID = %s", (card_id,))
-    row = cur.fetchone()
+def _should_sync_thumbnail_with_gallery(card_id: int, cursor) -> bool:
+    cursor.execute("SELECT COALESCE(LocationType, 'point') FROM Cards WHERE CardID = %s", (card_id,))
+    row = cursor.fetchone()
     return not row or row[0] != 'image'
 
 
-def sync_gallery_thumbnail(card_id: int):
-    if _should_sync_thumbnail_with_gallery(card_id):
-        cur.execute("""
+def sync_gallery_thumbnail(card_id: int, *, cursor=None):
+    cursor = cur if cursor is None else cursor
+    if _should_sync_thumbnail_with_gallery(card_id, cursor):
+        cursor.execute("""
             UPDATE Cards c SET Thumbnail_Link = COALESCE((
                 SELECT ImageURL FROM CardImages WHERE CardID = %s
                 ORDER BY COALESCE(array_position(ARRAY(

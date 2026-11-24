@@ -13,6 +13,7 @@ import Reset from './Reset';
 import SwitchAccount from './SwitchAccount';
 import ChangelogHistory from './ChangelogHistory';
 import UserManual from './UserManual';
+import { signOutSession } from './api';
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
@@ -78,6 +79,7 @@ function App() {
   }, [isLoggedIn, email, username, isAdmin]);
 
   const handleLogout = () => {
+    signOutSession();
     setIsLoggedIn(false);
     setEmail('');
     setPassword('');
@@ -119,6 +121,7 @@ function App() {
         <Route path="/profile">
           {isLoggedIn ? (
             <Profile
+              onLogout={handleLogout}
               email={email}
               setEmail={setEmail}
               password={password}

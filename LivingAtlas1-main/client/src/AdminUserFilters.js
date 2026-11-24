@@ -4,6 +4,7 @@ import Modal from 'react-modal';
 export const DEFAULT_USER_FILTERS = {
     role: 'all',
     lastSignIn: 'any',
+    presence: 'any',
     dateJoined: 'any',
     startDate: '',
     endDate: '',
@@ -23,6 +24,10 @@ const FILTERS = {
             ['older', 'Over 30 days ago'], ['missing', 'No sign-in recorded'],
         ],
     },
+    presence: {
+        label: 'Online status',
+        options: [['any', 'Any status'], ['online', 'Online'], ['offline', 'Offline'], ['unknown', 'Unknown']],
+    },
     dateJoined: {
         label: 'Date joined',
         options: [
@@ -32,12 +37,12 @@ const FILTERS = {
     },
 };
 
-function FilterSelect({ field, id, value, onChange }) {
+function FilterSelect({ field, id, value, onChange, descriptionId }) {
     const { label, options } = FILTERS[field];
     return (
         <div className="admin-user-field">
             <label htmlFor={id}>{label}</label>
-            <select id={id} className="account-control" value={value} onChange={event => onChange(field, event.target.value)}>
+            <select id={id} className="account-control" aria-describedby={descriptionId} value={value} onChange={event => onChange(field, event.target.value)}>
                 {options.map(([key, name]) => <option key={key} value={key}>{name}</option>)}
             </select>
         </div>
@@ -74,7 +79,9 @@ export default function AdminUserFilters({
     }, []);
 
     const appliedFields = Object.keys(FILTERS).filter(field => filters[field] !== DEFAULT_USER_FILTERS[field]);
-    const panelCount = narrow ? appliedFields.length : Number(appliedFields.includes('dateJoined'));
+    const panelCount = narrow
+        ? appliedFields.length
+        : appliedFields.filter(field => field === 'dateJoined' || field === 'presence').length;
     const appRoot = document.getElementById('root');
 
     const changeFilter = (field, value) => setFilters(previous => ({ ...previous, [field]: value }));
@@ -182,6 +189,10 @@ export default function AdminUserFilters({
                                     <FilterSelect field="lastSignIn" id="admin-filter-sign-in" value={draft.lastSignIn} onChange={changeDraft} />
                                 </>
                             )}
+                            <div>
+                                <FilterSelect field="presence" id="admin-filter-presence" value={draft.presence} onChange={changeDraft} descriptionId="admin-filter-presence-hint" />
+                                <p id="admin-filter-presence-hint" className="admin-filter-hint">Online means a signed-in tab sent a heartbeat in the last 2 minutes. Unknown means no heartbeat has been recorded.</p>
+                            </div>
                             <div>
                                 <FilterSelect field="dateJoined" id="admin-filter-date-joined" value={draft.dateJoined} onChange={changeDraft} />
                                 <p className="admin-filter-hint">For some older accounts, the date reflects when this field was added.</p>

@@ -7,7 +7,24 @@ import './AccountPage.css';
 import AdminUserFilters, { DEFAULT_USER_FILTERS, hasUserFilters } from './AdminUserFilters';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const PRESENCE_REFRESH_MS = 30 * 1000;
 const DATE_SORT_FIELDS = { date_joined: 'created_at', last_sign_in: 'last_online_at' };
+const PRESENCE_LABELS = { online: 'Online', offline: 'Offline', unknown: 'Unknown', unavailable: 'Unavailable' };
+
+function getPresenceStatus(user, unavailable) {
+    if (unavailable) return 'unavailable';
+    return user.presence_status === 'online' || user.presence_status === 'offline'
+        ? user.presence_status
+        : 'unknown';
+}
+
+function restoreUserFocus(trigger, search) {
+    window.requestAnimationFrame(() => {
+        if (!trigger?.isConnected && document.activeElement === document.body) {
+            search.current?.focus();
+        }
+    });
+}
 
 function dateTimestamp(value) {
     if (typeof value !== 'string' || !value.trim()) return null;
@@ -52,6 +69,12 @@ function checkManagementResponse(response) {
     return response.data;
 }
 
+function checkUserList(response) {
+    const { users } = checkManagementResponse(response);
+    if (!Array.isArray(users)) throw new Error('Unable to load users. Please try again.');
+    return users;
+}
+
 function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () => {} }) {
     const [users, setUsers] = useState([]);
     const [signUpRequests, setSignUpRequests] = useState([]);
@@ -67,6 +90,7 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
     const [deleteModalError, setDeleteModalError] = useState('');
     const [isDeletingUser, setIsDeletingUser] = useState(false);
     const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+    const [presenceUnavailable, setPresenceUnavailable] = useState(false);
     const [search, setSearch] = useState('');
     const [userFilters, setUserFilters] = useState(DEFAULT_USER_FILTERS);
     const [notice, setNotice] = useState('');
@@ -74,6 +98,7 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
     const [sortOrder, setSortOrder] = useState('asc');
     const userSearch = useRef(null);
     const userActionTrigger = useRef(null);
+    const rosterRequest = useRef(null);
 
     const currentEmail = (accountEmail || localStorage.getItem('email') || '').trim().toLowerCase();
 
@@ -116,6 +141,7 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
             if (!`${user.name || ''} ${user.email || ''}`.toLowerCase().includes(query)) return false;
             if (userFilters.role !== 'all' && Boolean(user.is_admin) !== (userFilters.role === 'admin')) return false;
             if (!matchesLastSignIn(user.last_online_at, userFilters.lastSignIn, now)) return false;
+            if (userFilters.presence !== 'any' && getPresenceStatus(user, presenceUnavailable) !== userFilters.presence) return false;
             if (!joinedBounds) return true;
             const joined = dateTimestamp(user.created_at);
             return joined !== null && joined >= joinedBounds[0] && joined < joinedBounds[1];
@@ -165,17 +191,82 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
         }
     }, [activeTab]);
 
+    useEffect(() => {
+        if (activeTab !== 'manage-users') return undefined;
+
+        let pending = null;
+        const refreshPresence = async () => {
+            const roster = rosterRequest.current;
+            if (pending || !roster?.hasLoaded || roster.pending || document.hidden) return;
+
+            const request = new AbortController();
+            pending = request;
+            let statuses = null;
+            try {
+                const users = checkUserList(await api.post('/list_database', null, {
+                    signal: request.signal,
+                    timeout: 10 * 1000,
+                    skipRetry: true,
+                }));
+                statuses = new Map(users.map(user => [user.email, user.presence_status]));
+            } catch {
+                // Keep the roster and mark presence unavailable until a later refresh succeeds.
+            }
+
+            if (pending !== request) return;
+            pending = null;
+            if (rosterRequest.current !== roster || document.hidden) return;
+
+            const focusedControl = document.activeElement;
+            if (focusedControl?.closest('.admin-users-table tbody')) {
+                restoreUserFocus(focusedControl, userSearch);
+            }
+            if (statuses) {
+                setUsers(current => current.map(user => {
+                    const status = statuses.get(user.email);
+                    return user.presence_status === status ? user : { ...user, presence_status: status };
+                }));
+            }
+            setPresenceUnavailable(statuses === null);
+        };
+
+        const stopRequest = () => {
+            pending?.abort();
+            pending = null;
+        };
+        const handleVisibility = () => {
+            if (document.hidden) stopRequest();
+            else refreshPresence();
+        };
+        const interval = window.setInterval(refreshPresence, PRESENCE_REFRESH_MS);
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => {
+            window.clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibility);
+            stopRequest();
+        };
+    }, [activeTab]);
+
     const fetchUsers = async () => {
+        const request = { pending: true, hasLoaded: Boolean(rosterRequest.current?.hasLoaded) };
+        rosterRequest.current = request;
         setIsLoadingUsers(true);
         setError(null);
         try {
-            const data = checkManagementResponse(await api.post('/list_database'));
-            if (!Array.isArray(data.users)) throw new Error('Unable to load users. Please try again.');
-            setUsers(data.users);
+            const users = checkUserList(await api.post('/list_database'));
+            if (rosterRequest.current === request) {
+                request.hasLoaded = true;
+                setUsers(users);
+                setPresenceUnavailable(false);
+            }
         } catch (error) {
-            setError(managementError(error));
+            if (rosterRequest.current === request) {
+                setError(managementError(error));
+                setPresenceUnavailable(true);
+            }
         } finally {
-            setIsLoadingUsers(false);
+            if (rosterRequest.current === request) setIsLoadingUsers(false);
+            request.pending = false;
         }
     };
 
@@ -333,19 +424,15 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
     const hasSearch = Boolean(search.trim());
     const visibleUsers = activeTab === 'manage-users' ? getSortedUsers() : [];
     const emptyUserList = !error && users.length > 0 && (hasSearch || hasFilters);
+    const presenceFilterUnavailable = presenceUnavailable && userFilters.presence !== 'any';
     const resetSearchAndFilters = () => {
         setSearch('');
         setUserFilters(DEFAULT_USER_FILTERS);
         userSearch.current?.focus();
     };
     const restoreUserActionFocus = () => {
-        const trigger = userActionTrigger.current;
         // The dialog can close before React removes the row from the DOM.
-        window.requestAnimationFrame(() => {
-            if (!trigger?.isConnected && document.activeElement === document.body) {
-                userSearch.current?.focus();
-            }
-        });
+        restoreUserFocus(userActionTrigger.current, userSearch);
     };
 
     return (
@@ -392,10 +479,13 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
                         setFilters={setUserFilters}
                         onRefresh={fetchUsers}
                         isLoading={isLoadingUsers}
-                        listAvailable={!error || users.length > 0}
+                        listAvailable={!presenceFilterUnavailable && (!error || users.length > 0)}
                         total={users.length}
                         matches={visibleUsers.length}
                     />
+                    {!isLoadingUsers && presenceUnavailable && users.length > 0 && (
+                        <p className="admin-presence-note" role="status">Online status is temporarily unavailable. Use Refresh users to try again.</p>
+                    )}
                     <div className="admin-table-wrap" role="region" aria-label="Users table" tabIndex={0} aria-busy={isLoadingUsers}>
                         <table className="admin-table admin-users-table">
                             <thead>
@@ -404,6 +494,7 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
                                     <th scope="col">Email</th>
                                     <th scope="col">Role</th>
                                     {renderSortableHeader('date_joined', 'Date joined')}
+                                    <th scope="col">Online status</th>
                                     {renderSortableHeader('last_sign_in', 'Last sign-in')}
                                     <th scope="col">Actions</th>
                                 </tr>
@@ -419,6 +510,12 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
                                             </span>
                                         </td>
                                         <td>{formatJoinedDate(user.created_at)}</td>
+                                        <td>
+                                            <span className={`admin-presence admin-presence--${getPresenceStatus(user, presenceUnavailable)}`}>
+                                                <span className="admin-presence-dot" aria-hidden="true" />
+                                                {PRESENCE_LABELS[getPresenceStatus(user, presenceUnavailable)]}
+                                            </span>
+                                        </td>
                                         <td>{formatLastSignIn(user.last_online_at)}</td>
                                         <td>
                                             <div className="admin-actions-inline">
@@ -441,7 +538,7 @@ function Administration({ currentEmail: accountEmail, onCurrentRoleChange = () =
                             </tbody>
                         </table>
                     </div>
-                    {!isLoadingUsers && visibleUsers.length === 0 && (
+                    {!isLoadingUsers && !presenceFilterUnavailable && visibleUsers.length === 0 && (
                         <div className="admin-empty-state admin-user-empty">
                             {error ? 'User list unavailable. Use Refresh users to retry.' : emptyUserList ? (
                                 <>

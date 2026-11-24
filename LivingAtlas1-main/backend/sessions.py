@@ -11,6 +11,7 @@ from fastapi.security import HTTPBearer
 _bearer = HTTPBearer(auto_error=False)
 _token_format = re.compile(r"[A-Za-z0-9_-]{43}")
 _token_lifetimes = {"session": "7 days", "password_reset": "30 minutes"}
+PRESENCE_WINDOW_SECONDS = 120
 
 
 def invalid_session():
@@ -83,6 +84,27 @@ def require_admin(cursor, token):
     if not account[2]:
         raise HTTPException(status_code=403, detail="Administrator permission is required.")
     return account
+
+
+def record_session_presence(cursor, token):
+    user_id, _, _ = require_account(cursor, token)
+    # Follow sign-in and password reset by locking the user before its token.
+    cursor.execute(
+        "UPDATE Users SET PresenceObserved = TRUE WHERE UserID = %s AND NOT PresenceObserved",
+        (user_id,),
+    )
+    cursor.execute(
+        """
+        UPDATE AccountTokens
+        SET LastSeenAt = GREATEST(LastSeenAt, statement_timestamp())
+        WHERE TokenHash = %s AND Purpose = 'session' AND ExpiresAt > statement_timestamp()
+        RETURNING UserID
+        """,
+        (_token_hash(token),),
+    )
+    if cursor.fetchone() is None:
+        # A concurrent logout or reset can revoke the token after verification.
+        raise invalid_session()
 
 
 def revoke_session(cursor, token):

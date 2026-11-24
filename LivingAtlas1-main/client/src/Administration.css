@@ -313,7 +313,40 @@
 }
 
 .admin-page .admin-users-table {
-    min-width: 840px;
+    min-width: 950px;
+}
+
+.admin-page .admin-presence {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--account-text);
+    white-space: nowrap;
+}
+
+.admin-page .admin-presence-dot {
+    box-sizing: border-box;
+    width: 8px;
+    height: 8px;
+    flex: none;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+}
+
+.admin-page .admin-presence--online {
+    color: #247344;
+    font-weight: 600;
+}
+
+.admin-page .admin-presence--online .admin-presence-dot,
+.admin-page .admin-presence--offline .admin-presence-dot {
+    background: currentColor;
+}
+
+.admin-page .admin-presence-note {
+    margin: 0 0 10px;
+    color: var(--account-text);
+    font-size: 0.875rem;
 }
 
 .admin-page .admin-users-table .admin-table-header-sortable {

@@ -152,18 +152,28 @@ export const guiReleases = [
                 ],
             },
             {
-                title: 'Project Deletion',
-                items: [
-                    'Fixed project deletion failures when a title change was still unsaved, and improved messages for unavailable projects and permission errors.',
-                    'Project deletion and editing now verify the signed-in account. Administrators can transfer ownership. Password reset links expire after 30 minutes and work once.',
-                ],
-            },
-            {
                 title: 'User Management Filters',
                 items: [
                     'Filter Manage Users by role, last sign-in or date joined, and combine filters with a name or email search. On smaller screens, open Filters to see all available options.',
                     'The Last sign-in column shows the most recent recorded sign-in and can be sorted newest or oldest first.',
+                ],
+            },
+        ],
+    },
+    {
+        date: '11/21/2026',
+        groups: [
+            {
+                title: 'User Management Online Status',
+                items: [
                     'Use Online status in More filters to find Online, Offline or Unknown accounts. Online status updates while Manage Users is open and uses heartbeats from signed-in browser sessions.',
+                ],
+            },
+            {
+                title: 'Project Deletion',
+                items: [
+                    'Fixed project deletion failures when a title change was still unsaved, and improved messages for unavailable projects and permission errors.',
+                    'Project deletion and editing now verify the signed-in account. Administrators can transfer ownership. Password reset links expire after 30 minutes and work once.',
                 ],
             },
         ],

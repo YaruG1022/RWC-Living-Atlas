@@ -24,6 +24,7 @@ const advance = ms => act(() => jest.advanceTimersByTime(ms));
 
 beforeEach(() => {
     localStorage.clear();
+    api.get.mockClear();
     api.get.mockResolvedValue({data: {data: [{cardID: 1, title: 'River'}, {cardID: 2, title: 'Basin'}]}});
     jest.useFakeTimers();
     jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -57,6 +58,47 @@ async function setup(overrides) {
     await act(async () => { await Promise.resolve(); });
     return {...result, row: result.container.querySelector('.card-list-item')};
 }
+
+test('a guest does not use or overwrite the account stored for another tab', async () => {
+    localStorage.setItem('username', 'Researcher');
+    localStorage.setItem('email', 'researcher@example.invalid');
+    api.get.mockResolvedValue({ data: { data: [], bookmarkedCards: [] } });
+
+    await setup();
+    await act(async () => { jest.advanceTimersByTime(50); });
+
+    expect(api.get).toHaveBeenCalledWith('/allCards', { params: {} });
+    expect(api.get.mock.calls.some(([path]) => path === '/getBookmarkedCards')).toBe(false);
+    expect(localStorage.getItem('username')).toBe('Researcher');
+    expect(localStorage.getItem('email')).toBe('researcher@example.invalid');
+});
+
+test('session expiry removes private results and bookmarks from the project panel', async () => {
+    localStorage.setItem('username', 'Researcher');
+    localStorage.setItem('email', 'researcher@example.invalid');
+    api.get.mockImplementation((path, { params }) => {
+        if (path === '/getBookmarkedCards') {
+            return Promise.resolve({ data: { bookmarkedCards: [{ cardID: 1 }] } });
+        }
+        const cards = [{ cardID: 1, title: 'River' }];
+        if (params.viewer_email) cards.push({ cardID: 2, title: 'Private project' });
+        return Promise.resolve({ data: { data: cards } });
+    });
+    const { rerender } = await setup({ isLoggedIn: true, username: 'Researcher', email: 'researcher@example.invalid' });
+    await act(async () => { jest.advanceTimersByTime(50); });
+    expect(screen.getByText('Private project')).toBeInTheDocument();
+    fireEvent.click(screen.getAllByTitle('More options')[0]);
+    expect(screen.getByText('Unfavorite')).toBeInTheDocument();
+
+    api.get.mockClear();
+    rerender(view());
+    await act(async () => { await Promise.resolve(); });
+
+    expect(screen.queryByText('Private project')).not.toBeInTheDocument();
+    expect(screen.getByText('Favorite')).toBeInTheDocument();
+    expect(api.get).toHaveBeenCalledWith('/allCards', { params: {} });
+    expect(api.get.mock.calls.some(([path]) => path === '/getBookmarkedCards')).toBe(false);
+});
 
 test('shows the grid card after 500ms on the map side and dismisses on leave', async () => {
     const {row} = await setup();

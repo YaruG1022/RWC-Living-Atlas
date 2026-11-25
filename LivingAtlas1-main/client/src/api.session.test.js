@@ -36,6 +36,26 @@ test('a mismatched tab account never sends a stale session for deletion', async 
     expect(login.config.headers.get('Authorization')).toBe(`Bearer ${token}`);
 });
 
+test.each([
+    ['post', '/uploadForm'],
+    ['delete', '/deleteCard'],
+    ['post', '/session/heartbeat'],
+])('a 401 from %s %s invalidates the session sent by that request', async (method, url) => {
+    api.defaults.adapter.mockImplementationOnce(config => Promise.reject({ config, response: { status: 401 } }));
+    const headers = url === '/session/heartbeat' ? { Authorization: `Bearer ${token}` } : undefined;
+    await expect(api({ method, url, headers })).rejects.toMatchObject({ response: { status: 401 } });
+    expect(getSessionToken()).toBeNull();
+});
+
+test('a delayed response for a rejected session leaves a replacement session active', async () => {
+    api.defaults.adapter.mockImplementationOnce(config => {
+        storeSession(email, 'replacement-session');
+        return Promise.reject({ config, response: { status: 401 } });
+    });
+    await expect(api.delete('/deleteCard')).rejects.toMatchObject({ response: { status: 401 } });
+    expect(getSessionToken()).toBe('replacement-session');
+});
+
 test('logout immediately clears the local session and revokes its captured token', async () => {
     const revocation = signOutSession();
     expect(getSessionToken(false)).toBeNull();

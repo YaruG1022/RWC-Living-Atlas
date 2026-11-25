@@ -499,7 +499,9 @@ const FormModal = (props) => {
             console.error("Upload error:", error.response?.data || error.message);
             const detail = error.response?.data?.detail;
             let message;
-            if (typeof detail === 'string') {
+            if (error.response?.status === 401) {
+                message = 'Please sign in again before creating this project.';
+            } else if (typeof detail === 'string') {
                 message = detail;
             } else if (Array.isArray(detail)) {
                 message = detail.map(item => `${item.loc?.slice(1).join('.') || 'Form'}: ${item.msg || 'Invalid value'}`).join('\n');

@@ -69,7 +69,7 @@ async def main():
             admin_auth = await sign_in(admin_email)
 
             # A newly created account can name another account as its contact.
-            card_id = (await post({**fields, 'contact_email': colleague_email}))['card_id']
+            card_id = (await post({**fields, 'contact_email': colleague_email}, headers=owner_auth))['card_id']
             for path, params in (
                 ('/allCards', {}), ('/allCardsByTag', {'categoryString': 'None'}), ('/getMarkers', {}),
                 ('/searchBar', {'titleSearch': prefix}),
@@ -97,8 +97,8 @@ async def main():
             rejected = await client.delete('/deleteCard', params={'username': owner, 'title': prefix},
                                            headers=colleague_auth)
             assert rejected.status_code == 403, rejected.text
-            await post({**fields, 'email': colleague_email}, 404)
-            await post({**fields, 'contact_email': 'invalid'}, 422)
+            await post({**fields, 'email': colleague_email}, 404, headers=owner_auth)
+            await post({**fields, 'contact_email': 'invalid'}, 422, headers=owner_auth)
             print('PASS: contact edits persist; legacy updates preserve contact; contact grants no private visibility/edit/delete rights')
 
             transfer = {**update, 'cardID': str(card_id), 'username': colleague, 'email': colleague_email}
@@ -120,7 +120,7 @@ async def main():
             print('PASS: only an authenticated admin transferred ownership; deletion follows the current owner')
 
             # The old upload contract remains usable and defaults the contact.
-            legacy = await post({**fields, 'title': prefix + '_legacy'})
+            legacy = await post({**fields, 'title': prefix + '_legacy'}, headers=owner_auth)
             with connection, connection.cursor() as cursor:
                 cursor.execute('SELECT ContactEmail FROM Cards WHERE CardID=%s', (legacy['card_id'],))
                 assert cursor.fetchone()[0] == owner_email

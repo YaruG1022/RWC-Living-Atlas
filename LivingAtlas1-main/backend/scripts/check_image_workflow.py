@@ -41,7 +41,7 @@ async def main():
             assert response.status_code == 200, response.text
             assert Image.open(io.BytesIO(response.content)).size == (4096, 8)
             fields = dict(username=name, email=email, title=name, name='Fixture author', latitude='46', longitude='-117', defer_images='true')
-            response = await client.post('/uploadForm', data=fields)
+            response = await client.post('/uploadForm', data=fields, headers=auth)
             assert response.status_code == 200, response.text
             card_id = response.json()['card_id']
             with conn, conn.cursor() as cursor:

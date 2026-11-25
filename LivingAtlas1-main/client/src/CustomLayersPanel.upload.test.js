@@ -1,12 +1,13 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import AppDialogHost from './AppDialogHost';
 import CustomLayersPanel from './CustomLayersPanel';
-import { fetchCustomFolders, fetchCustomLayers, fetchVisibleCustomLayerServiceKeys, saveCustomLayer } from './arcgisServicesDb';
+import { deleteCustomFolder, fetchCustomFolders, fetchCustomLayerGeojson, fetchCustomLayers, fetchVisibleCustomLayerServiceKeys, saveCustomLayer } from './arcgisServicesDb';
 import { readCustomLayerFile } from './customLayerUpload';
-import { addUploadedVectorLayer, uploadedSourceId } from './uploadedVectorUtils';
+import { addUploadedVectorLayer, removeUploadedVectorLayer, uploadedSourceId } from './uploadedVectorUtils';
 
 jest.mock('./api', () => ({}));
-jest.mock('./arcgisServicesDb', () => ({ fetchCustomLayers: jest.fn(), fetchCustomFolders: jest.fn(), fetchVisibleCustomLayerServiceKeys: jest.fn(), saveCustomLayer: jest.fn() }));
+jest.mock('./arcgisServicesDb', () => ({ deleteCustomFolder: jest.fn(), fetchCustomLayerGeojson: jest.fn(), fetchCustomLayers: jest.fn(), fetchCustomFolders: jest.fn(), fetchVisibleCustomLayerServiceKeys: jest.fn(), saveCustomLayer: jest.fn() }));
 jest.mock('./customLayerUpload', () => ({ ...jest.requireActual('./customLayerUpload'), readCustomLayerFile: jest.fn() }));
 jest.mock('./arcgisVectorUtils', () => ({}));
 jest.mock('./uploadedVectorUtils', () => ({ addUploadedVectorLayer: jest.fn(), removeUploadedVectorLayer: jest.fn(), uploadedSourceId: key => `uploaded-source-${key}` }));
@@ -22,11 +23,14 @@ beforeEach(() => {
     localStorage.setItem('email', 'gis-test@example.invalid');
     fetchCustomLayers.mockResolvedValue([]);
     fetchCustomFolders.mockResolvedValue([]);
+    fetchCustomLayerGeojson.mockResolvedValue(polygon);
     fetchVisibleCustomLayerServiceKeys.mockResolvedValue([]);
+    deleteCustomFolder.mockResolvedValue({ success: true });
     saveCustomLayer.mockResolvedValue({ success: true });
     const sources = {};
     map = { getSource: key => sources[key], fitBounds: jest.fn(), isStyleLoaded: () => true, off: jest.fn() };
     addUploadedVectorLayer.mockImplementation((_, service) => { sources[uploadedSourceId(service.key)] = {}; });
+    removeUploadedVectorLayer.mockImplementation((_, key) => { delete sources[uploadedSourceId(key)]; });
     readCustomLayerFile.mockResolvedValue({ layers: [{ name: 'Air_Areas', geojson: polygon }], warnings: [] });
 });
 
@@ -80,6 +84,42 @@ test('places a standalone GeoJSON layer directly inside the opened folder', asyn
     fireEvent.change(screen.getByLabelText('Upload GeoJSON (.geojson / .json)'), { target: { files: [new File(['{}'], 'areas.geojson')] } });
     expect(await screen.findByText('areas')).toBeInTheDocument();
     expect(saveCustomLayer).toHaveBeenCalledWith('gis-test@example.invalid', expect.objectContaining({ folder: 'Hydrology', newFolder: false }));
+});
+
+test('deleting a folder hides its visible layer and leaves it available under Root', async () => {
+    HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
+    HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
+    fetchCustomFolders.mockResolvedValue([{ folder_name: 'Hydrology' }]);
+    fetchCustomLayers.mockResolvedValue([
+        { key: 'rivers', label: 'Rivers', type: 'uploaded', folder: 'Hydrology' },
+        { key: 'stations', label: 'Stations', type: 'uploaded', folder: 'Root' },
+    ]);
+    try {
+        render(<><CustomLayersPanel isOpen mapInstance={() => map} /><AppDialogHost /></>);
+        fireEvent.click(await screen.findByText('Root'));
+        fireEvent.click(screen.getByRole('checkbox'));
+        await waitFor(() => expect(map.getSource(uploadedSourceId('stations'))).toBeDefined());
+        fireEvent.click(screen.getByTitle('Back'));
+        fireEvent.click(screen.getByText('Hydrology'));
+        fireEvent.click(screen.getByRole('checkbox'));
+        await waitFor(() => expect(map.getSource(uploadedSourceId('rivers'))).toBeDefined());
+        fireEvent.click(screen.getByTitle('Back'));
+
+        fireEvent.contextMenu(screen.getByText('Hydrology'));
+        fireEvent.click(screen.getByRole('button', { name: 'Delete Folder' }));
+        fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Confirm' }));
+
+        await waitFor(() => expect(deleteCustomFolder).toHaveBeenCalledWith('gis-test@example.invalid', 'Hydrology'));
+        await waitFor(() => expect(map.getSource(uploadedSourceId('rivers'))).toBeUndefined());
+        expect(map.getSource(uploadedSourceId('stations'))).toBeDefined();
+        expect(screen.queryByText('Hydrology')).not.toBeInTheDocument();
+        fireEvent.click(screen.getByText('Root'));
+        expect(within(screen.getByText('Rivers').closest('.custom-layers-item')).getByRole('checkbox')).not.toBeChecked();
+        expect(within(screen.getByText('Stations').closest('.custom-layers-item')).getByRole('checkbox')).toBeChecked();
+    } finally {
+        delete HTMLDialogElement.prototype.showModal;
+        delete HTMLDialogElement.prototype.close;
+    }
 });
 
 test('imports multiple feature classes as separate layers, keeping a partial save visible on failure', async () => {

@@ -12,7 +12,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="custom-layers-new-folder-button"]',
         title: 'New Folder',
-        description: 'Click Folder to open New Folder. Enter a unique name and choose Create Folder. Empty or duplicate names show a message beside the input. Cancel or Escape closes the dialog without creating a folder.',
+        description: 'Click Folder, enter a name, and choose Create Folder. The new folder appears inside the folder you have open or at the top level. The dialog flags invalid names and duplicates at that location. Cancel or Escape closes the dialog without creating a folder.',
         placement: 'left',
     },
     {
@@ -54,7 +54,7 @@ const ONBOARDING_STEPS = [
     {
         selector: '[data-onboarding-target="custom-layers-panel-actions"]',
         title: 'Panel Actions',
-        description: 'The compact row groups Folder, Upload, Added and Clear. Upload opens a nearby menu for GIS ZIPs or the three StreamStats formats. Imported layers keep attributes, are saved to your account, and display automatically; Added shows only loaded items; Clear removes active layers from the map. If the library fails to load, use Retry. Existing saved layers remain in your account.',
+        description: 'Upload opens a menu for GIS ZIPs and StreamStats files. Each ZIP puts its layers in a folder named after the file at your current location. GeoJSON and KML layers go directly into the current folder. Imported layers keep their attributes and appear on the map. Added shows loaded items, Clear removes them from the map, and Retry reloads the library after an error.',
         placement: 'left',
     },
     {

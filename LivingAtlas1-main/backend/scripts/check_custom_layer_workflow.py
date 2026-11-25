@@ -111,7 +111,35 @@ def main():
         request('DELETE','/custom-layers',json={'user_email':email,'service_key':'probe-0'})
         assert len(operation('layers')) == 8
         print('PASS: unique saves, metadata/GeoJSON preservation, folders, ordering, deletion, and recovery after 400/404', flush=True)
-        print(json.dumps({'functional_sample':summary(results),'expected_rejections':{'400':1,'404':1}},indent=2),flush=True)
+
+        # Use the same new-folder request as the first layer from a ZIP. Two
+        # imports sharing a filename must split, while a retry keeps its folder.
+        for name in ('Imports', 'Imports/Areas'):
+            request('POST', '/custom-folders', json={'user_email': email, 'folder_name': name})
+
+        def save_zip_start(key):
+            return request('POST', '/custom-layers/save', json={
+                **payload, 'service_key': key, 'folder': 'Imports/Areas', 'new_folder': True,
+            })['folder']
+
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            first, second, retry = pool.map(save_zip_start, ['zip-a', 'zip-b', 'zip-a'])
+        assert {first, second} == {'Imports/Areas (2)', 'Imports/Areas (3)'} and first == retry
+        request('POST', '/custom-layers/save', json={**payload, 'service_key': 'zip-a-next', 'folder': first})
+        request('POST', '/custom-layers/save', expected=500, json={
+            **payload, 'service_key': 'zip-failed', 'folder': 'Imports/Failed',
+            'new_folder': True, 'label': 'x' * 256,
+        })
+        assert {row['key']: row['folder'] for row in operation('layers') if row['key'].startswith('zip-')} == {
+            'zip-a': first, 'zip-b': second, 'zip-a-next': first,
+        }
+        assert {row['folder_name'] for row in operation('folders')} >= {'Imports/Areas', first, second}
+        with db_connect() as connection, connection.cursor() as cursor:
+            cursor.execute('SELECT folder_name FROM user_custom_folders WHERE user_email=%s AND folder_name LIKE %s',
+                           (email, 'Imports/%'))
+            assert {row[0] for row in cursor.fetchall()} == {'Imports/Areas', first, second}
+        print('PASS: same-name ZIP imports use separate folders, retries reuse a folder, and the failed save leaves no folder', flush=True)
+        print(json.dumps({'functional_sample': summary(results), 'expected_rejections': {'400': 1, '404': 1, '500': 1}}, indent=2), flush=True)
     finally:
         with db_connect() as connection, connection.cursor() as cursor:
             for table in ('user_custom_layers','user_custom_folders'):

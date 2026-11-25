@@ -7,7 +7,7 @@ export function filterUploadPanelData({ services, serviceLayers, searchType, key
     const matches = (str) => str && str.toLowerCase().includes(lowerKeyword);
 
     // Filter logic
-    let filteredFolders = {};
+    const filteredFolders = Object.create(null);
     let expandedFolders = new Set();
     let expandedServices = new Set();
     let expandedLayerKeys = new Set(); // Track group/layer expand keys: "serviceKey-layerId"

@@ -399,6 +399,7 @@ export async function saveCustomLayer(userEmail, service) {
             type: service.type || 'MapServer',
             state: service.state || '',
             geojson: service.geojson ? JSON.stringify(service.geojson) : null,
+            ...(service.newFolder && { new_folder: true }),
         });
         console.log(`[arcgisServicesDb] Successfully saved custom layer ${service.key}`);
         return response.data;

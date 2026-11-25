@@ -151,6 +151,12 @@ export const guiReleases = [
                     'Creating and deleting projects now use the same sign-in check. If your session expires, the app asks you to sign in before creating the project.',
                 ],
             },
+            {
+                title: 'Custom Layers Folders and ZIP Uploads',
+                items: [
+                    'Create Folder and ZIP uploads use your current location in Custom Layers. Each ZIP creates a folder named after the file and puts its imported layers inside.',
+                ],
+            },
         ],
     },
     {

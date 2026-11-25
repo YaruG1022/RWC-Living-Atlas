@@ -239,6 +239,8 @@ function CustomLayersPanel({
             folderFirstOrder[folder] = service.sort_order;
         }
     });
+    const servicesByFolderRef = useRef(servicesByFolder);
+    servicesByFolderRef.current = servicesByFolder;
     const folderNames = Object.keys(servicesByFolder).sort((a, b) => (folderFirstOrder[a] ?? 0) - (folderFirstOrder[b] ?? 0));
 
     const findFirstRootFolder = useCallback(() => {
@@ -1246,15 +1248,29 @@ function CustomLayersPanel({
         }
     };
 
+    const clearServiceSelections = (services) => {
+        if (!services.length) return;
+        const omitServices = previous => {
+            const next = { ...previous };
+            services.forEach(({ key }) => { delete next[key]; });
+            return next;
+        };
+        setCheckedLayerIds(omitServices);
+        setCheckedSublayerIds(omitServices);
+        setServiceLayerAdded(omitServices);
+    };
+
     const handleDeleteFolder = async (folderName) => {
         if (!folderName) return;
         const services = servicesByFolder[folderName] || [];
         const msg = services.length > 0
-            ? `Delete folder "${folderName}"? Its ${services.length} service(s) will be moved to Root.`
+            ? `Delete folder "${folderName}"? Its ${services.length} service(s) will be moved to Root and hidden on the map.`
             : `Delete empty folder "${folderName}"?`;
         if (!await showAppConfirm(msg)) return;
         try {
             await deleteCustomFolder(userEmail, folderName);
+            // Unchecking the moved services lets the map effect remove their layers.
+            clearServiceSelections(servicesByFolderRef.current[folderName] || []);
             // Move local services to Root
             setCustomServices(prev => prev.map(s =>
                 s.folder === folderName ? { ...s, folder: 'Root' } : s
@@ -1281,9 +1297,7 @@ function CustomLayersPanel({
             delete uploadedGeojsonCache.current[service.key];
             removeAllMapLayers(service);
             setCustomServices(prev => prev.filter(s => s.key !== service.key));
-            setServiceLayerAdded(prev => { const n = { ...prev }; delete n[service.key]; return n; });
-            setCheckedLayerIds(prev => { const n = { ...prev }; delete n[service.key]; return n; });
-            setCheckedSublayerIds(prev => { const n = { ...prev }; delete n[service.key]; return n; });
+            clearServiceSelections([service]);
             showStatus(`Removed "${service.label}" from custom layers`);
         } catch (err) {
             showStatus(`Failed to remove: ${err.message}`);

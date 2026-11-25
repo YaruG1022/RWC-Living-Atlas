@@ -30,10 +30,11 @@ beforeEach(() => {
     readCustomLayerFile.mockResolvedValue({ layers: [{ name: 'Air_Areas', geojson: polygon }], warnings: [] });
 });
 
-async function openMenu() {
+async function openMenu(parent) {
     render(<CustomLayersPanel isOpen mapInstance={() => map} />);
     const button = screen.getByRole('button', { name: 'Upload data' });
     await waitFor(() => expect(button).not.toBeDisabled());
+    if (parent) fireEvent.click(screen.getByText(parent));
     fireEvent.click(button);
     return button;
 }
@@ -43,15 +44,42 @@ function selectZip() {
     fireEvent.change(screen.getByLabelText('Upload GIS data (.zip)'), { target: { files: [new File(['zip'], 'air-areas.zip')] } });
 }
 
-test('chooses the GIS picker, persists attributes and immediately displays the imported layer', async () => {
+test('creates a top-level ZIP folder, persists attributes and displays the imported layer', async () => {
     await openMenu();
     selectZip();
     await waitFor(() => expect(saveCustomLayer).toHaveBeenCalledTimes(1));
     expect(readCustomLayerFile).toHaveBeenCalledWith(expect.any(File), 'gis');
-    expect(saveCustomLayer).toHaveBeenCalledWith('gis-test@example.invalid', expect.objectContaining({ label: 'air-areas', type: 'uploaded', folder: 'Root', geojson: polygon }));
+    expect(saveCustomLayer).toHaveBeenCalledWith('gis-test@example.invalid', expect.objectContaining({ label: 'air-areas', type: 'uploaded', folder: 'air-areas', newFolder: true, geojson: polygon }));
     await waitFor(() => expect(addUploadedVectorLayer).toHaveBeenCalledTimes(1));
     expect(map.fitBounds).toHaveBeenCalledWith([[-123, 47], [-122, 48]], expect.anything());
     expect(screen.getByRole('status')).toHaveTextContent('Uploaded 1 layer');
+    expect(screen.getByText('air-areas')).toBeInTheDocument();
+});
+
+test('puts every Shapefile ZIP layer in the new folder inside the opened folder', async () => {
+    fetchCustomFolders.mockResolvedValue([{ folder_name: 'Hydrology' }, { folder_name: 'Hydrology/air-areas' }]);
+    readCustomLayerFile.mockResolvedValue({ layers: [{ name: 'Areas', geojson: polygon }, { name: 'Points', geojson: polygon }], warnings: [] });
+    saveCustomLayer.mockResolvedValueOnce({ success: true, folder: 'Hydrology/air-areas (2)', folder_order: 2 });
+
+    await openMenu('Hydrology');
+    fireEvent.click(screen.getByRole('menuitem', { name: /Shapefile \(\.zip\)/ }));
+    fireEvent.change(screen.getByLabelText('Upload Shapefile (.zip)'), { target: { files: [new File(['zip'], 'air-areas.ZIP')] } });
+
+    const newFolder = await screen.findByText('air-areas (2)');
+    expect(saveCustomLayer).toHaveBeenNthCalledWith(1, 'gis-test@example.invalid', expect.objectContaining({ folder: 'Hydrology/air-areas', newFolder: true }));
+    expect(saveCustomLayer).toHaveBeenNthCalledWith(2, 'gis-test@example.invalid', expect.objectContaining({ folder: 'Hydrology/air-areas (2)', newFolder: false }));
+    fireEvent.click(newFolder);
+    expect(screen.getByText('air-areas — Areas')).toBeInTheDocument();
+    expect(screen.getByText('air-areas — Points')).toBeInTheDocument();
+});
+
+test('places a standalone GeoJSON layer directly inside the opened folder', async () => {
+    fetchCustomFolders.mockResolvedValue([{ folder_name: 'Hydrology' }]);
+    await openMenu('Hydrology');
+    fireEvent.click(screen.getByRole('menuitem', { name: /GeoJSON/ }));
+    fireEvent.change(screen.getByLabelText('Upload GeoJSON (.geojson / .json)'), { target: { files: [new File(['{}'], 'areas.geojson')] } });
+    expect(await screen.findByText('areas')).toBeInTheDocument();
+    expect(saveCustomLayer).toHaveBeenCalledWith('gis-test@example.invalid', expect.objectContaining({ folder: 'Hydrology', newFolder: false }));
 });
 
 test('imports multiple feature classes as separate layers, keeping a partial save visible on failure', async () => {
@@ -60,6 +88,8 @@ test('imports multiple feature classes as separate layers, keeping a partial sav
     await openMenu(); selectZip();
     expect(await screen.findByRole('alert')).toHaveTextContent('1 layer(s) were saved');
     expect(saveCustomLayer.mock.calls[0][1].label).toBe('air-areas — Areas');
+    fireEvent.click(screen.getByText('air-areas'));
+    expect(screen.getByText('air-areas — Areas')).toBeInTheDocument();
     await waitFor(() => expect(addUploadedVectorLayer).toHaveBeenCalledTimes(1));
 });
 

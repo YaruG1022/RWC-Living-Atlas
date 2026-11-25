@@ -56,6 +56,32 @@ test('New Folder uses the app dialog, validates names and writes only after conf
     }
 });
 
+test('New Folder creates a child of the open folder, even if its name exists elsewhere', async () => {
+    HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', ''); };
+    HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); };
+    fetchCustomFolders.mockResolvedValue([
+        { folder_name: 'Hydrology', sort_order: 0 },
+        { folder_name: 'Hydrology/Monitoring', sort_order: 1 },
+        { folder_name: 'Rivers', sort_order: 2 },
+    ]);
+    try {
+        render(<><CustomLayersPanel isOpen /><AppDialogHost /></>);
+        fireEvent.click(await screen.findByText('Hydrology'));
+        fireEvent.click(screen.getByText('Monitoring'));
+        fireEvent.click(screen.getByRole('button', { name: 'New Folder' }));
+        fireEvent.change(screen.getByLabelText('Folder name'), { target: { value: 'Other/Rivers' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Create Folder' }));
+        expect(screen.getByRole('alert')).toHaveTextContent('cannot contain a slash');
+        fireEvent.change(screen.getByLabelText('Folder name'), { target: { value: 'Rivers' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Create Folder' }));
+        expect(await screen.findByText('Rivers')).toBeInTheDocument();
+        expect(createCustomFolder).toHaveBeenCalledWith('probe@example.invalid', 'Hydrology/Monitoring/Rivers');
+    } finally {
+        delete HTMLDialogElement.prototype.showModal;
+        delete HTMLDialogElement.prototype.close;
+    }
+});
+
 test('a failed load shows a retry action rather than an empty library, and retry can recover', async () => {
     fetchCustomLayers.mockRejectedValueOnce(new Error('The layer library is temporarily unavailable. Please try again shortly.'));
     render(<CustomLayersPanel isOpen onClose={() => {}} />);

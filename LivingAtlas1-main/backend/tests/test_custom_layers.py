@@ -79,6 +79,28 @@ class CustomLayerTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(any('INSERT INTO user_custom_folders' in sql for sql in statements))
         self.assertTrue(any('COALESCE(EXCLUDED.geojson' in sql for sql in statements))
 
+    async def test_first_zip_layer_reserves_a_new_folder(self):
+        self.cursor.fetchone.side_effect = [None, (2,), None, ('Water/Areas (2)',), (3,)]
+        response = await self.client.post('/arcgis/custom-layers/save', json=self.payload(
+            folder='Water/Areas', new_folder=True,
+        ))
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()['folder'], 'Water/Areas (2)')
+        self.assertEqual(response.json()['folder_order'], 2)
+        layer_insert = next(call for call in self.cursor.execute.call_args_list
+                            if 'INSERT INTO user_custom_layers' in call.args[0])
+        self.assertEqual(layer_insert.args[1][4], 'Water/Areas (2)')
+        self.connection.commit.assert_called_once()
+
+    async def test_retry_of_first_zip_layer_returns_its_existing_folder(self):
+        self.cursor.fetchone.return_value = ('Water/Areas (2)', 2)
+        response = await self.client.post('/arcgis/custom-layers/save', json=self.payload(
+            folder='Water/Areas', new_folder=True,
+        ))
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()['folder'], 'Water/Areas (2)')
+        self.assertFalse(any('INSERT' in call.args[0] for call in self.cursor.execute.call_args_list))
+
     async def test_separate_requests_get_separate_result_sets(self):
         second = MagicMock()
         second.cursor.return_value.__enter__.return_value.fetchall.return_value = [('Water', 2)]

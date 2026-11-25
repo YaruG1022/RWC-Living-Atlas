@@ -48,11 +48,12 @@ class GalleryContractTests(unittest.TestCase):
         self.conn.reset_mock()
         self.cur.fetchone.side_effect = None
         self.cur.fetchall.side_effect = None
-        self.update_conn = MagicMock()
-        self.update_cur = self.update_conn.cursor.return_value
-        self.db.get_request_connection.return_value = self.update_conn
+        self.request_conn = MagicMock()
+        self.request_cur = self.request_conn.cursor.return_value
+        self.db.get_request_connection.reset_mock()
+        self.db.get_request_connection.return_value = self.request_conn
         self.db.release_request_connection.reset_mock()
-        self.update_cur.fetchall.return_value = [(101, 1, 'fixture')]
+        self.request_cur.fetchall.return_value = [(101, 1, 'fixture')]
         actor = patch.object(self.cards, 'require_account', return_value=(1, 'fixture@example.invalid', False))
         actor.start()
         self.addCleanup(actor.stop)
@@ -74,9 +75,9 @@ class GalleryContractTests(unittest.TestCase):
         for update in (False, True):
             for layout in layouts:
                 with self.subTest(update=update, layout=layout):
-                    cursor = self.update_cur if update else self.cur
+                    cursor = self.request_cur
                     cursor.reset_mock()
-                    self.cur.fetchone.side_effect = None if update else [(100,), (1,)]
+                    cursor.fetchone.side_effect = None if update else [(1,), (100,)]
                     self.form(update=update, gallery_layout=layout)
                     statements = [call.args for call in cursor.execute.call_args_list
                                   if ('UPDATE Cards' in call.args[0] or 'INSERT INTO Cards' in call.args[0])]
@@ -87,21 +88,21 @@ class GalleryContractTests(unittest.TestCase):
 
     def test_legacy_update_preserves_layout(self):
         self.form(update=True)
-        sql, params = next(call.args for call in self.update_cur.execute.call_args_list if 'UPDATE Cards' in call.args[0])
+        sql, params = next(call.args for call in self.request_cur.execute.call_args_list if 'UPDATE Cards' in call.args[0])
         self.assertIn('GalleryLayout=COALESCE(%s, GalleryLayout)', sql)
         self.assertIsNone(params[-2])
         self.assertIsNone(params[10])  # Preserve an intentionally empty thumbnail.
         self.cur.execute.assert_not_called()
-        self.update_conn.commit.assert_called_once()
-        self.update_cur.close.assert_called_once()
-        self.db.release_request_connection.assert_called_once_with(self.update_conn)
+        self.request_conn.commit.assert_called_once()
+        self.request_cur.close.assert_called_once()
+        self.db.release_request_connection.assert_called_once_with(self.request_conn)
 
     def test_contact_email_is_metadata_and_does_not_replace_account_identity(self):
-        self.cur.fetchone.side_effect = [(100,), (1,)]
+        self.request_cur.fetchone.side_effect = [(1,), (100,)]
         self.form(username='river-researcher', email='account@example.invalid', contact_email=' colleague@example.invalid ')
-        lookup = next(call.args for call in self.cur.execute.call_args_list if 'SELECT userID FROM Users' in call.args[0])
+        lookup = next(call.args for call in self.request_cur.execute.call_args_list if 'SELECT userID FROM Users' in call.args[0])
         self.assertEqual(lookup[1], ('river-researcher', 'account@example.invalid'))
-        sql, params = next(call.args for call in self.cur.execute.call_args_list if 'INSERT INTO Cards' in call.args[0])
+        sql, params = next(call.args for call in self.request_cur.execute.call_args_list if 'INSERT INTO Cards' in call.args[0])
         self.assertIn('ContactEmail', sql)
         self.assertEqual(params[1], 1)
         self.assertEqual(params[-2], 'colleague@example.invalid')
@@ -109,9 +110,9 @@ class GalleryContractTests(unittest.TestCase):
     def test_contact_changes_preserve_owner_and_legacy_updates_preserve_contact(self):
         for contact in (None, 'another@example.invalid'):
             with self.subTest(contact=contact):
-                self.update_cur.reset_mock()
+                self.request_cur.reset_mock()
                 self.form(update=True, contact_email=contact)
-                sql, params = next(call.args for call in self.update_cur.execute.call_args_list if 'UPDATE Cards' in call.args[0])
+                sql, params = next(call.args for call in self.request_cur.execute.call_args_list if 'UPDATE Cards' in call.args[0])
                 self.assertIn('ContactEmail=COALESCE(%s, ContactEmail)', sql)
                 self.assertEqual(params[11], 1)
                 self.assertEqual(params[-3], contact)
@@ -122,15 +123,16 @@ class GalleryContractTests(unittest.TestCase):
                 with self.assertRaises(self.cards.HTTPException) as error:
                     self.form(contact_email=contact)
                 self.assertEqual(error.exception.status_code, 422)
+                self.db.get_request_connection.assert_not_called()
                 self.cur.execute.assert_not_called()
 
     def test_missing_account_explains_recovery_without_writing_a_card(self):
-        self.cur.fetchone.side_effect = [(100,), None]
+        self.request_cur.fetchone.return_value = None
         with self.assertRaises(self.cards.HTTPException) as error:
             self.form()
         self.assertEqual(error.exception.status_code, 404)
         self.assertIn('sign in again', error.exception.detail)
-        self.assertFalse(any('INSERT INTO Cards' in call.args[0] for call in self.cur.execute.call_args_list))
+        self.assertFalse(any('INSERT INTO Cards' in call.args[0] for call in self.request_cur.execute.call_args_list))
 
     def test_webp_thumbnail_matches_the_formats_offered_by_the_create_form(self):
         thumbnail = MagicMock(filename='cover.WEBP', content_type='image/webp')
@@ -144,16 +146,16 @@ class GalleryContractTests(unittest.TestCase):
             self.assertEqual(Image.open(io.BytesIO(upload.call_args.args[1])).size, (16, 16))
 
     def test_framing_rejects_other_projects_images_and_preserves_draft_on_failure(self):
-        self.update_cur.fetchall.side_effect = [[(101, 1, 'fixture')], [(1,)]]
+        self.request_cur.fetchall.side_effect = [[(101, 1, 'fixture')], [(1,)]]
         with self.assertRaises(self.cards.HTTPException) as error:
             self.form(update=True, image_presentations='{"999": {"fit":"cover", "x":20}}')
         self.assertEqual(error.exception.status_code, 422)
-        self.update_conn.rollback.assert_called_once()
+        self.request_conn.rollback.assert_called_once()
 
     def test_framing_is_saved_with_card_metadata(self):
-        self.update_cur.fetchall.side_effect = [[(101, 1, 'fixture')], [(7,)]]
+        self.request_cur.fetchall.side_effect = [[(101, 1, 'fixture')], [(7,)]]
         self.form(update=True, image_presentations='{"7":{"fit":"contain"}}')
-        statement = next(call.args for call in self.update_cur.execute.call_args_list if 'UPDATE CardImages SET Presentation' in call.args[0])
+        statement = next(call.args for call in self.request_cur.execute.call_args_list if 'UPDATE CardImages SET Presentation' in call.args[0])
         self.assertEqual(statement[1][1:], (101, 7))
         self.assertIn('contain', statement[1][0])
 
@@ -166,22 +168,22 @@ class GalleryContractTests(unittest.TestCase):
         self.conn.rollback.assert_called_once()
 
     def test_new_cards_include_a_deletable_default_cover(self):
-        self.cur.fetchone.side_effect = [(100,), (1,)]
+        self.request_cur.fetchone.side_effect = [(1,), (100,)]
         self.form()
-        inserts = [call.args for call in self.cur.execute.call_args_list if 'INSERT INTO CardImages' in call.args[0]]
+        inserts = [call.args for call in self.request_cur.execute.call_args_list if 'INSERT INTO CardImages' in call.args[0]]
         self.assertEqual(len(inserts), 1)
         self.assertEqual(inserts[0][1], (101, self.cards.DEFAULT_THUMBNAIL_URL))
 
     def test_gallery_selection_validates_and_persists_without_deleting_images(self):
         for selection in ('[1, 3]', '[]'):
             with self.subTest(selection=selection):
-                self.update_cur.reset_mock()
-                self.update_cur.fetchone.return_value = ('point',)
-                self.update_cur.fetchall.side_effect = [[(101, 1, 'fixture')], [(1,), (2,), (3,)]]
+                self.request_cur.reset_mock()
+                self.request_cur.fetchone.return_value = ('point',)
+                self.request_cur.fetchall.side_effect = [[(101, 1, 'fixture')], [(1,), (2,), (3,)]]
                 self.form(update=True, gallery_image_ids=selection)
-                sql, params = next(call.args for call in self.update_cur.execute.call_args_list if 'SET GalleryImageIDs' in call.args[0])
+                sql, params = next(call.args for call in self.request_cur.execute.call_args_list if 'SET GalleryImageIDs' in call.args[0])
                 self.assertEqual(params, (selection, 101))
-                self.assertFalse(any('DELETE FROM CardImages' in call.args[0] for call in self.update_cur.execute.call_args_list))
+                self.assertFalse(any('DELETE FROM CardImages' in call.args[0] for call in self.request_cur.execute.call_args_list))
 
     def test_invalid_selection_is_rejected_before_database_access(self):
         for selection in ('not-json', '{}', '[1,2,3,4,5,6,7]', '[1,1]', '[true]', '[0]', '["1"]'):
@@ -190,14 +192,14 @@ class GalleryContractTests(unittest.TestCase):
                 with self.assertRaises(self.cards.HTTPException) as error:
                     self.form(update=True, gallery_image_ids=selection)
                 self.assertEqual(error.exception.status_code, 422)
-                self.update_cur.execute.assert_not_called()
+                self.db.get_request_connection.assert_not_called()
 
     def test_other_cards_images_cannot_be_selected(self):
-        self.update_cur.fetchall.side_effect = [[(101, 1, 'fixture')], [(1,)]]
+        self.request_cur.fetchall.side_effect = [[(101, 1, 'fixture')], [(1,)]]
         with self.assertRaises(self.cards.HTTPException) as error:
             self.form(update=True, gallery_image_ids='[999]')
         self.assertEqual(error.exception.status_code, 422)
-        self.update_conn.rollback.assert_called_once()
+        self.request_conn.rollback.assert_called_once()
 
     def test_deleting_a_shared_default_cover_does_not_delete_its_asset(self):
         for url in ('/CEREO-logo.png', self.cards.DEFAULT_THUMBNAIL_URL):
@@ -215,6 +217,7 @@ class GalleryContractTests(unittest.TestCase):
                 with self.assertRaises(self.cards.HTTPException) as error:
                     self.form(**values)
                 self.assertEqual(error.exception.status_code, 422)
+                self.db.get_request_connection.assert_not_called()
                 self.cur.execute.assert_not_called()
 
     def test_thirtieth_image_allowed_and_thirty_first_rejected_under_card_lock(self):

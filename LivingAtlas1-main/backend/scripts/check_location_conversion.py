@@ -48,7 +48,7 @@ def main():
         login = timed_request('POST', '/profileAccount', json={'email': email, 'password': password})
         assert login['status'] == 200, f"Sign-in HTTP {login['status']}"
         auth = {'Authorization': 'Bearer ' + login['body']['session_token']}
-        card_id = request('POST','/uploadForm',data=fields)['card_id']
+        card_id = request('POST','/uploadForm',data=fields,headers=auth)['card_id']
         source = 'point'
         # Covers every directed pair of point/polygon/image, retaining one CardID.
         for target in ['polygon','image','point','image','polygon','point','multipoint']:

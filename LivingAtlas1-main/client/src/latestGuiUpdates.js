@@ -143,6 +143,17 @@ const novemberGuiUpdates = [
 // Newest first. Earlier September releases remain in their existing sections.
 export const guiReleases = [
     {
+        date: '11/25/2026',
+        groups: [
+            {
+                title: 'Project Sign-In',
+                items: [
+                    'Creating and deleting projects now use the same sign-in check. If your session expires, the app asks you to sign in before creating the project.',
+                ],
+            },
+        ],
+    },
+    {
         date: '11/24/2026',
         groups: [
             {

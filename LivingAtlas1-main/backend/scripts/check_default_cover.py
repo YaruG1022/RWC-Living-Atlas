@@ -11,6 +11,7 @@ import requests
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from local_config import load_local_config
+from sessions import hash_password
 
 
 def main():
@@ -20,13 +21,23 @@ def main():
     conn = psycopg2.connect(dbname=os.environ['DB_NAME'], user=os.environ['DB_USER'], password=os.environ['DB_PASSWORD'], host=os.environ['DB_HOST'], port=os.environ['DB_PORT'], sslmode='disable', application_name='codex_default_cover_verification')
     base = 'http://127.0.0.1:8000'
     title = 'default_cover_check_' + uuid.uuid4().hex
+    username, email = title, title + '@example.invalid'
+    password, salt = uuid.uuid4().hex, os.urandom(32)
     image_url = None
     try:
         with conn, conn.cursor() as cur:
-            cur.execute('SELECT Username, Email FROM Users ORDER BY UserID LIMIT 1')
-            username, email = cur.fetchone()
+            cur.execute('LOCK TABLE Users IN SHARE ROW EXCLUSIVE MODE')
+            cur.execute('SELECT COALESCE(MAX(UserID), 0) + 1 FROM Users')
+            user_id = cur.fetchone()[0]
+            cur.execute(
+                'INSERT INTO Users (UserID, Username, Email, HashedPassword, Salt) VALUES (%s,%s,%s,%s,%s)',
+                (user_id, username, email, hash_password(password, salt), salt),
+            )
+        login = requests.post(base + '/profileAccount', json={'email': email, 'password': password}, timeout=15)
+        assert login.status_code == 200, f'Sign-in HTTP {login.status_code}'
+        auth = {'Authorization': 'Bearer ' + login.json()['session_token']}
         fields = {'title': title, 'username': username, 'email': email, 'name': 'Fixture', 'category': 'Other', 'latitude': '46', 'longitude': '-117'}
-        created = requests.post(base + '/uploadForm', data=fields, timeout=15)
+        created = requests.post(base + '/uploadForm', data=fields, headers=auth, timeout=15)
         assert created.status_code == 200, f'Create HTTP {created.status_code}'
         card_id = created.json()['card_id']
         gallery = requests.get(f'{base}/cardImages/{card_id}', timeout=15).json()['images']
@@ -46,7 +57,9 @@ def main():
         assert requests.get(f'{base}/cardImages/{card_id}', timeout=15).json()['images'][0]['imageID'] == new_id
         assert requests.delete(f'{base}/deleteCardImage/{new_id}', timeout=15).status_code == 200
         assert requests.get(f'{base}/cardImages/{card_id}', timeout=15).json()['images'] == []
-        updated = requests.post(base + '/uploadForm', data={**fields, 'update': 'true', 'original_username': username, 'original_email': email, 'original_title': title}, timeout=15)
+        update_fields = {**fields, 'update': 'true', 'original_username': username,
+                         'original_email': email, 'original_title': title}
+        updated = requests.post(base + '/uploadForm', data=update_fields, headers=auth, timeout=15)
         assert updated.status_code == 200
         with conn, conn.cursor() as cur:
             cur.execute('SELECT Thumbnail_Link FROM Cards WHERE CardID=%s', (card_id,))
@@ -62,7 +75,10 @@ def main():
                 files.append(image_url)
             cur.execute('DELETE FROM CardImages WHERE CardID IN (SELECT CardID FROM Cards WHERE Title=%s)', (title,))
             cur.execute('DELETE FROM Cards WHERE Title=%s', (title,))
+            cur.execute('DELETE FROM Users WHERE Username=%s AND Email=%s', (username, email))
             cur.execute('SELECT COUNT(*) FROM Cards WHERE Title=%s', (title,))
+            assert cur.fetchone()[0] == 0
+            cur.execute('SELECT COUNT(*) FROM Users WHERE Username=%s AND Email=%s', (username, email))
             assert cur.fetchone()[0] == 0
         storage_root = (ROOT / 'uploads/local_test').resolve()
         for url in files:

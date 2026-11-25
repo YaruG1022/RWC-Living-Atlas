@@ -7,6 +7,7 @@ import zipfile
 import requests
 import psycopg2
 from local_config import load_local_config
+from sessions import hash_password
 
 
 def main():
@@ -16,19 +17,33 @@ def main():
     from endpoint_files import azure_storage
     connection = psycopg2.connect(host=os.getenv('DB_HOST'), port=os.getenv('DB_PORT'), dbname=os.getenv('DB_NAME'), user=os.getenv('DB_USER'), password=os.getenv('DB_PASSWORD'), application_name='codex_attachment_check')
     prefix = 'attachment_check_' + uuid.uuid4().hex
+    username, email = prefix, prefix + '@example.invalid'
+    password, salt = uuid.uuid4().hex, os.urandom(32)
     base = 'http://127.0.0.1:8000'
     urls = []
     card_id = None
     try:
-        with connection.cursor() as cursor:
+        with connection, connection.cursor() as cursor:
             cursor.execute('SELECT current_database()')
             assert cursor.fetchone()[0] == 'livingatlas_test'
-            cursor.execute('SELECT username,email FROM Users ORDER BY UserID LIMIT 1')
-            username, email = cursor.fetchone()
+            cursor.execute('LOCK TABLE Users IN SHARE ROW EXCLUSIVE MODE')
+            cursor.execute('SELECT COALESCE(MAX(UserID), 0) + 1 FROM Users')
+            user_id = cursor.fetchone()[0]
+            cursor.execute(
+                'INSERT INTO Users (UserID, Username, Email, HashedPassword, Salt) VALUES (%s,%s,%s,%s,%s)',
+                (user_id, username, email, hash_password(password, salt), salt),
+            )
+        login = requests.post(base + '/profileAccount', json={'email': email, 'password': password}, timeout=15)
+        assert login.status_code == 200, f'Sign-in HTTP {login.status_code}'
+        auth = {'Authorization': 'Bearer ' + login.json()['session_token']}
         filenames = [prefix + '-重要.txt', prefix + '-notes.txt']
         tokens = [str(uuid.uuid4()), str(uuid.uuid4())]
         description = '<p>' + ' '.join(f'<a href="#pending-file-{token}">{filename}</a>' for token, filename in zip(tokens, filenames)) + '</p>'
-        response = requests.post(base + '/uploadForm', data={'title': prefix, 'username': username, 'email': email, 'name': 'Local attachment check', 'category': 'Other', 'latitude': '46', 'longitude': '-120', 'description': description, 'description_file_tokens': json.dumps(tokens)}, files=[('files', (name, b'attachment-regression', 'text/plain')) for name in filenames], timeout=30)
+        fields = {'title': prefix, 'username': username, 'email': email, 'name': 'Local attachment check',
+                  'category': 'Other', 'latitude': '46', 'longitude': '-120', 'description': description,
+                  'description_file_tokens': json.dumps(tokens)}
+        files = [('files', (name, b'attachment-regression', 'text/plain')) for name in filenames]
+        response = requests.post(base + '/uploadForm', data=fields, files=files, headers=auth, timeout=30)
         assert response.status_code == 200, f'Upload HTTP {response.status_code}: {response.json().get("detail", "no detail")}'
         with connection.cursor() as cursor:
             cursor.execute('SELECT CardID FROM Cards WHERE Title=%s', (prefix,))
@@ -68,6 +83,7 @@ def main():
                 urls.extend(url[0] for url in cursor.fetchall())
                 cursor.execute('DELETE FROM Files WHERE CardID=%s', (card_id,))
                 cursor.execute('DELETE FROM Cards WHERE CardID=%s AND Title=%s', (card_id, prefix))
+            cursor.execute('DELETE FROM Users WHERE Username=%s AND Email=%s', (username, email))
         for url in set(urls):
             azure_storage.delete_from_url(url)
             if url.startswith(azure_storage.LOCAL_URL_PREFIX):
@@ -77,11 +93,13 @@ def main():
         with connection.cursor() as cursor:
             cursor.execute('SELECT COUNT(*) FROM Cards WHERE Title=%s', (prefix,))
             assert cursor.fetchone()[0] == 0
+            cursor.execute('SELECT COUNT(*) FROM Users WHERE Username=%s AND Email=%s', (username, email))
+            assert cursor.fetchone()[0] == 0
             if card_id:
                 cursor.execute('SELECT COUNT(*) FROM Files WHERE CardID=%s', (card_id,))
                 assert cursor.fetchone()[0] == 0
         connection.close()
-        print('CLEANUP: zero fixture card/file rows; local uploaded fixture files removed')
+        print('CLEANUP: zero fixture account/card/file rows; local uploaded fixture files removed')
 
 
 if __name__ == '__main__':

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import ReactDOM from 'react-dom';
 import Modal from 'react-modal';
 import api from './api.js';
-import { clearSession, getSessionToken } from './authSession';
+import { getSessionToken } from './authSession';
 import { fetchArcgisLegend } from './arcgisDataUtils';
 import './Card.css';
 import { SHOW_LEGACY_ORGANIZATION_LOGO, isLegacyOrganizationImage, visibleGalleryImages, visibleGallerySelection } from './branding';
@@ -445,8 +445,8 @@ function Card(props) {
         } catch (error) {
             const status = error.response?.status;
             if (status === 401) {
-                clearSession();
-                setShowLoginPrompt(true);
+                if (getSessionToken()) showAppAlert('Your sign-in changed. Please try deleting the project again.');
+                else setShowLoginPrompt(true);
             } else if (status === 403) {
                 showAppAlert(permissionMessage);
             } else if (status === 404 || status === 409 || !error.response) {
@@ -919,8 +919,8 @@ function Card(props) {
         return true;
     } catch (error) {
         if (error.response?.status === 401) {
-            clearSession();
-            setShowLoginPrompt(true);
+            if (getSessionToken()) showAppAlert('Your sign-in changed. Please try saving the project again.');
+            else setShowLoginPrompt(true);
             return false;
         }
 

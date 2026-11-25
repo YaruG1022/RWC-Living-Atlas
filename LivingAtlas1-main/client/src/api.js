@@ -1,5 +1,5 @@
 import axios from "axios";
-import { clearSession, getSessionToken } from './authSession';
+import { clearSession, getSessionToken, SESSION_EXPIRED_EVENT } from './authSession';
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'https://cereo-backend.onrender.com',
@@ -20,6 +20,7 @@ const sessionPaths = new Set([
   '/edit_user_role',
   '/uploadAccount',
 ]);
+const sessionExpiryPaths = new Set(['/uploadForm', '/deleteCard', '/session/heartbeat']);
 
 // Send credentials only to the configured Atlas backend and first-party routes.
 api.interceptors.request.use((config) => {
@@ -41,6 +42,14 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const config = error.config;
+    const path = (config?.url || '').split('?')[0];
+    if (error.response?.status === 401 && config?.baseURL === api.defaults.baseURL && sessionExpiryPaths.has(path)) {
+      const token = getSessionToken();
+      if (token && config.headers.get('Authorization') === `Bearer ${token}`) {
+        clearSession();
+        window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+      }
+    }
     // Retry once on timeout or network error (handles Render cold start)
     if (
       config &&

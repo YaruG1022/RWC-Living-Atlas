@@ -14,6 +14,7 @@ import SwitchAccount from './SwitchAccount';
 import ChangelogHistory from './ChangelogHistory';
 import UserManual from './UserManual';
 import { signOutSession } from './api';
+import { clearSession, getSessionToken, SESSION_EXPIRED_EVENT } from './authSession';
 import useSessionHeartbeat from './useSessionHeartbeat';
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -55,7 +56,7 @@ function App() {
   // Restore before protected routes render, and before the persistence effect runs.
   const [savedAuth] = useState(() => {
     const isCurrentVersion = localStorage.getItem('authStorageVersion') === AUTH_STORAGE_VERSION;
-    const isLoggedIn = isCurrentVersion && safeParseBooleanFromStorage('isLoggedIn');
+    const isLoggedIn = isCurrentVersion && safeParseBooleanFromStorage('isLoggedIn') && Boolean(getSessionToken());
     return {
       isLoggedIn,
       email: isLoggedIn ? localStorage.getItem('email') || '' : '',
@@ -70,14 +71,41 @@ function App() {
   const [username, setUsername] = useState(savedAuth.username);
   const [isAdmin, setIsAdmin] = useState(savedAuth.isAdmin);
 
-  // Update localStorage when login state changes
+  // A guest tab must not overwrite the account used by other tabs.
   useEffect(() => {
+    if (!isLoggedIn) return;
     localStorage.setItem('authStorageVersion', AUTH_STORAGE_VERSION);
     localStorage.setItem('isLoggedIn', JSON.stringify(isLoggedIn));
     localStorage.setItem('email', email || '');
     localStorage.setItem('username', username || '');
     localStorage.setItem('isAdmin', JSON.stringify(isAdmin));
   }, [isLoggedIn, email, username, isAdmin]);
+
+  useEffect(() => {
+    if (!isLoggedIn) return undefined;
+
+    const resetIfSessionEnded = () => {
+      if (getSessionToken()) return;
+      clearSession();
+      setIsLoggedIn(false);
+      setEmail('');
+      setPassword('');
+      setUsername('');
+      setIsAdmin(false);
+      setMessage('Please sign in again to continue.');
+    };
+    const handleStorageChange = event => {
+      if (event.storageArea === localStorage && (event.key === 'email' || event.key === null)) {
+        resetIfSessionEnded();
+      }
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, resetIfSessionEnded);
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener(SESSION_EXPIRED_EVENT, resetIfSessionEnded);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [isLoggedIn]);
 
   useSessionHeartbeat(isLoggedIn ? email : '');
 

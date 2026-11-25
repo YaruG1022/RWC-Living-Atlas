@@ -40,7 +40,7 @@ def main():
         assert login.status_code == 200, f'Sign-in HTTP {login.status_code}'
         auth = {'Authorization': 'Bearer ' + login.json()['session_token']}
         fields = {'title': title, 'username': username, 'email': email, 'name': 'Fixture', 'category': 'Other', 'latitude': '46', 'longitude': '-117'}
-        created = requests.post(base + '/uploadForm', data=fields, timeout=15)
+        created = requests.post(base + '/uploadForm', data=fields, headers=auth, timeout=15)
         assert created.status_code == 200, f'Create HTTP {created.status_code}'
         card_id = created.json()['card_id']
         png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a2ioAAAAASUVORK5CYII=')

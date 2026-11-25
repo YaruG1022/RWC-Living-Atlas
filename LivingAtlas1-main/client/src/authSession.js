@@ -1,4 +1,5 @@
 const storageKey = 'livingAtlasSession';
+export const SESSION_EXPIRED_EVENT = 'atlas:session-expired';
 
 export function storeSession(email, token) {
     sessionStorage.setItem(storageKey, JSON.stringify({ email, token }));

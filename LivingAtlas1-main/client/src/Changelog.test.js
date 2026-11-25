@@ -10,12 +10,12 @@ test('dialog and history display the same categorized release with earlier histo
     document.body.appendChild(appRoot);
     Modal.setAppElement(appRoot);
     const dialog = render(<ChangelogModal isOpen onClose={() => {}} />, { container: appRoot });
-    expect(guiReleases.slice(0, 7).map(release => release.date)).toEqual(['11/24/2026', '11/21/2026', '11/14/2026', '11/6/2026', '10/26/2026', '10/24/2026', '10/18/2026']);
+    expect(guiReleases.slice(0, 8).map(release => release.date)).toEqual(['11/25/2026', '11/24/2026', '11/21/2026', '11/14/2026', '11/6/2026', '10/26/2026', '10/24/2026', '10/18/2026']);
     const onlineStatusDates = guiReleases.filter(release =>
         release.groups.some(group => group.items.some(item => item.startsWith('Use Online status in More filters')))
     ).map(release => release.date);
     expect(onlineStatusDates).toEqual(['11/21/2026']);
-    expect(screen.getByText('Update Date: 11/24/2026').closest('details').open).toBe(true);
+    expect(screen.getByText('Update Date: 11/25/2026').closest('details').open).toBe(true);
     const november21 = screen.getByText('Update Date: 11/21/2026').closest('details');
     expect(within(november21).getByRole('heading', { name: 'Email Two-Factor Authentication' })).toBeInTheDocument();
     expect(within(november21).getByRole('heading', { name: 'Project Deletion' })).toBeInTheDocument();

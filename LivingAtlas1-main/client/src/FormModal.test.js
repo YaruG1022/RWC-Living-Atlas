@@ -68,6 +68,7 @@ test.each([{ username: account.username }, { email: account.email }, {}])('missi
 });
 
 test.each([
+    [{ response: { status: 401, data: { detail: 'Sign in again or request a new password reset link.' } } }, 'Please sign in again before creating this project.'],
     [{ response: { data: { detail: 'Email must match the registered account.' } } }, 'Email must match the registered account.'],
     [{ response: { data: { detail: [{ loc: ['body', 'email'], msg: 'field required' }] } } }, 'email: field required'],
     [new Error('Network Error'), 'Unable to reach the server. Check your connection and try again.'],

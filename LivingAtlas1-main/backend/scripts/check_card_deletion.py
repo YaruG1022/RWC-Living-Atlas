@@ -123,7 +123,7 @@ def main(baseline=False):
             assert change_role(unrelated_token, admin_email, True).status_code == 200
             assert change_role(admin_token, unrelated_email, False).status_code == 200
 
-            expired_token = login(unrelated_email)
+            expired_token = login(owner_email)
             with db, db.cursor() as cursor:
                 cursor.execute(
                     "UPDATE AccountTokens SET ExpiresAt = statement_timestamp() - interval '1 second' WHERE TokenHash = %s",
@@ -131,6 +131,36 @@ def main(baseline=False):
                 )
                 assert cursor.rowcount == 1
             assert delete(expired_token, **target).status_code == 401
+            create_fields = dict(
+                username=owner, email=owner_email, name='Fixture author',
+                title=f'{title}_create_delete', latitude='46', longitude='-117',
+                contact_email='project-contact@example.invalid',
+            )
+            for description, token, expected_status in (
+                ('missing', None, 401),
+                ('expired', expired_token, 401),
+                ('different account', unrelated_token, 403),
+            ):
+                rejected = requests.post(f'{API_BASE}/uploadForm', data=create_fields,
+                                         headers=authorization(token), timeout=15)
+                assert rejected.status_code == expected_status, (
+                    f'Create with {description} session returned HTTP {rejected.status_code}; '
+                    f'expected {expected_status}'
+                )
+            with db, db.cursor() as cursor:
+                cursor.execute('SELECT COUNT(*) FROM Cards WHERE Title = %s', (create_fields['title'],))
+                assert cursor.fetchone()[0] == 0
+
+            created = requests.post(f'{API_BASE}/uploadForm', data=create_fields,
+                                    headers=authorization(owner_token), timeout=15)
+            assert created.status_code == 200 and created.json().get('card_id'), created.text
+            created_id = created.json()['card_id']
+            with db, db.cursor() as cursor:
+                cursor.execute('SELECT UserID, ContactEmail FROM Cards WHERE CardID = %s', (created_id,))
+                assert cursor.fetchone() == (owner_id, create_fields['contact_email'])
+            assert delete(owner_token, card_id=created_id, username=owner, title=create_fields['title']).status_code == 200
+            print('PASS: missing and expired sessions cannot create; the owner can create and delete with one session')
+
             other_admin_token = login(admin_email)
             switched_token = login(unrelated_email, previous_token=other_admin_token)
             assert delete(other_admin_token, **target).status_code == 401
@@ -165,6 +195,7 @@ def main(baseline=False):
                     data=dict(username=owner, email=owner_email, name='Fixture author',
                               title=f'{title}_{i}', latitude='46', longitude='-117'),
                     files={'files': (f'{prefix}.csv', f'value\n{i}\n', 'text/csv')},
+                    headers=authorization(owner_token),
                     timeout=15,
                 )
                 assert response.status_code == 200 and response.json().get('card_id'), response.text

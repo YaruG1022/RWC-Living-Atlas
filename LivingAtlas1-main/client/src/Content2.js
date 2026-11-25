@@ -14,7 +14,6 @@ import { curLocationCoordinates, searchLocationCoordinates } from './Content1.js
 import api from './api.js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faAngleDoubleLeft, faAngleDoubleRight, faHeart, faSearch, faTimes, faPlus, faMapMarkerAlt, faList, faGrip, faRightLeft, faThumbtack, faEllipsisV, faQuestion, faPlay } from '@fortawesome/free-solid-svg-icons';
-import { useLocation } from 'react-router-dom';
 
 const dedupeCards = (items) => {
     const seen = new Set();
@@ -209,8 +208,10 @@ function Content2(props) {
         }
     }, [props.isCollapsed, isOnboardingOpen]);
 
-    const location = useLocation();
-    const resolvedUsername = props.username || location.state?.username || localStorage.getItem("username");
+    const resolvedUsername = props.isLoggedIn ? props.username || '' : '';
+    const viewerEmail = props.isLoggedIn ? props.email || '' : '';
+    const viewer = useMemo(() => ({ username: resolvedUsername, email: viewerEmail }), [resolvedUsername, viewerEmail]);
+    const activeViewer = useRef(viewer);
 
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
     const [cardSearchKeyword, setCardSearchKeyword] = useState(props.searchCondition || '');
@@ -330,9 +331,9 @@ function Content2(props) {
         // Show all locally if no filters
         if (!props.CategoryCondition && !props.filterCondition && !props.searchCondition && !props.sortCondition) {
             showAll();
-            const viewerEmail = localStorage.getItem('email') || '';
             api.get('/allCards', { params: viewerEmail ? { viewer_email: viewerEmail } : {} })
                 .then(response => {
+                    if (activeViewer.current !== viewer) return;
                     const cardData = response.data?.data || [];
                     console.log('[Content2] /allCards response:', cardData.length, 'cards');
                     
@@ -349,10 +350,10 @@ function Content2(props) {
 
         // Always fetch filtered/sorted cards from the server
         showAll();
-        const viewerEmail = localStorage.getItem('email') || '';
         if (viewerEmail) params.viewer_email = viewerEmail;
         api.get('/allCardsByTag', { params })
             .then(response => {
+                if (activeViewer.current !== viewer) return;
                 const cardData = response.data?.data || [];
                 
                 // Deduplicate by cardID
@@ -489,16 +490,16 @@ function Content2(props) {
     const [activeTagFilters, setActiveTagFilters] = useState([]);
 
     useEffect(() => {
+        if (activeViewer.current !== viewer) setCards([]);
+        activeViewer.current = viewer;
+        setBookmarkedCardIDs(new Set());
+        setBookmarksLoaded(!resolvedUsername);
         if (resolvedUsername) {
-            localStorage.setItem("username", resolvedUsername);
             fetchBookmarks();
         } else {
-            // 🔹 NOT LOGGED IN: treat bookmarks as "loaded" with an empty set
-            setBookmarkedCardIDs(new Set());
-            setBookmarksLoaded(true);
             setShowFavoritesOnly(false);
         }
-    }, [resolvedUsername]);
+    }, [viewer]);
 
     useEffect(() => {
         setCardSearchKeyword(props.searchCondition || '');
@@ -517,7 +518,7 @@ function Content2(props) {
         const handler = () => loadCardsByCriteria();
         window.addEventListener('atlas:card-uploaded', handler);
         return () => window.removeEventListener('atlas:card-uploaded', handler);
-    }, []);
+    }, [viewer, props.CategoryCondition, props.filterCondition, props.searchCondition, props.sortCondition]);
 
     useEffect(() => {
         loadCardsByCriteria();
@@ -626,6 +627,7 @@ function Content2(props) {
                 }
             })
                 .then(response => {
+                    if (activeViewer.current !== viewer) return;
                     if (Array.isArray(response.data.data)) {
                         const cardData = response.data.data;
                         
@@ -669,7 +671,7 @@ function Content2(props) {
             loadCardsByCriteria();
             props.setSearchTriggerSource?.('');
         }
-    }, [props.searchCondition, props.sidebarSearchRequestId, containerPanelSearchVersion]);
+    }, [props.searchCondition, props.sidebarSearchRequestId, containerPanelSearchVersion, viewer]);
 
     const fetchBookmarks = async () => {
         console.log("Fetching bookmarks for:", resolvedUsername);
@@ -682,10 +684,12 @@ function Content2(props) {
 
         try {
             await new Promise(r => setTimeout(r, 50));
+            if (activeViewer.current !== viewer) return;
 
             const res = await api.get('/getBookmarkedCards', {
                 params: { username: resolvedUsername }
             });
+            if (activeViewer.current !== viewer) return;
 
             console.log("[fetchBookmarks] Raw bookmarked data:", res.data.bookmarkedCards);
 
@@ -698,6 +702,7 @@ function Content2(props) {
             setBookmarkedCardIDs(new Set(cardIDs));
             setBookmarksLoaded(true);  //  mark loaded when done
         } catch (error) {
+            if (activeViewer.current !== viewer) return;
             console.error("[fetchBookmarks] Error fetching bookmarks:", error);
             setBookmarksLoaded(true);  // avoid infinite spinner on error
         }
@@ -913,7 +918,7 @@ function Content2(props) {
 
             <FormModal 
                 username={resolvedUsername} 
-                email={props.email} 
+                email={viewerEmail}
                 isOpen={isModalOpen} 
                 onRequestClose={closeModal}
                 onPointLocationSelected={openModal}

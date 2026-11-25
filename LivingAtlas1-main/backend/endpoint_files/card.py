@@ -18,7 +18,7 @@ import re
 import tempfile
 from endpoint_files.description_attachments import parse_attachment_tokens, resolve_attachment_token
 from database import get_connection, get_request_connection, release_request_connection
-from sessions import bearer_token, optional_bearer_token, require_account
+from sessions import bearer_token, require_account
 from .file_utils import compress_file #importing my function that handles compressing files for use in /uploadForm
 
 
@@ -437,7 +437,7 @@ async def upload_form(
     original_username: Optional[str] = Form(None),
     original_email: Optional[str] = Form(None),
     original_title: Optional[str] = Form(None),
-    session_token: Optional[str] = Depends(optional_bearer_token),
+    session_token: str = Depends(bearer_token),
     cardID: Optional[int] = Form(None, gt=0),
     is_public: Optional[str] = Form("true"),
     gallery_layout: Optional[str] = Form(None),
@@ -513,17 +513,14 @@ async def upload_form(
     print(f"[UPLOAD] location_type={location_type}, polygon_fill_color={polygon_fill_color!r}, polygon_line_style={polygon_line_style!r}")
     print(f"[UPLOAD] polygon_coordinates (first 200 chars): {str(polygon_coordinates)[:200] if polygon_coordinates else 'None'}")
 
-    upload_conn, upload_cur = conn, cur
-    if update:
-        session_token = bearer_token(session_token)
-        upload_conn = get_request_connection()
-        if upload_conn is None:
-            raise HTTPException(status_code=503, detail="Database connection unavailable")
-        upload_cur = None
+    upload_conn = get_request_connection()
+    if upload_conn is None:
+        raise HTTPException(status_code=503, detail="Database connection unavailable")
+    upload_cur = None
     try:
+        upload_cur = upload_conn.cursor()
+        requester_id, _, requester_is_admin = require_account(upload_cur, session_token)
         if update:
-            upload_cur = upload_conn.cursor()
-            requester_id, _, requester_is_admin = require_account(upload_cur, session_token)
             lookup = """
                 SELECT c.CardID, c.UserID, u.Username
                 FROM Cards c JOIN Users u ON u.UserID = c.UserID
@@ -557,9 +554,6 @@ async def upload_form(
                     )
                 userID = new_owner[0]
         else:
-            upload_cur.execute("SELECT MAX(CardID) FROM Cards")
-            maxcardid = upload_cur.fetchone()
-            nextcardid = (maxcardid[0] or 0) + 1
             upload_cur.execute(
                 "SELECT userID FROM Users WHERE username = %s AND email = %s",
                 (username, email)
@@ -567,7 +561,12 @@ async def upload_form(
             user_row = upload_cur.fetchone()
             if not user_row:
                 raise HTTPException(status_code=404, detail="No account matches this username and account email. Please sign in again before uploading.")
-            userID = user_row[0]
+            if user_row[0] != requester_id:
+                raise HTTPException(status_code=403, detail="Create the project with the account you are signed in to.")
+            userID = requester_id
+            upload_cur.execute("SELECT MAX(CardID) FROM Cards")
+            maxcardid = upload_cur.fetchone()
+            nextcardid = (maxcardid[0] or 0) + 1
 
         # --------------------------------------------------
         # Map category name to ID
@@ -912,18 +911,18 @@ async def upload_form(
                     for idx, img_file in enumerate(images):
                         try:
                             asset = _save_img(img_file)
-                            cur.execute(
+                            upload_cur.execute(
                                 "INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText, OriginalURL, ImageWidth, ImageHeight) VALUES (%s, %s, %s, '', %s, %s, %s)",
                                 (nextcardid, asset['url'], idx, asset['original_url'], asset['width'], asset['height'])
                             )
                         except Exception as img_err:
                             print(f"[IMAGE] Failed to upload image at index {idx}: {img_err}")
-                conn.commit()
+                upload_conn.commit()
                 print(f"[IMAGES] Inserted gallery CardImages for new image-overlay card {nextcardid}")
             except Exception as img_err:
                 print(f"[IMAGE] Failed to insert CardImages: {img_err}")
                 try:
-                    conn.rollback()
+                    upload_conn.rollback()
                 except Exception:
                     pass
         elif not update and not defer_images:
@@ -931,12 +930,12 @@ async def upload_form(
                 from endpoint_files.images import save_image_asset as _save_img
                 # Use the already-uploaded thumbnail as the first gallery image
                 if thumbnail_asset:
-                    cur.execute(
+                    upload_cur.execute(
                         "INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText, OriginalURL, ImageWidth, ImageHeight) VALUES (%s, %s, 0, '', %s, %s, %s)",
                         (nextcardid, thumbnail_url, thumbnail_asset['original_url'], thumbnail_asset['width'], thumbnail_asset['height'])
                     )
                 else:
-                    cur.execute(
+                    upload_cur.execute(
                         "INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText) VALUES (%s, %s, 0, '')",
                         (nextcardid, thumbnail_url)
                     )
@@ -945,18 +944,18 @@ async def upload_form(
                     for idx, img_file in enumerate(images[1:], start=1):
                         try:
                             asset = _save_img(img_file)
-                            cur.execute(
+                            upload_cur.execute(
                                 "INSERT INTO CardImages (CardID, ImageURL, DisplayOrder, AltText, OriginalURL, ImageWidth, ImageHeight) VALUES (%s, %s, %s, '', %s, %s, %s)",
                                 (nextcardid, asset['url'], idx, asset['original_url'], asset['width'], asset['height'])
                             )
                         except Exception as img_err:
                             print(f"[IMAGE] Failed to upload image at index {idx}: {img_err}")
-                conn.commit()
+                upload_conn.commit()
                 print(f"[IMAGES] Inserted CardImages for new card {nextcardid}")
             except Exception as img_err:
                 print(f"[IMAGE] Failed to insert CardImages: {img_err}")
                 try:
-                    conn.rollback()
+                    upload_conn.rollback()
                 except Exception:
                     pass
 
@@ -982,14 +981,8 @@ async def upload_form(
         print(f"[UPLOADFORM ERROR] {e}")
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        if update:
-            try:
-                if upload_cur is not None:
-                    upload_cur.close()
-            finally:
-                release_request_connection(upload_conn)
-        else:
-            try:
-                conn.rollback()
-            except Exception:
-                pass
+        try:
+            if upload_cur is not None:
+                upload_cur.close()
+        finally:
+            release_request_connection(upload_conn)

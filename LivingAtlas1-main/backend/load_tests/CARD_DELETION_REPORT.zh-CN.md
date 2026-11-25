@@ -34,3 +34,14 @@ Edge 浏览器测试使用合成管理员的本地登录状态。打开另一账
 从后端目录运行 `python -m scripts.check_card_deletion`、`python -m scripts.check_card_contact_email` 和 `python -m scripts.check_account_recovery`。测试使用隔离数据库和合成账号。恢复邮件使用测试替身（test double），未向真实地址发送邮件。
 
 图库选择、图片处理和位置转换的三个相邻集成测试（integration test）均通过。另有 47 项后端离线测试和 97 项前端测试通过。图片测试首次启动时，测试迁移等待本地服务遗留的只读事务释放表锁。一次本地读取关闭了旧事务，测试随后完成，全部合成账号和临时文件已清理。
+
+## 创建和删除使用同一会话
+
+2026-11-25 从 `main` 的 `035b366` 开始验证。后端以 `LOCAL_TEST_MODE=1` 连接 `127.0.0.1:5433/livingatlas_test` 上的隔离数据库。从后端目录运行 `python -m scripts.check_card_deletion`，通过 `TEST_API_BASE` 分别指向修复前的 `http://127.0.0.1:8001` 和修复后的 `http://127.0.0.1:8002`。
+
+- 修复前，缺少会话令牌（session token）的创建请求返回 HTTP 200，预期为 HTTP 401。失败后完成测试数据清理。
+- 修复后，缺少令牌和令牌过期均返回 HTTP 401，使用其他账号的有效令牌返回 HTTP 403。数据库中没有写入被拒绝的卡片。所有者用同一令牌完成创建和删除，项目联系邮箱独立保存。管理员和所有者的删除权限、关联记录和文件清理等原有用例均通过，测试数据已清理。
+- `python -m unittest tests.test_gallery_layout` 的 19 项图库测试通过。
+- 本地 Edge 浏览器通过真实登录表单登录，创建及删除请求均返回 HTTP 200，且携带同一个会话令牌。没有令牌的新标签页访问个人资料时转到登录页，原标签页仍可完成创建和删除。地图样式使用测试替身（test double）。测试仅连接本地前后端，临时账号和卡片已清理。
+- 联系邮箱、附件下载、默认封面、图库选择、图片处理和位置转换回归均通过。并行启动联系人测试时，旧测试进程的读取事务（read transaction）曾阻塞启动迁移（startup migration）。停止该本地后端后继续运行，依次重跑通过。最终查询确认本轮测试账号与卡片均为零。
+- 前端 44 个测试套件（test suite）共 301 项通过，生产构建（production build）完成并报告代码检查提示。测试日志（test log）和构建日志（build log）在后端的本地忽略目录 `.local-postgres/` 中，分别为 `card-session-jest.log` 和 `card-session-production-build.log`。

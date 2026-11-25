@@ -42,3 +42,39 @@ YG1022，Windows、Python 3.12、PostgreSQL `127.0.0.1:5433/livingatlas_test`、
 原始证据在 YG1022 的 `C:\Users\yarug\Documents\LivingAtlas-Dev\logs\`：`probe-custom-layer-save.log`（修复前）、`custom-layer-integration.log`、`custom-layer-two-worker-integration.log`、`custom-layer-backend-tests.log`、`custom-layer-client-tests.log`。工作区日志：`/tmp/custom-layer-all-client-tests.log`、`/tmp/custom-layer-final-build.log`。
 
 退出条件已满足：原失败用例通过、数据一致、无残留、相邻回归通过。未测 CPU/内存容量或生产环境，未联系外部 ArcGIS，也未执行浏览器视觉验收。其他仍使用模块级数据库对象的旧路由不在本轮范围内。
+
+## ZIP 上传与当前文件夹回归（2026-11-25）
+
+实现提交（commit）为 `a8034fe`，测试提交为 `62f5541`。本轮覆盖顶层和嵌套 ZIP 上传、当前文件夹下的手动创建、同名导入与重试（retry）、部分保存及首次保存失败时的事务回滚（transaction rollback）。
+
+测试使用 Windows、Node.js 24.22.3、Python 3.12.12 和 PostgreSQL 17.6。后端通过隔离测试库（isolated test database）验证了真实的 `/allCards` 查询。数据库地址为 `127.0.0.1:5433/livingatlas_test`，`LOCAL_TEST_MODE=1`。应用程序接口（application programming interface, API）位于 `127.0.0.1:8012`，单进程连接池（connection pool）大小为 4，最高并发数为 4。前端组件测试（component tests）使用接口和地图替身（test doubles），后端转换测试使用合成文件。
+
+| 检查 | 结果 |
+| --- | --- |
+| 图层面板和上传前端测试 | 3 套件，16 项通过 |
+| 更新记录和手册前端测试 | 2 套件，9 项通过 |
+| 前端完整回归 | 44 套件，304 项通过 |
+| 后端合约与 ZIP 转换 | 19 项通过 |
+| 本地 API 和数据库 | 50/50 正常请求通过，另有 3 次预期的错误响应（400、404、500 各 1 次） |
+| 本地请求延迟（request latency） | p50 / p95 / p99 分别为 26.1 / 117.1 / 125.0 毫秒 |
+| 前端生产构建（production build） | 编译成功，输出既有的检查和资源体积警告 |
+
+同名并发请求创建独立文件夹，同一保存请求重试沿用原文件夹。第二个图层保存到对应 ZIP 的文件夹。故意触发首次保存失败后，测试确认没有生成空文件夹。数据库核对与清理完成后，测试图层、文件夹和临时模式（temporary schema）残留均为 0。
+
+首次从受限执行环境启动测试服务时，本地数据库连接超时。改用获准的本地进程后完成验证。测量数据仅覆盖本地功能样本，生产环境和浏览器端到端流程（end-to-end flow）未参与本轮测试。
+
+在 `client` 目录运行前端测试和构建：
+
+```powershell
+node node_modules/react-scripts/bin/react-scripts.js test --transformIgnorePatterns 'node_modules/(?!axios)/' --watchAll=false --runInBand CustomLayersPanel.test.js CustomLayersPanel.upload.test.js customLayerUpload.test.js Changelog.test.js UserManual.test.js
+node node_modules/react-scripts/bin/react-scripts.js test --transformIgnorePatterns 'node_modules/(?!axios)/' --watchAll=false --runInBand --silent
+node node_modules/react-scripts/bin/react-scripts.js build
+```
+
+在 `backend` 目录运行后端测试。服务启动时设置 `DB_REQUEST_POOL_SIZE=4` 并绑定本地端口 `8012`：
+
+```powershell
+& .\.venv-local\Scripts\python.exe -m unittest -v tests.test_custom_layers tests.test_gis_import
+$env:TEST_API_BASE='http://127.0.0.1:8012'
+& .\.venv-local\Scripts\python.exe -u scripts\check_custom_layer_workflow.py
+```

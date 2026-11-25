@@ -155,6 +155,7 @@ export const guiReleases = [
                 title: 'Custom Layers Folders and ZIP Uploads',
                 items: [
                     'Create Folder and ZIP uploads use your current location in Custom Layers. Each ZIP creates a folder named after the file and puts its imported layers inside.',
+                    'Deleting a Custom Layers folder hides its displayed layers on the map and moves its saved layers to Root.',
                 ],
             },
         ],

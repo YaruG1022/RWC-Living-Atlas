@@ -514,7 +514,7 @@
         },
         {
           "type": "text",
-          "text": " — delete the folder (services inside are moved to Root)"
+          "text": " — delete the folder, hide its displayed layers on the map, and move its saved services to Root"
         },
         {
           "type": "break"

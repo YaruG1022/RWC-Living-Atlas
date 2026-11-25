@@ -78,3 +78,17 @@ node node_modules/react-scripts/bin/react-scripts.js build
 $env:TEST_API_BASE='http://127.0.0.1:8012'
 & .\.venv-local\Scripts\python.exe -u scripts\check_custom_layer_workflow.py
 ```
+
+## 删除文件夹时隐藏图层（2026-11-25）
+
+基线（baseline）为 `a879491`，实现提交为 `447a100`，回归测试提交为 `9f7b8bc`。本轮在 Windows 和 Node.js 24.22.3 上使用地图和应用程序接口（application programming interface, API）替身（test doubles）运行前端组件测试（component tests）。
+
+回归用例通过右键菜单确认删除，复现了接口成功后地图数据源（map source）仍然存在的问题。删除流程先前只修改文件夹归属，保留了图层勾选状态。修复后，按服务清除勾选状态，沿用取消勾选时的地图清除流程。复测确认目标图层隐藏，移动到 `Root` 后处于未勾选状态，另一已显示的图层仍可见。用例使用合成图层，无数据库写入。
+
+相关前端回归共 6 套件、28 项通过。手册导出校验（manual export validation）通过，前端生产构建（production build）成功并输出既有警告。在 `client` 目录重跑相关检查：
+
+```powershell
+node node_modules/react-scripts/bin/react-scripts.js test --transformIgnorePatterns 'node_modules/(?!axios)/' --watchAll=false --runInBand CustomLayersPanel.upload.test.js CustomLayersPanel.test.js CustomLayerUploadButton.test.js customLayerUpload.test.js Changelog.test.js UserManual.test.js
+node --test scripts/export-manual.test.cjs
+node node_modules/react-scripts/bin/react-scripts.js build
+```

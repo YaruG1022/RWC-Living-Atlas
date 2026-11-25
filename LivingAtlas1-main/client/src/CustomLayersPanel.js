@@ -33,6 +33,8 @@ import CustomLayersPanelOnboarding from './OnboardingCustomLayersPanel';
 // previous session is pushed to the DB once and then cleared locally.
 const LEGACY_UPLOADED_META_KEY = 'custom_layers_uploaded_meta';
 
+const childFolderPath = (parent, name) => parent ? `${parent}/${name}` : name;
+
 async function migrateLegacyUploadedLayers(userEmail) {
     let meta;
     try {
@@ -221,8 +223,8 @@ function CustomLayersPanel({
     }, [userEmail, refreshKey, reloadAttempt]);
 
     // Group services by folder (preserving sort_order from DB)
-    const servicesByFolder = {};
-    const folderFirstOrder = {};
+    const servicesByFolder = Object.create(null);
+    const folderFirstOrder = Object.create(null);
     // Include user-created folders (even if empty)
     dbFolders.forEach(f => {
         if (!servicesByFolder[f.folder_name]) servicesByFolder[f.folder_name] = [];
@@ -448,7 +450,7 @@ function CustomLayersPanel({
     let servicesByFolderToShow = searchResult ? searchResult.filteredFolders : servicesByFolder;
 
     if (showAddedOnly) {
-        const filteredFolders = {};
+        const filteredFolders = Object.create(null);
         foldersToShow.forEach(folder => {
             const filteredServices = (servicesByFolderToShow[folder] || []).filter(service =>
                 (checkedLayerIds[service.key] || []).length > 0
@@ -1165,6 +1167,12 @@ function CustomLayersPanel({
         handleLayerDragEnd();
     }, [dragLayerItem, serviceLayers, layerOrder, userEmail, handleLayerDragEnd]);
 
+    const rememberFolder = (path, sortOrder) => {
+        setDbFolders(previous => previous.some(folder => folder.folder_name === path)
+            ? previous
+            : [...previous, { folder_name: path, sort_order: sortOrder ?? previous.length }]);
+    };
+
     // Import all spatial layers, preserve their attributes, and display them immediately.
     const handleFileUpload = async (event, format) => {
         const file = event.target.files?.[0];
@@ -1175,18 +1183,23 @@ function CustomLayersPanel({
         setUploadError('');
         setUploadNotice('');
         const saved = [];
-        const folder = currentPath || 'Root';
         try {
             const result = await readCustomLayerFile(file, format);
-            const basename = file.name.replace(/\.(geojson|json|kml|zip)$/i, '');
+            const isZip = /\.zip$/i.test(file.name);
+            const basename = file.name.replace(/\.(geojson|json|kml|zip)$/i, '').trim() || 'Upload';
+            let folder = isZip ? childFolderPath(currentPath, basename) : (currentPath || 'Root');
             for (const layer of result.layers) {
                 const key = `uploaded_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
                 const label = result.layers.length === 1 ? basename : `${basename} — ${layer.name}`;
-                const service = { key, label, url: `local://${key}`, type: 'uploaded', folder, sort_order: Date.now(), state: '' };
-                await saveCustomLayer(userEmail, { ...service, geojson: layer.geojson });
+                const newFolder = isZip && saved.length === 0;
+                const metadata = { key, label, url: `local://${key}`, type: 'uploaded', sort_order: Date.now(), state: '' };
+                const savedLayer = await saveCustomLayer(userEmail, { ...metadata, folder, newFolder, geojson: layer.geojson });
+                if (newFolder) folder = savedLayer.folder || folder;
+                const service = { ...metadata, folder };
                 uploadedGeojsonCache.current[key] = layer.geojson;
                 saved.push({ service, geojson: layer.geojson });
                 unstable_batchedUpdates(() => {
+                    if (newFolder) rememberFolder(folder, savedLayer.folder_order);
                     setCustomServices(previous => [...previous, service]);
                     setServiceLayers(previous => ({ ...previous, [key]: [{ id: 0, name: label, type: 'Feature Layer' }] }));
                     setCheckedLayerIds(previous => ({ ...previous, [key]: [0] }));
@@ -1209,24 +1222,24 @@ function CustomLayersPanel({
 
     // --- Folder management ---
     const handleCreateFolder = async () => {
-        const name = await showAppPrompt('Create a folder in your layer library.', {
+        const validate = value => {
+            const name = value.trim();
+            if (!name) return 'Enter a folder name.';
+            if (name.includes('/')) return 'Folder names cannot contain a slash (/).';
+            return folderNames.includes(childFolderPath(currentPath, name)) ? 'A folder with this name already exists.' : '';
+        };
+        const name = await showAppPrompt(currentPath ? `Create a folder inside "${folderDisplayName(currentPath)}".` : 'Create a folder in your layer library.', {
             title: 'New Folder',
             inputLabel: 'Folder name',
             confirmLabel: 'Create Folder',
-            validate: value => !value.trim() ? 'Enter a folder name.'
-                : folderNames.includes(value.trim()) ? 'A folder with this name already exists.' : '',
+            validate,
         });
-        if (!name || !name.trim()) return;
-        const trimmed = name.trim();
-        // Check if folder already exists
-        if (folderNames.includes(trimmed)) {
-            showAppAlert('A folder with this name already exists.');
-            return;
-        }
+        if (!name) return;
+        const folder = childFolderPath(currentPath, name.trim());
         try {
-            const result = await createCustomFolder(userEmail, trimmed);
-            setDbFolders(prev => [...prev, { folder_name: trimmed, sort_order: result.sort_order ?? prev.length }]);
-            setExpandedFolders(prev => new Set(prev).add(trimmed));
+            const result = await createCustomFolder(userEmail, folder);
+            rememberFolder(folder, result.sort_order);
+            setExpandedFolders(prev => new Set(prev).add(folder));
         } catch (err) {
             console.warn('[CustomLayersPanel] Failed to create folder:', err);
             showAppAlert('The folder could not be created. Please try again.', { title: 'New Folder' });

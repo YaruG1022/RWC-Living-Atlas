@@ -747,6 +747,7 @@ class SaveCustomLayerRequest(BaseModel):
     # Serialized GeoJSON FeatureCollection — only set for uploaded file layers
     # (type = 'uploaded'); NULL for ArcGIS service layers.
     geojson: Optional[str] = None
+    new_folder: bool = False
 
 class DeleteCustomLayerRequest(BaseModel):
     user_email: str
@@ -772,6 +773,31 @@ def _custom_layer_database():
         release_request_connection(connection)
 
 
+def _reserve_custom_layer_folder(cur, user_email, preferred_folder):
+    cur.execute("""
+        SELECT COALESCE(MAX(sort_order), -1) + 1 FROM user_custom_folders WHERE user_email = %s
+    """, (user_email,))
+    folder_order = cur.fetchone()[0]
+    folder = preferred_folder
+    suffix = 2
+    while True:
+        # Root is the built-in folder for layers without a user-created folder.
+        if folder != 'Root':
+            cur.execute("""
+                INSERT INTO user_custom_folders (user_email, folder_name, sort_order)
+                SELECT %s, %s, %s
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM user_custom_layers WHERE user_email = %s AND folder = %s
+                )
+                ON CONFLICT (user_email, folder_name) DO NOTHING
+                RETURNING folder_name
+            """, (user_email, folder, folder_order, user_email, folder))
+            if cur.fetchone() is not None:
+                return folder, folder_order
+        folder = f'{preferred_folder} ({suffix})'
+        suffix += 1
+
+
 @arcgis_router.post("/custom-layers/save")
 def save_custom_layer(request: SaveCustomLayerRequest, database=Depends(_custom_layer_database)):
     conn, cur = database
@@ -780,11 +806,33 @@ def save_custom_layer(request: SaveCustomLayerRequest, database=Depends(_custom_
     if not request.service_key or not request.service_key.strip():
         raise HTTPException(status_code=400, detail="service_key is required")
 
+    user_email = request.user_email.strip()
+    service_key = request.service_key.strip()
+    folder = request.folder.strip()
+    if request.new_folder and not folder:
+        raise HTTPException(status_code=400, detail="folder is required")
+
     try:
+        if request.new_folder:
+            # A network retry of the first layer must reuse its committed folder.
+            cur.execute("SELECT pg_advisory_xact_lock(hashtext(%s), hashtext(%s))", (user_email, service_key))
+            cur.execute("""
+                SELECT layer.folder, folder.sort_order
+                FROM user_custom_layers AS layer
+                LEFT JOIN user_custom_folders AS folder
+                    ON folder.user_email = layer.user_email AND folder.folder_name = layer.folder
+                WHERE layer.user_email = %s AND layer.service_key = %s
+            """, (user_email, service_key))
+            existing = cur.fetchone()
+            if existing is not None:
+                conn.commit()
+                return {"success": True, "folder": existing[0], "folder_order": existing[1]}
+            folder, folder_order = _reserve_custom_layer_folder(cur, user_email, folder)
+
         # Assign sort_order = max + 1 for new entries
         cur.execute("""
             SELECT COALESCE(MAX(sort_order), -1) + 1 FROM user_custom_layers WHERE user_email = %s
-        """, (request.user_email.strip(),))
+        """, (user_email,))
         next_order = cur.fetchone()[0]
         cur.execute("""
             INSERT INTO user_custom_layers (user_email, service_key, label, url, folder, type, state, sort_order, geojson, saved_at)
@@ -795,29 +843,30 @@ def save_custom_layer(request: SaveCustomLayerRequest, database=Depends(_custom_
                           -- a rename/move posts no geojson; keep the stored features in that case
                           geojson = COALESCE(EXCLUDED.geojson, user_custom_layers.geojson)
         """, (
-            request.user_email.strip(),
-            request.service_key.strip(),
+            user_email,
+            service_key,
             request.label.strip(),
             request.url.strip(),
-            request.folder.strip(),
+            folder,
             request.type.strip(),
             request.state.strip(),
             next_order,
             request.geojson,
         ))
         # Auto-create the parent folder so it persists even when all services are removed
-        folder = request.folder.strip()
-        if folder and folder != 'Root':
+        if not request.new_folder and folder and folder != 'Root':
             cur.execute("""
                 SELECT COALESCE(MAX(sort_order), -1) + 1 FROM user_custom_folders WHERE user_email = %s
-            """, (request.user_email.strip(),))
+            """, (user_email,))
             folder_order = cur.fetchone()[0]
             cur.execute("""
                 INSERT INTO user_custom_folders (user_email, folder_name, sort_order)
                 VALUES (%s, %s, %s)
                 ON CONFLICT (user_email, folder_name) DO NOTHING
-            """, (request.user_email.strip(), folder, folder_order))
+            """, (user_email, folder, folder_order))
         conn.commit()
+        if request.new_folder:
+            return {"success": True, "folder": folder, "folder_order": folder_order}
         return {"success": True, "message": f"Layer '{request.label}' saved to custom layers"}
     except Exception as e:
         conn.rollback()
